@@ -1,0 +1,219 @@
+<app-auth-page-layout>
+  <div class="flex flex-col flex-1"> 
+
+  <div class="w-full max-w-md mx-auto mb-5 sm:pt-10">
+    <a routerLink="/signin"
+      class="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
+      <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20" fill="none" class="size-5">
+        <path d="M12.7083 5L7.5 10.2083L12.7083 15.4167" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+          stroke-linejoin="round"></path>
+      </svg>
+      Back to Sign In
+    </a>
+  </div>
+
+  <div class="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
+    <div>
+      <!-- Écran 1: Saisie de l'email -->
+      @if (isEmailScreen) {
+        <div>
+          <div class="mb-5 sm:mb-8">
+            <h1 class="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
+              Email Verification
+            </h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Enter your email to receive a verification code
+            </p>
+          </div>
+
+          <!-- Alert Messages -->
+          @if (successMessage) {
+            <app-alert
+              variant="success"
+              title="Success"
+              [message]="successMessage"
+              [showLink]="false"
+            ></app-alert>
+          }
+          
+          @if (errorMessage) {
+            <app-alert
+              variant="error"
+              title="Error"
+              [message]="errorMessage"
+              [showLink]="false"
+            ></app-alert>
+          }
+
+          <!-- Formulaire Email -->
+          <form class="space-y-5" (ngSubmit)="sendOtp()" #emailForm="ngForm">
+            <div>
+              <app-label>
+                Email Address <span class="text-error-500">*</span>
+              </app-label>
+              <app-input-field 
+                type="email" 
+                [value]="email" 
+                id="email" 
+                name="email" 
+                placeholder="exemple@email.com"
+                required
+              />
+              @if (emailForm.submitted && !email) {
+                <p class="mt-1 text-sm text-red-500">
+                  Email is required
+                </p>
+              }
+            </div>
+
+            <div>
+              <button 
+                type="submit"
+                [disabled]="isLoading || !email"
+                class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed">
+                @if (isLoading) {
+                  <svg class="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Sending...</span>
+                } @else {
+                  <span>Send Verification Code</span>
+                }
+              </button>
+            </div>
+          </form>
+
+          <div class="mt-5">
+            <p class="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
+              Remember your password?
+              <a routerLink="/signin" class="text-brand-500 hover:text-brand-600 dark:text-brand-400">
+                Sign In
+              </a>
+            </p>
+          </div>
+        </div>
+      }
+
+      <!-- Écran 2: Saisie du code OTP -->
+      @if (!isEmailScreen) {
+        <div>
+          <div class="mb-5 sm:mb-8">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 dark:bg-blue-900/20 mb-4">
+              <svg class="h-6 w-6 text-blue-600 dark:text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <h1 class="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
+              Verification Code
+            </h1>
+            <p class="text-sm text-gray-500 dark:text-gray-400">
+              Enter the 6-digit code sent to
+            </p>
+            <p class="font-medium text-gray-900 dark:text-white break-all">{{ email }}</p>
+          </div>
+
+          <!-- Alert Messages -->
+          @if (successMessage) {
+            <app-alert
+              variant="success"
+              title="Success"
+              [message]="successMessage"
+              [showLink]="false"
+            ></app-alert>
+          }
+          
+          @if (errorMessage) {
+            <app-alert
+              variant="error"
+              title="Error"
+              [message]="errorMessage"
+              [showLink]="false"
+            ></app-alert>
+          }
+
+          <!-- Formulaire OTP -->
+          <br>
+          <form class="space-y-5" (ngSubmit)="validateOtp()">
+            <div>
+              <app-label>
+                OTP Code (6 digits) <span class="text-error-500">*</span>
+              </app-label>
+              <app-input-field 
+                type="text"
+                [value]="code"
+                (valueChange)="onCodeInput($event)"
+                id="otp-code"
+                name="code"
+                placeholder="000000"
+                maxlength="6"
+                autocomplete="one-time-code"
+                autofocus
+                [class]="errorMessage ? 'border-red-500' : (successMessage ? 'border-green-500' : '')"
+              />
+              <p class="mt-1 text-xs text-gray-500">
+                Enter the 6-digit code received by email
+              </p>
+            </div>
+
+            <div>
+              <button 
+                type="submit"
+                [disabled]="isLoading || code.length !== 6"
+                class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-green-600 shadow-theme-xs hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed">
+                @if (isLoading) {
+                  <svg class="w-4 h-4 mr-2 animate-spin" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                  <span>Verifying...</span>
+                } @else {
+                  <span>Verify Code</span>
+                }
+              </button>
+            </div>
+
+            <!-- Actions -->
+            <div class="flex justify-between pt-2">
+              <button
+                type="button"
+                class="text-sm text-brand-500 hover:text-brand-600 dark:text-brand-400"
+                (click)="changeEmail()"
+                [disabled]="isLoading"
+              >
+                ← Change Email
+              </button>
+              
+              <button
+                type="button"
+                class="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                (click)="resendOtp()"
+                [disabled]="isLoading"
+              >
+                Resend Code
+              </button>
+            </div>
+          </form>
+
+          <!-- Information Note -->
+          <div class="mt-6 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+            <p class="text-xs text-blue-800 dark:text-blue-300">
+              <strong>Note:</strong> The OTP code is valid for 10 minutes.
+              If you don't receive the code, check your spam folder.
+            </p>
+          </div>
+
+          <div class="mt-5">
+            <p class="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
+              Remember your password?
+              <a routerLink="/signin" class="text-brand-500 hover:text-brand-600 dark:text-brand-400">
+                Sign In
+              </a>
+            </p>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>
+</app-auth-page-layout>
