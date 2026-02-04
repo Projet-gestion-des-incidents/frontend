@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { AuthService } from './auth.service';
+import { User } from '../models/User.model';
 
 @Injectable({
   providedIn: 'root'
@@ -27,7 +28,9 @@ export class UserService {
   getAllUsers(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl, this.getAuthHeaders());
   }
-
+getAllUsersWithRoles(): Observable<User[]> {
+  return this.http.get<User[]>(`${this.apiUrl}/roles`, this.getAuthHeaders());
+}
   getUserById(id: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}`, this.getAuthHeaders());
   }
