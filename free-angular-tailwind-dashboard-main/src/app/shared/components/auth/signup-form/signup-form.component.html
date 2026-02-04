@@ -123,6 +123,28 @@
             </p>
           }
         </div>
+        <!-- Role selection -->
+<div>
+  <app-label>Role <span class="text-error-500">*</span></app-label>
+
+  <app-select
+  [options]="roleOptions"    [placeholder]="'Select a role'"
+    [value]="registerForm.get('roleId')?.value"
+    (valueChange)="registerForm.get('roleId')?.setValue($event)"
+    className="form-input w-full"
+  >
+  </app-select>
+
+  <p class="mt-1 text-sm text-red-500" 
+     *ngIf="registerForm.get('roleId')?.invalid && (registerForm.get('roleId')?.touched || registerForm.get('roleId')?.dirty)">
+    Please select a role
+  </p>
+</div>
+
+
+
+
+
         <!-- Button -->
         <div>
           <button type="submit" [disabled]="isLoading || registerForm.invalid"

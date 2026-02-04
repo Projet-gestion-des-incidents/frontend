@@ -8,6 +8,7 @@ import { LabelComponent } from '../../form/label/label.component';
 import { CheckboxComponent } from '../../form/input/checkbox.component';
 import { InputFieldComponent } from '../../form/input/input-field.component';
 import { AlertComponent } from '../../ui/alert/alert.component';
+import { SelectComponent } from '../../form/select/select.component';
 
 
 @Component({
@@ -19,6 +20,7 @@ import { AlertComponent } from '../../ui/alert/alert.component';
     RouterModule,
     LabelComponent,
     CheckboxComponent,
+    SelectComponent,
     InputFieldComponent,
     AlertComponent  
   ],
@@ -27,6 +29,9 @@ import { AlertComponent } from '../../ui/alert/alert.component';
 })
 
 export class SignupFormComponent {
+  roles: {id: string, name: string}[] = [];
+selectedRoleId: string = '';
+
   registerForm!: FormGroup;
   isLoading = false;
   showPassword = false;
@@ -65,12 +70,18 @@ clearAlert() {
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       password: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', [Validators.required]] // Ajouté car vous l'utilisez dans le validateur
+      
+      confirmPassword: ['', [Validators.required]] ,// Ajouté car vous l'utilisez dans le validateur
+          roleId: ['', Validators.required]  // ← Nouveau champ rôle
+
  
     }, {
       validators: this.passwordMatchValidator
     });
   }
+get roleOptions(): { value: string; label: string }[] {
+  return this.roles.map(r => ({ value: r.id, label: r.name }));
+}
 
   private passwordMatchValidator(control: AbstractControl): { [key: string]: boolean } | null {
     const password = control.get('password');
@@ -90,6 +101,22 @@ clearAlert() {
   get f() {
     return this.registerForm.controls;
   }
+ngOnInit(): void {
+  this.loadRoles();
+}
+
+private loadRoles(): void {
+  this.authService.getRolesForRegister().subscribe({
+    next: (roles) => {
+      // Filtrer uniquement Technicien et Commerçant
+      this.roles = roles.filter(r => r.name.toLowerCase() === 'technicien' || r.name.toLowerCase() === 'commercant');
+    },
+    error: (err) => {
+      console.error('Erreur lors du chargement des rôles:', err);
+      this.showError('Impossible de charger les rôles disponibles.');
+    }
+  });
+}
 
   onSubmit(event?: Event): void {
     console.log("here")
@@ -110,7 +137,8 @@ clearAlert() {
       password: this.registerForm.get('password')?.value,
       prenom: this.registerForm.get('firstName')?.value,
       nom: this.registerForm.get('lastName')?.value,
-      age: 25 // Valeur par défaut ou ajoutez un champ age
+      age: 25, // Valeur par défaut ou ajoutez un champ age
+roleId: this.registerForm.get('roleId')?.value 
     };
 
     this.isLoading = true;
@@ -140,6 +168,9 @@ clearAlert() {
 
   // AJOUTEZ CES GETTERS pour faciliter l'accès :
   get firstName() { return this.registerForm.get('firstName'); }
+  get roleId(){ return this.registerForm.get('roleId') ;
+}
+
   get lastName() { return this.registerForm.get('lastName'); }
   get email() { return this.registerForm.get('email'); }
   get password() { return this.registerForm.get('password'); }

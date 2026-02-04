@@ -23,6 +23,10 @@ import { OtpComponent } from './shared/components/auth/otp/otp.component';
 import { ForgotPasswordComponent } from './shared/components/auth/forgot-password/forgot-password.component';
 import { ResetPasswordComponent } from './shared/components/auth/reset-password/reset-password.component';
 import { ForgotPasswordPageComponent } from './pages/auth-pages/forgot-password/forgot-password/forgot-password-page/forgot-password-page.component';
+import { AdminDashboardComponent } from './pages/dashboard/admin-dashboard/admin-dashboard.component';
+import { TechnicienDashboardComponent } from './pages/dashboard/technicien-dashboard/technicien-dashboard.component';
+import { CommercantDashboardComponent } from './pages/dashboard/commercant-dashboard/commercant-dashboard.component';
+import { AuthGuard } from './shared/guards/auth.guard';
 
 
 export const routes: Routes = [
@@ -37,6 +41,25 @@ export const routes: Routes = [
         title:
           'Angular Ecommerce Dashboard | TailAdmin - Angular Admin Dashboard Template',
       },
+     {
+  path: 'admin-dashboard',
+  component: AdminDashboardComponent,
+  canActivate: [AuthGuard],
+  data: { roles: ['Admin'] }
+},
+{
+  path: 'technicien-dashboard',
+  component: TechnicienDashboardComponent,
+  canActivate: [AuthGuard],
+  data: { roles: ['Technicien'] }
+},
+{
+  path: 'commercant-dashboard',
+  component: CommercantDashboardComponent,
+  canActivate: [AuthGuard],
+  data: { roles: ['Commercant'] }
+}
+,
       {
         path:'calendar',
         component:CalenderComponent,

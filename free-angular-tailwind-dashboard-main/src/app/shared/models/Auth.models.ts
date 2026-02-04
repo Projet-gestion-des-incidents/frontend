@@ -10,6 +10,7 @@ export interface RegisterDTO {
   nom: string;
   prenom: string;
   age: number;
+    roleId: string;
 }
 
 export interface AuthResponseDTO {

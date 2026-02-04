@@ -85,11 +85,28 @@ alert: {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
       next: (response) => {
+          console.log('Réponse login brute :', response);
         this.loading = false;
 
-        if (response.data) {
-          this.router.navigate(['/']);
-        } else {
+          if (response.data) {
+  const role = response.data.role; // récupère le rôle de l'utilisateur
+          console.log('Données login :', response.data);
+
+ console.log('Rôle détecté :', role);
+  switch(role) {
+    case 'Admin':
+      this.router.navigate(['/admin-dashboard']);
+      break;
+    case 'Technicien':
+      this.router.navigate(['/technicien-dashboard']);
+      break;
+    case 'Commercant':
+      this.router.navigate(['/commercant-dashboard']);
+      break;
+    
+  }
+}
+ else {
           this.showError(
             response.message || 'Email ou mot de passe incorrect'
           );

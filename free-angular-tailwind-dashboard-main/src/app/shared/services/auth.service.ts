@@ -63,6 +63,13 @@ this.loadUserFromStorage();
       catchError(err => this.handleError(err, 'register'))
       );
   }
+// auth.service.ts
+getRolesForRegister(): Observable<{id: string, name: string}[]> {
+  return this.http.get<{id: string, name: string}[]>(`${this.apiUrl}/roles/register`)
+    .pipe(
+      map((res: any) => res.data || [])
+    );
+}
 
   // ========== LOGIN ==========
   login(dto: LoginDTO): Observable<ApiResponse<AuthResponseDTO>> {
@@ -76,6 +83,10 @@ this.loadUserFromStorage();
       catchError(err => this.handleError(err, 'login'))
       );
   }
+// Récupère le rôle actuel de l'utilisateur connecté
+getRole(): string | null {
+  return this.currentUserSubject.value?.role || null;
+}
 
  // ========== GESTION EMAIL RÉINITIALISATION ==========
   private setResetEmail(email: string): void {

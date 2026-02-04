@@ -247,8 +247,12 @@ export class OtpComponent implements OnInit {
     this.successMessage = '';
   }
 
-  onCodeInput(event: any): void {
-    this.code = event.target.value.replace(/\D/g, '').slice(0, 6);
-    this.clearMessages();
+onCodeInput(value: any): void {
+  if (typeof value !== 'string') {
+    return;
   }
+  this.code = value.replace(/\D/g, '').slice(0, 6);
+  this.clearMessages();
+}
+
 }
