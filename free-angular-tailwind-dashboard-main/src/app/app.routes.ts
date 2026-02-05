@@ -27,6 +27,7 @@ import { AdminDashboardComponent } from './pages/dashboard/admin-dashboard/admin
 import { TechnicienDashboardComponent } from './pages/dashboard/technicien-dashboard/technicien-dashboard.component';
 import { CommercantDashboardComponent } from './pages/dashboard/commercant-dashboard/commercant-dashboard.component';
 import { AuthGuard } from './shared/guards/auth.guard';
+import { CreateUserAdminComponent } from './shared/components/form/create-user-form/create-user-form.component';
 
 
 export const routes: Routes = [
@@ -47,6 +48,11 @@ export const routes: Routes = [
   canActivate: [AuthGuard],
   data: { roles: ['Admin'] }
 },
+{ 
+  path: 'admin/create-user', 
+  component: CreateUserAdminComponent,
+  canActivate: [AuthGuard] 
+  },
 {
   path: 'technicien-dashboard',
   component: TechnicienDashboardComponent,
