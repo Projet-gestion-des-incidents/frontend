@@ -46,6 +46,13 @@ export class AdminDashboardComponent implements OnInit {
           role: u.role || 'Non spécifié',
           image: u.image || '/assets/default-avatar.png',
           birthDate: u.birthDate ? new Date(u.birthDate) : undefined
+
+          // nom: u.nom,
+          // prenom: u.prenom,
+          // phoneNumber: u.phoneNumber,
+          // role: u.role,
+          // image: u.image ,
+          // email: u.email
         }));
         this.loading = false;
       },

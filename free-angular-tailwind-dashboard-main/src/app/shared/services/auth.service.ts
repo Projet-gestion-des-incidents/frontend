@@ -259,27 +259,39 @@ forgotPassword(email: string): Observable<ApiResponse<string>> {
     );
   }
 
-  // ========== LOGOUT ==========
-  logout(redirectToLogin: boolean = true): void {
-    // Appel serveur pour logout
-    this.http.post(`${this.apiUrl}/auth/sign-out`, {}).subscribe();
-    
-    // Nettoyage local
-    localStorage.removeItem('currentUser');
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
-    localStorage.removeItem('pending_verification_email');
-    
-    this.currentUserSubject.next(null);
-    
-    if (this.tokenExpirationTimer) {
-      clearTimeout(this.tokenExpirationTimer);
-    }
+// ========== LOGOUT ==========
+logout(
+  redirectToLogin: boolean = true,
+  callApi: boolean = true
+): void {
 
-    if (redirectToLogin) {
-      this.router.navigate(['/signin']);
-    }
+  // 🔐 Appel serveur UNIQUEMENT si le token est encore valide
+  if (callApi) {
+    this.http.post(`${this.apiUrl}/auth/sign-out`, {}).subscribe({
+      error: () => {
+        // On ignore volontairement les erreurs (token expiré, 401, etc.)
+      }
+    });
   }
+
+  // 🧹 Nettoyage local
+  localStorage.removeItem('currentUser');
+  localStorage.removeItem('access_token');
+  localStorage.removeItem('refresh_token');
+  localStorage.removeItem('pending_verification_email');
+
+  this.currentUserSubject.next(null);
+
+  if (this.tokenExpirationTimer) {
+    clearTimeout(this.tokenExpirationTimer);
+    this.tokenExpirationTimer = null;
+  }
+
+  if (redirectToLogin) {
+    this.router.navigate(['/signin']);
+  }
+}
+
 
   // ========== GESTION AUTHENTIFICATION ==========
   private handleAuthentication(data: AuthResponseDTO): void {
@@ -300,17 +312,19 @@ forgotPassword(email: string): Observable<ApiResponse<string>> {
     }
   }
 
-  private setAutoLogout(expirationDate: Date): void {
-    const expiresIn = expirationDate.getTime() - new Date().getTime();
-    
-    if (this.tokenExpirationTimer) {
-      clearTimeout(this.tokenExpirationTimer);
-    }
-    
-    this.tokenExpirationTimer = setTimeout(() => {
-      this.logout();
-    }, expiresIn);
+private setAutoLogout(expirationDate: Date): void {
+  const expiresIn = expirationDate.getTime() - new Date().getTime();
+
+  if (this.tokenExpirationTimer) {
+    clearTimeout(this.tokenExpirationTimer);
   }
+
+  this.tokenExpirationTimer = setTimeout(() => {
+    // ⛔ PAS d’appel API ici
+    this.logout(true, false);
+  }, expiresIn);
+}
+
 
 
   // ========== VÉRIFICATIONS ==========
