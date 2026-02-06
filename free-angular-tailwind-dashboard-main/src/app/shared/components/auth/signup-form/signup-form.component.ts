@@ -9,6 +9,7 @@ import { CheckboxComponent } from '../../form/input/checkbox.component';
 import { InputFieldComponent } from '../../form/input/input-field.component';
 import { AlertComponent } from '../../ui/alert/alert.component';
 import { SelectComponent } from '../../form/select/select.component';
+import { DatePickerComponent } from '../../form/date-picker/date-picker.component';
 
 
 @Component({
@@ -22,7 +23,8 @@ import { SelectComponent } from '../../form/select/select.component';
     CheckboxComponent,
     SelectComponent,
     InputFieldComponent,
-    AlertComponent  
+    AlertComponent,
+    DatePickerComponent 
   ],
   templateUrl: './signup-form.component.html',
   styleUrls: [] 
@@ -30,13 +32,13 @@ import { SelectComponent } from '../../form/select/select.component';
 
 export class SignupFormComponent {
   roles: {id: string, name: string}[] = [];
-selectedRoleId: string = '';
+  selectedRoleId: string = '';
 
   registerForm!: FormGroup;
   isLoading = false;
   showPassword = false;
   isChecked = false;
-alert = {
+  alert = {
   show: false,
   variant: 'error' as 'error' | 'warning' | 'success' | 'info',
   title: '',
@@ -63,23 +65,57 @@ clearAlert() {
   ) {
     this.initForm();
   }
+  
+private adultValidator(control: AbstractControl) {
+  const value = control.value;
+  if (!value) return null;
+
+  let date: Date;
+
+  if (value instanceof Date) {
+    date = value;
+  } else if (value?.dateObj instanceof Date) {
+    date = value.dateObj;
+  } else if (value?.selectedDates?.[0]) {
+    date = value.selectedDates[0];
+  } else {
+    date = new Date(value);
+  }
+
+  const today = new Date();
+  const minDate = new Date(
+    today.getFullYear() - 18,
+    today.getMonth(),
+    today.getDate()
+  );
+
+  return date <= minDate ? null : { underAge: true };
+}
 
   private initForm(): void {
     this.registerForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.minLength(2)]],
       lastName: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
+      phoneNumber: [
+  '',
+  [
+    Validators.required,
+    Validators.pattern(/^[0-9+\-\s()]{8,15}$/)
+  ]
+],
+      birthDate: ['', [this.adultValidator]],
       password: ['', [Validators.required, Validators.minLength(6)]],
       
       confirmPassword: ['', [Validators.required]] ,// Ajouté car vous l'utilisez dans le validateur
-          roleId: ['', Validators.required]  // ← Nouveau champ rôle
+      roleId: ['', Validators.required]  // ← Nouveau champ rôle
 
  
     }, {
       validators: this.passwordMatchValidator
     });
   }
-get roleOptions(): { value: string; label: string }[] {
+  get roleOptions(): { value: string; label: string }[] {
   return this.roles.map(r => ({ value: r.id, label: r.name }));
 }
 
@@ -118,53 +154,110 @@ private loadRoles(): void {
   });
 }
 
-  onSubmit(event?: Event): void {
-    console.log("here")
-    if (event) {
+onSubmit(event?: Event): void {
+  console.log("here")
+  if (event) {
     event.preventDefault();
   }
 
-    if (this.registerForm.invalid) {
-      this.registerForm.markAllAsTouched();
-      return;
-    }
-
-    console.log("form" , this.registerForm)
-    const dto: RegisterDTO = {
-      userName: this.registerForm.get('firstName')?.value.toLowerCase() + 
-                this.registerForm.get('lastName')?.value.toLowerCase(),
-      email: this.registerForm.get('email')?.value,
-      password: this.registerForm.get('password')?.value,
-      prenom: this.registerForm.get('firstName')?.value,
-      nom: this.registerForm.get('lastName')?.value,
-      age: 25, // Valeur par défaut ou ajoutez un champ age
-roleId: this.registerForm.get('roleId')?.value 
-    };
-
-    this.isLoading = true;
-
-    this.authService.register(dto).subscribe({
-      next: (res) => {
-        this.isLoading = false;
-
-        if (res.resultCode == 0) {
-          // Stocker temporairement l'email pour la page OTP
-          localStorage.setItem('pending_email', dto.email);
-          console.log('Navigating to OTP...');
-          // Rediriger vers OTP avec l'email en paramètre
-          this.router.navigate(['/otp'], { 
-            queryParams: { email: dto.email } 
-          });
-        } else {
-        this.showError(res.message || 'Erreur lors de l\'inscription');
-        }
-      },
-      error: (err) => {
-        this.isLoading = false;
-        this.showError(err?.error?.message || err.message || 'Erreur serveur'); 
-      }
-    });
+  if (this.registerForm.invalid) {
+    this.registerForm.markAllAsTouched();
+    return;
   }
+
+  // DEBUG: Voir ce que contient birthDate
+  const birthDateRawValue = this.registerForm.get('birthDate')?.value;
+
+
+  // Extraire la date correctement
+  let birthDateValue: string | undefined;
+  
+  if (birthDateRawValue) {
+    // Méthode 1: Si c'est un objet Flatpickr
+    if (birthDateRawValue.selectedDates && birthDateRawValue.selectedDates[0]) {
+      const date = birthDateRawValue.selectedDates[0];
+      birthDateValue = date.toISOString().split('T')[0]; // Format YYYY-MM-DD
+    }
+    // Méthode 2: Si c'est un objet avec dateObj
+    else if (birthDateRawValue.dateObj && birthDateRawValue.dateObj instanceof Date) {
+      birthDateValue = birthDateRawValue.dateObj.toISOString().split('T')[0];
+    }
+    // Méthode 3: Si c'est directement un Date
+    else if (birthDateRawValue instanceof Date) {
+      birthDateValue = birthDateRawValue.toISOString().split('T')[0];
+    }
+    // Méthode 4: Si c'est déjà une string
+    else if (typeof birthDateRawValue === 'string') {
+      birthDateValue = birthDateRawValue;
+    }
+    // Méthode 5: Voir la structure complète
+    else {
+      console.log('Full birthDate object:', JSON.stringify(birthDateRawValue, null, 2));
+      // Essayer de trouver une propriété de date
+      for (const key in birthDateRawValue) {
+        console.log(`Key ${key}:`, birthDateRawValue[key]);
+        if (birthDateRawValue[key] instanceof Date) {
+          birthDateValue = birthDateRawValue[key].toISOString().split('T')[0];
+          break;
+        }
+      }
+    }
+  }
+
+  // Si on n'a pas pu extraire la date, utiliser null
+  if (!birthDateValue) {
+    birthDateValue = undefined;
+    console.log('No valid date found, using undefined');
+  }
+
+  // Calculer l'âge si on a une date
+ 
+  
+
+  console.log("form", this.registerForm.value)
+
+  const dto: RegisterDTO = {
+    userName: this.registerForm.get('firstName')?.value.toLowerCase() + 
+              this.registerForm.get('lastName')?.value.toLowerCase(),
+    email: this.registerForm.get('email')?.value,
+    password: this.registerForm.get('password')?.value,
+    prenom: this.registerForm.get('firstName')?.value,
+    nom: this.registerForm.get('lastName')?.value,
+  
+    roleId: this.registerForm.get('roleId')?.value,
+    phoneNumber: this.registerForm.get('phoneNumber')?.value,
+    birthDate: birthDateValue // Peut être undefined
+  };
+
+  console.log('DTO à envoyer:', JSON.stringify(dto, null, 2));
+
+  this.isLoading = true;
+
+  this.authService.register(dto).subscribe({
+    next: (res) => {
+      this.isLoading = false;
+
+      if (res.resultCode == 0) {
+        // Stocker temporairement l'email pour la page OTP
+        localStorage.setItem('pending_email', dto.email);
+        console.log('Navigating to OTP...');
+        // Rediriger vers OTP avec l'email en paramètre
+        this.router.navigate(['/otp'], { 
+          queryParams: { email: dto.email } 
+        });
+      } else {
+        this.showError(res.message || 'Erreur lors de l\'inscription');
+      }
+    },
+    error: (err) => {
+      this.isLoading = false;
+      console.error('Erreur détaillée:', err);
+      this.showError(err?.error?.message || err.message || 'Erreur serveur'); 
+    }
+  });
+}
+
+
 
   // AJOUTEZ CES GETTERS pour faciliter l'accès :
   get firstName() { return this.registerForm.get('firstName'); }
@@ -175,4 +268,7 @@ roleId: this.registerForm.get('roleId')?.value
   get email() { return this.registerForm.get('email'); }
   get password() { return this.registerForm.get('password'); }
   get confirmPassword() { return this.registerForm.get('confirmPassword'); }
+
+  get phoneNumber() { return this.registerForm.get('phoneNumber'); } // ← Ajouter
+  get birthDate() { return this.registerForm.get('birthDate'); } // ← Ajouter
 }

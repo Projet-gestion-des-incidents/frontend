@@ -1,4 +1,3 @@
-
 import { Component } from '@angular/core';
 import { ComponentCardComponent } from '../../../common/component-card/component-card.component';
 import { LabelComponent } from '../../label/label.component';

@@ -83,6 +83,7 @@ getRolesForRegister(): Observable<{id: string, name: string}[]> {
       catchError(err => this.handleError(err, 'login'))
       );
   }
+
 // Récupère le rôle actuel de l'utilisateur connecté
 getRole(): string | null {
   return this.currentUserSubject.value?.role || null;
@@ -320,7 +321,7 @@ private setAutoLogout(expirationDate: Date): void {
   }
 
   this.tokenExpirationTimer = setTimeout(() => {
-    // ⛔ PAS d’appel API ici
+    // PAS d’appel API ici
     this.logout(true, false);
   }, expiresIn);
 }

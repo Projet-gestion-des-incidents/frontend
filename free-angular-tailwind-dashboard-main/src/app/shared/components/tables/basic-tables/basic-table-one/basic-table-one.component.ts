@@ -5,14 +5,14 @@ import { CommonModule } from '@angular/common';
 
 @Component({
   selector: 'app-basic-table-one',
-    standalone: true,   // ⚠️ important
+    standalone: true,   // important
 
-  imports: [CommonModule, BadgeComponent],  // importer tout ce que tu utilises dans le template
+  imports: [CommonModule, BadgeComponent], 
   templateUrl: './basic-table-one.component.html',
 })
 export class BasicTableOneComponent {
 
-  @Input() tableData: User[] = [];   // ✅ une seule source de données
+  @Input() tableData: User[] = [];  
 
   getBadgeColor(role: string): 'success' | 'warning' | 'error' {
     if (role === 'ADMIN') return 'success';

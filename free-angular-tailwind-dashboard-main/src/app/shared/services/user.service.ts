@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { map, Observable, tap } from 'rxjs';
 import { AuthService } from './auth.service';
 
 export interface CreateUserDto {
@@ -9,11 +9,12 @@ export interface CreateUserDto {
   email: string;        
   nom: string;          
   prenom: string;       
-  age?: number;         
-  phone?: string;       
-  role?: string;        
-  image?: string;       
-  password: string;     
+  phoneNumber?: string;       
+  roleId: string;  
+  image?: string | null; 
+  password: string;  
+  birthDate?: string; 
+   
 }
 
 export interface User {
@@ -24,10 +25,13 @@ export interface User {
   prenom: string;
   age?: number | null;
   phone?: string;
-  role?: string;
+  roleId?: string;
   image?: string;
 }
-
+export interface RoleOption {
+  id: string;
+  name: string;
+}
 @Injectable({
   providedIn: 'root'
 })
@@ -38,7 +42,7 @@ export class UserService {
 
   constructor(
     private http: HttpClient,
-    private authService: AuthService  // injecter le service Auth
+    private authService: AuthService  
   ) {}
 
   private getAuthHeaders(): { headers: HttpHeaders } {
@@ -50,12 +54,54 @@ export class UserService {
     };
   }
 
+  
+  getAvailableRoles(): Observable<RoleOption[]> {
+    return this.http.get<RoleOption[]>(
+      `${this.apiUrl}/roles/register`, 
+      this.getAuthHeaders()
+    ).pipe(
+      map((res: any) => res.data || [])
+    );
+  }
   getAllUsers(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl, this.getAuthHeaders());
   }
-  getAllUsersWithRoles(): Observable<User[]> {
-    return this.http.get<User[]>(`${this.apiUrl}/roles`, this.getAuthHeaders());
+ // user.service.ts
+getAllUsersWithRoles(): Observable<User[]> {
+  return this.http.get<any[]>(`${this.apiUrl}/roles`, this.getAuthHeaders())
+    .pipe(
+      tap(response => {
+              console.log('Réponse API /roles:', response);
+        console.log('Premier utilisateur:', response[0]);
+      }),
+      map((response: any[]) => response.map(user => ({
+        ...user,
+        // Compléter l'URL de l'image si elle est relative
+        image: this.getFullImageUrl(user.image)
+      })))
+    );
+}
+
+// Méthode pour obtenir l'URL complète de l'image
+private getFullImageUrl(imagePath: string | null | undefined): string {
+  if (!imagePath) {
+    return '/assets/default-avatar.png';
   }
+  
+  // Si l'image commence par http ou https, c'est déjà une URL complète
+  if (imagePath.startsWith('http://') || imagePath.startsWith('https://')) {
+    return imagePath;
+  }
+  
+  // Si c'est une URL relative, ajouter le base URL
+  if (imagePath.startsWith('/')) {
+    // Pour localhost
+    return `https://localhost:7063${imagePath}`;
+  }
+  
+  // Par défaut
+  return imagePath;
+}
   getUserById(id: string): Observable<any> {
     return this.http.get<any>(`${this.apiUrl}/${id}`, this.getAuthHeaders());
   }
@@ -71,5 +117,7 @@ export class UserService {
   updateUser(id: string, userData: Partial<CreateUserDto>): Observable<any> {
     return this.http.put(`${this.apiUrl}/${id}`, userData, this.getAuthHeaders());
   }
+
+  
 
 }

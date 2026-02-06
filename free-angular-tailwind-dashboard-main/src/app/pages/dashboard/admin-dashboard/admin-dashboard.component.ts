@@ -32,7 +32,7 @@ export class AdminDashboardComponent implements OnInit {
     this.loading = true;
     this.error = null;
     
-    this.userService.getAllUsers().subscribe({  
+    this.userService.getAllUsersWithRoles().subscribe({  
       next: (data) => {
         // Mapping correct vers l'interface User
         this.users = data.map((u: any) => ({
@@ -42,17 +42,10 @@ export class AdminDashboardComponent implements OnInit {
           nom: u.nom || 'Non spécifié',
           prenom: u.prenom || 'Non spécifié',
           age: u.age,
-          phoneNumber: u.phone || u.phoneNumber || 'Non spécifié', // Gère les deux noms
-          role: u.role || 'Non spécifié',
-          image: u.image || '/assets/default-avatar.png',
-          birthDate: u.birthDate ? new Date(u.birthDate) : undefined
-
-          // nom: u.nom,
-          // prenom: u.prenom,
-          // phoneNumber: u.phoneNumber,
-          // role: u.role,
-          // image: u.image ,
-          // email: u.email
+          phoneNumber: u.phone || u.phoneNumber || 'Non spécifié', 
+          role: u.role,
+          image: u.image ? `https://localhost:7063${u.image}` : '/assets/default-avatar.png', // Préfixe l'URL
+          birthDate: u.birthDate ? new Date(u.birthDate) : undefined        
         }));
         this.loading = false;
       },

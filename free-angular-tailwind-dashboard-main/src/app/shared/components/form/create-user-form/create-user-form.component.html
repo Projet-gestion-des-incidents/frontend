@@ -65,21 +65,29 @@
         </div>
 
         <!-- Téléphone -->
-        <div>
-          <app-label for="phone">Téléphone</app-label>
-          <app-input-field
-            type="tel"
-            id="phone"
-            placeholder="+33 1 23 45 67 89"
-            [value]="userForm.get('phone')?.value"
-            (valueChange)="userForm.get('phone')?.setValue($event)"
-          />
-          <div *ngIf="userForm.get('phone')?.touched && userForm.get('phone')?.invalid" 
-               class="text-error-500 text-sm mt-1">
-            Format téléphone invalide
-          </div>
-        </div>
+  <div>
+  <app-label for="phoneNumber">
+    Téléphone <span class="text-error-500">*</span>
+  </app-label>
+
+  <app-input-field
+    type="tel"
+    id="phoneNumber"
+    placeholder="+33 1 23 45 67 89"
+    [value]="phoneNumber?.value"
+    (valueChange)="phoneNumber?.setValue($event)"
+  />
+
+  @if (phoneNumber?.invalid && (phoneNumber?.dirty || phoneNumber?.touched)) {
+    <p class="mt-1 text-sm text-red-500">
+      @if (phoneNumber?.errors?.['required']) {Phone number is required}
+      @if (phoneNumber?.errors?.['pattern']) {Invalid phone number}
+    </p>
+  }
+</div>
+
       </div>
+
 
       <!-- Section 3 : Rôle et Date de naissance -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -87,14 +95,15 @@
         <div>
           <app-label for="role">Rôle <span class="text-error-500">*</span></app-label>
           <app-select
-            id="role"
-            [options]="roleOptions"
+              [options]="roleOptions"
             placeholder="Sélectionner un rôle"
-            [value]="userForm.get('role')?.value"
-            (valueChange)="userForm.get('role')?.setValue($event)"
+            [value]="userForm.get('roleId')?.value"
+            (valueChange)="userForm.get('roleId')?.setValue($event)"
             className="dark:bg-dark-900"
           ></app-select>
-          <div *ngIf="userForm.get('role')?.touched && userForm.get('role')?.invalid" 
+         
+ 
+          <div *ngIf="userForm.get('roleId')?.touched && userForm.get('roleId')?.invalid" 
                class="text-error-500 text-sm mt-1">
             Le rôle est requis
           </div>
@@ -102,12 +111,18 @@
 
         <!-- Date de naissance -->
         <div>
-          <app-label for="birthDate">Date de naissance</app-label>
+          <app-label for="birthDate">Date de naissance<span class="text-error-500">*</span></app-label>
           <app-date-picker
   id="birthDate"
   placeholder="JJ/MM/AAAA"
   (dateChange)="userForm.get('birthDate')?.setValue($event)"
 />
+@if (birthDate?.touched && birthDate?.errors?.['underAge']) {
+  <p class="mt-1 text-sm text-red-500">
+    Vous devez avoir au moins 18 ans
+  </p>
+}
+
         </div>
       </div>
 
@@ -115,7 +130,7 @@
       <div>
         <app-label>Photo de profil</app-label>
         <app-file-input-example
-          (fileSelected)="onImageSelected($event)"
+      (change)="onImageSelected($event)"
         ></app-file-input-example>
         
         <!-- Prévisualisation -->

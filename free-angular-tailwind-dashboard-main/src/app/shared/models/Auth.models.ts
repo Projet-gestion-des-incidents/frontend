@@ -9,8 +9,10 @@ export interface RegisterDTO {
   password: string;
   nom: string;
   prenom: string;
-  age: number;
-    roleId: string;
+  
+  roleId: string;
+  phoneNumber?: string; 
+  birthDate?: string; 
 }
 
 export interface AuthResponseDTO {

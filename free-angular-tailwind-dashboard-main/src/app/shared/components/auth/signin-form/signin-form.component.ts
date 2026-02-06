@@ -30,7 +30,7 @@ export class SigninFormComponent implements OnDestroy {
   loginForm: FormGroup;
   loading = false;
   returnUrl: string;
-alert: {
+  alert: {
   show: boolean;
   variant: 'error' | 'warning' | 'success' | 'info';
   title: string;
@@ -77,7 +77,7 @@ alert: {
     }
 
     this.loading = true;
-  this.clearAlert();
+    this.clearAlert();
 
     const loginData = this.loginForm.value;
 
@@ -89,7 +89,7 @@ alert: {
         this.loading = false;
 
           if (response.data) {
-  const role = response.data.role; // récupère le rôle de l'utilisateur
+          const role = response.data.role; // récupère le rôle de l'utilisateur
           console.log('Données login :', response.data);
 
  console.log('Rôle détecté :', role);
