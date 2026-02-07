@@ -10,6 +10,10 @@
           <th class="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Rôle</th>
           <th class="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Email</th>
           <th class="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Avatar</th>
+       <th class="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+  Actions
+</th>
+
         </tr>
       </thead>
 
@@ -30,6 +34,20 @@
               />
             </div>
           </td>
+         <td class="px-5 py-4">
+ <button
+  (click)="toggleUser(user)"
+  [ngClass]="user.IsDeleted  
+    ? 'bg-green-500 hover:bg-green-600' 
+    : 'bg-red-500 hover:bg-red-600'"
+  class="px-3 py-1 text-xs font-medium text-white rounded-lg transition"
+>
+  {{ user.IsDeleted  ? 'Activer' : 'Désactiver' }}
+</button>
+
+</td>
+
+
         </tr>
       </tbody>
     </table>

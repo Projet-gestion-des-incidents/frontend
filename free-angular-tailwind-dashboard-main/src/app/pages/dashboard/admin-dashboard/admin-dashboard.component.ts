@@ -26,7 +26,34 @@ export class AdminDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUsers();
+    
   }
+deactivateUser(user: User): void {
+  this.userService.deleteUser(user.id).subscribe({
+    next: () => {
+      this.users = this.users.filter(u => u.id !== user.id);
+    },
+    error: err => {
+      console.error('Erreur désactivation', err);
+      alert('Erreur lors de la désactivation');
+    }
+  });
+}
+
+toggleUser(user: User) {
+  const action = user.IsDeleted
+    ? this.userService.activateUser(user.id)
+    : this.userService.deleteUser(user.id);
+
+  action.subscribe({
+    next: () => {
+      user.IsDeleted = !user.IsDeleted;
+    },
+    error: err => {
+      console.error('Erreur toggle user', err);
+    }
+  });
+}
 
   loadUsers(): void {
     this.loading = true;
@@ -45,8 +72,10 @@ export class AdminDashboardComponent implements OnInit {
           phoneNumber: u.phone || u.phoneNumber || 'Non spécifié', 
           role: u.role,
           image: u.image ? `https://localhost:7063${u.image}` : '/assets/default-avatar.png', // Préfixe l'URL
-          birthDate: u.birthDate ? new Date(u.birthDate) : undefined        
+          birthDate: u.birthDate ? new Date(u.birthDate) : undefined  ,      
+          IsDeleted: false
         }));
+        
         this.loading = false;
       },
       error: (err) => {
@@ -55,5 +84,6 @@ export class AdminDashboardComponent implements OnInit {
         this.loading = false;
       }
     });
+    
   }
 }

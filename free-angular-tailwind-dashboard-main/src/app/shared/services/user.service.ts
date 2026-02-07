@@ -53,7 +53,6 @@ export class UserService {
       })
     };
   }
-
   
   getAvailableRoles(): Observable<RoleOption[]> {
     return this.http.get<RoleOption[]>(
@@ -66,7 +65,7 @@ export class UserService {
   getAllUsers(): Observable<any[]> {
     return this.http.get<any[]>(this.apiUrl, this.getAuthHeaders());
   }
- // user.service.ts
+ 
 getAllUsersWithRoles(): Observable<User[]> {
   return this.http.get<any[]>(`${this.apiUrl}/roles`, this.getAuthHeaders())
     .pipe(
@@ -118,6 +117,8 @@ private getFullImageUrl(imagePath: string | null | undefined): string {
     return this.http.put(`${this.apiUrl}/${id}`, userData, this.getAuthHeaders());
   }
 
-  
+  activateUser(id: string) {
+  return this.http.put(`${this.apiUrl}/${id}/activate`, {}, this.getAuthHeaders());
+}
 
 }

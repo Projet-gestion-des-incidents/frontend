@@ -7,4 +7,6 @@ export interface User {
   image?: string;
   email: string;
   birthDate?: Date | string;
+  IsDeleted: boolean; 
+
 }

@@ -1,4 +1,4 @@
-<app-basic-table-one [tableData]="users"></app-basic-table-one>
+<app-basic-table-one [tableData]="users"    (toggle)="toggleUser($event)"   (deactivate)="deactivateUser($event)"></app-basic-table-one>
 <app-button
         routerLink="/admin/create-user"
         variant="primary"

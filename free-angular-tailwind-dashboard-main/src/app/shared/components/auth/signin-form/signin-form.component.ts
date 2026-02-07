@@ -133,7 +133,7 @@ export class SigninFormComponent implements OnDestroy {
     });
   }
 
- showError(message: string, title = 'Erreur de connexion') {
+showError(message: string, title = 'Erreur de connexion') {
   this.alert = {
     show: true,
     variant: 'error',
@@ -141,6 +141,7 @@ export class SigninFormComponent implements OnDestroy {
     message
   };
 }
+
 clearError(): void {
   this.clearAlert();
 }

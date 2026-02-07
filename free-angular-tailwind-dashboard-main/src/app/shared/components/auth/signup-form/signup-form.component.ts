@@ -208,11 +208,7 @@ onSubmit(event?: Event): void {
   if (!birthDateValue) {
     birthDateValue = undefined;
     console.log('No valid date found, using undefined');
-  }
-
-  // Calculer l'âge si on a une date
- 
-  
+  }  
 
   console.log("form", this.registerForm.value)
 
@@ -257,8 +253,6 @@ onSubmit(event?: Event): void {
   });
 }
 
-
-
   // AJOUTEZ CES GETTERS pour faciliter l'accès :
   get firstName() { return this.registerForm.get('firstName'); }
   get roleId(){ return this.registerForm.get('roleId') ;
@@ -269,6 +263,6 @@ onSubmit(event?: Event): void {
   get password() { return this.registerForm.get('password'); }
   get confirmPassword() { return this.registerForm.get('confirmPassword'); }
 
-  get phoneNumber() { return this.registerForm.get('phoneNumber'); } // ← Ajouter
-  get birthDate() { return this.registerForm.get('birthDate'); } // ← Ajouter
+  get phoneNumber() { return this.registerForm.get('phoneNumber'); } 
+  get birthDate() { return this.registerForm.get('birthDate'); } 
 }
