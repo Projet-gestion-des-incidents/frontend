@@ -71,7 +71,7 @@ toggleUser(user: User) {
           age: u.age,
           phoneNumber: u.phone || u.phoneNumber || 'Non spécifié', 
           role: u.role,
-          image: u.image ? `https://localhost:7063${u.image}` : '/assets/default-avatar.png', // Préfixe l'URL
+image: u.image,
           birthDate: u.birthDate ? new Date(u.birthDate) : undefined  ,      
           IsDeleted: false
         }));

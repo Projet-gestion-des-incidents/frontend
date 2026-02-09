@@ -27,11 +27,8 @@
           <td class="px-5 py-4 text-gray-700 text-theme-sm dark:text-white/90">{{ user.email }}</td>
           <td class="px-5 py-4">
             <div class="w-10 h-10 overflow-hidden rounded-full">
-              <img 
-                [src]="user.image " 
-                [alt]="user.nom + ' ' + user.prenom"
-                class="w-full h-full object-cover"
-              />
+                    <img [src]="user.image || '/assets/default-avatar.png'" alt="user" />
+
             </div>
           </td>
          <td class="px-5 py-4">
