@@ -53,7 +53,19 @@ export class UserService {
       })
     };
   }
-  
+  getMyProfile(): Observable<User> {
+  return this.http.get<User>(
+    `${this.apiUrl}/me`,
+    this.getAuthHeaders()
+  ).pipe(
+    map(user => ({
+      ...user,
+       phone: (user as any).phoneNumber, 
+      image: this.getFullImageUrl(user.image)
+    }))
+  );
+}
+
   getAvailableRoles(): Observable<RoleOption[]> {
     return this.http.get<RoleOption[]>(
       `${this.apiUrl}/roles/register`, 
@@ -76,10 +88,22 @@ getAllUsersWithRoles(): Observable<User[]> {
       map((response: any[]) => response.map(user => ({
         ...user,
         // Compléter l'URL de l'image si elle est relative
-        image: this.getFullImageUrl(user.image)
+      image: this.getFullImageUrl(user.image)
       })))
     );
 }
+updateMyProfile(userData: Partial<User>): Observable<User> {
+  return this.http.put<User>(`${this.apiUrl}/me`, userData, this.getAuthHeaders())
+    .pipe(
+      map(user => ({
+        ...user,
+        phone: (user as any).phoneNumber, // adapter le champ pour le frontend
+        image: this.getFullImageUrl(user.image)
+      }))
+    );
+}
+
+
 
 // Méthode pour obtenir l'URL complète de l'image
 private getFullImageUrl(imagePath: string | null | undefined): string {
