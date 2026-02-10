@@ -1,15 +1,70 @@
+<!-- Alert interactif -->
+<app-alert
+  *ngIf="confirmUser"
+  [variant]="'warning'"
+  [title]="'Confirmation'"
+  [message]="'Voulez-vous vraiment supprimer ' + confirmUser.nom + ' ' + confirmUser.prenom + ' ?'"
+>
+  <div class="mt-3 flex justify-end gap-2">
+    <button
+      (click)="confirmDelete()"
+      class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+    >
+      Confirmer
+    </button>
+    <button
+      (click)="cancelDelete()"
+      class="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+    >
+      Annuler
+    </button>
+  </div>
+</app-alert>
+<!-- Alert de confirmation pour suppression multiple -->
+<app-alert
+  *ngIf="showMultiDeleteAlert"
+  [variant]="'warning'"
+  [title]="'Confirmation'"
+  [message]="'Voulez-vous vraiment supprimer ' + confirmUsers.length + ' utilisateur(s) ?'"
+>
+  <div class="mt-3 flex justify-end gap-2">
+    <button
+      (click)="deleteSelectedUsers()"
+      class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+    >
+      Confirmer
+    </button>
+    <button
+      (click)="confirmUsers = []; showMultiDeleteAlert = false;"
+      class="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+    >
+      Annuler
+    </button>
+  </div>
+</app-alert>
+<br>
 <div class="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
   <div class="max-w-full overflow-x-auto">
     <table class="min-w-full">
       <!-- Table Header -->
       <thead class="border-b border-gray-100 dark:border-white/[0.05]">
         <tr>
+          <th class="px-5 py-3">
+  <app-checkbox
+    [checked]="selectAll"
+    (checkedChange)="handleSelectAll($event)"
+  ></app-checkbox>
+</th>
           <th class="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Nom</th>
           <th class="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Prénom</th>
           <th class="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Téléphone</th>
           <th class="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Rôle</th>
-          <th class="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Email</th>
+          <th class="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Email</th>        
+            <th class="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Date de naissance</th>
           <th class="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Avatar</th>
+             <th class="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
+  Status
+</th>
        <th class="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">
   Actions
 </th>
@@ -20,11 +75,20 @@
       <!-- Table Body -->
       <tbody class="divide-y divide-gray-100 dark:divide-white/[0.05]">
         <tr *ngFor="let user of tableData">
+          <td class="px-5 py-4">
+    <app-checkbox
+      [checked]="selectedUsers.has(user.id)"
+      (checkedChange)="onSelectUser(user, $event)"
+    ></app-checkbox>
+  </td>
           <td class="px-5 py-4 text-gray-700 text-theme-sm dark:text-white/90">{{ user.nom }}</td>
           <td class="px-5 py-4 text-gray-700 text-theme-sm dark:text-white/90">{{ user.prenom }}</td>
           <td class="px-5 py-4 text-gray-700 text-theme-sm dark:text-white/90">{{ user.phoneNumber }}</td>
           <td class="px-5 py-4 text-gray-700 text-theme-sm dark:text-white/90">{{ user.role }}</td>
           <td class="px-5 py-4 text-gray-700 text-theme-sm dark:text-white/90">{{ user.email }}</td>
+                    <td class="px-5 py-4 text-gray-700 text-theme-sm dark:text-white/90">  {{ user.birthDate ? (user.birthDate | date:'dd/MM/yyyy') : '-' }}
+</td>
+
           <td class="px-5 py-4">
             <div class="w-10 h-10 overflow-hidden rounded-full">
                     <img [src]="user.image || '/assets/default-avatar.png'" alt="user" />
@@ -32,14 +96,55 @@
             </div>
           </td>
          <td class="px-5 py-4">
- <button
-  (click)="toggleUser(user)"
-  [ngClass]="user.IsDeleted  
-    ? 'bg-green-500 hover:bg-green-600' 
-    : 'bg-red-500 hover:bg-red-600'"
-  class="px-3 py-1 text-xs font-medium text-white rounded-lg transition"
+ <app-badge
+  [variant]="'solid'"
+  [size]="'sm'"
+  [color]="user.statut === 'Inactif' ? 'error' : 'success'"
 >
-  {{ user.IsDeleted  ? 'Activer' : 'Désactiver' }}
+  {{ user.statut === 'Inactif' ? 'Désactivé' : 'Actif' }}
+</app-badge>
+
+
+
+
+</td>
+ <td class="px-5 py-4 flex items-center gap-2">
+  <!-- Bouton supprimer -->
+  <button
+    (click)="onDelete(user)"
+    class="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition flex items-center justify-center"
+    title="Supprimer définitivement"
+  >
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      class="h-4 w-4"
+      fill="none"
+      viewBox="0 0 24 24"
+      stroke="currentColor"
+      stroke-width="2"
+    >
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"
+      />
+    </svg>
+  </button>
+
+  <!-- Bouton activer/désactiver -->
+<button
+  (click)="toggleUser(user)"
+  [ngClass]="user.statut === 'Inactif'
+    ? 'bg-green-500 hover:bg-green-600'
+    : 'bg-red-500 hover:bg-red-600'"            
+  class="px-3 py-1 text-xs font-medium text-white rounded-lg transition flex items-center gap-1"
+>
+  <svg *ngIf="user.statut === 'Inactif'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
+  </svg>
+  <svg *ngIf="user.statut === 'Actif'" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
 </button>
 
 </td>
@@ -50,3 +155,16 @@
     </table>
   </div>
 </div>
+<br>
+<!-- Bouton supprimer les sélectionnés, seulement si au moins 1 user sélectionné -->
+<button
+  *ngIf="selectedUsers.size > 0"
+  (click)="confirmDeleteMultiple()"
+  class="p-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition"
+>
+  Supprimer les sélectionnés ({{ selectedUsers.size }})
+</button>
+<br>
+
+
+

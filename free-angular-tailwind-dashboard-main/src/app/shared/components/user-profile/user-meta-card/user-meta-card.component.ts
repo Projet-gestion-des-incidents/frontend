@@ -1,99 +1,40 @@
-import { Component, Input } from '@angular/core';
-import { InputFieldComponent } from './../../form/input/input-field.component';
+import { Component, Input, OnInit } from '@angular/core';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { ModalService } from '../../../services/modal.service';
+import { UserService} from '../../../services/user.service';
 
-import { ModalComponent } from '../../ui/modal/modal.component';
+import { AlertComponent } from '../../ui/alert/alert.component';
+import { FileInputExampleComponent } from '../../form/form-elements/file-input-example/file-input-example.component';
 import { ButtonComponent } from '../../ui/button/button.component';
-import { CreateUserDto, User, UserService } from '../../../services/user.service';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { DatePickerComponent } from '../../form/date-picker/date-picker.component';
+import { LabelComponent } from '../../form/label/label.component';
+import { InputFieldComponent } from '../../form/input/input-field.component';
+import { SelectComponent } from '../../form/select/select.component';
+import { ComponentCardComponent } from '../../common/component-card/component-card.component';
+import { CommonModule } from '@angular/common';
+import { ModalComponent } from '../../ui/modal/modal.component';
+import { User } from '../../../models/User.model';
 
 @Component({
   selector: 'app-user-meta-card',
-  imports: [
-    ModalComponent,
-    InputFieldComponent,
-    ButtonComponent,ReactiveFormsModule  
-],
-    standalone: true,
-
-  templateUrl: './user-meta-card.component.html',
-  styles: ``
+  standalone: true,
+  imports: [CommonModule,    ModalComponent, ReactiveFormsModule, ComponentCardComponent, LabelComponent, InputFieldComponent, SelectComponent, DatePickerComponent, ButtonComponent, AlertComponent, FileInputExampleComponent,],
+  templateUrl: './user-meta-card.component.html'
 })
-export class UserMetaCardComponent {
+export class UserMetaCardComponent  {
 
-  constructor(public modal: ModalService,public userService : UserService) {}
-  @Input() user!: User;
+@Input() user!: User;
 
-  get fullName() {
-    return `${this.user.prenom} ${this.user.nom}`;
-  }
-  isOpen = false;
-    editForm!: FormGroup;
+  
+  constructor(
+    private fb: FormBuilder,
+    private userService: UserService,
+    public modal: ModalService
+  ) {}
 
-openModal() {
-  if (!this.editForm) {
-    this.editForm = new FormGroup({
-      nom: new FormControl(this.user.nom, [Validators.required]),
-      prenom: new FormControl(this.user.prenom, [Validators.required]),
-      email: new FormControl(this.user.email, [Validators.required, Validators.email]),
-      phone: new FormControl(this.user.phone)
-    });
-  } else {
-    this.editForm.patchValue({
-      nom: this.user.nom,
-      prenom: this.user.prenom,
-      email: this.user.email,
-      phone: this.user.phone
-    });
-  }
-  this.isOpen = true;
-}
+ 
+ 
 
-
-  closeModal() {
-    this.isOpen = false;
-  }
-ngOnInit() {
-  this.editForm = new FormGroup({
-    nom: new FormControl(this.user.nom, [Validators.required]),
-    prenom: new FormControl(this.user.prenom, [Validators.required]),
-    email: new FormControl(this.user.email, [Validators.required, Validators.email]),
-    phone: new FormControl(this.user.phone)
-  });
-}
-
-handleSave() {
-  if (this.editForm.invalid) {
-    console.log('Formulaire invalide', this.editForm.value);
-    return;
-  }
-
-  // On envoie seulement les champs modifiés
-  const updatedData: Partial<User> = {
-   userName: this.user.userName, // obligatoire pour PUT
-  email: this.editForm.value.email,
-  nom: this.editForm.value.nom,
-  prenom: this.editForm.value.prenom,
-  phone: this.editForm.value.phone
-  };
-
-  console.log('Données envoyées au serveur:', updatedData);
-
-  this.userService.updateMyProfile(updatedData).subscribe({
-    next: (res) => {
-      console.log('Réponse du serveur:', res);
-      // On met à jour localement l'utilisateur avec ce qui a été renvoyé
-      this.user = { ...this.user, ...res };
-      this.closeModal();
-    },
-    error: (err) => {
-      console.error('Erreur mise à jour profil', err);
-      if (err.error) {
-        console.log('Détails de l’erreur renvoyés par le serveur:', err.error);
-      }
-    }
-  });
-}
-
-
+ 
+   
 }

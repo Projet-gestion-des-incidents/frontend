@@ -5,8 +5,9 @@ import { RouterModule } from '@angular/router';
 import { DropdownItemTwoComponent } from '../../ui/dropdown/dropdown-item/dropdown-item.component-two';
 import { Router } from '@angular/router';
 import { AuthService } from '../../../services/auth.service';
-import { User, UserService } from '../../../services/user.service';
+import {  UserService } from '../../../services/user.service';
 import { ModalService } from '../../../services/modal.service';
+import { User } from '../../../models/User.model';
 
 @Component({
   selector: 'app-user-dropdown',

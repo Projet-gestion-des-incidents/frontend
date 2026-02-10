@@ -8,6 +8,7 @@ import "flatpickr/dist/flatpickr.css";
   selector: 'app-date-picker',
   imports: [LabelComponent],
   templateUrl: './date-picker.component.html',
+    standalone: true,
   styles: ``
 })
 export class DatePickerComponent {
@@ -17,7 +18,9 @@ export class DatePickerComponent {
   @Input() defaultDate?: string | Date | string[] | Date[];
   @Input() label?: string;
   @Input() placeholder?: string;
-  @Output() dateChange = new EventEmitter<any>();
+  @Output() dateChange = new EventEmitter<Date>();
+    @Input() value: string | Date | null = null; // pour [(value)]
+  @Input() maxDate?: Date; // pour [maxDate]
 
   @ViewChild('dateInput', { static: false }) dateInput!: ElementRef<HTMLInputElement>;
 
@@ -30,9 +33,12 @@ export class DatePickerComponent {
       monthSelectorType: 'static',
       dateFormat: 'Y-m-d',
       defaultDate: this.defaultDate,
-      onChange: (selectedDates, dateStr, instance) => {
-        this.dateChange.emit({ selectedDates, dateStr, instance });
-      }
+     onChange: (selectedDates) => {
+  if (selectedDates && selectedDates[0]) {
+    this.dateChange.emit(selectedDates[0]); // émet uniquement la première date
+  }
+}
+
     });
   }
 

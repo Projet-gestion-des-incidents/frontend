@@ -8,7 +8,7 @@
       [message]="alert.message"
       (click)="alert.show = false"
     ></app-alert>
-
+<br>
     <form (ngSubmit)="onSubmit()" [formGroup]="userForm" class="space-y-6">
       
       <!-- Section 1 : Informations personnelles -->
@@ -46,7 +46,7 @@
         </div>
       </div>
 
-      <!-- Section 2 : Contact -->
+      <!-- Section 2 : Email & Role -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         <!-- Email -->
         <div>
@@ -62,37 +62,12 @@
                class="text-error-500 text-sm mt-1">
             Email invalide
           </div>
+       
         </div>
 
-        <!-- Téléphone -->
-  <div>
-  <app-label for="phoneNumber">
-    Téléphone <span class="text-error-500">*</span>
-  </app-label>
+      <div>
+                    <!-- Rôle -->
 
-  <app-input-field
-    type="tel"
-    id="phoneNumber"
-    placeholder="+33 1 23 45 67 89"
-    [value]="phoneNumber?.value"
-    (valueChange)="phoneNumber?.setValue($event)"
-  />
-
-  @if (phoneNumber?.invalid && (phoneNumber?.dirty || phoneNumber?.touched)) {
-    <p class="mt-1 text-sm text-red-500">
-      @if (phoneNumber?.errors?.['required']) {Phone number is required}
-      @if (phoneNumber?.errors?.['pattern']) {Invalid phone number}
-    </p>
-  }
-</div>
-
-      </div>
-
-
-      <!-- Section 3 : Rôle et Date de naissance -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Rôle -->
-        <div>
           <app-label for="role">Rôle <span class="text-error-500">*</span></app-label>
           <app-select
               [options]="roleOptions"
@@ -109,90 +84,11 @@
           </div>
         </div>
 
-        <!-- Date de naissance -->
-        <div>
-          <app-label for="birthDate">Date de naissance<span class="text-error-500">*</span></app-label>
-          <app-date-picker
-  id="birthDate"
-  placeholder="JJ/MM/AAAA"
-  (dateChange)="userForm.get('birthDate')?.setValue($event)"
-/>
-@if (birthDate?.touched && birthDate?.errors?.['underAge']) {
-  <p class="mt-1 text-sm text-red-500">
-    Vous devez avoir au moins 18 ans
-  </p>
-}
-
-        </div>
       </div>
-
-      <!-- Section 4 : Image -->
-      <div>
-        <app-label>Photo de profil</app-label>
-        <app-file-input-example
-      (change)="onImageSelected($event)"
-        ></app-file-input-example>
-        
-        <!-- Prévisualisation -->
-        <div *ngIf="imagePreview" class="mt-4">
-          <p class="text-sm text-gray-600 mb-2">Prévisualisation :</p>
-          <img [src]="imagePreview" alt="Preview" class="w-24 h-24 rounded-full object-cover border">
-        </div>
-      </div>
+ 
 
       <!-- Section 5 : Mot de passe -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Mot de passe -->
-        <div>
-          <app-label for="password">Mot de passe <span class="text-error-500">*</span></app-label>
-          <div class="relative">
-            <app-input-field
-              id="password"
-              [type]="showPassword ? 'text' : 'password'"
-              placeholder="••••••••"
-              [value]="userForm.get('password')?.value"
-              (valueChange)="userForm.get('password')?.setValue($event)"
-            />
-            <button
-              type="button"
-              (click)="togglePasswordVisibility('password')"
-              class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-            >
-              {{ showPassword ? '👁️' : '👁️‍🗨️' }}
-            </button>
-          </div>
-          <div *ngIf="userForm.get('password')?.touched && userForm.get('password')?.invalid" 
-               class="text-error-500 text-sm mt-1">
-            Minimum 8 caractères
-          </div>
-        </div>
-
-        <!-- Confirmation mot de passe -->
-        <div>
-          <app-label for="confirmPassword">Confirmer le mot de passe <span class="text-error-500">*</span></app-label>
-          <div class="relative">
-            <app-input-field
-              id="confirmPassword"
-              [type]="showConfirmPassword ? 'text' : 'password'"
-              placeholder="••••••••"
-              [value]="userForm.get('confirmPassword')?.value"
-              (valueChange)="userForm.get('confirmPassword')?.setValue($event)"
-            />
-            <button
-              type="button"
-              (click)="togglePasswordVisibility('confirmPassword')"
-              class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-500"
-            >
-              {{ showConfirmPassword ? '👁️' : '👁️‍🗨️' }}
-            </button>
-          </div>
-          <div *ngIf="userForm.get('confirmPassword')?.touched && 
-                      (userForm.get('confirmPassword')?.invalid || userForm.hasError('mismatch'))" 
-               class="text-error-500 text-sm mt-1">
-            Les mots de passe ne correspondent pas
-          </div>
-        </div>
-      </div>
+  
 
       <!-- Boutons -->
       <div class="flex justify-end space-x-4 pt-6 border-t dark:border-gray-700">

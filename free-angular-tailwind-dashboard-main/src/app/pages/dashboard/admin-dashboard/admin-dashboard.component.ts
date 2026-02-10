@@ -5,15 +5,17 @@ import { BasicTableOneComponent } from '../../../shared/components/tables/basic-
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
+import { FormsModule } from '@angular/forms';
 
 @Component({
   selector: 'app-admin-dashboard',
   standalone: true,
   imports: [
-    CommonModule,
-    RouterModule,
-    BasicTableOneComponent,
-    ButtonComponent
+ CommonModule,
+  RouterModule,
+  FormsModule,
+  BasicTableOneComponent,
+  ButtonComponent
   ],
   templateUrl: './admin-dashboard.component.html',
 })
@@ -40,50 +42,85 @@ deactivateUser(user: User): void {
   });
 }
 
-toggleUser(user: User) {
-  const action = user.IsDeleted
-    ? this.userService.activateUser(user.id)
-    : this.userService.deleteUser(user.id);
+searchTerm: string = '';
 
-  action.subscribe({
+searchUsers(term: string) {
+  const lowerTerm = term.toLowerCase();
+  return this.users.filter(u =>
+    u.nom.toLowerCase().includes(lowerTerm) ||
+        u.prenom.toLowerCase().includes(lowerTerm) ||
+
+    u.email.toLowerCase().includes(lowerTerm) 
+  );
+}
+
+toggleUser(user: User) {
+  const action$ = user.statut === 'Inactif'
+    ? this.userService.activateUser(user.id)
+    : this.userService.desactivateUser(user.id);
+
+  action$.subscribe({
     next: () => {
-      user.IsDeleted = !user.IsDeleted;
+      user.statut = user.statut === 'Actif' ? 'Inactif' : 'Actif'; // mise à jour locale
     },
-    error: err => {
-      console.error('Erreur toggle user', err);
+    error: () => {
+      alert('Erreur lors du changement de statut');
     }
   });
 }
 
-  loadUsers(): void {
-    this.loading = true;
-    this.error = null;
-    
-    this.userService.getAllUsersWithRoles().subscribe({  
-      next: (data) => {
-        // Mapping correct vers l'interface User
-        this.users = data.map((u: any) => ({
-          id: u.id,
-          userName: u.userName || `${u.prenom}.${u.nom}`.toLowerCase(),
-          email: u.email,
-          nom: u.nom || 'Non spécifié',
-          prenom: u.prenom || 'Non spécifié',
-          age: u.age,
-          phoneNumber: u.phone || u.phoneNumber || 'Non spécifié', 
-          role: u.role,
-image: u.image,
-          birthDate: u.birthDate ? new Date(u.birthDate) : undefined  ,      
-          IsDeleted: false
-        }));
-        
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error('Erreur chargement users', err);
-        this.error = 'Impossible de charger les utilisateurs';
-        this.loading = false;
-      }
-    });
-    
-  }
+
+
+filteredUsers: User[] = []; // Tableau affiché dans le tableau
+
+loadUsers(): void {
+  this.loading = true;
+  this.error = null;
+
+  console.log('Chargement des utilisateurs...'); // 🔹 debug start
+
+  this.userService.getAllUsersWithRoles().subscribe({  
+    next: (data) => {
+      console.log('Données reçues du service:', data); // 🔹 data brute
+      // Mapping correct vers l'interface User
+      this.users = data.map((u: any) => ({
+        id: u.id,
+        userName: u.userName,
+        nom: u.nom ?? 'Non spécifié',
+        prenom: u.prenom ?? 'Non spécifié',
+        email: u.email,
+        phoneNumber: u.phoneNumber ?? 'Non spécifié',
+        role: u.role,
+        image: u.image,
+        birthDate: u.birthDate ? new Date(u.birthDate) : undefined,
+      statut: u.statut // <-- utiliser le statut direct
+      }));
+      console.log('Utilisateurs transformés:', this.users); // 🔹 après mapping
+      this.filteredUsers = [...this.users];
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('Erreur chargement users', err);
+      this.error = 'Impossible de charger les utilisateurs';
+      this.loading = false;
+    }
+  });
+}
+
+  // Filtrage côté front
+filterUsers(): void {
+  const term = this.searchTerm.toLowerCase();
+  this.filteredUsers = this.users.filter(u =>
+    u.nom.toLowerCase().includes(term) ||
+    u.prenom.toLowerCase().includes(term) ||
+    u.email.toLowerCase().includes(term) ||   u.role.toLowerCase().includes(term)
+
+  );
+}
+  deleteUser(user: User) {
+  this.userService.deleteUser(user.id).subscribe(() => {
+    this.users = this.users.filter(u => u.id !== user.id);
+  });
+  this.loadUsers();
+}
 }

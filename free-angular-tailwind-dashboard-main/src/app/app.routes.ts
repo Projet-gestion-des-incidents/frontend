@@ -50,9 +50,10 @@ export const routes: Routes = [
 },
 { 
   path: 'admin/create-user', 
+    canActivate: [AuthGuard],
+
   component: CreateUserAdminComponent,
-  canActivate: [AuthGuard] 
-  },
+ data: { roles: ['Admin'] }  },
 {
   path: 'technicien-dashboard',
   component: TechnicienDashboardComponent,

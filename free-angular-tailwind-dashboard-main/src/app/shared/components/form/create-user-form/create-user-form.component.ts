@@ -37,9 +37,7 @@ export class CreateUserAdminComponent {
   loading = false;
   showPassword = false;
   showConfirmPassword = false;
-  selectedImage: File | null = null;
-  imagePreview: string | ArrayBuffer | null = null;
-  imageBase64: string | null = null; // Envoyer le Base64 propre
+
 
   alert = {
     show: false,
@@ -61,33 +59,26 @@ export class CreateUserAdminComponent {
       nom: ['', [Validators.required, Validators.minLength(2)]],
       prenom: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-      phoneNumber: [
-  '',
-  [
-    Validators.required,
-    Validators.pattern(/^[0-9+\-\s()]{8,15}$/)
-  ]
-],      roleId: ['', Validators.required], // Utiliser roleId
-      birthDate: ['', [this.adultValidator]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-
-      confirmPassword: ['', Validators.required]
-    }, { validator: this.passwordMatchValidator });
+           roleId: ['', Validators.required], // Utiliser roleId
+      // password: ['', [Validators.required, Validators.minLength(6)]],
+      // confirmPassword: ['', Validators.required]
+    // }, { validator: this.passwordMatchValidator 
+    });
   }
 
-  passwordMatchValidator(form: FormGroup) {
-    const password = form.get('password')?.value;
-    const confirmPassword = form.get('confirmPassword')?.value;
-    return password === confirmPassword ? null : { mismatch: true };
-  }
+  // passwordMatchValidator(form: FormGroup) {
+  //   const password = form.get('password')?.value;
+  //   const confirmPassword = form.get('confirmPassword')?.value;
+  //   return password === confirmPassword ? null : { mismatch: true };
+  // }
 
-  togglePasswordVisibility(field: 'password' | 'confirmPassword') {
-    if (field === 'password') {
-      this.showPassword = !this.showPassword;
-    } else {
-      this.showConfirmPassword = !this.showConfirmPassword;
-    }
-  }
+  // togglePasswordVisibility(field: 'password' | 'confirmPassword') {
+  //   if (field === 'password') {
+  //     this.showPassword = !this.showPassword;
+  //   } else {
+  //     this.showConfirmPassword = !this.showConfirmPassword;
+  //   }
+  // }
 
  
 roles: {id: string, name: string}[] = [];
@@ -109,82 +100,12 @@ selectedRoleId: string = '';
   });
 }
 
-private adultValidator(control: AbstractControl) {
-  const value = control.value;
-  if (!value) return null;
 
-  let date: Date;
-
-  if (value instanceof Date) {
-    date = value;
-  } else if (value?.dateObj instanceof Date) {
-    date = value.dateObj;
-  } else if (value?.selectedDates?.[0]) {
-    date = value.selectedDates[0];
-  } else {
-    date = new Date(value);
-  }
-
-  const today = new Date();
-  const minDate = new Date(
-    today.getFullYear() - 18,
-    today.getMonth(),
-    today.getDate()
-  );
-
-  return date <= minDate ? null : { underAge: true };
-}
 
 ngOnInit(): void {
   this.loadRoles();
 }
-onImageSelected(event: any) {
-  console.log('Event reçu:', event);
-  console.log('Fichier disponible:', event.target?.files?.[0]);
-  
-  const file = event.target?.files?.[0];
-  if (file) {
-    console.log('Fichier détecté:', {
-      name: file.name,
-      size: file.size,
-      type: file.type
-    });
-    
-    this.selectedImage = file;
-    
-    // Vérifier la taille du fichier (max 5MB)
-    const maxSize = 5 * 1024 * 1024;
-    if (file.size > maxSize) {
-      this.showError('L\'image ne doit pas dépasser 5MB', 'Fichier trop volumineux');
-      return;
-    }
-    
-    // Vérifier le type de fichier
-    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
-    if (!allowedTypes.includes(file.type)) {
-      this.showError('Type de fichier non supporté. Utilisez JPG, PNG, GIF ou WebP', 'Format invalide');
-      return;
-    }
-    
-    // Convertir l'image en Base64
-    const reader = new FileReader();
-    reader.onload = () => {
-      console.log('FileReader onload déclenché, résultat:', reader.result ? 'présent' : 'absent');
-      this.imagePreview = reader.result;
-      this.imageBase64 = reader.result as string;
-      console.log('imageBase64 défini:', this.imageBase64 ? this.imageBase64.substring(0, 50) + '...' : 'null');
-    };
-    
-    reader.onerror = (error) => {
-      console.error('Erreur FileReader:', error);
-    };
-    
-    reader.readAsDataURL(file);
-    console.log('FileReader.readAsDataURL appelé');
-  } else {
-    console.log('Aucun fichier détecté');
-  }
-}
+
 
   onSubmit() {
     if (this.userForm.invalid) {
@@ -202,50 +123,56 @@ onImageSelected(event: any) {
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Enlève accents
       .replace(/[^a-z0-9.]/g, ''); // Garde seulement lettres, chiffres, points
 
-    let cleanImageBase64 = null;
-    if (this.imageBase64) {
-      cleanImageBase64 = this.imageBase64.split(',')[1]; // Enlève le préfixe
-  }
+ 
 
     const userData: CreateUserDto = {
       userName: userName,
       email: formData.email,
       nom: formData.nom,
       prenom: formData.prenom,
-    
-      phoneNumber: formData.phoneNumber,
-      roleId: formData.roleId, // Utiliser roleId
-      image: cleanImageBase64, // Envoyer le Base64 propre
+          roleId: formData.roleId, // Utiliser roleId
       password: formData.password
     };
 
   console.log('Données envoyées:', {
     ...userData,
-    imageLength: cleanImageBase64 ? cleanImageBase64.length : 0
   }); 
 
-    this.userService.createUser(userData).subscribe({
-      next: (response) => {
-        this.loading = false;
-        this.showSuccess('Utilisateur créé avec succès !');
-        
-        setTimeout(() => {
-          this.router.navigate(['/admin-dashboard']);
-        }, 2000);
-      },
-      error: (err) => {
-        this.loading = false;
-        this.showError(
-          err?.error?.message || 
-          'Erreur lors de la création de l\'utilisateur'
-        );
-      }
-    });
+ this.userService.createUser(userData).subscribe({
+  next: (response: any) => {
+    this.loading = false;
+
+    if (response.resultCode && response.resultCode !== 0) {
+      // Code d'erreur de l'API
+      const errorMessage = response.message || 'Erreur lors de la création de l\'utilisateur';
+      this.showError(errorMessage, 'Erreur');
+      return;
+    }
+
+    // Succès réel
+    this.showSuccess('Utilisateur créé avec succès !');
+
+    setTimeout(() => {
+      this.router.navigate(['/admin-dashboard']);
+    }, 2000);
+  },
+  error: (err) => {
+    this.loading = false;
+
+    let errorMessage = 'Erreur lors de la création de l\'utilisateur';
+    if (err?.error?.message) {
+      errorMessage = err.error.message;
+    } else if (err?.error?.errors?.length) {
+      errorMessage = err.error.errors.map((e: any) => e.message || e).join('<br>');
+    }
+
+    this.showError(errorMessage, 'Erreur');
+  }
+});
+
   }
 
-get birthDate() {
-  return this.userForm.get('birthDate');
-}
+
 
 
   private markFormGroupTouched(formGroup: FormGroup) {
@@ -257,23 +184,25 @@ get birthDate() {
     });
   }
 
-  private showSuccess(message: string) {
-    this.alert = {
-      show: true,
-      variant: 'success',
-      title: 'Succès',
-      message
-    };
-  }
+ private showSuccess(message: string, title = 'Succès') {
+  this.alert = {
+    show: true,
+    variant: 'success', // ✅ bien forcé
+    title,
+    message
+  };
+}
 
-  private showError(message: string, title = 'Erreur') {
-    this.alert = {
-      show: true,
-      variant: 'error',
-      title,
-      message
-    };
-  }
+private showError(message: string, title = 'Erreur') {
+  this.alert = {
+    show: true,
+    variant: 'error', // ✅ bien forcé
+    title,
+    message
+  };
+}
+
+
 
   private clearAlert() {
     this.alert.show = false;
@@ -283,8 +212,6 @@ get birthDate() {
     this.router.navigate(['/admin-dashboard']);
   }
 
-  get phoneNumber() {
-  return this.userForm.get('phoneNumber');
-}
+ 
 
 }

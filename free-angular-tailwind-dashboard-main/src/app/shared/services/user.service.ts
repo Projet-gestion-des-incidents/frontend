@@ -2,6 +2,8 @@ import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { map, Observable, tap } from 'rxjs';
 import { AuthService } from './auth.service';
+import { User } from '../models/User.model';
+
 
 export interface CreateUserDto {
   // Doit correspondre EXACTEMENT au backend C#
@@ -16,18 +18,30 @@ export interface CreateUserDto {
   birthDate?: string; 
    
 }
-
-export interface User {
-  id: string;
+export interface EditProfileDto {
   userName: string;
   email: string;
   nom: string;
   prenom: string;
-  age?: number | null;
-  phone?: string;
-  roleId?: string;
-  image?: string;
+  phoneNumber?: string;
+  birthDate?: string;
+  image?: File | null;
+  password?: string;
 }
+
+// export interface User {
+//   id: string;
+//   userName: string;
+//   email: string;
+//   nom: string;
+//   prenom: string;
+//   age?: number | null;
+//   phone?: string;
+//   roleId?: string;
+//   image?: string;
+//     isLocked: boolean;
+
+// }
 export interface RoleOption {
   id: string;
   name: string;
@@ -53,18 +67,15 @@ export class UserService {
       })
     };
   }
-  getMyProfile(): Observable<User> {
-  return this.http.get<User>(
-    `${this.apiUrl}/me`,
+ 
+desactivateUser(id: string) {
+  return this.http.delete(
+    `${this.apiUrl}/desactivate/${id}`,
     this.getAuthHeaders()
-  ).pipe(
-    map(user => ({
-      ...user,
-       phone: (user as any).phoneNumber, 
-      image: this.getFullImageUrl(user.image)
-    }))
   );
 }
+
+
 
   getAvailableRoles(): Observable<RoleOption[]> {
     return this.http.get<RoleOption[]>(
@@ -87,21 +98,41 @@ getAllUsersWithRoles(): Observable<User[]> {
       }),
       map((response: any[]) => response.map(user => ({
         ...user,
+        birthDate: user.birthdate ? new Date(user.birthdate) : undefined, // <-- convertit en Date
+
         // Compléter l'URL de l'image si elle est relative
       image: this.getFullImageUrl(user.image)
       })))
     );
 }
-updateMyProfile(userData: Partial<User>): Observable<User> {
-  return this.http.put<User>(`${this.apiUrl}/me`, userData, this.getAuthHeaders())
-    .pipe(
-      map(user => ({
-        ...user,
-        phone: (user as any).phoneNumber, // adapter le champ pour le frontend
-        image: this.getFullImageUrl(user.image)
-      }))
-    );
+ getMyProfile(): Observable<User> {
+  return this.http.get<User>(
+    `${this.apiUrl}/me`,
+    this.getAuthHeaders()
+  ).pipe(
+    map(user => ({
+      ...user,
+       phoneNumber: user.phoneNumber, 
+      image: this.getFullImageUrl(user.image)
+    }))
+  );
 }
+updateMyProfile(data: any): Observable<User> {
+  return this.http.put<User>(
+    `${this.apiUrl}/me`,
+    data,                  // ✅ BODY
+    this.getAuthHeaders()   // ✅ HEADERS
+  ).pipe(
+    map(user => ({
+      ...user,
+      phoneNumber: user.phoneNumber,
+      // birthDate:user.birthDate,
+      image: this.getFullImageUrl(user.image)
+    }))
+  );
+}
+
+
 
 
 
