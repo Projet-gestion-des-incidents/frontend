@@ -20,6 +20,9 @@ export class BasicTableOneComponent {
   @Output() deactivate = new EventEmitter<User>();
   @Output() toggle = new EventEmitter<User>();
   @Output() delete = new EventEmitter<User>();
+@Input() currentPage!: number;
+@Input() totalPages!: number;
+@Output() pageChange = new EventEmitter<number>();
 
   alert = {
     show: false,
@@ -57,6 +60,12 @@ onSelectUser(user: User, checked: boolean) {
 
     this.selectAll = this.selectedUsers.size === this.tableData.length;
   }
+  goToPage(page: number) {
+  if (page >= 1 && page <= this.totalPages) {
+    this.pageChange.emit(page);
+  }
+}
+
 deleteSelectedUsers() {
   if (this.confirmUsers.length === 0) return;
 
