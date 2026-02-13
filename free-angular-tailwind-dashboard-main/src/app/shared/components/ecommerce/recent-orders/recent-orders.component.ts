@@ -11,8 +11,6 @@
 
 // }
 
-
-
 import { Component } from '@angular/core';
 // import { TableComponent } from '../../ui/table/table.component';
 // import { TableBodyComponent } from '../../ui/table/table-body.component';

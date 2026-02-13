@@ -1,4 +1,3 @@
-
 import { Component, Input, Output, EventEmitter, ElementRef, ViewChild } from '@angular/core';
 import flatpickr from 'flatpickr';
 import { LabelComponent } from '../label/label.component';
@@ -19,7 +18,7 @@ export class DatePickerComponent {
   @Input() label?: string;
   @Input() placeholder?: string;
   @Output() dateChange = new EventEmitter<Date>();
-    @Input() value: string | Date | null = null; // pour [(value)]
+  @Input() value: string | Date | null = null; // pour [(value)]
   @Input() maxDate?: Date; // pour [maxDate]
 
   @ViewChild('dateInput', { static: false }) dateInput!: ElementRef<HTMLInputElement>;

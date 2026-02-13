@@ -63,7 +63,7 @@ this.loadUserFromStorage();
       catchError(err => this.handleError(err, 'register'))
       );
   }
-// auth.service.ts
+
 getRolesForRegister(): Observable<{id: string, name: string}[]> {
   return this.http.get<{id: string, name: string}[]>(`${this.apiUrl}/roles/register`)
     .pipe(
@@ -111,7 +111,7 @@ getRole(): string | null {
     return this.resetPasswordEmailSubject.value;
   }
 
-// ========== FORGOT PASSWORD - CORRIGÉ ==========
+// ========== FORGOT PASSWORD ==========
 forgotPassword(email: string): Observable<ApiResponse<string>> {
   const dto: ForgotPasswordDTO = { email };
   
@@ -119,7 +119,7 @@ forgotPassword(email: string): Observable<ApiResponse<string>> {
     `${this.apiUrl}/auth/forgot-password`,
     dto,
     { 
-      responseType: 'text' as 'json', // Corriger le type
+      responseType: 'text' as 'json', 
       headers: new HttpHeaders({
         'Content-Type': 'application/json'
       })
@@ -171,7 +171,7 @@ forgotPassword(email: string): Observable<ApiResponse<string>> {
   );
 }
 
-  // ========== RESET PASSWORD - CORRIGÉ ==========
+  // ========== RESET PASSWORD ==========
   resetPassword(dto: ResetPasswordDTO): Observable<ApiResponse<string>> {
     return this.http.post(
       `${this.apiUrl}/auth/reset-password`,
@@ -266,7 +266,7 @@ logout(
   callApi: boolean = true
 ): void {
 
-  // 🔐 Appel serveur UNIQUEMENT si le token est encore valide
+  // Appel serveur UNIQUEMENT si le token est encore valide
   if (callApi) {
     this.http.post(`${this.apiUrl}/auth/sign-out`, {}).subscribe({
       error: () => {
@@ -275,7 +275,7 @@ logout(
     });
   }
 
-  // 🧹 Nettoyage local
+  // Nettoyage local
   localStorage.removeItem('currentUser');
   localStorage.removeItem('access_token');
   localStorage.removeItem('refresh_token');
@@ -292,7 +292,6 @@ logout(
     this.router.navigate(['/signin']);
   }
 }
-
 
   // ========== GESTION AUTHENTIFICATION ==========
   private handleAuthentication(data: AuthResponseDTO): void {
@@ -325,8 +324,6 @@ private setAutoLogout(expirationDate: Date): void {
     this.logout(true, false);
   }, expiresIn);
 }
-
-
 
   // ========== VÉRIFICATIONS ==========
   isAuthenticated(): boolean {

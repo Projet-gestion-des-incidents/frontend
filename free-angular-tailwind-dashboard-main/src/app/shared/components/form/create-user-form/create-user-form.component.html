@@ -1,6 +1,5 @@
 <app-component-card title="Créer un nouvel utilisateur">
-  <div class="space-y-8">
-    
+  <div class="space-y-8"> 
     <app-alert
       *ngIf="alert.show"
       [variant]="alert.variant"
@@ -13,6 +12,7 @@
       
       <!-- Section 1 : Informations personnelles -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
         <!-- Prénom -->
         <div>
           <app-label for="prenom">Prénom <span class="text-error-500">*</span></app-label>
@@ -48,6 +48,7 @@
 
       <!-- Section 2 : Email & Role -->
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+
         <!-- Email -->
         <div>
           <app-label for="email">Email <span class="text-error-500">*</span></app-label>
@@ -66,8 +67,8 @@
         </div>
 
       <div>
-                    <!-- Rôle -->
 
+          <!-- Rôle -->
           <app-label for="role">Rôle <span class="text-error-500">*</span></app-label>
           <app-select
               [options]="roleOptions"
@@ -77,7 +78,6 @@
             className="dark:bg-dark-900"
           ></app-select>
          
- 
           <div *ngIf="userForm.get('roleId')?.touched && userForm.get('roleId')?.invalid" 
                class="text-error-500 text-sm mt-1">
             Le rôle est requis
@@ -85,11 +85,9 @@
         </div>
 
       </div>
- 
-
+      
       <!-- Section 5 : Mot de passe -->
-  
-
+       
       <!-- Boutons -->
       <div class="flex justify-end space-x-4 pt-6 border-t dark:border-gray-700">
         <app-button

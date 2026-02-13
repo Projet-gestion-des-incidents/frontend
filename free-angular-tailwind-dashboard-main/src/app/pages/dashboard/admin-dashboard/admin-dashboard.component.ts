@@ -11,7 +11,7 @@ import { FormsModule } from '@angular/forms';
   selector: 'app-admin-dashboard',
   standalone: true,
   imports: [
- CommonModule,
+  CommonModule,
   RouterModule,
   FormsModule,
   BasicTableOneComponent,
@@ -52,16 +52,8 @@ totalCount = 0;
 searchTerm = '';
 selectedRole = '';
 selectedStatut = ''; 
-// searchUsers(term: string) {
-//   const lowerTerm = term.toLowerCase();
-//   return this.users.filter(u =>
-//     u.nom.toLowerCase().includes(lowerTerm) ||
-//         u.prenom.toLowerCase().includes(lowerTerm) ||
 
-//     u.email.toLowerCase().includes(lowerTerm) 
-//   );
-// }
-  // ✅ CORRIGÉ : Gestion propre de la pagination
+// Gestion de la pagination
   onPageChange(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
@@ -69,7 +61,7 @@ selectedStatut = '';
     }
   }
 
-  // ✅ CORRIGÉ : Génération des numéros de page avec limites
+// Génération des numéros de page avec limites
 getPageNumbers(): number[] {
   if (this.totalPages <= 0) {
     return [1]; // Au moins une page
@@ -106,6 +98,7 @@ getPageNumbers(): number[] {
     
     return pages;
   }
+
 toggleUser(user: User) {
   const action$ = user.statut === 'Inactif'
     ? this.userService.activateUser(user.id)
@@ -121,14 +114,13 @@ toggleUser(user: User) {
   });
 }
 
-
 roleOptions: string[] = [ 'Technicien', 'Commercant']; // À adapter
   statutOptions: string[] = ['Actif', 'Inactif'];
 
   loadUsers(): void {
     this.loading = true;
 
-    // ✅ Construire la requête proprement
+    // Construire la requête proprement
     const request: any = {
       page: this.currentPage,
       pageSize: this.pageSize,
@@ -136,7 +128,7 @@ roleOptions: string[] = [ 'Technicien', 'Commercant']; // À adapter
       sortDescending: false
     };
 
-    // ✅ N'ajouter que les filtres non vides
+    // N'ajouter que les filtres non vides
     if (this.searchTerm?.trim()) {
       request.searchTerm = this.searchTerm.trim();
     }
@@ -160,12 +152,12 @@ roleOptions: string[] = [ 'Technicien', 'Commercant']; // À adapter
         this.currentPage = res.pagination.page || this.currentPage;
       }
       
-      // ✅ Correction: Si totalPages est 0, mettre à 1
+      // Si totalPages est 0, mettre à 1
       if (this.totalPages === 0) {
         this.totalPages = 1;
       }
-        // ✅ CORRIGÉ : Ajuster la page courante si elle dépasse le total
-    if (this.currentPage > this.totalPages) {
+      // Ajuster la page courante si elle dépasse le total
+      if (this.currentPage > this.totalPages) {
         this.currentPage = this.totalPages;
       }
         this.loading = false;
@@ -181,21 +173,21 @@ roleOptions: string[] = [ 'Technicien', 'Commercant']; // À adapter
     });
   }
 
-  // ✅ Méthode dédiée pour l'application des filtres
+  // Méthode dédiée pour l'application des filtres
     applyFilter(): void {
     this.currentPage = 1;
     this.loadUsers();
   }
 
-  // ✅ Méthode dédiée pour la recherche
-onSearch(): void {
+  // Méthode dédiée pour la recherche
+  onSearch(): void {
   // Debounce
   if (this.searchTimeout) clearTimeout(this.searchTimeout);
   
   this.searchTimeout = setTimeout(() => {
     const term = this.searchTerm?.trim();
     
-    // 🚀 Si pas de terme, chargement normal
+    // Si pas de terme, chargement normal
     if (!term) {
       this.currentPage = 1;
       this.loadUsers();
@@ -234,7 +226,7 @@ private loadAllUsersForSearch(term: string): void {
       this.filterUsersLocally(this.allUsersCache, term);
     },
     error: (err) => {
-      console.error('❌ Erreur:', err);
+      console.error('Erreur:', err);
       this.loadUsers();
     }
   });
@@ -249,7 +241,7 @@ private filterUsersLocally(users: User[], term: string): void {
   const isPhoneSearch = /^[0-9\s\+\-]+$/.test(term);
   const cleanPhoneTerm = term.replace(/\D/g, '');
   
-  console.log(`🔍 Recherche "${term}" - Année: ${isYear}, Téléphone: ${isPhoneSearch}`);
+  console.log(`Recherche "${term}" - Année: ${isYear}, Téléphone: ${isPhoneSearch}`);
   
   const filteredUsers = users.filter(user => {
     // 1. Recherche texte standard
@@ -264,10 +256,10 @@ private filterUsersLocally(users: User[], term: string): void {
     if (!match && isPhoneSearch && user.phoneNumber) {
       const cleanUserPhone = user.phoneNumber.replace(/\D/g, '');
       match = cleanUserPhone.includes(cleanPhoneTerm);
-      if (match) console.log(`📞 Téléphone trouvé: ${user.phoneNumber} pour ${user.nom}`);
+      if (match) console.log(`Téléphone trouvé: ${user.phoneNumber} pour ${user.nom}`);
     }
     
-    // 3. 🔥 RECHERCHE PAR ANNÉE - CORRIGÉE !
+    // 3. RECHERCHE PAR ANNÉE - CORRIGÉE !
     if (!match && isYear && user.birthDate) {
       // Vérifier le type et extraire l'année
       let year: number | null = null;
@@ -281,13 +273,13 @@ private filterUsersLocally(users: User[], term: string): void {
       }
       
       match = year === yearToFind;
-      if (match) console.log(`📅 Année trouvée: ${year} pour ${user.nom} ${user.prenom}`);
+      if (match) console.log(`Année trouvée: ${year} pour ${user.nom} ${user.prenom}`);
     }
     
     return match;
   });
 
-  console.log(`🔍 "${term}" → ${filteredUsers.length} résultats`);
+  console.log(`"${term}" → ${filteredUsers.length} résultats`);
   
   // Pagination
   this.totalCount = filteredUsers.length;
@@ -298,7 +290,7 @@ private filterUsersLocally(users: User[], term: string): void {
 }
   private searchTimeout: any;
 
-  // ✅ Reset complet des filtres
+  // Reset complet des filtres
    resetFilters(): void {
     this.searchTerm = '';
     this.selectedRole = '';
@@ -306,10 +298,8 @@ private filterUsersLocally(users: User[], term: string): void {
     this.currentPage = 1;
     this.loadUsers();
   }
-
   
-  
-  // ✅ Méthode pour charger les rôles disponibles
+  // Méthode pour charger les rôles disponibles
   loadRoles(): void {
     this.userService.getAvailableRoles().subscribe({
       next: (roles) => {
@@ -321,7 +311,6 @@ private filterUsersLocally(users: User[], term: string): void {
     });
   }
 
- 
   deleteUser(user: User) {
   this.userService.deleteUser(user.id).subscribe(() => {
     this.users = this.users.filter(u => u.id !== user.id);

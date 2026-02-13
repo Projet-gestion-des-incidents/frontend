@@ -97,7 +97,6 @@ deleteSelectedUsers() {
   this.showMultiDeleteAlert = true; // uniquement pour suppression multiple
 }
 
-
   onDelete(user: User) {
     this.confirmUser = user;
     this.alert = {

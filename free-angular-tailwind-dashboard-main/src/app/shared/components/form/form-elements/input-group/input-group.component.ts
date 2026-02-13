@@ -1,4 +1,3 @@
-
 import { Component } from '@angular/core';
 import { LabelComponent } from '../../label/label.component';
 import { InputFieldComponent } from '../../input/input-field.component';

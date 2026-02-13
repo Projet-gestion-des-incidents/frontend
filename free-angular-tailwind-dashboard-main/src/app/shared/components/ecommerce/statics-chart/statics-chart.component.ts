@@ -1,4 +1,3 @@
-
 import { AfterViewInit, Component, ElementRef, ViewChild } from '@angular/core';
 import flatpickr from 'flatpickr';
 import { Instance } from 'flatpickr/dist/types/instance';

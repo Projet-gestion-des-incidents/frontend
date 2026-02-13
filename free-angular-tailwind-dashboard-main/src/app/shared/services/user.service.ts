@@ -30,19 +30,6 @@ export interface EditProfileDto {
   password?: string;
 }
 
-// export interface User {
-//   id: string;
-//   userName: string;
-//   email: string;
-//   nom: string;
-//   prenom: string;
-//   age?: number | null;
-//   phone?: string;
-//   roleId?: string;
-//   image?: string;
-//     isLocked: boolean;
-
-// }
 export interface RoleOption {
   id: string;
   name: string;
@@ -76,8 +63,6 @@ desactivateUser(id: string) {
   );
 }
 
-
-
   getAvailableRoles(): Observable<RoleOption[]> {
     return this.http.get<RoleOption[]>(
       `${this.apiUrl}/roles/register`, 
@@ -106,7 +91,7 @@ getAllUsersWithRoles(): Observable<User[]> {
       })))
     );
 }
-// Dans user.service.ts
+
 searchUsers(request: any): Observable<PagedResponse<User>> {
   let params = new HttpParams()
     .set('Page', request.page.toString())
@@ -125,10 +110,10 @@ searchUsers(request: any): Observable<PagedResponse<User>> {
     headers: this.getAuthHeaders().headers
   }).pipe(
     map(res => {
-      console.log('📦 Réponse API:', res);
-            console.log('📦 Réponse API:', res.data.items);
+      console.log('Réponse API:', res);
+            console.log('Réponse API:', res.data.items);
 
-      // ✅ CAS 1: Format ApiResponse avec data qui contient PagedResult
+      // CAS 1: Format ApiResponse avec data qui contient PagedResult
       if (res?.data?.items) {
         return {
           data: this.mapUsers(res.data.items),
@@ -143,7 +128,7 @@ searchUsers(request: any): Observable<PagedResponse<User>> {
         };
       }
       
-      // ✅ CAS 2: Format direct PagedResult
+      // CAS 2: Format direct PagedResult
       if (res?.items) {
         return {
           data: this.mapUsers(res.items),
@@ -158,7 +143,7 @@ searchUsers(request: any): Observable<PagedResponse<User>> {
         };
       }
       
-      // ✅ CAS 3: Format avec data et pagination séparés
+      // CAS 3: Format avec data et pagination séparés
       if (res?.data && res?.pagination) {
         return {
           data: this.mapUsers(res.data),
@@ -174,7 +159,7 @@ searchUsers(request: any): Observable<PagedResponse<User>> {
       }
       
       // Fallback
-      console.warn('⚠️ Format inattendu:', res);
+      console.warn('Format inattendu:', res);
       return {
         data: [],
         pagination: {
@@ -190,14 +175,14 @@ searchUsers(request: any): Observable<PagedResponse<User>> {
   );
 }
 
-// ✅ Helper pour mapper les utilisateurs
+// Helper pour mapper les utilisateurs
 private mapUsers(users: any[]): User[] {
   if (!users || !Array.isArray(users)) {
     return [];
   }
   
   return users.map(user => {
-    // ✅ CONVERTIR birthDate en objet Date POUR TOUS LES UTILISATEURS
+    // CONVERTIR birthDate en objet Date POUR TOUS LES UTILISATEURS
     let birthDate: Date | undefined = undefined;
     
     if (user.birthDate) {
@@ -227,7 +212,7 @@ private mapUsers(users: any[]): User[] {
       phoneNumber: user.phoneNumber || user.PhoneNumber || user.phone || '',
       role: user.role || user.Role || 'User',
       image: this.getFullImageUrl(user.image || user.Image),
-      birthDate: birthDate, // ✅ Maintenant c'est un vrai objet Date
+      birthDate: birthDate, // Maintenant c'est un vrai objet Date
       statut: this.determineStatut(user)
     };
   });
@@ -251,11 +236,12 @@ private parseBirthDate(user: any): Date | undefined {
     // Si c'est déjà une Date
     return new Date(birthDateValue);
   } catch (e) {
-    console.warn('❌ Erreur parsing date:', birthDateValue, e);
+    console.warn('Erreur parsing date:', birthDateValue, e);
     return undefined;
   }
 }
-// ✅ Helper pour déterminer le statut
+
+// Helper pour déterminer le statut
 private determineStatut(user: any): 'Actif' | 'Inactif' {
   // Vérifier différentes propriétés possibles
   if (user.statut === 'Inactif' || user.Statut === 'Inactif') {
@@ -273,7 +259,6 @@ private determineStatut(user: any): 'Actif' | 'Inactif' {
   return 'Actif'; // Par défaut
 }
 
-
  getMyProfile(): Observable<User> {
   return this.http.get<User>(
     `${this.apiUrl}/me`,
@@ -286,11 +271,12 @@ private determineStatut(user: any): 'Actif' | 'Inactif' {
     }))
   );
 }
+
 updateMyProfile(data: any): Observable<User> {
   return this.http.put<User>(
     `${this.apiUrl}/me`,
-    data,                  // ✅ BODY
-    this.getAuthHeaders()   // ✅ HEADERS
+    data,                 
+    this.getAuthHeaders()  
   ).pipe(
     map(user => ({
       ...user,
@@ -300,10 +286,6 @@ updateMyProfile(data: any): Observable<User> {
     }))
   );
 }
-
-
-
-
 
 // Méthode pour obtenir l'URL complète de l'image
 private getFullImageUrl(imagePath: string | null | undefined): string {

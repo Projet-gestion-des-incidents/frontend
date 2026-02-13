@@ -4,7 +4,7 @@ import { SafeHtmlPipe } from '../../../pipe/safe-html.pipe';
 
 type BadgeVariant = 'light' | 'solid';
 type BadgeSize = 'sm' | 'md';
-type BadgeColor = 'primary' | 'success' | 'error' | 'warning' | 'info' | 'light' | 'dark';
+export type BadgeColor = 'primary' | 'success' | 'error' | 'warning' | 'info' | 'light' | 'dark';
 
 @Component({
   selector: 'app-badge',

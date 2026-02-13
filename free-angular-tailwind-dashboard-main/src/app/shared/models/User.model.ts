@@ -7,6 +7,6 @@ export interface User {
   image?: string;
   email: string;
   birthDate?: Date | string;
-  statut: 'Actif' | 'Inactif'; // <-- ici
+  statut: 'Actif' | 'Inactif'; 
 
 }

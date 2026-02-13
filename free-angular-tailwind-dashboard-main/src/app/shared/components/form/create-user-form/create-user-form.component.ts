@@ -46,9 +46,6 @@ export class CreateUserAdminComponent {
     message: ''
   };
 
-  //  roleOptions: { id: string, name: string }[] = [];
-
-
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
@@ -59,7 +56,7 @@ export class CreateUserAdminComponent {
       nom: ['', [Validators.required, Validators.minLength(2)]],
       prenom: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
-           roleId: ['', Validators.required], // Utiliser roleId
+      roleId: ['', Validators.required], // Utiliser roleId
       // password: ['', [Validators.required, Validators.minLength(6)]],
       // confirmPassword: ['', Validators.required]
     // }, { validator: this.passwordMatchValidator 
@@ -79,7 +76,6 @@ export class CreateUserAdminComponent {
   //     this.showConfirmPassword = !this.showConfirmPassword;
   //   }
   // }
-
  
 roles: {id: string, name: string}[] = [];
 selectedRoleId: string = '';
@@ -100,12 +96,9 @@ selectedRoleId: string = '';
   });
 }
 
-
-
 ngOnInit(): void {
   this.loadRoles();
 }
-
 
   onSubmit() {
     if (this.userForm.invalid) {
@@ -123,14 +116,12 @@ ngOnInit(): void {
       .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Enlève accents
       .replace(/[^a-z0-9.]/g, ''); // Garde seulement lettres, chiffres, points
 
- 
-
     const userData: CreateUserDto = {
       userName: userName,
       email: formData.email,
       nom: formData.nom,
       prenom: formData.prenom,
-          roleId: formData.roleId, // Utiliser roleId
+      roleId: formData.roleId,
       password: formData.password
     };
 
@@ -148,7 +139,6 @@ ngOnInit(): void {
       this.showError(errorMessage, 'Erreur');
       return;
     }
-
     // Succès réel
     this.showSuccess('Utilisateur créé avec succès !');
 
@@ -172,9 +162,6 @@ ngOnInit(): void {
 
   }
 
-
-
-
   private markFormGroupTouched(formGroup: FormGroup) {
     Object.values(formGroup.controls).forEach(control => {
       control.markAsTouched();
@@ -187,7 +174,7 @@ ngOnInit(): void {
  private showSuccess(message: string, title = 'Succès') {
   this.alert = {
     show: true,
-    variant: 'success', // ✅ bien forcé
+    variant: 'success', //
     title,
     message
   };
@@ -196,7 +183,7 @@ ngOnInit(): void {
 private showError(message: string, title = 'Erreur') {
   this.alert = {
     show: true,
-    variant: 'error', // ✅ bien forcé
+    variant: 'error', //
     title,
     message
   };
@@ -211,7 +198,5 @@ private showError(message: string, title = 'Erreur') {
   cancel() {
     this.router.navigate(['/admin-dashboard']);
   }
-
- 
 
 }

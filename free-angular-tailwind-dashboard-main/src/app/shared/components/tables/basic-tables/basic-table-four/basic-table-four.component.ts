@@ -1,4 +1,3 @@
-
 import { Component } from '@angular/core';
 import { BadgeComponent } from '../../../ui/badge/badge.component';
 import { TableDropdownComponent } from '../../../common/table-dropdown/table-dropdown.component';

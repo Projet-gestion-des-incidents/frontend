@@ -33,7 +33,6 @@ import { DatePickerComponent } from '../../form/date-picker/date-picker.componen
 export class SignupFormComponent {
   roles: {id: string, name: string}[] = [];
   selectedRoleId: string = '';
-
   registerForm!: FormGroup;
   isLoading = false;
   showPassword = false;
@@ -105,10 +104,9 @@ private adultValidator(control: AbstractControl) {
   ]
 ],
       birthDate: ['', [this.adultValidator]],
-      password: ['', [Validators.required, Validators.minLength(6)]],
-      
-      confirmPassword: ['', [Validators.required]] ,// Ajouté car vous l'utilisez dans le validateur
-      roleId: ['', Validators.required]  // ← Nouveau champ rôle
+      password: ['', [Validators.required, Validators.minLength(6)]],      
+      confirmPassword: ['', [Validators.required]] ,
+      roleId: ['', Validators.required] 
 
  
     }, {
@@ -137,6 +135,7 @@ private adultValidator(control: AbstractControl) {
   get f() {
     return this.registerForm.controls;
   }
+
 ngOnInit(): void {
   this.loadRoles();
 }
@@ -167,7 +166,6 @@ onSubmit(event?: Event): void {
 
   // DEBUG: Voir ce que contient birthDate
   const birthDateRawValue = this.registerForm.get('birthDate')?.value;
-
 
   // Extraire la date correctement
   let birthDateValue: string | undefined;
@@ -255,14 +253,11 @@ onSubmit(event?: Event): void {
 
   // AJOUTEZ CES GETTERS pour faciliter l'accès :
   get firstName() { return this.registerForm.get('firstName'); }
-  get roleId(){ return this.registerForm.get('roleId') ;
-}
-
+  get roleId(){ return this.registerForm.get('roleId') ;}
   get lastName() { return this.registerForm.get('lastName'); }
   get email() { return this.registerForm.get('email'); }
   get password() { return this.registerForm.get('password'); }
   get confirmPassword() { return this.registerForm.get('confirmPassword'); }
-
   get phoneNumber() { return this.registerForm.get('phoneNumber'); } 
   get birthDate() { return this.registerForm.get('birthDate'); } 
 }

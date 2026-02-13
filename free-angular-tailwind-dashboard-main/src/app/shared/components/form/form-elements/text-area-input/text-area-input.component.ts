@@ -1,6 +1,5 @@
 import { Component } from '@angular/core';
 import { TextAreaComponent } from '../../input/text-area.component';
-
 import { LabelComponent } from '../../label/label.component';
 import { ComponentCardComponent } from '../../../common/component-card/component-card.component';
 

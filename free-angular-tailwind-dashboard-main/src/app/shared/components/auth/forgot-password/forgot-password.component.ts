@@ -14,7 +14,7 @@ import { ButtonComponent } from '../../ui/button/button.component';
   selector: 'app-forgot-password',
   standalone: true,
   imports: [
-     CommonModule,
+    CommonModule,
     ReactiveFormsModule,
     RouterModule,
     AlertComponent,
@@ -72,8 +72,7 @@ export class ForgotPasswordComponent {
           
           // Accepte resultCode 0 ou 1 comme succès (1 = OTP généré mais email non envoyé)
           if (response && (response.resultCode === 0 || response.resultCode === 1)) {
-            this.emailSent = true;
-           
+            this.emailSent = true;           
             
           // Rediriger immédiatement sans délai
           console.log('Redirecting to reset-password with email:', email);

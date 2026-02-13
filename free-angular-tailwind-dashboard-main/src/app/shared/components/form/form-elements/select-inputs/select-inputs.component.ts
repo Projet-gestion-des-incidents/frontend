@@ -1,4 +1,3 @@
-
 import { Component } from '@angular/core';
 import { MultiSelectComponent } from '../../multi-select/multi-select.component';
 import { ComponentCardComponent } from '../../../common/component-card/component-card.component';

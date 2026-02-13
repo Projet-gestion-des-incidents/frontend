@@ -1,6 +1,5 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { ModalService } from '../../../services/modal.service';
-
 import { InputFieldComponent } from '../../form/input/input-field.component';
 import { ButtonComponent } from '../../ui/button/button.component';
 import { LabelComponent } from '../../form/label/label.component';
@@ -17,12 +16,12 @@ import { AlertComponent } from '../../ui/alert/alert.component';
   selector: 'app-user-info-card',
   imports: [
     InputFieldComponent,
-        ReactiveFormsModule,
-FileInputExampleComponent,
+    ReactiveFormsModule,
+    FileInputExampleComponent,
     ButtonComponent,AlertComponent,
     LabelComponent,FormsModule,
     ModalComponent,
-        DatePickerComponent   ,CommonModule
+    DatePickerComponent,CommonModule
     
 ],
   standalone: true,
@@ -31,7 +30,7 @@ FileInputExampleComponent,
 })
 export class UserInfoCardComponent {
 
-   @Input() user!: User;
+  @Input() user!: User;
   editForm!: FormGroup;
   isOpen = false;
   selectedImage: File | null = null;
@@ -39,10 +38,9 @@ export class UserInfoCardComponent {
   imageBase64: string | null = null; // Envoyer le Base64 propre    loading = false;
   showPassword = false;
   
-
 @Output() userUpdated = new EventEmitter<User>();
 
- alert: {
+  alert: {
   show: boolean;
   variant: 'error' | 'warning' | 'success' | 'info';
   title: string;
@@ -69,10 +67,9 @@ this.editForm = this.fb.group(
     prenom: ['', [Validators.required, Validators.minLength(2)]],
     email: ['', [Validators.required, Validators.email]],
     phoneNumber: [''],
-    birthDate: ['', [this.adultValidator]], // 🔥 ICI
-
-    currentPassword: [''],   // 🔥 AJOUT
-    newPassword: [''],       // 🔥 AJOUT
+    birthDate: ['', [this.adultValidator]], 
+    currentPassword: [''], 
+    newPassword: [''],     
     confirmPassword: ['']
   },
   { validators: this.passwordMatchValidator }
@@ -152,9 +149,8 @@ private adultValidator(control: AbstractControl) {
   return date <= minDate ? null : { underAge: true}; // doit avoir 18 ans
 }
 
-
 openModal() {
-  this.editForm.reset(); // 🔥 très important
+  this.editForm.reset(); 
 
   this.editForm.patchValue({
     nom: this.user.nom ?? '',
@@ -228,7 +224,7 @@ handleSave() {
     return;
   }
 
-  const formValue = this.editForm.getRawValue(); // 🔥 getRawValue = inclut email désactivé
+  const formValue = this.editForm.getRawValue(); // getRawValue = inclut email désactivé
 
   const payload: any = {
     nom: formValue.nom,
@@ -238,7 +234,7 @@ handleSave() {
     birthDate: formValue.birthDate
   };
 
-  // 👉 mot de passe seulement s’il est rempli
+  // mot de passe seulement s’il est rempli
 if (
   formValue.currentPassword &&
   formValue.newPassword &&
@@ -249,7 +245,7 @@ if (
   payload.confirmPassword = formValue.confirmPassword;
 }
 
-  // 👉 image seulement si modifiée
+  // image seulement si modifiée
   if (this.imageBase64) {
     payload.image = this.imageBase64;
   }
@@ -260,7 +256,7 @@ if (
     next: updated => {
     const mergedUser = { ...this.user, ...updated };
 
-    // 🔥 EMIT vers le parent
+    // EMIT vers le parent
     this.userUpdated.emit(mergedUser);
       this.closeModal();
       this.showSuccess('Profil mis à jour avec succès');

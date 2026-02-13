@@ -28,7 +28,9 @@ import { TechnicienDashboardComponent } from './pages/dashboard/technicien-dashb
 import { CommercantDashboardComponent } from './pages/dashboard/commercant-dashboard/commercant-dashboard.component';
 import { AuthGuard } from './shared/guards/auth.guard';
 import { CreateUserAdminComponent } from './shared/components/form/create-user-form/create-user-form.component';
-
+import { IncidentListComponent } from './pages/incident-list/incident-list.component';
+import { IncidentFormComponent } from './shared/components/incident-form/incident-form.component';
+import { IncidentDetailComponent } from './pages/incident-detail/incident-detail.component';
 
 export const routes: Routes = [
   {
@@ -50,9 +52,9 @@ export const routes: Routes = [
 },
 { 
   path: 'admin/create-user', 
-    canActivate: [AuthGuard],
+  canActivate: [AuthGuard],
 
-  component: CreateUserAdminComponent,
+ component: CreateUserAdminComponent,
  data: { roles: ['Admin'] }  },
 {
   path: 'technicien-dashboard',
@@ -65,6 +67,14 @@ export const routes: Routes = [
   component: CommercantDashboardComponent,
   canActivate: [AuthGuard],
   data: { roles: ['Commercant'] }
+},
+ {
+  path: 'incidents',
+  children: [
+    { path: '', component: IncidentListComponent },
+    { path: 'new', component: IncidentFormComponent },
+    { path: ':id', component: IncidentDetailComponent }
+  ]
 }
 ,
       {
@@ -141,7 +151,7 @@ export const routes: Routes = [
     ]
   },
   // auth pages
-   {
+  {
     path: 'forgot-password', 
     component: ForgotPasswordPageComponent 
   },
@@ -176,4 +186,5 @@ export const routes: Routes = [
     component:NotFoundComponent,
     title:'Angular NotFound Dashboard | TailAdmin - Angular Admin Dashboard Template'
   },
+ 
 ];

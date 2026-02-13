@@ -1,0 +1,194 @@
+<div class="max-w-4xl mx-auto">
+  <div class="mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800 dark:text-white/90">
+      Nouvel incident
+    </h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+      Créez un nouvel incident en remplissant le formulaire ci-dessous
+    </p>
+  </div>
+
+  <form (ngSubmit)="onSubmit()" #incidentForm="ngForm" class="space-y-6">
+    <!-- Message d'erreur -->
+    <div *ngIf="error" class="p-4 bg-error-50 text-error-600 rounded-lg">
+      {{ error }}
+    </div>
+
+    <!-- Informations générales -->
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
+        Informations générales
+      </h3>
+
+      <div class="space-y-4">
+        <!-- Titre -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+            Titre de l'incident <span class="text-error-500">*</span>
+          </label>
+          <input
+            type="text"
+            [(ngModel)]="incident.titreIncident"
+            name="titre"
+            required
+            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+            placeholder="Ex: Panne du serveur de production"
+          />
+        </div>
+
+        <!-- Description -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+            Description <span class="text-error-500">*</span>
+          </label>
+          <textarea
+            [(ngModel)]="incident.descriptionIncident"
+            name="description"
+            required
+            rows="4"
+            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+            placeholder="Décrivez l'incident en détail..."
+          ></textarea>
+        </div>
+
+        <!-- Sévérité -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+            Sévérité <span class="text-error-500">*</span>
+          </label>
+          <select
+            [(ngModel)]="incident.severiteIncident"
+            name="severite"
+            required
+            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+          >
+            <option *ngFor="let option of severiteOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+      </div>
+    </div>
+
+    <!-- Entités impactées -->
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <div class="flex justify-between items-center mb-4">
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+          Entités impactées
+        </h3>
+        <button
+          type="button"
+          (click)="showNewEntiteForm = !showNewEntiteForm"
+          class="inline-flex items-center gap-2 text-sm text-brand-500 hover:text-brand-600"
+        >
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+          </svg>
+          {{ showNewEntiteForm ? 'Annuler' : 'Créer une nouvelle entité' }}
+        </button>
+      </div>
+
+      <!-- Loading entités -->
+      <div *ngIf="loadingEntites" class="flex justify-center py-4">
+        <div class="animate-spin rounded-full h-5 w-5 border-b-2 border-brand-500"></div>
+      </div>
+
+      <!-- Liste des entités existantes -->
+      <div *ngIf="!loadingEntites && entitesExistantes.length > 0" class="mb-4 space-y-2 max-h-60 overflow-y-auto p-2 border border-gray-100 rounded-lg">
+        <div *ngFor="let entite of entitesExistantes" class="flex items-center gap-3 p-2 hover:bg-gray-50 dark:hover:bg-gray-800 rounded">
+          <input
+            type="checkbox"
+            [id]="'entite-' + entite.id"
+            [value]="entite.id"
+            (change)="onEntiteSelectionChange($event, entite.id!)"
+            class="rounded border-gray-300 text-brand-500 focus:ring-brand-500"
+          />
+          <label [for]="'entite-' + entite.id" class="flex-1 cursor-pointer">
+            <span class="block font-medium text-gray-700 dark:text-gray-400">{{ entite.nom }}</span>
+            <span class="text-xs text-gray-500 dark:text-gray-400">
+              {{ typeEntiteOptions[entite.typeEntiteImpactee - 1]?.label }}
+            </span>
+          </label>
+        </div>
+      </div>
+
+      <div *ngIf="!loadingEntites && entitesExistantes.length === 0" class="text-center py-4 text-gray-500">
+        Aucune entité existante. Créez-en une nouvelle.
+      </div>
+
+      <!-- Formulaire de création d'une nouvelle entité -->
+      <div *ngIf="showNewEntiteForm" class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-400 mb-3">
+          Nouvelle entité impactée
+        </h4>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+          <div>
+            <select
+              [(ngModel)]="newEntite.typeEntiteImpactee"
+              name="typeEntite"
+              class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+            >
+              <option *ngFor="let option of typeEntiteOptions" [value]="option.value">
+                {{ option.label }}
+              </option>
+            </select>
+          </div>
+          <div>
+            <input
+              type="text"
+              [(ngModel)]="newEntite.nom"
+              name="nomEntite"
+              placeholder="Nom de l'entité"
+              class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+            />
+          </div>
+        </div>
+        
+        <div class="flex justify-end mt-3">
+          <button
+            type="button"
+            (click)="createNewEntite()"
+            [disabled]="!newEntite.nom || loading"
+            class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50"
+          >
+            <span *ngIf="loading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+            Créer l'entité
+          </button>
+        </div>
+      </div>
+
+      <!-- Résumé des entités sélectionnées -->
+      <div *ngIf="selectedEntiteIds.length > 0" class="mt-4">
+        <p class="text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+          {{ selectedEntiteIds.length }} entité(s) sélectionnée(s)
+        </p>
+        <div class="flex flex-wrap gap-2">
+          <span *ngFor="let id of selectedEntiteIds" 
+                class="inline-flex items-center gap-1 px-2 py-1 bg-brand-50 text-brand-700 text-xs rounded-full">
+            {{ getEntiteNameById(id) }}
+          </span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Boutons d'action -->
+    <div class="flex justify-end gap-3">
+      <button
+        type="button"
+        (click)="cancel()"
+        class="px-6 py-2.5 text-theme-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+      >
+        Annuler
+      </button>
+      <button
+        type="submit"
+        [disabled]="loading || !incidentForm.form.valid"
+        class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
+      >
+        <span *ngIf="loading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+        {{ loading ? 'Création...' : 'Créer l\'incident' }}
+      </button>
+    </div>
+  </form>
+</div>

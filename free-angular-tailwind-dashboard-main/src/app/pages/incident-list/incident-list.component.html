@@ -1,0 +1,167 @@
+<div class="overflow-hidden rounded-2xl border border-gray-200 bg-white pt-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
+  
+  <!-- En-tête avec titre et recherche -->
+  <div class="flex flex-col gap-4 px-6 mb-4 sm:flex-row sm:items-center sm:justify-between">
+    <div>
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+        Liste des incidents
+      </h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+        {{ filteredIncidents.length }} incident(s) trouvé(s)
+      </p>
+    </div>
+    
+    <div class="flex items-center gap-3">
+      <!-- Barre de recherche -->
+      <div class="relative">
+        <input 
+          type="text" 
+          placeholder="Rechercher par code, titre..." 
+          [(ngModel)]="searchTerm"
+          (input)="applyFilter()"
+          class="w-full sm:w-64 rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+        />
+      </div>
+      
+      <!-- Bouton nouvel incident -->
+      <button 
+        routerLink="/incidents/new"
+        class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-600"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
+        </svg>
+        Nouvel incident
+      </button>
+    </div>
+  </div>
+  
+  <!-- Loading indicator -->
+  <div *ngIf="loading" class="flex justify-center items-center py-12">
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+  </div>
+  
+  <!-- Error message -->
+  <div *ngIf="error" class="mx-6 mb-4 p-4 bg-error-50 text-error-600 rounded-lg">
+    {{ error }}
+  </div>
+  
+  <!-- Tableau des incidents -->
+  <div *ngIf="!loading && !error" class="max-w-full overflow-x-auto">
+    <table class="min-w-full">
+      <thead class="px-6 py-3.5 border-t border-gray-100 border-y bg-gray-50 dark:border-white/[0.05] dark:bg-gray-900">
+        <tr>
+          <th class="px-6 py-3 font-medium text-gray-500 sm:px-6 text-theme-xs dark:text-gray-400 text-start">
+            <div class="flex items-center gap-3">
+              <div>
+                <app-checkbox [checked]="selectAll" (checkedChange)="handleSelectAll()"/>
+              </div>
+              <div>
+                <span class="font-medium text-gray-500 text-theme-xs dark:text-gray-400">
+                  Code
+                </span>
+              </div>
+            </div>
+          </th>
+          <th class="px-6 py-3 font-medium text-gray-500 sm:px-6 text-theme-xs dark:text-gray-400 text-start">Titre</th>
+          <th class="px-6 py-3 font-medium text-gray-500 sm:px-6 text-theme-xs dark:text-gray-400 text-start">Créateur</th>
+          <th class="px-6 py-3 font-medium text-gray-500 sm:px-6 text-theme-xs dark:text-gray-400 text-start">Date détection</th>
+          <th class="px-6 py-3 font-medium text-gray-500 sm:px-6 text-theme-xs dark:text-gray-400 text-start">Sévérité</th>
+          <th class="px-6 py-3 font-medium text-gray-500 sm:px-6 text-theme-xs dark:text-gray-400 text-start">Statut</th>
+          <th class="px-6 py-3 font-medium text-gray-500 sm:px-6 text-theme-xs dark:text-gray-400 text-start">Action</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let incident of filteredIncidents" class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
+          <td class="px-4 sm:px-6 py-3.5">
+            <div class="flex items-center gap-3">
+              <div>
+                <app-checkbox
+                  [checked]="selectedRows.includes(incident.id)"
+                  (checkedChange)="handleRowSelect(incident.id)"
+                />
+              </div>
+              <div>
+                <span class="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
+                  {{ incident.codeIncident }}
+                </span>
+              </div>
+            </div>
+          </td>
+          
+          <td class="px-4 sm:px-6 py-3.5">
+            <div class="flex flex-col">
+              <span class="font-medium text-gray-800 dark:text-white/90">
+                {{ incident.titreIncident }}
+              </span>
+              <span class="text-gray-500 text-theme-xs dark:text-gray-400 line-clamp-1">
+                {{ incident.descriptionIncident | slice:0:50 }}...
+              </span>
+            </div>
+          </td>
+          
+          <td class="px-4 sm:px-6 py-3.5">
+            <div class="flex items-center gap-3">
+              <app-avatar-text 
+                [name]="incident.createdByName || 'N/A'" 
+                class="w-8 h-8"
+              />
+              <div>
+                <span class="block text-theme-sm font-medium text-gray-700 dark:text-gray-400">
+                  {{ incident.createdByName || 'Non assigné' }}
+                </span>
+              </div>
+            </div>
+          </td>
+          
+          <td class="px-4 sm:px-6 py-3.5">
+            <span class="text-gray-700 text-theme-sm dark:text-gray-400">
+              {{ formatDate(incident.dateDetection) }}
+            </span>
+          </td>
+          
+          <td class="px-4 sm:px-6 py-3.5">
+            <app-badge
+              variant="light"
+              [color]="getSeveriteBadgeColor(incident.severiteIncident)"
+              size="sm"
+            >
+              {{ incident.severiteIncidentLibelle }}
+            </app-badge>
+          </td>
+          
+          <td class="px-4 sm:px-6 py-3.5">
+            <app-badge
+              variant="light"
+              [color]="getStatutBadgeColor(incident.statutIncident)"
+              size="sm"
+            >
+              {{ incident.statutIncidentLibelle }}
+            </app-badge>
+          </td>
+          
+          <td class="px-4 sm:px-6 py-3.5">
+            <button 
+              (click)="viewIncidentDetails(incident.id)"
+              class="inline-flex items-center gap-1 text-brand-500 hover:text-brand-600 font-medium text-sm"
+              title="Voir détails"
+            >
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+              </svg>
+              Détails
+            </button>
+          </td>
+        </tr>
+        
+        <!-- Message si aucun incident -->
+        <tr *ngIf="filteredIncidents.length === 0">
+          <td colspan="7" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
+            Aucun incident trouvé
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>

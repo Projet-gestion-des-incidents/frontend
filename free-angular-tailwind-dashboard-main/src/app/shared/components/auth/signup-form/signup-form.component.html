@@ -34,6 +34,7 @@
     <form [formGroup]="registerForm" (ngSubmit)="onSubmit($event)" novalidate id="signup-form">
       <div class="space-y-5">
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+
           <!-- First Name -->
           <div class="sm:col-span-1">
             <app-label>
@@ -66,6 +67,7 @@
         </div>
 
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+
           <!-- Email -->
           <div class="sm:col-span-1">
             <app-label>
@@ -104,6 +106,7 @@
         </div>
 
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+
           <!-- Birth Date -->
           <div class="sm:col-span-1">
             <app-label for="birthDate">Date de naissance<span class="text-error-500">*</span></app-label>
@@ -138,6 +141,7 @@
         </div>
 
         <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          
           <!-- Password -->
           <div class="sm:col-span-1">
             <app-label>Password <span class="text-error-500">*</span></app-label>
