@@ -31,6 +31,7 @@ import { CreateUserAdminComponent } from './shared/components/form/create-user-f
 import { IncidentListComponent } from './pages/incident-list/incident-list.component';
 import { IncidentFormComponent } from './shared/components/incident-form/incident-form.component';
 import { IncidentDetailComponent } from './pages/incident-detail/incident-detail.component';
+import { IncidentEditComponent } from './pages/incident-edit/incident-edit.component';
 
 export const routes: Routes = [
   {
@@ -73,6 +74,8 @@ export const routes: Routes = [
   children: [
     { path: '', component: IncidentListComponent },
     { path: 'new', component: IncidentFormComponent },
+        { path: 'edit/:id', component: IncidentEditComponent }, // ✅ AJOUT ICI
+
     { path: ':id', component: IncidentDetailComponent }
   ]
 }

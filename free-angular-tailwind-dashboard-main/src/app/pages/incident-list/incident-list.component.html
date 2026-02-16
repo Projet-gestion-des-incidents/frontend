@@ -152,6 +152,20 @@
               </svg>
               Détails
             </button>
+              <!-- Bouton Modifier -->
+              <br>
+  <button 
+    [routerLink]="['/incidents/edit', incident.id]"
+    class="inline-flex items-center gap-1 text-warning-500 hover:text-warning-600 font-medium text-sm"
+    title="Modifier incident"
+  >
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+        d="M11 4h2m-1-1v2m7.071 2.929a2 2 0 010 2.828l-8.486 8.486a2 2 0 01-.878.515l-4 1a1 1 0 01-1.213-1.213l1-4a2 2 0 01.515-.878l8.486-8.486a2 2 0 012.828 0z">
+      </path>
+    </svg>
+    Modifier
+  </button>
           </td>
         </tr>
         

@@ -5,7 +5,10 @@ import {
   Incident, 
   IncidentDetail, 
   CreateIncidentDTO,
-  ApiResponse 
+  ApiResponse, 
+  SeveriteIncident,
+  StatutIncident,
+  TypeEntiteImpactee
 } from '../models/incident.model';
 import { AuthService } from './auth.service'; 
 
@@ -180,4 +183,27 @@ export class IncidentService {
       map(response => response.data)
     );
   }
+  /**
+ * Met à jour un incident
+ */
+updateIncident(id: string, dto: {
+  titreIncident: string;
+  descriptionIncident: string;
+  severiteIncident: SeveriteIncident;
+  statutIncident: StatutIncident;
+  entitesImpactees: {
+    id?: string;
+    typeEntiteImpactee: TypeEntiteImpactee;
+    nom: string;
+  }[];
+}): Observable<Incident> {
+  return this.http.put<ApiResponse<Incident>>(
+    `${this.apiUrl}/${id}`,
+    dto,
+    this.getAuthHeaders()
+  ).pipe(
+    map(response => response.data)
+  );
+}
+
 }

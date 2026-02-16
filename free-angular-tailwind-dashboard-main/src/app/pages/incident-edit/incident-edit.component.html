@@ -1,0 +1,178 @@
+<div *ngIf="loading" class="flex justify-center items-center py-20">
+  <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+</div>
+
+<div *ngIf="!loading && incident" class="max-w-4xl mx-auto space-y-6">
+
+  <!-- Header -->
+  <div>
+    <h1 class="text-2xl font-semibold text-gray-800 dark:text-white/90">
+      Modifier l'incident
+    </h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+      Modifiez les informations de l’incident
+    </p>
+  </div>
+
+  <!-- Message erreur -->
+  <div *ngIf="error" class="p-4 bg-error-50 text-error-600 rounded-lg">
+    {{ error }}
+  </div>
+
+  <!-- Informations générales -->
+  <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+    <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
+      Informations générales
+    </h3>
+
+    <div class="space-y-4">
+
+      <!-- Titre -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+          Titre
+        </label>
+        <input
+          type="text"
+          [(ngModel)]="incident.titreIncident"
+          class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+        />
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+          Description
+        </label>
+        <textarea
+          rows="4"
+          [(ngModel)]="incident.descriptionIncident"
+          class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+        ></textarea>
+      </div>
+
+      <!-- Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+        <!-- Sévérité -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+            Sévérité
+          </label>
+          <select
+            [(ngModel)]="incident.severiteIncident"
+            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+          >
+            <option *ngFor="let s of severites" [ngValue]="s">
+              {{ s }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Statut -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+            Statut
+          </label>
+          <select
+            [(ngModel)]="incident.statutIncident"
+            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+          >
+            <option *ngFor="let s of statuts" [ngValue]="s">
+              {{ s }}
+            </option>
+          </select>
+        </div>
+
+      </div>
+    </div>
+  </div>
+
+  <!-- Entités impactées -->
+  <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+
+    <div class="flex justify-between items-center mb-4">
+      <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+        Entités impactées
+      </h3>
+
+      <button
+        type="button"
+        (click)="addEntite()"
+        class="inline-flex items-center gap-2 text-sm text-brand-500 hover:text-brand-600"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 6v6m0 0v6m0-6h6m-6 0H6">
+          </path>
+        </svg>
+        Ajouter
+      </button>
+    </div>
+
+    <div *ngFor="let entite of incident.entitesImpactees; let i = index"
+         class="border border-gray-200 dark:border-gray-700 rounded-lg p-4 mb-3 bg-gray-50 dark:bg-gray-800">
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-3 items-end">
+
+        <div>
+          <select
+            [(ngModel)]="entite.typeEntiteImpactee"
+            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
+          >
+            <option *ngFor="let t of typesEntite" [ngValue]="t">
+              {{ t }}
+            </option>
+          </select>
+        </div>
+
+        <div>
+          <input
+            [(ngModel)]="entite.nom"
+            placeholder="Nom entité"
+            class="w-full rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
+          />
+        </div>
+
+        <div class="flex justify-end">
+          <button
+            type="button"
+            (click)="removeEntite(i)"
+            class="inline-flex items-center gap-1 text-error-500 hover:text-error-600 text-sm"
+          >
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                d="M6 18L18 6M6 6l12 12">
+              </path>
+            </svg>
+            Supprimer
+          </button>
+        </div>
+
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Boutons -->
+  <div class="flex justify-end gap-3">
+
+  <button
+  type="button"
+  (click)="cancel()"
+  class="px-6 py-2.5 text-theme-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+>
+  Annuler
+</button>
+
+
+    <button
+      (click)="save()"
+      class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-600"
+    >
+      Enregistrer les modifications
+    </button>
+
+  </div>
+
+</div>
