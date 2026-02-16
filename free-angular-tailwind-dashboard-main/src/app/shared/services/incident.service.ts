@@ -197,12 +197,17 @@ updateIncident(id: string, dto: {
     nom: string;
   }[];
 }): Observable<Incident> {
+  console.log('updateIncident - DTO reçu:', dto);
+  
   return this.http.put<ApiResponse<Incident>>(
     `${this.apiUrl}/${id}`,
     dto,
     this.getAuthHeaders()
   ).pipe(
-    map(response => response.data)
+    map(response => {
+      console.log('updateIncident - Réponse:', response);
+      return response.data;
+    })
   );
 }
 
