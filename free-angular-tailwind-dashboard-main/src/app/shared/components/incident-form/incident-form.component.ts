@@ -18,22 +18,17 @@ export class IncidentFormComponent implements OnInit {
     titreIncident: '',
     descriptionIncident: '',
     severiteIncident: SeveriteIncident.Moyenne,
-    entitesImpactees: []
+    entitesImpactees: [] // Ce sera notre liste dynamique
   };
 
-  // Pour la sélection d'entités existantes
-  entitesExistantes: EntiteImpactee[] = [];
-  selectedEntiteIds: string[] = [];
-  
   // Pour la création d'une nouvelle entité
   showNewEntiteForm = false;
-  newEntite: CreateEntiteImpacteeDTO = {
+  newEntite: Partial<EntiteImpactee> = {
     typeEntiteImpactee: TypeEntiteImpactee.Application,
     nom: ''
   };
 
   loading = false;
-  loadingEntites = true;
   error: string | null = null;
 
   // Options pour les select
@@ -56,113 +51,87 @@ export class IncidentFormComponent implements OnInit {
 
   constructor(
     private incidentService: IncidentService,
-    private entiteService: EntiteImpacteeService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
-    this.loadEntitesExistantes();
+    // Plus besoin de charger les entités existantes
   }
 
-  loadEntitesExistantes(): void {
-    this.loadingEntites = true;
-    this.entiteService.getAll().subscribe({
-      next: (entites) => {
-        console.log('Entités chargées:', entites); // Debug - CORRIGÉ : déplacé dans next
-        this.entitesExistantes = entites;
-        this.loadingEntites = false;
+  // Ajouter une nouvelle entité (comme dans IncidentEditComponent)
+ 
+
+  // Supprimer une entité (comme dans IncidentEditComponent)
+  supprimerEntite(index: number): void {
+    this.incident.entitesImpactees.splice(index, 1);
+  }
+
+  onSubmit(): void {
+    if (!this.incident.titreIncident || !this.incident.descriptionIncident) {
+      this.error = 'Veuillez remplir tous les champs obligatoires';
+      return;
+    }
+
+    this.loading = true;
+    this.error = null;
+
+    this.incidentService.createIncident(this.incident).subscribe({
+      next: (createdIncident) => {
+        this.loading = false;
+        this.router.navigate(['/incidents', createdIncident.id]);
       },
       error: (err) => {
-        console.error('Erreur chargement entités', err);
-        this.loadingEntites = false;
-        // On ne bloque pas le formulaire, on continue sans les entités existantes
+        console.error('Erreur création incident', err);
+        this.error = 'Erreur lors de la création de l\'incident';
+        this.loading = false;
       }
     });
-  }
-
-  // Gestion des entités sélectionnées
-  onEntiteSelectionChange(event: any, entiteId: string): void {
-    if (event.target.checked) {
-      this.selectedEntiteIds.push(entiteId);
-    } else {
-      this.selectedEntiteIds = this.selectedEntiteIds.filter(id => id !== entiteId);
-    }
-  }
-
-// Gardez uniquement la version temporaire
-createNewEntite(): void {
-  if (!this.newEntite.nom || !this.newEntite.nom.trim()) {
-    return;
-  }
-
-  // Créer une entité TEMPORAIRE (pas d'appel API)
-  const tempEntite = {
-    id: 'temp_' + Date.now(),
-    typeEntiteImpactee: this.newEntite.typeEntiteImpactee,
-    nom: this.newEntite.nom.trim()
-  };
-
-  // Ajouter à la liste locale
-  this.entitesExistantes.push(tempEntite as any);
-  this.selectedEntiteIds.push(tempEntite.id);
-
-  // Réinitialiser
-  this.newEntite = {
-    typeEntiteImpactee: TypeEntiteImpactee.Application,
-    nom: ''
-  };
-  this.showNewEntiteForm = false;
-}
-
-// Dans onSubmit, envoyez TOUTES les entités (existantes et temporaires)
-onSubmit(): void {
-  if (!this.incident.titreIncident || !this.incident.descriptionIncident) {
-    this.error = 'Veuillez remplir tous les champs obligatoires';
-    return;
-  }
-
-  // Récupérer TOUTES les entités sélectionnées (existantes ET temporaires)
-  const entitesSelectionnees = this.entitesExistantes
-    .filter(e => e.id && this.selectedEntiteIds.includes(e.id))
-    .map(e => ({
-      typeEntiteImpactee: e.typeEntiteImpactee,
-      nom: e.nom
-      // Ne pas envoyer l'ID - le backend créera de nouvelles entités
-    }));
-
-  this.incident.entitesImpactees = entitesSelectionnees;
-
-  this.loading = true;
-  this.error = null;
-
-  this.incidentService.createIncident(this.incident).subscribe({
-    next: (createdIncident) => {
-      this.loading = false;
-      this.router.navigate(['/incidents', createdIncident.id]);
-    },
-    error: (err) => {
-      console.error('Erreur création incident', err);
-      this.error = 'Erreur lors de la création de l\'incident';
-      this.loading = false;
-    }
-  });
-}
-
-  // Ajouter une entité directement dans l'incident (sans la créer en base)
-  addCustomEntite(): void {
-    if (this.newEntite.nom && this.newEntite.nom.trim()) {
-      // On crée l'entité en base d'abord
-      this.createNewEntite();
-    }
   }
 
   cancel(): void {
     this.router.navigate(['/incidents']);
   }
 
-  // Ajouter dans la classe IncidentFormComponent
-  getEntiteNameById(id: string): string {
-    const entite = this.entitesExistantes.find(e => e.id === id);
-    return entite ? entite.nom : '';
+  getTypeEntiteLabel(type: TypeEntiteImpactee): string {
+    const option = this.typeEntiteOptions.find(o => o.value === type);
+    return option ? option.label : '';
   }
+
+  // Dans incident-form.component.ts et incident-edit.component.ts
+toggleNewEntiteForm(): void {
+  if (!this.showNewEntiteForm) {
+    // On ouvre le formulaire - on garde les valeurs actuelles
+    this.showNewEntiteForm = true;
+  } else {
+    // On annule - on réinitialise complètement le formulaire
+    this.resetNewEntiteForm();
+    this.showNewEntiteForm = false;
+  }
+}
+
+resetNewEntiteForm(): void {
+  this.newEntite = {
+    typeEntiteImpactee: TypeEntiteImpactee.Application,
+    nom: ''
+  };
+}
+
+// Modifiez aussi ajouterEntite pour réinitialiser après ajout
+ajouterEntite(): void {
+  if (!this.newEntite.nom || !this.newEntite.nom.trim()) {
+    return;
+  }
+
+  // Ajouter l'entité
+  const entite: Partial<EntiteImpactee> = {
+    typeEntiteImpactee: this.newEntite.typeEntiteImpactee,
+    nom: this.newEntite.nom.trim()
+  };
+  
+  this.incident.entitesImpactees.push(entite as EntiteImpactee);
+
+  // Réinitialiser ET fermer le formulaire
+  this.resetNewEntiteForm();
+  this.showNewEntiteForm = false;
+}
 }

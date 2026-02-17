@@ -2,6 +2,7 @@ import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { forkJoin } from 'rxjs'; // 🔥 IMPORT AJOUTÉ
 import {
   IncidentDetail,
   SeveriteIncident,
@@ -10,6 +11,7 @@ import {
   EntiteImpactee
 } from '../../shared/models/incident.model';
 import { IncidentService } from '../../shared/services/incident.service';
+import { EntiteImpacteeService } from '../../shared/services/entite-impactee.service';
 
 @Component({
   selector: 'app-incident-edit',
@@ -61,7 +63,8 @@ export class IncidentEditComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private incidentService: IncidentService,
-    private router: Router
+    private router: Router,
+    private entiteService: EntiteImpacteeService,
   ) {}
 
   ngOnInit(): void {
@@ -73,59 +76,31 @@ export class IncidentEditComponent implements OnInit {
     this.router.navigate(['/incidents', this.incidentId]);
   }
 
-loadIncident() {
-  this.incidentService.getIncidentDetails(this.incidentId).subscribe({
-    next: (data) => {
-      console.log('Données reçues:', data);
-      console.log('Sévérité reçue:', data.severiteIncident, 'type:', typeof data.severiteIncident);
-      console.log('Statut reçu:', data.statutIncident, 'type:', typeof data.statutIncident);
+  loadIncident() {
+    this.incidentService.getIncidentDetails(this.incidentId).subscribe({
+      next: (data) => {
+        console.log('📥 Données reçues:', data);
+        
+        this.incident = {
+          ...data,
+          severiteIncident: Number(data.severiteIncident),
+          statutIncident: Number(data.statutIncident),
+          entitesImpactees: data.entitesImpactees?.map(e => ({
+            id: e.id,
+            nom: e.nom,
+            typeEntiteImpactee: Number(e.typeEntiteImpactee) as TypeEntiteImpactee
+          })) || []
+        };
 
-      this.incident = {
-        ...data,
-        severiteIncident: Number(data.severiteIncident),
-        statutIncident: Number(data.statutIncident),
-        entitesImpactees: data.entitesImpactees?.map(e => ({
-          id: e.id,
-          nom: e.nom,
-          typeEntiteImpactee: Number(e.typeEntiteImpactee)
-        })) || []
-      };
-
-      console.log('Incident après conversion:', this.incident);
-      console.log('Sévérité après conversion:', this.incident.severiteIncident, 'type:', typeof this.incident.severiteIncident);
-      console.log('Statut après conversion:', this.incident.statutIncident, 'type:', typeof this.incident.statutIncident);
-
-      this.loading = false;
-    },
-    error: (err) => {
-      console.error('Erreur chargement incident:', err);
-      this.error = 'Erreur chargement incident';
-      this.loading = false;
-    }
-  });
-}
-
-  // Ajouter une nouvelle entité
-  ajouterEntite() {
-    if (!this.newEntite.nom || !this.newEntite.nom.trim()) {
-      return;
-    }
-
-    // Créer une nouvelle entité (sans ID pour le moment)
-    const entite: Partial<EntiteImpactee> = {
-      typeEntiteImpactee: this.newEntite.typeEntiteImpactee,
-      nom: this.newEntite.nom.trim()
-    };
-
-    // Ajouter à la liste des entités de l'incident
-    this.incident.entitesImpactees.push(entite as EntiteImpactee);
-
-    // Réinitialiser le formulaire
-    this.newEntite = {
-      typeEntiteImpactee: TypeEntiteImpactee.Application,
-      nom: ''
-    };
-    this.showNewEntiteForm = false;
+        console.log('✅ Entités avec IDs conservés:', this.incident.entitesImpactees);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('❌ Erreur chargement incident:', err);
+        this.error = 'Erreur chargement incident';
+        this.loading = false;
+      }
+    });
   }
 
   // Supprimer une entité
@@ -135,47 +110,95 @@ loadIncident() {
 
   // Sauvegarder
 save() {
-  // 1️⃣ AVANT D'ENVOYER, s'assurer que TOUTES les entités avec ID sont dans la collection
-const entitesAEnvoyer = this.incident.entitesImpactees.map(entite => {
-  const base = {
-    typeEntiteImpactee: entite.typeEntiteImpactee,
-    nom: entite.nom
-  };
-
-  // 🔥 ajouter id seulement si existe
-  return entite.id
-    ? { ...base, id: entite.id }
-    : base;
-});
-
-
   const dto = {
     titreIncident: this.incident.titreIncident,
     descriptionIncident: this.incident.descriptionIncident,
     severiteIncident: Number(this.incident.severiteIncident),
     statutIncident: Number(this.incident.statutIncident),
-    entitesImpactees: entitesAEnvoyer
+    entitesImpactees: this.incident.entitesImpactees.map(e => ({
+      id: e.id ?? undefined, // important !
+      typeEntiteImpactee: e.typeEntiteImpactee,
+      nom: e.nom
+    }))
   };
 
-  console.log('DTO envoyé:', JSON.stringify(dto, null, 2));
+  console.log('📦 DTO complet envoyé:', dto);
 
-  this.loading = true;
-  this.incidentService.updateIncident(this.incidentId, dto).subscribe({
-    next: () => {
-      this.router.navigate(['/incidents', this.incidentId]);
-    },
-    error: (err) => {
-      console.error('Erreur mise à jour', err);
-      this.error = 'Erreur lors de la mise à jour';
-      this.loading = false;
-    }
-  });
+  this.incidentService.updateIncident(this.incidentId, dto)
+    .subscribe({
+      next: () => this.router.navigate(['/incidents', this.incidentId]),
+      error: err => {
+        console.error(err);
+        this.error = 'Erreur mise à jour';
+      }
+    });
 }
+
+  // Méthode pour mettre à jour l'incident
+  private updateIncident(nouvellesEntites: Partial<EntiteImpactee>[]) {
+    // 🔥 Filtrer les entités pour s'assurer qu'elles ont les propriétés requises
+    const entitesValides = nouvellesEntites
+      .filter(e => e.typeEntiteImpactee !== undefined && e.nom !== undefined)
+      .map(e => ({
+        typeEntiteImpactee: e.typeEntiteImpactee as TypeEntiteImpactee,
+        nom: e.nom as string
+      }));
+
+    const dto = {
+      titreIncident: this.incident.titreIncident,
+      descriptionIncident: this.incident.descriptionIncident,
+      severiteIncident: Number(this.incident.severiteIncident) as SeveriteIncident,
+      statutIncident: Number(this.incident.statutIncident) as StatutIncident,
+      entitesImpactees: entitesValides
+    };
+
+    console.log('📦 DTO incident envoyé:', JSON.stringify(dto, null, 2));
+
+    this.incidentService.updateIncident(this.incidentId, dto).subscribe({
+      next: () => {
+        this.router.navigate(['/incidents', this.incidentId]);
+      },
+      error: (err: any) => {
+        console.error('❌ Erreur mise à jour incident:', err);
+        this.error = 'Erreur lors de la mise à jour';
+        this.loading = false;
+      }
+    });
+  }
 
   getTypeEntiteLabel(type: TypeEntiteImpactee): string {
     const option = this.typeEntiteOptions.find(o => o.value === type);
     return option ? option.label : '';
   }
 
-  
+  toggleNewEntiteForm(): void {
+    if (!this.showNewEntiteForm) {
+      this.showNewEntiteForm = true;
+    } else {
+      this.resetNewEntiteForm();
+      this.showNewEntiteForm = false;
+    }
+  }
+
+  resetNewEntiteForm(): void {
+    this.newEntite = {
+      typeEntiteImpactee: TypeEntiteImpactee.Application,
+      nom: ''
+    };
+  }
+
+  ajouterEntite(): void {
+    if (!this.newEntite.nom || !this.newEntite.nom.trim()) {
+      return;
+    }
+
+    const entite: EntiteImpactee = {
+      typeEntiteImpactee: this.newEntite.typeEntiteImpactee as TypeEntiteImpactee,
+      nom: this.newEntite.nom.trim()
+    };
+    
+    this.incident.entitesImpactees.push(entite);
+    this.resetNewEntiteForm();
+    this.showNewEntiteForm = false;
+  }
 }

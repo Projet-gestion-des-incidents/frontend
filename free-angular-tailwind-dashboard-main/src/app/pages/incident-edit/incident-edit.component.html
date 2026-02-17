@@ -100,16 +100,21 @@
       <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
         Entités impactées
       </h3>
-      <button
-        type="button"
-        (click)="showNewEntiteForm = !showNewEntiteForm"
-        class="inline-flex items-center gap-2 text-sm text-brand-500 hover:text-brand-600"
-      >
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-        </svg>
-        {{ showNewEntiteForm ? 'Annuler' : 'Ajouter une entité' }}
-      </button>
+<button
+  type="button"
+  (click)="toggleNewEntiteForm()"
+  class="inline-flex items-center gap-2 text-sm text-brand-500 hover:text-brand-600"
+>
+  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <ng-container *ngIf="!showNewEntiteForm">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
+    </ng-container>
+    <ng-container *ngIf="showNewEntiteForm">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+    </ng-container>
+  </svg>
+  {{ showNewEntiteForm ? 'Annuler' : 'Ajouter une entité' }}
+</button>
     </div>
 
     <!-- Liste des entités actuelles -->

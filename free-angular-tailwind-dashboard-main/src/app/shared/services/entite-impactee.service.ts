@@ -8,6 +8,12 @@ export interface CreateEntiteImpacteeDTO {
   nom: string;
 }
 
+export interface UpdateEntiteImpacteeDTO {
+  id: string; // ⚠️ ID requis pour la modification
+  typeEntiteImpactee: TypeEntiteImpactee;
+  nom: string;
+}
+
 @Injectable({
   providedIn: 'root'
 })
@@ -19,6 +25,13 @@ export class EntiteImpacteeService {
   // Récupérer toutes les entités impactées
   getAll(): Observable<EntiteImpactee[]> {
     return this.http.get<ApiResponse<EntiteImpactee[]>>(this.apiUrl).pipe(
+      map(response => response.data)
+    );
+  }
+
+  // Récupérer une entité par ID
+  getById(id: string): Observable<EntiteImpactee> {
+    return this.http.get<ApiResponse<EntiteImpactee>>(`${this.apiUrl}/${id}`).pipe(
       map(response => response.data)
     );
   }
@@ -40,6 +53,20 @@ export class EntiteImpacteeService {
   // Créer une nouvelle entité impactée
   create(dto: CreateEntiteImpacteeDTO): Observable<EntiteImpactee> {
     return this.http.post<ApiResponse<EntiteImpactee>>(this.apiUrl, dto).pipe(
+      map(response => response.data)
+    );
+  }
+
+  // 🔥 NOUVEAU : Mettre à jour une entité existante
+  update(id: string, dto: UpdateEntiteImpacteeDTO): Observable<EntiteImpactee> {
+    return this.http.put<ApiResponse<EntiteImpactee>>(`${this.apiUrl}/${id}`, dto).pipe(
+      map(response => response.data)
+    );
+  }
+
+  // 🔥 NOUVEAU : Supprimer une entité
+  delete(id: string): Observable<boolean> {
+    return this.http.delete<ApiResponse<boolean>>(`${this.apiUrl}/${id}`).pipe(
       map(response => response.data)
     );
   }
