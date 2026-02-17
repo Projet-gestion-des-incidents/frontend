@@ -76,16 +76,24 @@ export class IncidentEditComponent implements OnInit {
 loadIncident() {
   this.incidentService.getIncidentDetails(this.incidentId).subscribe({
     next: (data) => {
-      this.incident = data;
+      console.log('Données reçues:', data);
+      console.log('Sévérité reçue:', data.severiteIncident, 'type:', typeof data.severiteIncident);
+      console.log('Statut reçu:', data.statutIncident, 'type:', typeof data.statutIncident);
 
-      // 🔥 IMPORTANT : reconstruire les objets pour garder les IDs
-      if (this.incident.entitesImpactees) {
-        this.incident.entitesImpactees = this.incident.entitesImpactees.map(e => ({
-          id: e.id, // ⚠️ garder l'id absolument
+      this.incident = {
+        ...data,
+        severiteIncident: Number(data.severiteIncident),
+        statutIncident: Number(data.statutIncident),
+        entitesImpactees: data.entitesImpactees?.map(e => ({
+          id: e.id,
           nom: e.nom,
           typeEntiteImpactee: Number(e.typeEntiteImpactee)
-        }));
-      }
+        })) || []
+      };
+
+      console.log('Incident après conversion:', this.incident);
+      console.log('Sévérité après conversion:', this.incident.severiteIncident, 'type:', typeof this.incident.severiteIncident);
+      console.log('Statut après conversion:', this.incident.statutIncident, 'type:', typeof this.incident.statutIncident);
 
       this.loading = false;
     },

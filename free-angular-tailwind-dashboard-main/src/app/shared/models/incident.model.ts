@@ -10,7 +10,7 @@ export interface IncidentSearchRequest {
   page: number;
   pageSize: number;
   sortBy?: string;
-  sortDescending?: boolean;
+  sortDescending?: boolean; 
 }
 
 export interface PagedResult<T> {

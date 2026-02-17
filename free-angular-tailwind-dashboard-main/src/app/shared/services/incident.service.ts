@@ -217,33 +217,7 @@ deleteIncident(id: string) {
   return this.http.delete<ApiResponse<boolean>>(`${this.apiUrl}/${id}`, this.getAuthHeaders())
     .pipe(map(response => response.data));
 }
- searchIncidents(request: IncidentSearchRequest): Observable<ApiResponse<PagedResult<Incident>>> {
-    let params = new HttpParams()
-      .set('Page', request.page.toString())
-      .set('PageSize', request.pageSize.toString())
-      .set('SortBy', request.sortBy || 'DateDetection')
-      .set('SortDescending', (request.sortDescending ?? true).toString());
-    
-    if (request.searchTerm) {
-      params = params.set('SearchTerm', request.searchTerm);
-    }
-    
-    if (request.severiteIncident !== undefined && request.severiteIncident !== null) {
-      params = params.set('SeveriteIncident', request.severiteIncident.toString());
-    }
-    
-    if (request.statutIncident !== undefined && request.statutIncident !== null) {
-      params = params.set('StatutIncident', request.statutIncident.toString());
-    }
 
-    return this.http.get<ApiResponse<PagedResult<Incident>>>(
-      `${this.apiUrl}/withFilters`, 
-      {
-        headers: this.getAuthHeaders().headers,
-        params: params
-      }
-    );
-  }
 
   // Méthodes spécifiques
   getIncidentsByStatut(statut: StatutIncident): Observable<Incident[]> {
@@ -272,4 +246,103 @@ deleteIncident(id: string) {
       map(response => response.data)
     );
   }
-}
+
+// Dans incident.service.ts
+// Dans incident.service.ts
+// Dans incident.service.ts
+searchIncidents(params: any) {
+  const url = `${this.apiUrl}/withFilters`;
+  console.log('=== DÉBUT REQUÊTE SEARCH INCIDENTS ===');
+  console.log('URL:', url);
+  console.log('Params reçus du composant:', JSON.stringify(params, null, 2));
+  
+  // Créer un objet pour la requête
+  const searchRequest: any = {
+    page: params.page || 1,
+    pageSize: params.pageSize || 10,
+    sortBy: params.sortBy || 'dateCreation',
+    sortDescending: params.sortDescending === true ? true : false
+  };
+
+  // IMPORTANT: Si searchTerm est vide, envoyer une chaîne vide ou null
+  // pour satisfaire la validation backend
+  if (params.searchTerm !== undefined) {
+    searchRequest.searchTerm = params.searchTerm || ''; // Envoyer une chaîne vide si pas de recherche
+  } else {
+    searchRequest.searchTerm = ''; // Valeur par défaut
+  }
+
+  // Ajouter les autres filtres optionnels
+  if (params.severite !== undefined && params.severite !== null && params.severite !== '') {
+    searchRequest.severite = Number(params.severite);
+  }
+
+  if (params.statut !== undefined && params.statut !== null && params.statut !== '') {
+    searchRequest.statut = Number(params.statut);
+  }
+
+  if (params.year && params.year !== '') {
+    searchRequest.year = params.year.toString();
+  }
+
+  console.log('SearchRequest construit:', JSON.stringify(searchRequest, null, 2));
+  
+  // Convertir l'objet en HttpParams
+  let httpParams = new HttpParams();
+  Object.keys(searchRequest).forEach(key => {
+    const value = searchRequest[key];
+    if (value !== undefined && value !== null) {
+      httpParams = httpParams.set(key, value.toString());
+    }
+  });
+
+  console.log('HttpParams finaux:', httpParams.toString());
+  console.log('=== FIN CONSTRUCTION REQUÊTE ===');
+
+  const headers = this.getAuthHeaders();
+  
+  return this.http.get<any>(url, { 
+    params: httpParams, 
+    headers: headers.headers 
+  }).pipe(
+    map(response => {
+      console.log('📦 Réponse brute du backend:', response);
+      
+      // Adapter selon la structure de réponse
+      if (response && response.data) {
+        // Si la réponse est ApiResponse<PagedResult>
+        if (response.data.items) {
+          return {
+            data: response.data.items,
+            pagination: {
+              page: response.data.page,
+              pageSize: response.data.pageSize,
+              totalCount: response.data.totalCount,
+              totalPages: response.data.totalPages
+            }
+          };
+        }
+        // Si la réponse est ApiResponse<array>
+        return {
+          data: response.data,
+          pagination: response.pagination
+        };
+      }
+      
+      // Si la réponse est directement PagedResult
+      if (response && response.items) {
+        return {
+          data: response.items,
+          pagination: {
+            page: response.page,
+            pageSize: response.pageSize,
+            totalCount: response.totalCount,
+            totalPages: response.totalPages
+          }
+        };
+      }
+      
+      return response;
+    })
+  );
+}}
