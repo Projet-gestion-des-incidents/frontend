@@ -3,7 +3,22 @@ export enum SeveriteIncident {
   Moyenne = 2,
   Forte = 3
 }
+export interface IncidentSearchRequest {
+  searchTerm?: string;
+  severiteIncident?: number;
+  statutIncident?: number;
+  page: number;
+  pageSize: number;
+  sortBy?: string;
+  sortDescending?: boolean;
+}
 
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
+}
 export enum StatutIncident {
   Nouveau = 1,
   Assigne = 2,

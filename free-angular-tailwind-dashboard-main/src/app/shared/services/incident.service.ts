@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Observable, map } from 'rxjs';
 import { 
   Incident, 
@@ -8,9 +8,12 @@ import {
   ApiResponse, 
   SeveriteIncident,
   StatutIncident,
-  TypeEntiteImpactee
+  TypeEntiteImpactee,
+  IncidentSearchRequest,
+  PagedResult
 } from '../models/incident.model';
 import { AuthService } from './auth.service'; 
+import { PagedResponse } from '../models/PagedResponse.model';
 
 @Injectable({
   providedIn: 'root'
@@ -125,38 +128,38 @@ export class IncidentService {
   /**
    * Récupère les incidents par statut
    */
-  getIncidentsByStatut(statut: number): Observable<Incident[]> {
-    return this.http.get<ApiResponse<Incident[]>>(
-      `${this.apiUrl}/statut/${statut}`, 
-      this.getAuthHeaders()
-    ).pipe(
-      map(response => response.data)
-    );
-  }
+  // getIncidentsByStatut(statut: number): Observable<Incident[]> {
+  //   return this.http.get<ApiResponse<Incident[]>>(
+  //     `${this.apiUrl}/statut/${statut}`, 
+  //     this.getAuthHeaders()
+  //   ).pipe(
+  //     map(response => response.data)
+  //   );
+  // }
 
   /**
    * Récupère les incidents par sévérité
    */
-  getIncidentsBySeverite(severite: number): Observable<Incident[]> {
-    return this.http.get<ApiResponse<Incident[]>>(
-      `${this.apiUrl}/severite/${severite}`, 
-      this.getAuthHeaders()
-    ).pipe(
-      map(response => response.data)
-    );
-  }
+  // getIncidentsBySeverite(severite: number): Observable<Incident[]> {
+  //   return this.http.get<ApiResponse<Incident[]>>(
+  //     `${this.apiUrl}/severite/${severite}`, 
+  //     this.getAuthHeaders()
+  //   ).pipe(
+  //     map(response => response.data)
+  //   );
+  // }
 
   /**
    * Récupère les incidents créés par l'utilisateur connecté
    */
-  getMyIncidents(): Observable<Incident[]> {
-    return this.http.get<ApiResponse<Incident[]>>(
-      `${this.apiUrl}/my-incidents`, 
-      this.getAuthHeaders()
-    ).pipe(
-      map(response => response.data)
-    );
-  }
+  // getMyIncidents(): Observable<Incident[]> {
+  //   return this.http.get<ApiResponse<Incident[]>>(
+  //     `${this.apiUrl}/my-incidents`, 
+  //     this.getAuthHeaders()
+  //   ).pipe(
+  //     map(response => response.data)
+  //   );
+  // }
 
   /**
    * Crée une nouvelle entité impactée
@@ -210,5 +213,63 @@ updateIncident(id: string, dto: {
     })
   );
 }
+deleteIncident(id: string) {
+  return this.http.delete<ApiResponse<boolean>>(`${this.apiUrl}/${id}`, this.getAuthHeaders())
+    .pipe(map(response => response.data));
+}
+ searchIncidents(request: IncidentSearchRequest): Observable<ApiResponse<PagedResult<Incident>>> {
+    let params = new HttpParams()
+      .set('Page', request.page.toString())
+      .set('PageSize', request.pageSize.toString())
+      .set('SortBy', request.sortBy || 'DateDetection')
+      .set('SortDescending', (request.sortDescending ?? true).toString());
+    
+    if (request.searchTerm) {
+      params = params.set('SearchTerm', request.searchTerm);
+    }
+    
+    if (request.severiteIncident !== undefined && request.severiteIncident !== null) {
+      params = params.set('SeveriteIncident', request.severiteIncident.toString());
+    }
+    
+    if (request.statutIncident !== undefined && request.statutIncident !== null) {
+      params = params.set('StatutIncident', request.statutIncident.toString());
+    }
 
+    return this.http.get<ApiResponse<PagedResult<Incident>>>(
+      `${this.apiUrl}/withFilters`, 
+      {
+        headers: this.getAuthHeaders().headers,
+        params: params
+      }
+    );
+  }
+
+  // Méthodes spécifiques
+  getIncidentsByStatut(statut: StatutIncident): Observable<Incident[]> {
+    return this.http.get<ApiResponse<Incident[]>>(
+      `${this.apiUrl}/statut/${statut}`, 
+      this.getAuthHeaders()
+    ).pipe(
+      map(response => response.data)
+    );
+  }
+
+  getIncidentsBySeverite(severite: SeveriteIncident): Observable<Incident[]> {
+    return this.http.get<ApiResponse<Incident[]>>(
+      `${this.apiUrl}/severite/${severite}`, 
+      this.getAuthHeaders()
+    ).pipe(
+      map(response => response.data)
+    );
+  }
+
+  getMyIncidents(): Observable<Incident[]> {
+    return this.http.get<ApiResponse<Incident[]>>(
+      `${this.apiUrl}/my-incidents`, 
+      this.getAuthHeaders()
+    ).pipe(
+      map(response => response.data)
+    );
+  }
 }

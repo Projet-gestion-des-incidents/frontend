@@ -7,13 +7,14 @@ import { BadgeComponent } from '../../shared/components/ui/badge/badge.component
 import { CheckboxComponent } from '../../shared/components/form/input/checkbox.component';
 import { Incident, SeveriteIncident, StatutIncident } from '../../shared/models/incident.model';
 import { IncidentService } from '../../shared/services/incident.service';
+import { AlertComponent } from '../../shared/components/ui/alert/alert.component';
 
 
 @Component({
   selector: 'app-incident-list',
   standalone: true,
   imports: [
-    CommonModule,
+    CommonModule,AlertComponent,
     RouterModule,
     FormsModule,
     BadgeComponent,
@@ -28,7 +29,23 @@ export class IncidentListComponent implements OnInit {
   filteredIncidents: Incident[] = [];
   loading = true;
   error: string | null = null;
+    selectedStatut?: number;
+  selectedSeverite?: number;
+// Options pour les filtres
+severiteOptions = [
+  { value: SeveriteIncident.Faible, label: 'Faible' },
+  { value: SeveriteIncident.Moyenne, label: 'Moyenne' },
+  { value: SeveriteIncident.Forte, label: 'Forte' }
+];
 
+statutOptions = [
+  { value: StatutIncident.Nouveau, label: 'Nouveau' },
+  { value: StatutIncident.Assigne, label: 'Assigné' },
+  { value: StatutIncident.EnCours, label: 'En cours' },
+  { value: StatutIncident.EnAttente, label: 'En attente' },
+  { value: StatutIncident.Resolu, label: 'Résolu' },
+  { value: StatutIncident.Ferme, label: 'Fermé' }
+];
   // Pour la sélection multiple
   selectedRows: string[] = [];
   selectAll: boolean = false;
@@ -44,7 +61,62 @@ export class IncidentListComponent implements OnInit {
   ngOnInit(): void {
     this.loadIncidents();
   }
+// --- Dans la classe IncidentListComponent ---
 
+// Pour la suppression simple
+confirmIncident: Incident | null = null; // l'incident sélectionné pour suppression
+alert = {
+  show: false,
+  variant: 'info' as 'success' | 'error' | 'warning' | 'info',
+  title: '',
+  message: ''
+};
+
+// Ouvrir la confirmation
+onDelete(incident: Incident) {
+  this.confirmIncident = incident;
+  this.alert = {
+    show: true,
+    variant: 'warning',
+    title: 'Confirmation',
+    message: `Voulez-vous vraiment supprimer l'incident "${incident.titreIncident}" ?`
+  };
+}
+
+// Confirmer la suppression
+confirmDelete() {
+  if (!this.confirmIncident) return;
+
+  this.incidentService.deleteIncident(this.confirmIncident.id).subscribe({
+    next: () => {
+      // Retirer l'incident du tableau local
+      this.incidents = this.incidents.filter(i => i.id !== this.confirmIncident!.id);
+      this.filteredIncidents = this.filteredIncidents.filter(i => i.id !== this.confirmIncident!.id);
+
+      this.showAlert('success', 'Incident supprimé', `L'incident "${this.confirmIncident!.titreIncident}" a été supprimé.`);
+      this.confirmIncident = null;
+      this.alert.show = false;
+    },
+    error: (err) => {
+      console.error(err);
+      this.showAlert('error', 'Erreur', `Impossible de supprimer l'incident "${this.confirmIncident!.titreIncident}".`);
+      this.confirmIncident = null;
+      this.alert.show = false;
+    }
+  });
+}
+
+// Annuler la suppression
+cancelDelete() {
+  this.confirmIncident = null;
+  this.alert.show = false;
+}
+
+// Toaster simple
+showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string) {
+  this.alert = { show: true, variant, title, message };
+  setTimeout(() => (this.alert.show = false), 3000);
+}
   loadIncidents(): void {
     this.loading = true;
     this.incidentService.getAllIncidents().subscribe({

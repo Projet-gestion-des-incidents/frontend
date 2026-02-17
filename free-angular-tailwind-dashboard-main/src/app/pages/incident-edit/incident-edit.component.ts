@@ -77,18 +77,16 @@ loadIncident() {
   this.incidentService.getIncidentDetails(this.incidentId).subscribe({
     next: (data) => {
       this.incident = data;
-      
-      // IMPORTANT: S'assurer que les types sont des nombres
+
+      // 🔥 IMPORTANT : reconstruire les objets pour garder les IDs
       if (this.incident.entitesImpactees) {
-        this.incident.entitesImpactees.forEach(entite => {
-          // Convertir le type en nombre si nécessaire
-          entite.typeEntiteImpactee = Number(entite.typeEntiteImpactee) as TypeEntiteImpactee;
-          
-          // Vérifier que l'ID est bien présent pour les entités existantes
-          console.log(`Entité chargée: ${entite.nom}, ID: ${entite.id}`);
-        });
+        this.incident.entitesImpactees = this.incident.entitesImpactees.map(e => ({
+          id: e.id, // ⚠️ garder l'id absolument
+          nom: e.nom,
+          typeEntiteImpactee: Number(e.typeEntiteImpactee)
+        }));
       }
-      
+
       this.loading = false;
     },
     error: (err) => {
@@ -98,6 +96,7 @@ loadIncident() {
     }
   });
 }
+
   // Ajouter une nouvelle entité
   ajouterEntite() {
     if (!this.newEntite.nom || !this.newEntite.nom.trim()) {
@@ -129,20 +128,18 @@ loadIncident() {
   // Sauvegarder
 save() {
   // 1️⃣ AVANT D'ENVOYER, s'assurer que TOUTES les entités avec ID sont dans la collection
-  const entitesAEnvoyer = this.incident.entitesImpactees.map(entite => {
-    if (entite.id) {
-      return {
-        id: entite.id,
-        typeEntiteImpactee: entite.typeEntiteImpactee,
-        nom: entite.nom
-      };
-    } else {
-      return {
-        typeEntiteImpactee: entite.typeEntiteImpactee,
-        nom: entite.nom
-      };
-    }
-  });
+const entitesAEnvoyer = this.incident.entitesImpactees.map(entite => {
+  const base = {
+    typeEntiteImpactee: entite.typeEntiteImpactee,
+    nom: entite.nom
+  };
+
+  // 🔥 ajouter id seulement si existe
+  return entite.id
+    ? { ...base, id: entite.id }
+    : base;
+});
+
 
   const dto = {
     titreIncident: this.incident.titreIncident,
