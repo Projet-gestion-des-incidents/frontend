@@ -337,6 +337,9 @@ setStatut(incident: IncidentDetail, value: string) {
     this.incidentService.getIncidentDetails(id).subscribe({
       next: (data: IncidentDetail) => {
         this.incident = data;
+            console.log('✅ Incident assigné au composant:', this.incident);
+      console.log('🎯 Sévérité reçue:', this.incident.severiteIncident);
+      console.log('🎯 Statut reçu:', this.incident.statutIncident);
         this.loading = false;
       },
       error: (err: any) => {
