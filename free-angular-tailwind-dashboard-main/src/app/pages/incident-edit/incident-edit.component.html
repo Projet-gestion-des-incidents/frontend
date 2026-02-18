@@ -62,16 +62,13 @@
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
             Sévérité <span class="text-error-500">*</span>
           </label>
-          <select
-            [(ngModel)]="incident.severiteIncident"
-            name="severite"
-            required
-            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-          >
-            <option *ngFor="let option of severiteOptions" [ngValue]="option.value">
-              {{ option.label }}
-            </option>
-          </select>
+<app-select
+  [options]="severiteOptions"
+  placeholder="Sélectionner la sévérité"
+  [value]="getSeveriteValue(incident.severiteIncident)"
+  (valueChange)="setTypeSeverite(incident, $event)"
+></app-select>
+
         </div>
 
         <!-- Statut -->
@@ -79,16 +76,12 @@
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
             Statut <span class="text-error-500">*</span>
           </label>
-          <select
-            [(ngModel)]="incident.statutIncident"
-            name="statut"
-            required
-            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-          >
-            <option *ngFor="let option of statutOptions" [ngValue]="option.value">
-              {{ option.label }}
-            </option>
-          </select>
+ <app-select
+  [options]="statutOptions"
+  placeholder="Sélectionner le statut"
+  [value]="getStatutValue(incident.statutIncident)"
+  (valueChange)="setStatut(incident, $event)"
+></app-select>
         </div>
       </div>
     </div>
@@ -124,20 +117,20 @@
         
         <!-- Type d'entité -->
          
-        <select
-          [(ngModel)]="entite.typeEntiteImpactee"
-          [name]="'type_' + i"
-          class="w-1/3 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
-        >
-          <option *ngFor="let option of typeEntiteOptions" [ngValue]="option.value">
-            {{ option.label }}
-          </option>
-        </select>
+<app-select
+  [options]="typeEntiteOptions"
+  placeholder="Sélectionner un type"
+  [value]="entite.typeEntiteImpactee.toString()"
+  (valueChange)="setTypeEntite(entite, $event)"
+></app-select>
+
+
 
         <!-- Nom de l'entité -->
         <input
           type="text"
           [(ngModel)]="entite.nom"
+          
           [name]="'nom_' + i"
           placeholder="Nom de l'entité"
           class="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
