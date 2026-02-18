@@ -23,6 +23,7 @@ import { ButtonComponent } from '../../shared/components/ui/button/button.compon
   styles: ``
 })
 export class IncidentListComponent implements OnInit {
+  allIncidents: Incident[] = [];
   incidents: Incident[] = [];
   filteredIncidents: Incident[] = [];
   loading = true;
@@ -95,127 +96,94 @@ export class IncidentListComponent implements OnInit {
 // Dans incident-list.component.ts
 
 // Chargement des incidents avec pagination et filtres
+// Chargement des incidents avec pagination et filtres combinés
 loadIncidents(): void {
   this.loading = true;
   this.error = null;
 
-  // Si on a des filtres spécifiques, on utilise les endpoints dédiés
-  if (this.selectedSeverite !== undefined && this.selectedSeverite !== null) {
-    // Filtrer par sévérité
-    this.incidentService.getIncidentsBySeverite(this.selectedSeverite).subscribe({
-      next: (incidents) => {
-        this.applyFiltersAndPaginate(incidents);
-      },
-      error: (err) => this.handleError(err)
-    });
-  } 
-  else if (this.selectedStatut !== undefined && this.selectedStatut !== null) {
-    // Filtrer par statut
-    this.incidentService.getIncidentsByStatut(this.selectedStatut).subscribe({
-      next: (incidents) => {
-        this.applyFiltersAndPaginate(incidents);
-      },
-      error: (err) => this.handleError(err)
-    });
-  } 
-  else {
-    // Pas de filtres spécifiques, on charge tout
-    this.incidentService.getAllIncidents().subscribe({
-      next: (incidents) => {
-        this.applyFiltersAndPaginate(incidents);
-      },
-      error: (err) => this.handleError(err)
-    });
-  }
+  // Construction des paramètres de recherche
+  const searchParams: any = {
+  Page: this.currentPage,
+  PageSize: this.pageSize,
+  SearchTerm: this.searchTerm || '',
+  SortBy: 'DateDetection',
+  SortDescending: true
+};
+
+
+  // Ajouter les filtres seulement s'ils sont définis
+  if (this.selectedSeverite != null) {
+  searchParams.SeveriteIncident = this.selectedSeverite;
 }
 
-// Méthode pour appliquer tous les filtres et la pagination
-private applyFiltersAndPaginate(incidents: Incident[]): void {
-  console.log('✅ Incidents chargés:', incidents.length);
-  
-  // Appliquer les filtres côté client
-  let filtered = incidents || [];
-  
-  // 1. FILTRE PAR RECHERCHE TEXTE (code, titre, créateur, année)
-  if (this.searchTerm?.trim()) {
-    const term = this.searchTerm.toLowerCase().trim();
-    filtered = filtered.filter(incident => {
-      // Recherche par code
-      const codeMatch = (incident.codeIncident?.toLowerCase() || '').includes(term);
+if (this.selectedStatut != null) {
+  searchParams.StatutIncident = this.selectedStatut;
+}
+
+if (this.selectedYear) {
+  searchParams.YearDetection = Number(this.selectedYear);
+}
+
+
+
+  console.log('🔍 Envoi requête avec params:', searchParams);
+
+  this.incidentService.searchIncidents(searchParams).subscribe({
+    next: (response: any) => {
+      console.log('📦 Réponse brute:', response);
       
-      // Recherche par titre
-      const titreMatch = (incident.titreIncident?.toLowerCase() || '').includes(term);
-      
-      // Recherche par créateur
-      const createurMatch = (incident.createdByName?.toLowerCase() || '').includes(term);
-      
-      // Recherche par année de création
-      let anneeMatch = false;
-      if (incident.dateDetection) {
-        const annee = new Date(incident.dateDetection).getFullYear().toString();
-        anneeMatch = annee.includes(term);
+      // Vérifier la structure de la réponse
+      if (response) {
+        // Cas 1: Response avec propriété 'data'
+        if (response.data) {
+          if (Array.isArray(response.data)) {
+            // Si data est un tableau
+            this.incidents = response.data;
+            this.filteredIncidents = response.data;
+            this.totalCount = response.data.length;
+            this.totalPages = Math.ceil(response.data.length / this.pageSize);
+          } else if (response.data.items) {
+            // Si data a une propriété 'items' (format PagedResult)
+            this.incidents = response.data.items;
+            this.filteredIncidents = response.data.items;
+            this.totalCount = response.data.totalCount || response.data.items.length;
+            this.totalPages = response.data.totalPages || Math.ceil(this.totalCount / this.pageSize);
+          }
+        }
+        // Cas 2: Response avec propriété 'items' directement
+        else if (response.items) {
+          this.incidents = response.items;
+          this.filteredIncidents = response.items;
+          this.totalCount = response.totalCount || response.items.length;
+          this.totalPages = response.totalPages || Math.ceil(this.totalCount / this.pageSize);
+        }
+        // Cas 3: Response est un tableau direct
+        else if (Array.isArray(response)) {
+          this.incidents = response;
+          this.filteredIncidents = response;
+          this.totalCount = response.length;
+          this.totalPages = Math.ceil(response.length / this.pageSize);
+        }
+        
+        console.log('✅ Incidents chargés:', this.incidents.length);
+        console.log('📊 Total count:', this.totalCount);
+        console.log('📄 Pages:', this.totalPages);
       }
       
-      return codeMatch || titreMatch || createurMatch || anneeMatch;
-    });
-    console.log(`🔍 Recherche "${term}" → ${filtered.length} résultats`);
-  }
-  
-  // 2. FILTRE PAR SÉVÉRITÉ (seulement si pas déjà filtré par l'API)
-  if (this.selectedSeverite !== undefined && this.selectedSeverite !== null && 
-      !(this.selectedSeverite !== undefined && this.selectedSeverite !== null)) {
-    // Cette condition est déjà gérée par l'API, donc on ne refiltre pas
-  }
-  
-  // 3. FILTRE PAR STATUT (seulement si pas déjà filtré par l'API)
-  if (this.selectedStatut !== undefined && this.selectedStatut !== null && 
-      !(this.selectedStatut !== undefined && this.selectedStatut !== null)) {
-    // Cette condition est déjà gérée par l'API, donc on ne refiltre pas
-  }
-  
-  // 4. FILTRE PAR ANNÉE
-  if (this.selectedYear && this.selectedYear.trim() !== '') {
-    console.log('Filtre année appliqué:', this.selectedYear);
-    filtered = filtered.filter(incident => {
-      if (!incident.dateDetection) return false;
-      const year = new Date(incident.dateDetection).getFullYear().toString();
-      return year === this.selectedYear;
-    });
-  }
-  
-  console.log('📊 Résultats après tous les filtres:', filtered.length);
-  
-  // Pagination côté client
-  this.totalCount = filtered.length;
-  this.totalPages = Math.ceil(filtered.length / this.pageSize) || 1;
-  
-  // Ajuster la page courante si nécessaire
-  if (this.currentPage > this.totalPages) {
-    this.currentPage = this.totalPages;
-  }
-  
-  const startIndex = (this.currentPage - 1) * this.pageSize;
-  const endIndex = startIndex + this.pageSize;
-  this.incidents = filtered.slice(startIndex, endIndex);
-  this.filteredIncidents = this.incidents;
-  
-  console.log('📄 Page', this.currentPage, ':', this.incidents.length, 'incidents');
-  
-  // Reset de la sélection
-
-  
-  this.loading = false;
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('❌ Erreur détaillée:', err);
+      this.error = 'Impossible de charger la liste des incidents: ' + (err.message || 'Erreur inconnue');
+      this.loading = false;
+      this.incidents = [];
+      this.filteredIncidents = [];
+      this.totalPages = 1;
+      this.totalCount = 0;
+    }
+  });
 }
 
-private handleError(err: any): void {
-  console.error('❌ Erreur chargement incidents:', err);
-  this.error = 'Impossible de charger la liste des incidents';
-  this.loading = false;
-  this.incidents = [];
-  this.filteredIncidents = [];
-  this.totalPages = 1;
-  this.totalCount = 0;
-}
 
 // Recherche avec debounce
 onSearch(): void {
