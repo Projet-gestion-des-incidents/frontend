@@ -466,4 +466,66 @@ getStatutBadgeColor(statut: StatutIncident | string): BadgeColor {
   extractYear(date: Date): string {
     return new Date(date).getFullYear().toString();
   }
+
+  // Ajoutez ces propriétés dans la classe
+showFilters = false;
+tempFilters = {
+  severite: undefined as number | undefined,
+  statut: undefined as number | undefined,
+  dateDebut: '',
+  dateFin: ''
+};
+
+// Ajoutez ces méthodes
+toggleFilters(): void {
+  this.showFilters = !this.showFilters;
+  if (this.showFilters) {
+    // Initialiser les filtres temporaires avec les valeurs actuelles
+    this.tempFilters = {
+      severite: this.selectedSeverite,
+      statut: this.selectedStatut,
+      dateDebut: '',
+      dateFin: ''
+    };
+  }
+}
+
+applyFilters(): void {
+  // Appliquer les filtres sélectionnés
+  this.selectedSeverite = this.tempFilters.severite;
+  this.selectedStatut = this.tempFilters.statut;
+  
+  // Vous pouvez ajouter la logique pour les dates ici
+  // Note: Le backend ne semble pas supporter le filtre par plage de dates pour l'instant
+  
+  this.currentPage = 1;
+  this.loadIncidents();
+  this.showFilters = false;
+}
+
+cancelFilters(): void {
+  this.showFilters = false;
+  this.tempFilters = {
+    severite: this.selectedSeverite,
+    statut: this.selectedStatut,
+    dateDebut: '',
+    dateFin: ''
+  };
+}
+
+clearFilters(): void {
+  this.tempFilters = {
+    severite: undefined,
+    statut: undefined,
+    dateDebut: '',
+    dateFin: ''
+  };
+  this.selectedSeverite = undefined;
+  this.selectedStatut = undefined;
+  this.selectedYear = '';
+  this.searchTerm = '';
+  this.currentPage = 1;
+  this.loadIncidents();
+  this.showFilters = false;
+}
 }

@@ -55,44 +55,37 @@
   </div>
 </div>
 
-<!-- Filtres à gauche, Bouton nouvel incident à droite -->
+<!-- Barre d'actions avec bouton Filtrer et Nouvel incident -->
 <div class="flex flex-col gap-4 px-6 mb-4 sm:flex-row sm:items-center sm:justify-between">
-  <!-- Filtres à gauche -->
-  <div class="flex items-center gap-3 flex-wrap">
-    <!-- Filtre par sévérité -->
-    <select
-      [(ngModel)]="selectedSeverite"
-      (change)="applyFilter()"
-      class="h-11 px-4 text-sm rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-    >
-      <option [ngValue]="undefined">Toutes sévérités</option>
-      <option *ngFor="let option of severiteOptions" [ngValue]="option.value">
-        {{ option.label }}
-      </option>
-    </select>
-
-    <!-- Filtre par statut -->
-    <select
-      [(ngModel)]="selectedStatut"
-      (change)="applyFilter()"
-      class="h-11 px-4 text-sm rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-    >
-      <option [ngValue]="undefined">Tous statuts</option>
-      <option *ngFor="let option of statutOptions" [ngValue]="option.value">
-        {{ option.label }}
-      </option>
-    </select>
-
-    <!-- Bouton Réinitialiser -->
+  <!-- Bouton Filtrer à gauche -->
+  <div class="flex items-center gap-3">
     <button
-      (click)="resetFilters()"
-      class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+      (click)="toggleFilters()"
+      class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
+      [class.bg-brand-50]="showFilters"
+      [class.text-brand-600]="showFilters"
     >
-      Réinitialiser
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+      </svg>
+      Filtrer
+      <span *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedYear" class="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-brand-500 rounded-full">
+        {{ (selectedSeverite !== undefined ? 1 : 0) + (selectedStatut !== undefined ? 1 : 0) + (selectedYear ? 1 : 0) }}
+      </span>
     </button>
+
+    <!-- Indicateur de filtres actifs (optionnel) -->
+    <div *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedYear" class="text-sm text-gray-500">
+      <span>Filtres actifs</span>
+      <button (click)="clearFilters()" class="ml-2 text-brand-500 hover:text-brand-600">
+        <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
   </div>
 
-  <!-- Bouton nouvel incident tout à droite -->
+  <!-- Bouton nouvel incident à droite -->
   <div class="flex justify-end">
     <button 
       routerLink="/incidents/new"
@@ -105,7 +98,85 @@
     </button>
   </div>
 </div>
+
+<!-- Panneau de filtres (caché par défaut) -->
+<div *ngIf="showFilters" class="mx-6 mb-6 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+  <h4 class="text-md font-semibold text-gray-700 dark:text-gray-300 mb-4">Filtres avancés</h4>
   
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- Filtre par sévérité -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+        Sévérité
+      </label>
+      <select
+        [(ngModel)]="tempFilters.severite"
+        class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800"
+      >
+        <option [ngValue]="undefined">Toutes sévérités</option>
+        <option *ngFor="let option of severiteOptions" [ngValue]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Filtre par statut -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+        Statut
+      </label>
+      <select
+        [(ngModel)]="tempFilters.statut"
+        class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800"
+      >
+        <option [ngValue]="undefined">Tous statuts</option>
+        <option *ngFor="let option of statutOptions" [ngValue]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Filtre par année (optionnel - si vous voulez le garder) -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+        Année de création
+      </label>
+      <select
+        [(ngModel)]="selectedYear"
+        class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800"
+      >
+        <option value="">Toutes années</option>
+        <option *ngFor="let year of yearOptions" [value]="year">
+          {{ year }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Vous pouvez ajouter d'autres filtres ici -->
+  </div>
+
+  <!-- Boutons d'action du panneau -->
+  <div class="flex justify-end gap-3 mt-6">
+    <button
+      (click)="cancelFilters()"
+      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-700"
+    >
+      Annuler
+    </button>
+    <button
+      (click)="clearFilters()"
+      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-700"
+    >
+      Effacer tout
+    </button>
+    <button
+      (click)="applyFilters()"
+      class="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600"
+    >
+      Appliquer les filtres
+    </button>
+  </div>
+</div>
   <!-- Loading indicator -->
   <div *ngIf="loading" class="flex justify-center items-center py-12">
     <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
