@@ -32,6 +32,10 @@ import { IncidentListComponent } from './pages/incident-list/incident-list.compo
 import { IncidentFormComponent } from './shared/components/incident-form/incident-form.component';
 import { IncidentDetailComponent } from './pages/incident-detail/incident-detail.component';
 import { IncidentEditComponent } from './pages/incident-edit/incident-edit.component';
+import { TicketsComponent } from './pages/tickets/tickets.component';
+import { TicketFormComponent } from './shared/components/ticket-form/ticket-form.component';
+import { TicketDetailComponent } from './pages/ticket-detail/ticket-detail.component';
+import { TicketEditComponent } from './pages/ticket-edit/ticket-edit.component';
 
 export const routes: Routes = [
   {
@@ -78,7 +82,18 @@ export const routes: Routes = [
 
     { path: ':id', component: IncidentDetailComponent }
   ]
+},{
+  path: 'tickets',
+  children: [
+        { path: '', component: TicketsComponent },
+
+    // { path: '', component: TicketListComponent },
+     { path: 'new', component: TicketFormComponent },
+    { path: 'edit/:id', component: TicketEditComponent },
+    { path: ':id', component: TicketDetailComponent }
+  ]
 }
+
 ,
       {
         path:'calendar',

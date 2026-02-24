@@ -1,0 +1,114 @@
+ 
+
+<div  class="max-w-4xl mx-auto space-y-6">
+    <div class="mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800 dark:text-white/90">
+      Modifier le ticket
+    </h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+      Modifiez les informations du ticket
+    </p>
+  </div>
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+    <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
+      Informations générales
+    </h3>
+    <div class="space-y-4">
+      <!-- Titre -->
+      <div>
+        <label class="block mb-2 text-sm font-medium">
+          Titre du ticket <span class="text-error-500">*</span>
+        </label>
+        <input
+          type="text"
+          name="titre"
+          required
+          class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+          placeholder="Ex: Panne du serveur de production"
+        />
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label class="block mb-2 text-sm font-medium">
+          Description <span class="text-error-500">*</span>
+        </label>
+        <textarea
+          name="description"
+          required
+          rows="4"
+          class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+          placeholder="Décrivez le ticket en détail..."
+        ></textarea>
+      </div>
+<!-- Priorité -->
+<div>
+  <label class="block mb-2 text-sm font-medium">Priorité</label>
+<select 
+            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+            name="priorite" >
+  <option *ngFor="let p of priorites" [value]="p.value">{{ p.label }}</option>
+</select>
+</div>
+
+<!-- Statut -->
+<div>
+  <label class="block mb-2 text-sm font-medium">Statut</label>
+<select 
+            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+name="statut" >
+  <option *ngFor="let s of statuts" [value]="s.value">{{ s.label }}</option>
+</select>
+</div>
+
+  <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+ <!-- Commentaire -->
+    <div>
+    <label class="block mb-2 text-sm font-medium">Commentaire    </label>
+    <textarea
+          name="description"
+          required
+          rows="4"
+          class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+          placeholder="Ajoutez un commentaire..."
+        ></textarea>
+        </div>
+         <!-- Piéce Jointe -->
+
+    <div>
+      <label  class="block mb-2 text-sm font-medium">Piéce Jointe</label>
+      <app-file-input-example
+        ></app-file-input-example>
+        
+        <!-- Prévisualisation -->
+       <!-- <div *ngIf="imagePreview" class="mt-4">
+          <p class="text-sm text-gray-600 mb-2">Prévisualisation :</p>
+          <img [src]="imagePreview" alt="Preview" class="w-24 h-24 rounded-full object-cover border">
+        </div>-->
+      </div>
+   </div>
+    </div>
+  </div>
+
+ 
+
+  <!-- Boutons d'action -->
+   <!--<div class="flex justify-end gap-3">
+    <button
+      type="button"
+      (click)="cancel()"
+      class="px-6 py-2.5 text-theme-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+    >
+      Annuler
+    </button>
+    <button
+      type="button"
+      (click)="save()"
+      [disabled]="loading"
+      class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <span *ngIf="loading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+      {{ loading ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+    </button>
+  </div>-->
+</div>

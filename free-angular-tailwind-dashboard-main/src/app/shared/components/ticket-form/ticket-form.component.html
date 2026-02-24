@@ -1,0 +1,111 @@
+<div class="max-w-3xl mx-auto bg-white rounded-2xl shadow p-6">
+
+  <h2 class="text-2xl font-semibold mb-6">
+    Nouveau Ticket 
+  </h2>
+
+  <form [formGroup]="ticketForm" (ngSubmit)="submit()" class="space-y-5">
+
+    <!-- Titre -->
+    <div>
+      <label class="block mb-2 text-sm font-medium">Titre</label>
+      <input
+        type="text"
+        formControlName="titreTicket"
+        class="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
+        placeholder="Ex: Problème accès application"
+      />
+
+      <small *ngIf="ticketForm.get('titreTicket')?.invalid && ticketForm.get('titreTicket')?.touched"
+        class="text-red-500">
+        Le titre est obligatoire
+      </small>
+    </div>
+
+    <!-- Description -->
+    <div>
+      <label class="block mb-2 text-sm font-medium">Description</label>
+      <textarea
+        rows="4"
+        formControlName="descriptionTicket"
+        class="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
+        placeholder="Décrivez le problème..."
+      ></textarea>
+
+      <small *ngIf="ticketForm.get('descriptionTicket')?.invalid && ticketForm.get('descriptionTicket')?.touched"
+        class="text-red-500">
+        La description est obligatoire
+      </small>
+    </div>
+
+<!-- Priorité -->
+<div>
+  <label class="block mb-2 text-sm font-medium">Priorité</label>
+<select formControlName="priorite"
+        class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
+  <option *ngFor="let p of priorites" [value]="p.value">
+    {{ p.label }}
+  </option>
+</select>
+</div>
+
+<!-- Statut -->
+<div>
+  <label class="block mb-2 text-sm font-medium">Statut</label>
+<select formControlName="statut"
+        class="w-full rounded-lg border border-gray-300 px-4 py-2.5">
+  <option *ngFor="let s of statuts" [value]="s.value">
+    {{ s.label }}
+  </option>
+</select>
+</div>
+  <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+
+<!-- Commentaire initial -->
+<div>
+  <label class="block mb-2 text-sm font-medium">Commentaire initial</label>
+  <textarea formControlName="commentaireInitial" rows="3"
+            class="w-full border rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-brand-500"
+            placeholder="Ajouter un commentaire initial..."></textarea>
+</div>
+
+<!-- Commentaire interne -->
+<div class="flex items-center gap-2">
+  <app-checkbox
+    [checked]="ticketForm.get('commentaireInterne')?.value"
+    (checkedChange)="ticketForm.get('commentaireInterne')?.setValue($event)"
+    id="interne"
+  ></app-checkbox>
+  <label for="interne" class="text-sm font-medium">Commentaire interne</label>
+</div>
+<br>
+<!-- Pièces jointes -->
+<div>
+  <label class="block mb-2 text-sm font-medium">Piéce Jointe</label>
+    <app-file-input-example (change)="onFileSelected($event)"
+        ></app-file-input-example>
+</div>
+  </div>
+    <!-- Boutons -->
+    <div class="flex justify-end gap-3 pt-4">
+
+      <button
+        type="button"
+        routerLink="/tickets"
+        class="px-4 py-2 border rounded-lg"
+      >
+        Annuler
+      </button>
+
+      <button
+        type="submit"
+        [disabled]="loading"
+        class="px-6 py-2 bg-brand-600 text-white rounded-lg hover:bg-brand-700 transition"
+      >
+        {{ loading ? 'Enregistrement...' : 'Créer Ticket' }}
+      </button>
+
+    </div>
+
+  </form>
+</div>

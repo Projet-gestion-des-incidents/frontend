@@ -17,14 +17,14 @@ export class IncidentFormComponent implements OnInit {
   incident: CreateIncidentDTO = {
     titreIncident: '',
     descriptionIncident: '',
-    severiteIncident: SeveriteIncident.Moyenne,
+    severiteIncident: SeveriteIncident.Faible,
     entitesImpactees: [] // Ce sera notre liste dynamique
   };
 
   // Pour la création d'une nouvelle entité
   showNewEntiteForm = false;
   newEntite: Partial<EntiteImpactee> = {
-    typeEntiteImpactee: TypeEntiteImpactee.Application,
+    typeEntiteImpactee: TypeEntiteImpactee.Hardware,
     nom: ''
   };
 
