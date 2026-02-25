@@ -20,8 +20,8 @@
           Titre du ticket <span class="text-error-500">*</span>
         </label>
         <input
-          type="text"
-          name="titre"
+         [(ngModel)]="ticket.titreTicket"
+  name="titreTicket"
           required
           class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
           placeholder="Ex: Panne du serveur de production"
@@ -34,8 +34,9 @@
           Description <span class="text-error-500">*</span>
         </label>
         <textarea
-          name="description"
-          required
+  [(ngModel)]="ticket.descriptionTicket"
+  name="descriptionTicket"
+            required
           rows="4"
           class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
           placeholder="Décrivez le ticket en détail..."
@@ -46,8 +47,13 @@
   <label class="block mb-2 text-sm font-medium">Priorité</label>
 <select 
             class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-            name="priorite" >
-  <option *ngFor="let p of priorites" [value]="p.value">{{ p.label }}</option>
+          name="prioriteTicket"
+            [(ngModel)]="ticket.prioriteTicket"
+>
+
+  <option *ngFor="let p of priorites" [value]="p.value">
+    {{ p.label }}
+  </option>
 </select>
 </div>
 
@@ -56,9 +62,11 @@
   <label class="block mb-2 text-sm font-medium">Statut</label>
 <select 
             class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-name="statut" >
-  <option *ngFor="let s of statuts" [value]="s.value">{{ s.label }}</option>
-</select>
+ [(ngModel)]="ticket.statutTicket"
+  name="statutTicket">
+  <option *ngFor="let s of statuts" [value]="s.value">
+    {{ s.label }}
+  </option></select>
 </div>
 
   <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
@@ -66,20 +74,42 @@ name="statut" >
     <div>
     <label class="block mb-2 text-sm font-medium">Commentaire    </label>
     <textarea
-          name="description"
-          required
+ [(ngModel)]="ticket.commentaireMessage"
+  name="commentaireMessage"
+  placeholder="Ajouter un commentaire"      
+      required
           rows="4"
           class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-          placeholder="Ajoutez un commentaire..."
         ></textarea>
         </div>
+        <br>
          <!-- Piéce Jointe -->
 
-    <div>
+    <div >
       <label  class="block mb-2 text-sm font-medium">Piéce Jointe</label>
-      <app-file-input-example
-        ></app-file-input-example>
-        
+<app-file-input-example
+  (filesSelected)="onFilesSelected($event)">
+</app-file-input-example>     <!-- Affichage des pièces jointes existantes -->
+<div *ngIf="ticket.piecesJointes && ticket.piecesJointes.length > 0" class="mt-4">
+  <p class="text-sm text-gray-600 mb-2">Pièces jointes existantes :</p>
+  <div class="flex flex-wrap gap-4">
+    <ng-container *ngFor="let pj of ticket.piecesJointes">
+      <!-- Si c'est une image -->
+      <img *ngIf="pj.contentType.startsWith('image')" 
+           [src]="pj.url" 
+           [alt]="pj.nomFichier" 
+           class="w-24 h-24 object-cover rounded border"
+           (error)="pj.url='https://via.placeholder.com/24'">
+
+      <!-- Si ce n'est pas une image -->
+      <a *ngIf="!pj.contentType.startsWith('image')" 
+         [href]="pj.url" target="_blank" 
+         class="px-2 py-1 bg-gray-100 rounded text-gray-700 hover:bg-gray-200">
+        {{ pj.nomFichier }}
+      </a>
+    </ng-container>
+  </div>
+</div>
         <!-- Prévisualisation -->
        <!-- <div *ngIf="imagePreview" class="mt-4">
           <p class="text-sm text-gray-600 mb-2">Prévisualisation :</p>
@@ -93,7 +123,7 @@ name="statut" >
  
 
   <!-- Boutons d'action -->
-   <!--<div class="flex justify-end gap-3">
+   <div class="flex justify-end gap-3">
     <button
       type="button"
       (click)="cancel()"
@@ -110,5 +140,5 @@ name="statut" >
       <span *ngIf="loading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
       {{ loading ? 'Enregistrement...' : 'Enregistrer les modifications' }}
     </button>
-  </div>-->
+  </div>
 </div>

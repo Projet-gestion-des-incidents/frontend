@@ -32,6 +32,28 @@ export class TicketService {
       })
     };
   }
+  private getAuthHeaders1(isFormData: boolean = false): { headers: HttpHeaders } {
+  const token = this.authService.getAccessToken();
+
+  let headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+  });
+
+  // ❌ Ne pas mettre Content-Type pour FormData
+  if (!isFormData) {
+    headers = headers.set('Content-Type', 'application/json');
+  }
+
+  return { headers };
+}
+  updateTicket(id: string, formData: FormData) {
+  return this.http.put(
+    `${this.baseUrl}/${id}`,
+    formData,         this.getAuthHeaders1(true) // ✅ important
+
+
+  );
+}
  /** Récupérer un ticket par son id */
   getTicketById(id: string): Observable<ApiResponse<TicketDTO>> {
     return this.http.get<ApiResponse<TicketDTO>>(

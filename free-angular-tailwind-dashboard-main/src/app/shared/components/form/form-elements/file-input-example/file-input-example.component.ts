@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, EventEmitter, Output } from '@angular/core';
 import { ComponentCardComponent } from '../../../common/component-card/component-card.component';
 import { LabelComponent } from '../../label/label.component';
 import { FileInputComponent } from '../../input/file-input.component';
@@ -20,11 +20,17 @@ import { FileInputComponent } from '../../input/file-input.component';
   `,
 })
 export class FileInputExampleComponent {
+
+  @Output() filesSelected = new EventEmitter<File[]>();
+
   handleFileChange(event: Event) {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (file) {
-      console.log('Selected file:', file.name);
+
+    if (input.files && input.files.length > 0) {
+      const filesArray = Array.from(input.files);
+
+      // 🔥 envoyer au parent
+      this.filesSelected.emit(filesArray);
     }
   }
 }
