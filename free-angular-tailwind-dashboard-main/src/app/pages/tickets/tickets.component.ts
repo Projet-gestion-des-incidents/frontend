@@ -44,6 +44,7 @@ tempFilters = {
   // Filtres
   selectedPriorite?: number;
   selectedStatut?: number;
+  selectedDate: Date | null = null;
   selectedYear: string = '';
    currentPage = 1;
   pageSize = 5;
@@ -72,13 +73,18 @@ get ticketDate(): Date | null {
 }
 
 onTicketDateChange(event: Date | null) {
+    this.selectedDate = event; // Date pour le date-picker
+
   if (!event) {
     this.tempFilters.dateDebut = '';
     return;
   }
-  const startOfDay = new Date(event);
-  startOfDay.setHours(0, 0, 0, 0);
-  this.tempFilters.dateDebut = startOfDay.toISOString();
+  // Formater la date en "yyyy-MM-dd" pour envoyer au backend
+  const year = event.getFullYear();
+  const month = (event.getMonth() + 1).toString().padStart(2, '0');
+  const day = event.getDate().toString().padStart(2, '0');
+
+  this.tempFilters.dateDebut = `${year}-${month}-${day}`; // ex: "2026-02-21"
 }
   // Ajoutez ces méthodes
 toggleFilters(): void {
@@ -88,7 +94,7 @@ toggleFilters(): void {
     this.tempFilters = {
       priorite: this.selectedPriorite,
       statut: this.selectedStatut,
-      dateDebut: '',
+      dateDebut: this.tempFilters.dateDebut // string
     };
   }
 }
@@ -108,9 +114,9 @@ applyFilters(): void {
   // Appliquer les filtres sélectionnés
   this.selectedPriorite = this.tempFilters.priorite;
   this.selectedStatut = this.tempFilters.statut;
-  
-  // Vous pouvez ajouter la logique pour les dates ici
-  // Note: Le backend ne semble pas supporter le filtre par plage de dates pour l'instant
+    this.selectedYear = this.tempFilters.dateDebut ;
+
+
   
   this.currentPage = 1;
   this.loadTickets();
@@ -133,7 +139,8 @@ clearFilters(): void {
   };
   this.selectedPriorite = undefined;
   this.selectedStatut = undefined;
-  this.selectedYear = '';
+  this.selectedDate = null; // ✅ Date | null
+  
   this.searchTerm = '';
   this.currentPage = 1;
   this.loadTickets();

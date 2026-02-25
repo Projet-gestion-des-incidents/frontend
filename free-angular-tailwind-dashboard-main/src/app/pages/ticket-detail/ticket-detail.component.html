@@ -103,41 +103,71 @@
     </div>
 
  <!-- COMMENTAIRES ET PIÈCES JOINTES -->
-<div *ngIf="ticket.commentaires?.length" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
+<div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">
   <h2 class="text-lg font-semibold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
     Commentaires ({{ ticket.nombreCommentaires }})
   </h2>
 
-  <div *ngFor="let com of ticket.commentaires" class="mb-6 border-b pb-4 last:border-b-0 last:pb-0">
-    
-    <!-- Auteur et date -->
-    <div class="flex items-center gap-3 mb-2">
-      <app-avatar-text 
-          [name]="com.auteurNom || 'N/A'" 
-          class="w-8 h-8"
-      ></app-avatar-text>
-      <div>
-        <span class="block text-gray-900 dark:text-white font-medium">{{ com.auteurNom }}</span>
-        <span class="text-gray-500 dark:text-gray-400 text-sm">{{ com.dateCreation | date:'dd/MM/yyyy HH:mm' }}</span>
+  <ng-container *ngIf="ticket.commentaires?.length; else noComments">
+    <div *ngFor="let com of ticket.commentaires" class="mb-6 border-b pb-4 last:border-b-0 last:pb-0">
+      <!-- Auteur et date -->
+      <div class="flex items-center gap-3 mb-2">
+        <app-avatar-text 
+            [name]="com.auteurNom || 'N/A'" 
+            class="w-8 h-8"
+        ></app-avatar-text>
+        <div>
+          <span class="block text-gray-900 dark:text-white font-medium">{{ com.auteurNom }}</span>
+          <span class="text-gray-500 dark:text-gray-400 text-sm">{{ com.dateCreation | date:'dd/MM/yyyy HH:mm' }}</span>
+        </div>
+      </div>
+      <br>
+
+      <!-- Message du commentaire -->
+      <div class="mb-2">
+        <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Message :</span>
+        <p class="text-gray-900 dark:text-white font-medium whitespace-pre-wrap mt-1">{{ com.message }}</p>
+      </div>
+
+      <!-- Pièces jointes -->
+      <div class="mb-2">
+        <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pièces Jointes :</span>
+        <ng-container *ngIf="com.piecesJointes?.length; else noAttachments">
+          <div class="flex flex-wrap gap-2 mt-2">
+            <ng-container *ngFor="let piece of com.piecesJointes">
+             <ng-container *ngIf="isImage(piece.contentType); else downloadLink">
+  <img [src]="'https://localhost:7063/api/pieces-jointes/' + piece.id" 
+       [alt]="piece.nomFichier"
+       class="max-w-xs max-h-64 border rounded shadow-sm cursor-pointer hover:scale-105 transition-transform"
+       (click)="selectedImage = 'https://localhost:7063/api/pieces-jointes/' + piece.id" />
+</ng-container>
+              <ng-template #downloadLink>
+                <a [href]="'https://localhost:7063/api/pieces-jointes/' + piece.id" target="_blank" 
+                   class="text-blue-600 dark:text-blue-400 hover:underline text-sm">
+                  {{ piece.nomFichier }}
+                </a>
+              </ng-template>
+            </ng-container>
+          </div>
+        </ng-container>
+        <ng-template #noAttachments>
+          <p class="text-gray-500 dark:text-gray-400 italic text-sm mt-1">Aucune pièce jointe pour ce commentaire.</p>
+        </ng-template>
       </div>
     </div>
-<br>
-    <!-- Message du commentaire -->
-    <div class="mb-2">
-      <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Message :</span>
-      <p class="text-gray-900 dark:text-white font-medium whitespace-pre-wrap mt-1">{{ com.message }}</p>
-    </div>
-
-    <!-- Pièces jointes -->
-    <div *ngIf="com.piecesJointes?.length" class="flex flex-wrap gap-2 mt-2">
-      <a *ngFor="let piece of com.piecesJointes"
-         [href]="piece.url"
-         target="_blank"
-         class="text-blue-600 dark:text-blue-400 hover:underline text-sm">
-        {{ piece.nomFichier }}
-      </a>
-    </div>
+  </ng-container>
+<!-- Overlay modale pour image agrandie -->
+<div *ngIf="selectedImage" 
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+     (click)="selectedImage = null">
+  <div class="bg-white dark:bg-gray-800 p-2 rounded shadow-lg max-w-[80%] max-h-[80%] flex items-center justify-center">
+    <img [src]="selectedImage" class="max-h-[70vh] max-w-full rounded" />
   </div>
+</div>
+  <!-- Message quand pas de commentaire -->
+  <ng-template #noComments>
+    <p class="text-gray-500 dark:text-gray-400 italic">Aucun commentaire pour ce ticket.</p>
+  </ng-template>
 </div>
  <!--
         <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6">

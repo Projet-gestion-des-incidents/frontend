@@ -54,29 +54,19 @@ ngOnInit(): void {
   this.ticketForm = this.fb.group({
     titreTicket: ['', Validators.required],
     descriptionTicket: ['', Validators.required],
-    priorite: [0, Validators.required], // Faible par défaut
-    statut: [0, Validators.required],   // Nouveau par défaut
-      commentaireInitial: [''],
-      commentaireInterne: [false]  });
+    prioriteTicket: [1, Validators.required],   // ✅ même nom que backend
+    statutTicket: [1, Validators.required],     // ✅ même nom
+    commentaireInitial: [''],
+    commentaireInterne: [false]
+  });
 }
   onFileSelected(event: any) {
     if (event.target.files && event.target.files.length > 0) {
       this.files = Array.from(event.target.files);
     }
   }
-private toBase64(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.readAsDataURL(file);
-    reader.onload = () => {
-      const result = reader.result as string;
-      const base64 = result.split(',')[1]; // enlever data:image/...;base64,
-      resolve(base64);
-    };
-    reader.onerror = error => reject(error);
-  });
-}
-async submit() {
+
+submit() {
   if (this.ticketForm.invalid) {
     this.ticketForm.markAllAsTouched();
     return;
@@ -84,45 +74,56 @@ async submit() {
 
   this.loading = true;
 
-  try {
+  // 🔹 1️⃣ Créer FormData pour ticket
+  const ticketFormData = new FormData();
+  ticketFormData.append('TitreTicket', this.ticketForm.value.titreTicket);
+  ticketFormData.append('DescriptionTicket', this.ticketForm.value.descriptionTicket);
+  ticketFormData.append('PrioriteTicket', this.ticketForm.value.prioriteTicket.toString());
+  ticketFormData.append('StatutTicket', this.ticketForm.value.statutTicket.toString());
 
-    // Convertir les fichiers en base64
-    const piecesJointes = await Promise.all(
-      this.files.map(async (file) => ({
-        nomFichier: file.name,
-        contentType: file.type,
-contenuBase64: await this.toBase64(file)   
-   }))
-    );
+  // 🔹 2️⃣ Appel API ticket
+  this.ticketService.createTicket(ticketFormData).subscribe({
+    next: (ticketResponse) => {
 
-    const dto: CreateTicketDTO = {
-      titreTicket: this.ticketForm.value.titreTicket,
-      descriptionTicket: this.ticketForm.value.descriptionTicket,
-     prioriteTicket: Number(this.ticketForm.value.priorite),
-statutTicket: Number(this.ticketForm.value.statut),
-      commentaireInitial: this.ticketForm.value.commentaireInitial || '',
-      commentaireInterne: !!this.ticketForm.value.commentaireInterne,
-  fichiers: piecesJointes 
-    };
+      const ticketId = ticketResponse.data.id;
 
-    console.log("DTO envoyé :", dto);
+      // 🔥 Si commentaire ou fichiers → appeler API commentaire
+      if (this.ticketForm.value.commentaireInitial || this.files?.length) {
 
-    this.ticketService.createTicket(dto).subscribe({
-      next: () => {
+        const commentaireFormData = new FormData();
+        commentaireFormData.append('Message', this.ticketForm.value.commentaireInitial || '');
+        commentaireFormData.append('EstInterne', 'false');
+
+        if (this.files?.length) {
+          this.files.forEach(file => {
+            commentaireFormData.append('Fichiers', file);
+          });
+        }
+
+        this.ticketService
+          .addCommentaire(ticketId, commentaireFormData)
+          .subscribe({
+            next: () => {
+              this.loading = false;
+              this.router.navigate(['/tickets']);
+            },
+            error: (err) => {
+              console.error(err);
+              this.loading = false;
+            }
+          });
+
+      } else {
+        // Pas de commentaire → juste redirection
         this.loading = false;
         this.router.navigate(['/tickets']);
-      },
-      error: (err) => {
-        console.error(err);
-        this.loading = false;
       }
-    });
-
-  } catch (error) {
-    console.error("Erreur conversion fichier:", error);
-    this.loading = false;
-  }
+    },
+    error: (err) => {
+      console.error(err);
+      this.loading = false;
+    }
+  });
 }
-
 
 }

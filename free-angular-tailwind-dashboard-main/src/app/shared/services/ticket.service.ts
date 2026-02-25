@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { map, Observable } from 'rxjs';
-import { ApiResponse, CreateTicketDTO, TicketDetailDTO, TicketDTO } from '../models/Ticket.models';
+import { ApiResponse, CommentaireDTO, CreateTicketDTO, TicketDetailDTO, TicketDTO } from '../models/Ticket.models';
 import { AuthService } from './auth.service';
 
 @Injectable({
@@ -45,6 +45,12 @@ export class TicketService {
   }
 
   return { headers };
+}
+addCommentaire(ticketId: string, formData: FormData) {
+  return this.http.post<ApiResponse<CommentaireDTO>>(
+    `https://localhost:7063/api/commentaires?ticketId=${ticketId}`,
+    formData, this.getAuthHeaders1(true) 
+  );
 }
   updateTicket(id: string, formData: FormData) {
   return this.http.put(
@@ -92,14 +98,21 @@ getTicketsPaged(request: any) {
   /**
    * 🔹 Créer un ticket
    */
-createTicket(dto: any): Observable<TicketDTO> {
-  return this.http.post<ApiResponse<TicketDTO>>(
-    this.baseUrl,
-    dto,
-    this.getAuthHeaders()
-  ).pipe(
-    map(response => response.data)
-  );
-}
+// createTicket(dto: any): Observable<TicketDTO> {
+//   return this.http.post<ApiResponse<TicketDTO>>(
+//     this.baseUrl,
+//     dto,
+//     this.getAuthHeaders()
+//   ).pipe(
+//     map(response => response.data)
+//   );
+// }
+  createTicket(formData: FormData): Observable<ApiResponse<TicketDTO>> {
+    return this.http.post<ApiResponse<TicketDTO>>(
+      this.baseUrl,
+      formData,
+      this.getAuthHeaders1(true) // true = isFormData
+    );
+  }
 
 }

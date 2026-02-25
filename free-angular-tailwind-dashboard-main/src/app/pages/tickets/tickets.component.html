@@ -80,7 +80,7 @@
       Filtrer
       <span *ngIf="selectedPriorite !== undefined || selectedStatut !== undefined || selectedYear" 
             class="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-brand-500 rounded-full">
-        {{ (selectedPriorite !== undefined ? 1 : 0) + (selectedStatut !== undefined ? 1 : 0) + (selectedYear ? 1 : 0) }}
+        {{ (selectedPriorite !== undefined ? 1 : 0) + (selectedStatut !== undefined ? 1 : 0) + (selectedDate ? 1 : 0) }}
       </span>
     </button>
 
@@ -146,7 +146,7 @@
     <div>
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Année de création</label>
      <app-date-picker
-  [value]="ticketDate"
+  [value]="selectedDate"
   placeholder="JJ/MM/AAAA"
   (dateChange)="onTicketDateChange($event)"
   [maxDate]="maxTicketDate"

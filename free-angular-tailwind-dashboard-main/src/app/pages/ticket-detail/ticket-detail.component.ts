@@ -17,7 +17,7 @@ export class TicketDetailComponent {
   ticket?: TicketDetailDTO;
     loading = true;
   errorMessage = '';
-
+selectedImage: string | null = null;
   constructor(
     private route: ActivatedRoute,
     private ticketService: TicketService,
@@ -48,7 +48,11 @@ export class TicketDetailComponent {
     }
   });
 }
-  
+  isImage(contentType: string | undefined): boolean {
+  if (!contentType) return false;
+  const imageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+  return imageTypes.includes(contentType.toLowerCase());
+}
  getBadgeColor(status: string): BadgeColor {
 
   switch (status) {
