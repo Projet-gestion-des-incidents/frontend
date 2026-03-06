@@ -6,6 +6,7 @@ import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ButtonComponent } from '../../shared/components/ui/button/button.component';
 import { AlertComponent } from '../../shared/components/ui/alert/alert.component';
+import { PieceJointeDTO } from '../../shared/models/Ticket.models';
 
 @Component({
   selector: 'app-ticket-edit',
@@ -19,7 +20,8 @@ import { AlertComponent } from '../../shared/components/ui/alert/alert.component
   styleUrl: './ticket-edit.component.css',
 })
 export class TicketEditComponent implements OnInit {
-
+piecesASupprimer: string[] = [];
+nouveauxFichiers: File[] = [];
   ticket!: any;
   ticketId!: string;
   loading = false;
@@ -51,10 +53,25 @@ priorites = [
     this.ticketId = this.route.snapshot.paramMap.get('id')!;
     this.loadTicket();
   }
+onFileInputChange(event: Event) {
+  const input = event.target as HTMLInputElement;
 
+  if (!input.files) return;
+
+  const filesArray = Array.from(input.files);
+
+  this.nouveauxFichiers = [
+    ...this.nouveauxFichiers,
+    ...filesArray
+  ];
+
+  // reset pour permettre re-sélection du même fichier
+  input.value = '';
+}
 loadTicket() {
   this.loading = true;
-
+this.nouveauxFichiers = [];
+this.piecesASupprimer = [];
   this.ticketService.getTicketDetails(this.ticketId).subscribe({
     next: res => {
       if (res.isSuccess) {
@@ -80,59 +97,141 @@ loadTicket() {
     }
   });
 }
+supprimerPiece(pieceId: string) {
+
+  // Ajouter à la liste backend
+  this.piecesASupprimer.push(pieceId);
+
+  // Supprimer visuellement
+this.ticket.piecesJointes =
+  this.ticket.piecesJointes.filter(
+    (p: PieceJointeDTO) => p.id !== pieceId
+  );}
+
 onFilesSelected(files: File[]) {
-  this.ticket.nouveauxFichiers = files;
+  this.nouveauxFichiers = [
+    ...this.nouveauxFichiers,
+    ...files
+  ];
 }
   cancel() {
     this.router.navigate(['/tickets']);
   }
+  // save() {
+  //   if (!this.ticket) return;
+
+  //   this.loading = true;
+
+  //   const formData = new FormData();
+
+  //   // ===============================
+  //   // 🔹 Champs simples
+  //   // ===============================
+
+  //   formData.append('TitreTicket', this.ticket.titreTicket);
+  //   formData.append('DescriptionTicket', this.ticket.descriptionTicket);
+  //   formData.append('PrioriteTicket', this.ticket.prioriteTicket.toString());
+  //   formData.append('StatutTicket', this.ticket.statutTicket.toString());
+
+  //   // ===============================
+  //   // 🔹 Commentaire (nouveau)
+  //   // ===============================
+
+  //   if (this.ticket.commentaireMessage) {
+
+  //     formData.append('Commentaires[0].Message', this.ticket.commentaireMessage);
+  //     formData.append('Commentaires[0].EstInterne', 'false');
+
+  //     if (this.ticket.nouveauxFichiers) {
+  //       this.ticket.nouveauxFichiers.forEach((file: File) => {
+  //         formData.append('Commentaires[0].NouveauxFichiers', file);
+  //       });
+  //     }
+  //   }
+
+  //   // ===============================
+  //   // 🔹 Appel API
+  //   // ===============================
+
+  //   this.ticketService.updateTicket(this.ticketId, formData)
+  //     .subscribe({
+  //       next: () => {
+  //         this.loading = false;
+  //         this.router.navigate(['/tickets', this.ticketId]);
+  //       },
+  //       error: err => {
+  //         console.error(err);
+  //         this.error = 'Erreur mise à jour';
+  //         this.loading = false;
+  //       }
+  //     });
+  // }
   save() {
-    if (!this.ticket) return;
+  if (!this.ticket) return;
 
-    this.loading = true;
+  this.loading = true;
 
-    const formData = new FormData();
+  const ticketFormData = new FormData();
 
-    // ===============================
-    // 🔹 Champs simples
-    // ===============================
+  // ===============================
+  // 🔹 UPDATE TICKET
+  // ===============================
+  ticketFormData.append('TitreTicket', this.ticket.titreTicket);
+  ticketFormData.append('DescriptionTicket', this.ticket.descriptionTicket);
+  ticketFormData.append('PrioriteTicket', this.ticket.prioriteTicket.toString());
+  ticketFormData.append('StatutTicket', this.ticket.statutTicket.toString());
 
-    formData.append('TitreTicket', this.ticket.titreTicket);
-    formData.append('DescriptionTicket', this.ticket.descriptionTicket);
-    formData.append('PrioriteTicket', this.ticket.prioriteTicket.toString());
-    formData.append('StatutTicket', this.ticket.statutTicket.toString());
+  this.ticketService.updateTicket(this.ticketId, ticketFormData)
+    .subscribe({
+      next: () => {
 
-    // ===============================
-    // 🔹 Commentaire (nouveau)
-    // ===============================
+        // ===============================
+        // 🔹 UPDATE COMMENTAIRE (si existe)
+        // ===============================
 
-    if (this.ticket.commentaireMessage) {
+        if (this.ticket.commentaires?.length > 0) {
 
-      formData.append('Commentaires[0].Message', this.ticket.commentaireMessage);
-      formData.append('Commentaires[0].EstInterne', 'false');
+          const commentaire = this.ticket.commentaires[0];
+          const commentaireFormData = new FormData();
 
-      if (this.ticket.nouveauxFichiers) {
-        this.ticket.nouveauxFichiers.forEach((file: File) => {
-          formData.append('Commentaires[0].NouveauxFichiers', file);
-        });
-      }
-    }
+          commentaireFormData.append('Id', commentaire.id);
+          commentaireFormData.append('Message', this.ticket.commentaireMessage || '');
+          commentaireFormData.append('EstInterne', 'false');
+// 🔥 SUPPRESSION
+this.piecesASupprimer.forEach(id => {
+  commentaireFormData.append('PiecesJointesASupprimer', id);
+});
 
-    // ===============================
-    // 🔹 Appel API
-    // ===============================
+if (this.nouveauxFichiers.length > 0) {
+  this.nouveauxFichiers.forEach(file => {
+    commentaireFormData.append('NouveauxFichiers', file);
+  });
+}
 
-    this.ticketService.updateTicket(this.ticketId, formData)
-      .subscribe({
-        next: () => {
+          this.ticketService.updateCommentaire(commentaire.id, commentaireFormData)
+            .subscribe({
+              next: () => {
+                this.loading = false;
+                this.router.navigate(['/tickets', this.ticketId]);
+              },
+              error: err => {
+                console.error(err);
+                this.error = 'Erreur mise à jour commentaire';
+                this.loading = false;
+              }
+            });
+
+        } else {
+          // Si pas de commentaire → juste redirection
           this.loading = false;
           this.router.navigate(['/tickets', this.ticketId]);
-        },
-        error: err => {
-          console.error(err);
-          this.error = 'Erreur mise à jour';
-          this.loading = false;
         }
-      });
-  }
+      },
+      error: err => {
+        console.error(err);
+        this.error = 'Erreur mise à jour ticket';
+        this.loading = false;
+      }
+    });
+}
 }

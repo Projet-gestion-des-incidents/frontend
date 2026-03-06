@@ -36,6 +36,8 @@ import { TicketsComponent } from './pages/tickets/tickets.component';
 import { TicketFormComponent } from './shared/components/ticket-form/ticket-form.component';
 import { TicketDetailComponent } from './pages/ticket-detail/ticket-detail.component';
 import { TicketEditComponent } from './pages/ticket-edit/ticket-edit.component';
+import { TpeListComponent } from './pages/tpe/tpe-list/tpe-list.component';
+import { AjoutTPEComponent } from './pages/tpe/ajout-tpe/ajout-tpe.component';
 
 export const routes: Routes = [
   {
@@ -72,6 +74,12 @@ export const routes: Routes = [
   component: CommercantDashboardComponent,
   canActivate: [AuthGuard],
   data: { roles: ['Commercant'] }
+},{
+  path: 'tpes',
+  children: [
+    { path: '', component: TpeListComponent, canActivate: [AuthGuard], data: { roles: ['Admin'] } },
+    { path: 'new', component: AjoutTPEComponent, canActivate: [AuthGuard], data: { roles: ['Admin'] } }
+  ]
 },
  {
   path: 'incidents',

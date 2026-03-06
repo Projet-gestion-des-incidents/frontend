@@ -19,6 +19,7 @@ export class IncidentFormComponent implements OnInit {
     descriptionIncident: '',
     severiteIncident: SeveriteIncident.Faible,
     entitesImpactees: [] // Ce sera notre liste dynamique
+    
   };
 
   // Pour la création d'une nouvelle entité

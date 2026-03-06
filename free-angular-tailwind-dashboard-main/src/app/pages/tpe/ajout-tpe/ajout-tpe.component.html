@@ -1,0 +1,96 @@
+<div class="max-w-4xl mx-auto p-4">
+  <!-- Titre -->
+  <div class="mb-6">
+    <h1 class="text-2xl font-semibold text-gray-800 dark:text-white/90">
+      Ajout de TPE
+    </h1>
+  </div>
+
+  <!-- Formulaire -->
+  <form [formGroup]="tpeForm" (ngSubmit)="onSubmit()" class="space-y-6">
+
+    <!-- Alerte -->
+    <div *ngIf="alert.show" 
+         [ngClass]="{'bg-error-50 text-error-600': alert.variant === 'error', 'bg-green-50 text-green-600': alert.variant === 'success'}"
+         class="p-4 rounded-lg border">
+      {{ alert.message }}
+    </div>
+
+    <!-- Commerçant -->
+    <div class="mb-6">
+      <label class="block text-sm font-medium text-gray-700 mb-2">
+        Commerçant <span class="text-error-500">*</span>
+      </label>
+      <select formControlName="commercantId"
+              class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 shadow-sm focus:ring-2 focus:ring-brand-400">
+        <option value="">Sélectionner un commerçant</option>
+        <option *ngFor="let c of commercantOptions" [value]="c.value">{{ c.label }}</option>
+      </select>
+    </div>
+
+    <!-- Liste des TPE -->
+    <div formArrayName="tpes" class="space-y-4">
+
+      <div *ngFor="let tpe of tpes.controls; let i = index" 
+           [formGroupName]="i"
+           class="bg-white dark:bg-gray-800 shadow-md rounded-xl p-4 flex flex-col md:flex-row md:items-end md:gap-4 relative">
+
+        <!-- Numéro de série -->
+        <div class="flex-1">
+          <label class="block text-sm font-medium mb-1">Numéro de série *</label>
+          <input type="text"
+                 formControlName="numSerie"
+                 placeholder="123456"
+                 class="w-full border rounded-lg px-3 py-2 shadow-sm focus:ring-2 focus:ring-brand-400" />
+        </div>
+
+        <!-- Modèle -->
+        <div class="flex-1">
+          <label class="block text-sm font-medium mb-1">Modèle *</label>
+          <select formControlName="modele" 
+                  class="w-full border rounded-lg px-3 py-2 shadow-sm focus:ring-2 focus:ring-brand-400">
+            <option value="">Choisir un modèle</option>
+            <option *ngFor="let m of modeleOptions" [value]="m.value">{{ m.label }}</option>
+          </select>
+        </div>
+
+        <!-- Supprimer TPE -->
+        <button type="button"
+                (click)="removeTPE(i)"
+                class="absolute top-2 right-2 text-error-500 hover:text-error-600 p-2"
+                title="Supprimer TPE">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      </div>
+
+    </div>
+
+    <!-- Ajouter TPE -->
+    <button type="button" (click)="addTPE()"
+            class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-white shadow hover:bg-brand-600">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+              d="M12 4v16m8-8H4" />
+      </svg>
+      Ajouter un TPE
+    </button>
+
+    <!-- Actions -->
+    <div class="flex justify-end gap-3 mt-6">
+      <button type="button" (click)="cancel()"
+              class="px-6 py-2.5 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+        Annuler
+      </button>
+
+      <button type="submit" [disabled]="loading"
+              class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-white shadow hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed">
+        <span *ngIf="loading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+        {{ loading ? 'Ajout...' : 'Ajouter les TPEs' }}
+      </button>
+    </div>
+
+  </form>
+</div>

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, FormArray } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { ComponentCardComponent } from '../../common/component-card/component-card.component';
@@ -12,6 +12,8 @@ import { AlertComponent } from '../../ui/alert/alert.component';
 import { FileInputExampleComponent } from '../form-elements/file-input-example/file-input-example.component';
 import { CreateUserDto, UserService } from '../../../services/user.service';
 import { AuthService } from '../../../services/auth.service';
+import { TPEService } from '../../../services/tpe.service';
+import { forkJoin } from 'rxjs';
 
 
 @Component({
@@ -49,7 +51,7 @@ export class CreateUserAdminComponent {
   constructor(
     private fb: FormBuilder,
     private userService: UserService,
-    private router: Router,
+    private router: Router,private tpeService: TPEService,
     private authService : AuthService
   ) {
     this.userForm = this.fb.group({
@@ -57,12 +59,21 @@ export class CreateUserAdminComponent {
       prenom: ['', [Validators.required, Validators.minLength(2)]],
       email: ['', [Validators.required, Validators.email]],
       roleId: ['', Validators.required], // Utiliser roleId
+
+   tpes: this.fb.array([]), // ← important
+      numSerie: [''],
+      modele: ['']
       // password: ['', [Validators.required, Validators.minLength(6)]],
       // confirmPassword: ['', Validators.required]
     // }, { validator: this.passwordMatchValidator 
     });
   }
-
+    modeleOptions = [
+{ value: 1, label: 'Ingenico' },
+{ value: 2, label: 'Verifone' },
+{ value: 3, label: 'PAX' }
+];
+isCommercant = false;
   // passwordMatchValidator(form: FormGroup) {
   //   const password = form.get('password')?.value;
   //   const confirmPassword = form.get('confirmPassword')?.value;
@@ -96,71 +107,118 @@ selectedRoleId: string = '';
   });
 }
 
+// ngOnInit(): void {
+//   this.loadRoles();
+// }
 ngOnInit(): void {
   this.loadRoles();
+
+  this.userForm.get('roleId')?.valueChanges.subscribe(value => {
+    const role = this.roles.find(r => r.id === value);
+ this.isCommercant = role?.name.toLowerCase() === 'commercant';
+      if (this.isCommercant && this.tpes.length === 0) {
+        this.addTPE(); // Ajouter une ligne TPE par défaut
+      }  });
 }
 
-  onSubmit() {
-    if (this.userForm.invalid) {
-      this.markFormGroupTouched(this.userForm);
-      return;
-    }
-
-    this.loading = true;
-    this.clearAlert();
-
-    const formData = this.userForm.value;
-    
-    // Créer l'username automatiquement
-    const userName = `${formData.prenom}.${formData.nom}`.toLowerCase()
-      .normalize('NFD').replace(/[\u0300-\u036f]/g, '') // Enlève accents
-      .replace(/[^a-z0-9.]/g, ''); // Garde seulement lettres, chiffres, points
-
-    const userData: CreateUserDto = {
-      userName: userName,
-      email: formData.email,
-      nom: formData.nom,
-      prenom: formData.prenom,
-      roleId: formData.roleId,
-      password: formData.password
-    };
-
-  console.log('Données envoyées:', {
-    ...userData,
-  }); 
-
- this.userService.createUser(userData).subscribe({
-  next: (response: any) => {
-    this.loading = false;
-
-    if (response.resultCode && response.resultCode !== 0) {
-      // Code d'erreur de l'API
-      const errorMessage = response.message || 'Erreur lors de la création de l\'utilisateur';
-      this.showError(errorMessage, 'Erreur');
-      return;
-    }
-    // Succès réel
-    this.showSuccess('Utilisateur créé avec succès !');
-
-    setTimeout(() => {
-      this.router.navigate(['/admin-dashboard']);
-    }, 2000);
-  },
-  error: (err) => {
-    this.loading = false;
-
-    let errorMessage = 'Erreur lors de la création de l\'utilisateur';
-    if (err?.error?.message) {
-      errorMessage = err.error.message;
-    } else if (err?.error?.errors?.length) {
-      errorMessage = err.error.errors.map((e: any) => e.message || e).join('<br>');
-    }
-
-    this.showError(errorMessage, 'Erreur');
+  get tpes(): FormArray {
+    return this.userForm.get('tpes') as FormArray;
   }
+
+  addTPE() {
+    this.tpes.push(this.fb.group({
+      numSerie: ['', Validators.required],
+      modele: ['', Validators.required]
+    }));
+  }
+
+  removeTPE(index: number) {
+    this.tpes.removeAt(index);
+  }
+
+onSubmit() {
+  if (this.userForm.invalid) {
+    this.markFormGroupTouched(this.userForm);
+    return;
+  }
+
+  this.loading = true;
+  this.clearAlert();
+
+  const formData = this.userForm.value;
+
+  const userName = `${formData.prenom}.${formData.nom}`.toLowerCase()
+    .normalize('NFD').replace(/[\u0300-\u036f]/g, '')
+    .replace(/[^a-z0-9.]/g, '');
+
+  const userData: CreateUserDto = {
+    userName,
+    email: formData.email,
+    nom: formData.nom,
+    prenom: formData.prenom,
+    roleId: formData.roleId,
+    password: formData.password
+  };
+
+  this.userService.createUser(userData).subscribe({
+    next: (response: any) => {
+      if (response.resultCode && response.resultCode !== 0) {
+        this.loading = false;
+        const errorMessage = response.message || 'Erreur lors de la création de l\'utilisateur';
+        this.showError(errorMessage, 'Erreur');
+        return;
+      }
+
+      const createdUserId = response.data.id;
+      console.log('Utilisateur créé, ID:', createdUserId);
+
+      // Créer les TPEs si commerçant
+ if (this.isCommercant && this.tpes.length > 0) {
+  // Convertir en tableau simple
+  const tpeArray = this.tpes.value;
+
+  // Création séquentielle ou parallèle
+ const creationTPEs = tpeArray.map((t: any) => {
+  const payload = {
+    commercantId: createdUserId, // pas CommercantId
+    numSerie: t.numSerie,        // pas NumSerie
+    modele: t.modele             // pas Modele
+  };
+  return this.tpeService.createTPE(payload); // retourne Observable
 });
 
-  }
+  // Exécution parallèle de tous les appels
+  forkJoin(creationTPEs).subscribe({
+    next: () => {
+      this.loading = false;
+      this.showSuccess('Utilisateur et tous les TPEs créés avec succès !');
+      setTimeout(() => this.router.navigate(['/admin-dashboard']), 2000);
+    },
+    error: (err) => {
+      this.loading = false;
+      this.showError('Utilisateur créé mais erreur lors de la création de certains TPEs.');
+      console.error(err);
+    }
+  });
+} else {
+        // Pas de TPE à créer
+        this.loading = false;
+        this.showSuccess('Utilisateur créé avec succès !');
+        setTimeout(() => this.router.navigate(['/admin-dashboard']), 2000);
+      }
+    },
+    error: (err) => {
+      this.loading = false;
+      let errorMessage = 'Erreur lors de la création de l\'utilisateur';
+      if (err?.error?.message) {
+        errorMessage = err.error.message;
+      } else if (err?.error?.errors?.length) {
+        errorMessage = err.error.errors.map((e: any) => e.message || e).join('<br>');
+      }
+      this.showError(errorMessage, 'Erreur');
+    }
+  });
+}
 
   private markFormGroupTouched(formGroup: FormGroup) {
     Object.values(formGroup.controls).forEach(control => {

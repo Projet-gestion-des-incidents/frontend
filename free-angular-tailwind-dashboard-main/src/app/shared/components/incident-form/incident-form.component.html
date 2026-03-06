@@ -39,7 +39,7 @@
         <!-- Description -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-            Description <span class="text-error-500">*</span>
+            Description detaillée<span class="text-error-500">*</span>
           </label>
           <textarea
             [(ngModel)]="incident.descriptionIncident"
@@ -50,9 +50,41 @@
             placeholder="Décrivez l'incident en détail..."
           ></textarea>
         </div>
+   <!-- Type de problème -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+       Quel type de problème rencontrez-vous ? <span class="text-error-500">*</span>
+      </label>
+      <select
+      
+        name="typeProbleme"
+        required
+        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+      >
+        <option [ngValue]="'Paiement refusé'">Paiement refusé</option>
+        <option [ngValue]="'Terminal hors ligne'">Terminal hors ligne</option>
+        <option [ngValue]="'Lenteur'">Lenteur</option>
+        <option [ngValue]="'Bug affichage'">Bug affichage</option>
+        <option [ngValue]="'Erreur flux transactionnel'">Erreur flux transactionnel</option>
+      </select>
+    </div>
+
+    <!-- Sélection du terminal TPE -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+      TPE <span class="text-error-500">*</span>
+      </label>
+      <select
+        name="idTPE"
+        required
+        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+      >
+       
+      </select>
+    </div>
 
         <!-- Sévérité -->
-        <div>
+        <!--<div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
             Sévérité <span class="text-error-500">*</span>
           </label>
@@ -66,7 +98,7 @@
               {{ option.label }}
             </option>
           </select>
-        </div>
+        </div>-->
       </div>
     </div>
 

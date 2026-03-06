@@ -1,0 +1,107 @@
+<div class="overflow-hidden rounded-2xl border border-gray-200 bg-white pt-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
+
+<!-- En-tête -->
+<div class="flex flex-col gap-4 px-6 mb-4 sm:flex-row sm:items-center sm:justify-between">
+  <div>
+    <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+      Liste des TPE
+    </h3>
+   <!-- <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+      {{ tpes.length }} TPE(s)
+    </p>-->
+  </div>
+
+</div>
+
+<!-- Tableau -->
+<div class="max-w-full overflow-x-auto">
+<table class="min-w-full">
+
+<thead class="px-6 py-3.5 border-t border-y bg-gray-50 dark:bg-gray-900">
+<tr>
+  <th class="px-6 py-3 text-theme-xs text-gray-500 text-start">Numéro Série</th>
+  <th class="px-6 py-3 text-theme-xs text-gray-500 text-start">Modèle</th>
+      <th class="px-6 py-3 text-theme-xs text-gray-500 text-start">Commerçant</th>
+
+    <th class="px-6 py-3 text-theme-xs text-gray-500 text-start"></th>
+
+</tr>
+</thead>
+
+<tbody>
+
+<tr *ngFor="let tpe of tpes" class="hover:bg-gray-50">
+
+<td class="px-6 py-3">
+<span class="font-medium text-gray-700">
+{{ tpe.numSerieComplet }}
+</span>
+</td>
+<td class="px-6 py-3">
+   <app-badge
+              variant="light"
+              [color]="getBadgeColor(tpe.modele)"
+              size="sm"
+            >
+            {{ tpe.modele }}
+
+            </app-badge>
+
+</td>
+<td class="px-6 py-3">
+<span class="font-medium text-gray-700">
+  {{ tpe.commercantNom }}
+
+</span>
+</td>
+
+<td class="px-6 py-3">
+
+<button
+(click)="deleteTPE(tpe.id)"
+    class="inline-flex items-center gap-1 text-red-500 hover:text-red-600 font-medium text-sm"
+                title="Supprimer">
+
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+                </svg>
+</button>
+   <button 
+                class="inline-flex items-center gap-1 text-warning-500 hover:text-warning-600 font-medium text-sm"
+                title="Modifier "
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11 4h2m-1-1v2m7.071 2.929a2 2 0 010 2.828l-8.486 8.486a2 2 0 01-.878.515l-4 1a1 1 0 01-1.213-1.213l1-4a2 2 0 01.515-.878l8.486-8.486a2 2 0 012.828 0z">
+                  </path>
+                </svg>
+                
+              </button>
+</td>
+
+</tr>
+
+<tr *ngIf="tpes.length === 0">
+<td colspan="3" class="text-center py-10 text-gray-500">
+Aucun TPE trouvé
+</td>
+</tr>
+
+</tbody>
+
+</table>
+</div>
+
+</div>
+<br>
+<app-button
+  variant="primary"
+  size="sm"
+  className="flex items-center gap-2"
+  routerLink="/tpes/new">
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+      d="M12 4v16m8-8H4"/>
+  </svg>
+  Ajouter un TPE
+</app-button>

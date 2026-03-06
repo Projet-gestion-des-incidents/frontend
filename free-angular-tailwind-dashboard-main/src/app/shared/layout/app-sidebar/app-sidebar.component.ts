@@ -56,6 +56,17 @@ path: "/admin/create-user",  },
       name: "User Profile",
       path: "/profile",
     },
+   {
+  name: "TPE",
+  icon: `
+  <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5"
+  fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <path stroke-linecap="round" stroke-linejoin="round"
+    d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"/>
+  </svg>
+  `,
+  path: "/tpes"
+},
     {
   icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
     <path d="M12 3L2 20H22L12 3Z" fill="currentColor" opacity="0.2"/>

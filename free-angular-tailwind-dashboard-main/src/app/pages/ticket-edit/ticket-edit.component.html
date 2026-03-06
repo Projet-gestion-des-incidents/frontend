@@ -85,37 +85,84 @@
         <br>
          <!-- Piéce Jointe -->
 
-    <div >
-      <label  class="block mb-2 text-sm font-medium">Piéce Jointe</label>
-<app-file-input-example
-  (filesSelected)="onFilesSelected($event)">
-</app-file-input-example>     <!-- Affichage des pièces jointes existantes -->
-<div *ngIf="ticket.piecesJointes && ticket.piecesJointes.length > 0" class="mt-4">
-  <p class="text-sm text-gray-600 mb-2">Pièces jointes existantes :</p>
-  <div class="flex flex-wrap gap-4">
-    <ng-container *ngFor="let pj of ticket.piecesJointes">
-      <!-- Si c'est une image -->
-      <img *ngIf="pj.contentType.startsWith('image')" 
-           [src]="pj.url" 
-           [alt]="pj.nomFichier" 
-           class="w-24 h-24 object-cover rounded border"
-           (error)="pj.url='https://via.placeholder.com/24'">
+<div class="mt-4">
 
-      <!-- Si ce n'est pas une image -->
-      <a *ngIf="!pj.contentType.startsWith('image')" 
-         [href]="pj.url" target="_blank" 
-         class="px-2 py-1 bg-gray-100 rounded text-gray-700 hover:bg-gray-200">
+  <p class="text-sm text-gray-600 mb-2">
+    Pièces jointes
+  </p>
+
+  <div class="flex flex-wrap gap-4 items-center">
+
+    <!-- ================= EXISTANTES ================= -->
+    <div *ngFor="let pj of ticket?.piecesJointes"
+         class="relative group">
+
+      <img *ngIf="pj.contentType.startsWith('image')"
+           [src]="pj.url"
+           class="w-24 h-24 object-cover rounded border">
+
+      <a *ngIf="!pj.contentType.startsWith('image')"
+         [href]="pj.url"
+         target="_blank"
+         class="block px-2 py-2 bg-gray-100 rounded text-gray-700">
         {{ pj.nomFichier }}
       </a>
-    </ng-container>
+
+      <button
+        type="button"
+        (click)="supprimerPiece(pj.id)"
+        class="absolute -top-2 -right-2 bg-red-500 text-white 
+               rounded-full w-6 h-6 text-xs 
+               opacity-0 group-hover:opacity-100 transition">
+        ✕
+      </button>
+
+    </div>
+
+    <!-- ================= NOUVEAUX FICHIERS ================= -->
+    <div *ngFor="let file of nouveauxFichiers; let i = index"
+         class="relative group bg-blue-50 border border-blue-200 rounded w-24 h-24 flex items-center justify-center text-xs text-center p-2">
+
+      {{ file.name }}
+
+      <button
+        type="button"
+        (click)="nouveauxFichiers.splice(i,1)"
+        class="absolute -top-2 -right-2 bg-red-500 text-white 
+               rounded-full w-6 h-6 text-xs">
+        ✕
+      </button>
+
+    </div>
+
+    <!-- ================= BOUTON + ================= -->
+    <div>
+
+      <button type="button"
+              (click)="fileInput.click()"
+              class="w-24 h-24 flex items-center justify-center 
+                     border-2 border-dashed rounded 
+                     text-2xl text-gray-400 hover:text-blue-500 
+                     hover:border-blue-500 transition">
+        +
+      </button>
+
+      <input #fileInput
+             type="file"
+             multiple
+             class="hidden"
+             (change)="onFileInputChange($event)">
+    </div>
+
   </div>
+
+  <!-- Message si vraiment rien -->
+  <p *ngIf="!ticket?.piecesJointes?.length && !nouveauxFichiers.length"
+     class="text-gray-500 italic text-sm mt-2">
+     Aucune pièce jointe pour ce commentaire.
+  </p>
+
 </div>
-        <!-- Prévisualisation -->
-       <!-- <div *ngIf="imagePreview" class="mt-4">
-          <p class="text-sm text-gray-600 mb-2">Prévisualisation :</p>
-          <img [src]="imagePreview" alt="Preview" class="w-24 h-24 rounded-full object-cover border">
-        </div>-->
-      </div>
    </div>
     </div>
   </div>

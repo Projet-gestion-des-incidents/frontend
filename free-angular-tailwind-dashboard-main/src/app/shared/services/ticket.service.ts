@@ -52,6 +52,13 @@ addCommentaire(ticketId: string, formData: FormData) {
     formData, this.getAuthHeaders1(true) 
   );
 }
+updateCommentaire(commentaireId: string, formData: FormData) {
+  return this.http.put(
+    `https://localhost:7063/api/commentaires/${commentaireId}`,
+    formData,
+    this.getAuthHeaders1(true)
+  );
+}
   updateTicket(id: string, formData: FormData) {
   return this.http.put(
     `${this.baseUrl}/${id}`,

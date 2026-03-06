@@ -77,15 +77,64 @@
             (valueChange)="userForm.get('roleId')?.setValue($event)"
             className="dark:bg-dark-900"
           ></app-select>
-         
+
           <div *ngIf="userForm.get('roleId')?.touched && userForm.get('roleId')?.invalid" 
                class="text-error-500 text-sm mt-1">
             Le rôle est requis
           </div>
         </div>
 
+   </div> <!-- fin section Email & Role -->
+
+  <!-- 3️⃣ TPE uniquement si commerçant -->
+      <div *ngIf="isCommercant" class="space-y-4 border-t pt-6">
+        <p class="font-semibold text-gray-700 dark:text-gray-200">Liste des TPE</p>
+
+        <div formArrayName="tpes" class="space-y-4">
+          <div *ngFor="let tpe of tpes.controls; let i = index" [formGroupName]="i"
+               class="bg-white dark:bg-gray-800 shadow-md rounded-xl p-4 flex flex-col md:flex-row md:items-end md:gap-4 relative">
+
+             <!-- Numéro de série -->
+        <div class="flex-1">
+          <label class="block text-sm font-medium mb-1">Numéro de série *</label>
+          <input type="text"
+                 formControlName="numSerie"
+                 placeholder="123456"
+                 class="w-full border rounded-lg px-3 py-2 shadow-sm focus:ring-2 focus:ring-brand-400" />
+        </div>
+
+            <!-- Modèle -->
+            <div class="flex-1">
+          <label class="block text-sm font-medium mb-1">Modèle *</label>
+          <select formControlName="modele" 
+                  class="w-full border rounded-lg px-3 py-2 shadow-sm focus:ring-2 focus:ring-brand-400">
+            <option value="">Choisir un modèle</option>
+            <option *ngFor="let m of modeleOptions" [value]="m.value">{{ m.label }}</option>
+          </select>
+        </div>
+
+            <!-- Supprimer TPE -->
+            <button type="button" (click)="removeTPE(i)"
+                    class="absolute top-2 right-2 text-error-500 hover:text-error-600 p-2"
+                    title="Supprimer TPE">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M6 18L18 6M6 6l12 12"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+
+        <!-- Ajouter un TPE -->
+        <button type="button" (click)="addTPE()"
+                class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-white shadow hover:bg-brand-600">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                  d="M12 4v16m8-8H4"/>
+          </svg>
+          Ajouter un TPE
+        </button>
       </div>
-      
       <!-- Section 5 : Mot de passe -->
        
       <!-- Boutons -->
