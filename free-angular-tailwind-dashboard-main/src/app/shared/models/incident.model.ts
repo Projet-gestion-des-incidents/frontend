@@ -20,38 +20,27 @@ export interface PagedResult<T> {
   pageSize: number;
 }
 export enum StatutIncident {
-  Nouveau = 1,
-  Assigne = 2,
-  EnCours = 3,
-  EnAttente = 4,
-  Resolu = 5,
-  Ferme = 6
+   EnCours = 1,
+   Ferme = 2
 }
 
 export enum TypeEntiteImpactee {
-  Hardware = 1,
-  Software = 2,
-  Reseau = 3,
-  BaseDonnees = 4,
-  Application = 5,
-  Utilisateur = 6,
-  Securite = 7,
-  Autre = 8
+MachineTPE = 1,
+FluxTransactionnel = 2,
+Reseau = 3,
+ServiceApplicatif = 4,
 }
+
 
 
 
 export interface EntiteImpactee {
-      id?: string;  // Optionnel car peut être nouveau ou existant
-
   typeEntiteImpactee: TypeEntiteImpactee;
-  nom: string;
 }
 
 export interface Incident {
   id: string;
   codeIncident: string;
-  titreIncident: string;
   descriptionIncident: string;
   severiteIncident: SeveriteIncident;
   severiteIncidentLibelle: string;
@@ -63,13 +52,16 @@ export interface Incident {
   updatedAt?: Date;
   createdById?: string;
   createdByName?: string;
+    typeProbleme?: string; // <-- add this line
+      emplacement?: string;  // <-- add this line
+
   nombreTickets: number;
   nombreEntitesImpactees: number;
 }
 
 export interface IncidentDetail extends Incident {
   tickets: IncidentTicket[];
-  entitesImpactees: EntiteImpactee[];
+  entitesImpactees: EntiteImpactee[]; // Changé de EntiteImpactee à EntiteImpacteeDTO
 }
 
 export interface IncidentTicket {
@@ -81,12 +73,23 @@ export interface IncidentTicket {
 }
 
 export interface CreateIncidentDTO {
-  titreIncident: string;
-  descriptionIncident: string;
-  severiteIncident: SeveriteIncident;
-  entitesImpactees: EntiteImpactee[];
+  descriptionIncident?: string;
+  typeProbleme?: TypeProbleme; // <-- optionnel, peut être undefined
+  emplacement: string;
+  TPEIds: string[];
+  PiecesJointes?: File[];
 }
+export enum TypeProbleme {
 
+        PaiementRefuse = 1,
+        TerminalHorsLigne = 2,
+        Lenteur = 3,
+        BugAffichage = 4,
+        ConnexionReseau = 5,
+        ErreurFluxTransactionnel = 6,
+        ProblemeLogicielTPE = 7,
+        Autre = 8
+}
 export interface ApiResponse<T> {
   data: T;
   errors?: string[];

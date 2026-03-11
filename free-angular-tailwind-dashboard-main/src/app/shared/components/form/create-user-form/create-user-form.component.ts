@@ -125,12 +125,12 @@ ngOnInit(): void {
     return this.userForm.get('tpes') as FormArray;
   }
 
-  addTPE() {
-    this.tpes.push(this.fb.group({
-      numSerie: ['', Validators.required],
-      modele: ['', Validators.required]
-    }));
-  }
+ addTPE() {
+  this.tpes.push(this.fb.group({
+    numSerie: ['', [Validators.required, Validators.pattern(/^[0-9]{6}$/)]],
+    modele: ['', Validators.required]
+  }));
+}
 
   removeTPE(index: number) {
     this.tpes.removeAt(index);

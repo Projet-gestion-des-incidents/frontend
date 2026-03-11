@@ -1,0 +1,35 @@
+  <!-- carte -->
+  <div
+    id="map"
+    class="rounded-xl border shadow"
+    style="height:420px"
+  ></div>
+  <br>
+<div class="space-y-3 relative">
+
+  <!-- champ recherche -->
+  <input
+    type="text"
+    [(ngModel)]="searchText"
+    (input)="searchAddress()"
+    placeholder="Rechercher une adresse..."
+    class="w-full border rounded-lg px-3 py-2 shadow-sm focus:ring focus:ring-blue-200"
+  />
+
+  <!-- suggestions -->
+  <div
+    *ngIf="suggestions.length"
+    class="absolute z-50 w-full bg-white border rounded-lg shadow-lg max-h-48 overflow-auto"
+  >
+    <div
+      *ngFor="let s of suggestions"
+      (click)="selectAddress(s)"
+      class="px-3 py-2 hover:bg-gray-100 cursor-pointer text-sm"
+    >
+      {{ s.display_name }}
+    </div>
+  </div>
+
+
+
+</div>

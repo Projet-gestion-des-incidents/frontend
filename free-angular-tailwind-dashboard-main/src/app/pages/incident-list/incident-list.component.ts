@@ -9,6 +9,7 @@ import { Incident, SeveriteIncident, StatutIncident } from '../../shared/models/
 import { IncidentService } from '../../shared/services/incident.service';
 import { AlertComponent } from '../../shared/components/ui/alert/alert.component';
 import { ButtonComponent } from '../../shared/components/ui/button/button.component';
+import { UserService } from '../../shared/services/user.service';
 
 @Component({
   selector: 'app-incident-list',
@@ -49,18 +50,14 @@ export class IncidentListComponent implements OnInit {
   ];
 
   statutOptions = [
-    { value: StatutIncident.Nouveau, label: 'Nouveau' },
-    { value: StatutIncident.Assigne, label: 'Assigné' },
     { value: StatutIncident.EnCours, label: 'En cours' },
-    { value: StatutIncident.EnAttente, label: 'En attente' },
-    { value: StatutIncident.Resolu, label: 'Résolu' },
     { value: StatutIncident.Ferme, label: 'Fermé' }
   ];
 
   // Années pour le filtre
   yearOptions: string[] = [];
 
-  // Pour la sélection multiple
+  userRole: string = '';
 
 
   // Pour la confirmation de suppression
@@ -76,13 +73,33 @@ export class IncidentListComponent implements OnInit {
 
   constructor(
     private incidentService: IncidentService,
+        private userService: UserService,
+
     private router: Router
   ) {}
 
-  ngOnInit(): void {
+ngOnInit(): void {
     this.generateYearOptions();
-    this.loadIncidents();
+
+    // Récupérer le profil de l'utilisateur connecté
+    this.userService.getMyProfile().subscribe({
+      next: (user) => {
+        this.userRole = user.role; // Stocker le rôle
+        console.log(this.userRole)
+        if (user.role === 'Admin') {
+          this.loadIncidents(); // Admin utilise searchIncidents avec filtres
+        } else {
+          this.loadMyIncidents(); // Commerçant utilise getMyIncidents
+        }
+      },
+      error: (err) => {
+        this.error = 'Impossible de récupérer le profil utilisateur';
+        console.error(err);
+      }
+    });
   }
+
+
 
   // Générer les 10 dernières années pour le filtre
   generateYearOptions(): void {
@@ -92,11 +109,32 @@ export class IncidentListComponent implements OnInit {
     }
   }
 
-  // Chargement des incidents avec pagination et filtres côté client
-// Dans incident-list.component.ts
-
-// Chargement des incidents avec pagination et filtres
-// Chargement des incidents avec pagination et filtres combinés
+// Pour le commerçant
+loadMyIncidents(): void {
+  this.loading = true;
+  this.incidentService.getMyIncidents().subscribe({
+    next: (response: any) => {
+      // Adapter selon la structure de réponse
+      if (response.data) {
+        this.incidents = response.data;
+      } else if (Array.isArray(response)) {
+        this.incidents = response;
+      } else {
+        this.incidents = [];
+      }
+      
+      this.filteredIncidents = [...this.incidents];
+      this.totalCount = this.incidents.length;
+      this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+      this.loading = false;
+    },
+    error: (err) => {
+      this.error = 'Impossible de charger vos incidents';
+      console.error(err);
+      this.loading = false;
+    }
+  });
+}
 loadIncidents(): void {
   this.loading = true;
   this.error = null;
@@ -192,17 +230,81 @@ onSearch(): void {
   this.searchTimeout = setTimeout(() => {
     console.log('🔍 Recherche lancée pour:', this.searchTerm);
     this.currentPage = 1;
-    this.loadIncidents();
+    if (this.userRole === 'Admin') {
+      this.loadIncidents();
+    } else {
+      // Pour le commerçant, filtrer côté client
+      this.filterMerchantIncidents();
+    }
   }, 400);
 }
 
-// Application des filtres (sévérité, statut, année)
-applyFilter(): void {
-  console.log('🎯 Filtres appliqués - Sévérité:', this.selectedSeverite, 'Statut:', this.selectedStatut, 'Année:', this.selectedYear);
-  this.currentPage = 1;
-  this.loadIncidents();
+// Filtrer les incidents du commerçant côté client
+filterMerchantIncidents(): void {
+  if (!this.searchTerm) {
+    this.filteredIncidents = this.incidents;
+  } else {
+    const term = this.searchTerm.toLowerCase();
+    this.filteredIncidents = this.incidents.filter(incident => 
+      incident.codeIncident?.toLowerCase().includes(term) ||
+      incident.emplacement?.toLowerCase().includes(term) ||
+      incident.typeProbleme?.toLowerCase().includes(term) 
+    );
+  }
+  this.totalCount = this.filteredIncidents.length;
+  this.totalPages = Math.ceil(this.totalCount / this.pageSize);
 }
 
+// Application des filtres
+applyFilters(): void {
+  console.log('🎯 Filtres appliqués - Sévérité:', this.tempFilters.severite, 'Statut:', this.tempFilters.statut);
+  
+  // Mettre à jour les filtres sélectionnés
+  this.selectedSeverite = this.tempFilters.severite;
+  this.selectedStatut = this.tempFilters.statut;
+  
+  this.currentPage = 1;
+  
+  if (this.userRole === 'Admin') {
+    this.loadIncidents(); // Admin utilise l'API avec filtres
+  } else {
+    this.filterMerchantIncidentsWithFilters(); // Commerçant filtre côté client
+  }
+  
+  this.showFilters = false;
+}
+
+// Filtrer les incidents du commerçant avec tous les filtres
+filterMerchantIncidentsWithFilters(): void {
+  let filtered = [...this.incidents];
+  
+  // Filtre par terme de recherche
+  if (this.searchTerm) {
+    const term = this.searchTerm.toLowerCase();
+    filtered = filtered.filter(incident => 
+      incident.codeIncident?.toLowerCase().includes(term) ||
+      incident.emplacement?.toLowerCase().includes(term) ||
+      incident.typeProbleme?.toLowerCase().includes(term)     );
+  }
+  
+  // Filtre par sévérité
+  if (this.selectedSeverite != null) {
+    filtered = filtered.filter(incident => 
+      Number(incident.severiteIncident) === this.selectedSeverite
+    );
+  }
+  
+  // Filtre par statut
+  if (this.selectedStatut != null) {
+    filtered = filtered.filter(incident => 
+      Number(incident.statutIncident) === this.selectedStatut
+    );
+  }
+  
+  this.filteredIncidents = filtered;
+  this.totalCount = filtered.length;
+  this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+}
 // Reset des filtres
 resetFilters(): void {
   console.log('🔄 Reset tous les filtres');
@@ -263,7 +365,7 @@ resetFilters(): void {
       show: true,
       variant: 'warning',
       title: 'Confirmation',
-      message: `Voulez-vous vraiment supprimer l'incident "${incident.titreIncident}" ?`
+      message: `Voulez-vous vraiment supprimer l'incident "${incident.codeIncident}" ?`
     };
   }
 
@@ -272,14 +374,14 @@ resetFilters(): void {
 
     this.incidentService.deleteIncident(this.confirmIncident.id).subscribe({
       next: () => {
-        this.showAlert('success', 'Incident supprimé', `L'incident "${this.confirmIncident!.titreIncident}" a été supprimé.`);
+        this.showAlert('success', 'Incident supprimé', `L'incident "${this.confirmIncident!.codeIncident}" a été supprimé.`);
         this.confirmIncident = null;
         this.alert.show = false;
         this.loadIncidents(); // Recharger la liste
       },
       error: (err) => {
         console.error(err);
-        this.showAlert('error', 'Erreur', `Impossible de supprimer l'incident "${this.confirmIncident!.titreIncident}".`);
+        this.showAlert('error', 'Erreur', `Impossible de supprimer l'incident "${this.confirmIncident!.codeIncident}".`);
         this.confirmIncident = null;
         this.alert.show = false;
       }
@@ -362,38 +464,25 @@ getStatutBadgeColor(statut: StatutIncident | string): BadgeColor {
     
     // Mapper les strings vers les nombres
     switch(statutClean) {
-      case 'nouveau':
-        statutValue = StatutIncident.Nouveau;
-        console.log('✅ Correspond à Nouveau');
-        break;
-      case 'assigné':
-      case 'assigne':
-        statutValue = StatutIncident.Assigne;
-        console.log('✅ Correspond à Assigné');
-        break;
+     
+    
       case 'en cours':
       case 'encours':
         statutValue = StatutIncident.EnCours;
         console.log('✅ Correspond à En cours');
         break;
       case 'en attente':
-      case 'enattente':
-        statutValue = StatutIncident.EnAttente;
-        console.log('✅ Correspond à En attente');
-        break;
+     
       case 'résolu':
       case 'resolu':
-        statutValue = StatutIncident.Resolu;
-        console.log('✅ Correspond à Résolu');
-        break;
-      case 'fermé':
-      case 'ferme':
         statutValue = StatutIncident.Ferme;
         console.log('✅ Correspond à Fermé');
         break;
+      case 'fermé':
+     
       default:
         console.log('❌ Aucune correspondance trouvée pour:', statutClean);
-        statutValue = StatutIncident.Nouveau;
+        statutValue = StatutIncident.EnCours;
     }
   } else {
     statutValue = statut;
@@ -403,16 +492,11 @@ getStatutBadgeColor(statut: StatutIncident | string): BadgeColor {
   console.log('Valeur finale du statut:', statutValue);
   
   switch(statutValue) {
-    case StatutIncident.Nouveau:
-      return 'info';
-    case StatutIncident.Assigne:
-      return 'primary';
+   
+  
     case StatutIncident.EnCours:
       return 'warning';
-    case StatutIncident.EnAttente:
-      return 'light';
-    case StatutIncident.Resolu:
-      return 'success';
+  
     case StatutIncident.Ferme:
       return 'dark';
     default:
@@ -458,18 +542,7 @@ toggleFilters(): void {
   }
 }
 
-applyFilters(): void {
-  // Appliquer les filtres sélectionnés
-  this.selectedSeverite = this.tempFilters.severite;
-  this.selectedStatut = this.tempFilters.statut;
-  
-  // Vous pouvez ajouter la logique pour les dates ici
-  // Note: Le backend ne semble pas supporter le filtre par plage de dates pour l'instant
-  
-  this.currentPage = 1;
-  this.loadIncidents();
-  this.showFilters = false;
-}
+
 
 cancelFilters(): void {
   this.showFilters = false;
@@ -481,6 +554,7 @@ cancelFilters(): void {
   };
 }
 
+// Reset des filtres
 clearFilters(): void {
   this.tempFilters = {
     severite: undefined,
@@ -493,7 +567,14 @@ clearFilters(): void {
   this.selectedYear = '';
   this.searchTerm = '';
   this.currentPage = 1;
-  this.loadIncidents();
+  
+  if (this.userRole === 'Admin') {
+    this.loadIncidents();
+  } else {
+    this.filteredIncidents = this.incidents;
+    this.totalCount = this.incidents.length;
+    this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+  }
   this.showFilters = false;
 }
 }

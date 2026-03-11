@@ -27,7 +27,18 @@ export class IncidentDetailComponent implements OnInit {
   incident!: IncidentDetail;
   loading = true;
   error: string | null = null;
-
+ typeEntiteImpacteeLabels: { [key in TypeEntiteImpactee]: string } = {
+    [TypeEntiteImpactee.MachineTPE]: 'Machine TPE',
+    [TypeEntiteImpactee.FluxTransactionnel]: 'Flux Transactionnel',
+    [TypeEntiteImpactee.Reseau]: 'Réseau',
+    [TypeEntiteImpactee.ServiceApplicatif]: 'Service Applicatif'
+  };  // Mapping pour les valeurs string venant du backend
+  stringToEnumMap: { [key: string]: TypeEntiteImpactee } = {
+    'MachineTPE': TypeEntiteImpactee.MachineTPE,
+    'FluxTransactionnel': TypeEntiteImpactee.FluxTransactionnel,
+    'Reseau': TypeEntiteImpactee.Reseau,
+    'ServiceApplicatif': TypeEntiteImpactee.ServiceApplicatif,
+  };
   constructor(
     private route: ActivatedRoute,
     private router: Router,
@@ -76,66 +87,72 @@ export class IncidentDetailComponent implements OnInit {
     });
   }
 
-  getStatutBadgeColor(statut: number): 'success' | 'warning' | 'error' | 'info' {
-    switch(statut) {
-      case 1: return 'info';      // Nouveau
-      case 2: return 'warning';   // Assigné
-      case 3: return 'warning';   // En cours
-      case 4: return 'info';      // En attente
-      case 5: return 'success';   // Résolu
-      case 6: return 'success';   // Fermé
-      default: return 'warning';
+ getStatutBadgeColor(statut: number): 'success' | 'warning' | 'error' | 'info' {
+  if (!statut || statut === 0) {
+    return 'info'; // ou 'warning' selon ce qui est disponible
+  }
+  
+  switch(statut) {
+    case 1: return 'warning';   // EnCours
+    case 2: return 'success';   // Ferme
+    default: return 'info';
+  }
+}
+
+  // Obtenir le libellé du statut
+  getStatutLibelle(statut: number, statutLibelle: string): string {
+    if (!statut || statut === 0) {
+      return 'Non défini';
     }
+    return statutLibelle || `Statut ${statut}`;
   }
 
-  getSeveriteBadgeColor(severite: number): 'success' | 'warning' | 'error' {
-    switch(severite) {
-      case 1: return 'success';   // Faible
-      case 2: return 'warning';   // Moyenne
-      case 3: return 'error';     // Forte
-      default: return 'warning';
+  // Obtenir le libellé de la sévérité
+  getSeveriteLibelle(severite: number, severiteLibelle: string): string {
+    if (!severite || severite === 0) {
+      return 'Non définie';
     }
+    return severiteLibelle || `Sévérité ${severite}`;
   }
+getSeveriteBadgeColor(severite: number): 'success' | 'warning' | 'error' {
+  if (!severite || severite === 0) {
+    return 'warning'; // Valeur par défaut pour 0
+  }
+  
+  switch(severite) {
+    case 1: return 'success';   // Faible
+    case 2: return 'warning';   // Moyenne
+    case 3: return 'error';     // Forte
+    default: return 'warning';
+  }
+}
 
   goBack(): void {
     this.router.navigate(['/incidents']);
   }
 
-getTypeEntiteLibelle(type: string | TypeEntiteImpactee): string {
-  console.log('Type reçu:', type);
-  
-  // Si c'est déjà une string comme "Application", "Securite", etc.
-  if (typeof type === 'string') {
-    // Capitaliser la première lettre si nécessaire
-    const typeString = type.charAt(0).toUpperCase() + type.slice(1).toLowerCase();
+ getTypeEntiteLibelle(type: any): string {
+    console.log('Type reçu:', type, 'type:', typeof type);
     
-    // Remplacer les éventuelles variations
-    const typeMap: { [key: string]: string } = {
-      'Hardware': 'Hardware',
-      'Software': 'Software',
-      'Reseau': 'Réseau',
-      'BaseDonnees': 'Base de données',
-      'Application': 'Application',
-      'Utilisateur': 'Utilisateur',
-      'Securite': 'Sécurité',
-      'Autre': 'Autre'
-    };
+    // Cas 1: C'est déjà un nombre (enum)
+    if (typeof type === 'number') {
+      return this.typeEntiteImpacteeLabels[type as TypeEntiteImpactee] || `Type ${type} (inconnu)`;
+    }
     
-    return typeMap[typeString] || typeString;
+    // Cas 2: C'est une string (comme "MachineTPE")
+    if (typeof type === 'string') {
+      // Essayer de convertir la string en enum
+      const enumValue = this.stringToEnumMap[type];
+      if (enumValue !== undefined) {
+        return this.typeEntiteImpacteeLabels[enumValue];
+      }
+      
+      // Si pas trouvé dans le mapping, retourner la string formatée
+      return type.replace(/([A-Z])/g, ' $1').trim(); // "MachineTPE" -> "Machine TPE"
+    }
+    
+    return 'Inconnu';
   }
-  
-  // Si c'est un nombre (ancien comportement)
-  const typeMap = {
-    [TypeEntiteImpactee.Hardware]: 'Hardware',
-    [TypeEntiteImpactee.Software]: 'Software',
-    [TypeEntiteImpactee.Reseau]: 'Réseau',
-    [TypeEntiteImpactee.BaseDonnees]: 'Base de données',
-    [TypeEntiteImpactee.Application]: 'Application',
-    [TypeEntiteImpactee.Utilisateur]: 'Utilisateur',
-    [TypeEntiteImpactee.Securite]: 'Sécurité',
-    [TypeEntiteImpactee.Autre]: 'Autre'
-  };
-  
-  return typeMap[type] || 'Inconnu';
-}
+
+
 }

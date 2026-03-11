@@ -21,6 +21,7 @@ export interface TicketDTO {
 
   nombreCommentaires: number;
   nombrePiecesJointes: number;
+  
 }
 
 export interface CreateTicketDTO {
@@ -64,4 +65,20 @@ export interface CommentaireDTO {
 
 export interface TicketDetailDTO extends TicketDTO {
   commentaires: CommentaireDTO[];
+    dateLimite?: string; // ou Date selon votre API
+
+    incidents?: IncidentLiaison[]; // Ajouter cette ligne
+
+}
+export interface IncidentLiaison {
+  id: string;
+  codeIncident: string;
+  descriptionIncident: string;
+  typeProbleme?: string;
+  emplacement?: string;
+  statutIncident: number;
+  statutIncidentLibelle: string;
+  severiteIncident: number;
+  severiteIncidentLibelle: string;
+  dateDetection: string;
 }

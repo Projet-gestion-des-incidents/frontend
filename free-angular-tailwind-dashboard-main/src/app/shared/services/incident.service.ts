@@ -79,15 +79,22 @@ export class IncidentService {
   /**
    * Crée un nouvel incident
    */
-  createIncident(incident: CreateIncidentDTO): Observable<Incident> {
-    return this.http.post<ApiResponse<Incident>>(
-      this.apiUrl, 
-      incident, 
-      this.getAuthHeaders()
-    ).pipe(
-      map(response => response.data)
-    );
-  }
+ createIncident(formData: FormData): Observable<Incident> {
+
+  const token = this.authService.getAccessToken();
+
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+  });
+
+  return this.http.post<ApiResponse<Incident>>(
+    this.apiUrl,
+    formData,
+    { headers }
+  ).pipe(
+    map(response => response.data)
+  );
+}
 
   /**
    * Récupère toutes les entités impactées disponibles
@@ -125,41 +132,7 @@ export class IncidentService {
     );
   }
 
-  /**
-   * Récupère les incidents par statut
-   */
-  // getIncidentsByStatut(statut: number): Observable<Incident[]> {
-  //   return this.http.get<ApiResponse<Incident[]>>(
-  //     `${this.apiUrl}/statut/${statut}`, 
-  //     this.getAuthHeaders()
-  //   ).pipe(
-  //     map(response => response.data)
-  //   );
-  // }
 
-  /**
-   * Récupère les incidents par sévérité
-   */
-  // getIncidentsBySeverite(severite: number): Observable<Incident[]> {
-  //   return this.http.get<ApiResponse<Incident[]>>(
-  //     `${this.apiUrl}/severite/${severite}`, 
-  //     this.getAuthHeaders()
-  //   ).pipe(
-  //     map(response => response.data)
-  //   );
-  // }
-
-  /**
-   * Récupère les incidents créés par l'utilisateur connecté
-   */
-  // getMyIncidents(): Observable<Incident[]> {
-  //   return this.http.get<ApiResponse<Incident[]>>(
-  //     `${this.apiUrl}/my-incidents`, 
-  //     this.getAuthHeaders()
-  //   ).pipe(
-  //     map(response => response.data)
-  //   );
-  // }
 
   /**
    * Crée une nouvelle entité impactée
@@ -247,10 +220,7 @@ deleteIncident(id: string) {
     );
   }
 
-// Dans incident.service.ts
-// Dans incident.service.ts
-// Dans incident.service.ts
-// Dans incident.service.ts
+
 searchIncidents(params: any) {
   const url = `${this.apiUrl}/withFilters`;
   console.log('=== SERVICE: searchIncidents ===');

@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { map, Observable, tap } from 'rxjs';
+import { map, Observable, switchMap, tap } from 'rxjs';
 import { AuthService } from './auth.service';
 import { User } from '../models/User.model';
 import { PagedResponse } from '../models/PagedResponse.model';
@@ -271,7 +271,13 @@ private determineStatut(user: any): 'Actif' | 'Inactif' {
     }))
   );
 }
-
+// Dans user.service.ts
+getTechniciens(): Observable<User[]> {
+  return this.http.get<any>(`${this.apiUrl}/roles`, this.getAuthHeaders())
+    .pipe(
+      map(res => res.data.filter((u: any) => u.role === 'Technicien'))
+    );
+}
 updateMyProfile(data: any): Observable<User> {
   return this.http.put<User>(
     `${this.apiUrl}/me`,

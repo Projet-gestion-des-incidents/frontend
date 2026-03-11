@@ -265,11 +265,11 @@ typeEntiteOptions = [
 
 
   // Formulaire ajout entité
-  showNewEntiteForm = false;
-  newEntite: EntiteImpactee = {
-    typeEntiteImpactee: TypeEntiteImpactee.Autre,
-    nom: ''
-  };
+  // showNewEntiteForm = false;
+  // newEntite: EntiteImpactee = {
+  //   typeEntiteImpactee: TypeEntiteImpactee.Autre,
+  //   nom: ''
+  // };
 
   constructor(
     private route: ActivatedRoute,
@@ -286,21 +286,21 @@ typeEntiteOptions = [
   }
   
 // Méthode pour convertir la valeur string du select en enum
-setTypeEntite(entite: EntiteImpactee, value: any) {
-  const val = typeof value === 'string' ? value : (value.target?.value ?? 'Autre');
+// setTypeEntite(entite: EntiteImpactee, value: any) {
+//   const val = typeof value === 'string' ? value : (value.target?.value ?? 'Autre');
 
-  switch(val) {
-    case 'Hardware': entite.typeEntiteImpactee = TypeEntiteImpactee.Hardware; break;
-    case 'Software': entite.typeEntiteImpactee = TypeEntiteImpactee.Software; break;
-    case 'Reseau': entite.typeEntiteImpactee = TypeEntiteImpactee.Reseau; break;
-    case 'BaseDonnees': entite.typeEntiteImpactee = TypeEntiteImpactee.BaseDonnees; break;
-    case 'Application': entite.typeEntiteImpactee = TypeEntiteImpactee.Application; break;
-    case 'Utilisateur': entite.typeEntiteImpactee = TypeEntiteImpactee.Utilisateur; break;
-    case 'Securite': entite.typeEntiteImpactee = TypeEntiteImpactee.Securite; break;
-    case 'Autre': entite.typeEntiteImpactee = TypeEntiteImpactee.Autre; break;
-    default: entite.typeEntiteImpactee = TypeEntiteImpactee.Autre;
-  }
-}
+//   switch(val) {
+//     case 'Hardware': entite.typeEntiteImpactee = TypeEntiteImpactee.Hardware; break;
+//     case 'Software': entite.typeEntiteImpactee = TypeEntiteImpactee.Software; break;
+//     case 'Reseau': entite.typeEntiteImpactee = TypeEntiteImpactee.Reseau; break;
+//     case 'BaseDonnees': entite.typeEntiteImpactee = TypeEntiteImpactee.BaseDonnees; break;
+//     case 'Application': entite.typeEntiteImpactee = TypeEntiteImpactee.Application; break;
+//     case 'Utilisateur': entite.typeEntiteImpactee = TypeEntiteImpactee.Utilisateur; break;
+//     case 'Securite': entite.typeEntiteImpactee = TypeEntiteImpactee.Securite; break;
+//     case 'Autre': entite.typeEntiteImpactee = TypeEntiteImpactee.Autre; break;
+//     default: entite.typeEntiteImpactee = TypeEntiteImpactee.Autre;
+//   }
+// }
 
 // setTypeSeverite(incident: IncidentDetail, value: string) {
 
@@ -322,13 +322,11 @@ setTypeSeverite(incident: IncidentDetail, value: string) {
 
 setStatut(incident: IncidentDetail, value: string) {
   switch (value) {
-    case 'Nouveau': incident.statutIncident = StatutIncident.Nouveau; break;
-    case 'Assigné': incident.statutIncident = StatutIncident.Assigne; break;
+  
     case 'En cours': incident.statutIncident = StatutIncident.EnCours; break;
-    case 'En attente': incident.statutIncident = StatutIncident.EnAttente; break;
-    case 'Résolu': incident.statutIncident = StatutIncident.Resolu; break;
+
     case 'Fermé': incident.statutIncident = StatutIncident.Ferme; break;
-    default: incident.statutIncident = StatutIncident.Nouveau;
+    default: incident.statutIncident = StatutIncident.EnCours;
   }
 }
 
@@ -350,45 +348,41 @@ setStatut(incident: IncidentDetail, value: string) {
     });
   }
 
-  toggleNewEntiteForm() {
-    this.showNewEntiteForm = !this.showNewEntiteForm;
-    if (!this.showNewEntiteForm) {
-      this.newEntite = { typeEntiteImpactee: TypeEntiteImpactee.Autre, nom: '' };
-    }
-  }
+  // toggleNewEntiteForm() {
+  //   this.showNewEntiteForm = !this.showNewEntiteForm;
+  //   if (!this.showNewEntiteForm) {
+  //     this.newEntite = { typeEntiteImpactee: TypeEntiteImpactee.Autre, nom: '' };
+  //   }
+  // }
 
 
 
-  ajouterEntite() {
-    if (!this.newEntite.nom) return;
-    this.incident.entitesImpactees.push({ ...this.newEntite });
-    this.toggleNewEntiteForm();
-  }
+  // ajouterEntite() {
+  //   if (!this.newEntite.nom) return;
+  //   this.incident.entitesImpactees.push({ ...this.newEntite });
+  //   this.toggleNewEntiteForm();
+  // }
 
-  supprimerEntite(index: number) {
-    const entite = this.incident.entitesImpactees[index];
-    if (entite.id) {
-      this.entiteService.delete(entite.id).subscribe({
-        next: (success: boolean) => {
-          if (success) this.incident.entitesImpactees.splice(index, 1);
-        },
-        error: (err: any) => console.error(err)
-      });
-    } else {
-      this.incident.entitesImpactees.splice(index, 1);
-    }
-  }
+  // supprimerEntite(index: number) {
+  //   const entite = this.incident.entitesImpactees[index];
+  //   if (entite.id) {
+  //     this.entiteService.delete(entite.id).subscribe({
+  //       next: (success: boolean) => {
+  //         if (success) this.incident.entitesImpactees.splice(index, 1);
+  //       },
+  //       error: (err: any) => console.error(err)
+  //     });
+  //   } else {
+  //     this.incident.entitesImpactees.splice(index, 1);
+  //   }
+  // }
 
   cancel() {
     this.router.navigate(['/incidents']);
   }
 getStatutValue(statut: StatutIncident): string {
   switch (statut) {
-    case StatutIncident.Nouveau: return 'Nouveau';
-    case StatutIncident.Assigne: return 'Assigné';
     case StatutIncident.EnCours: return 'En cours';
-    case StatutIncident.EnAttente: return 'En attente';
-    case StatutIncident.Resolu: return 'Résolu';
     case StatutIncident.Ferme: return 'Fermé';
     default: return 'Nouveau';
   }
@@ -413,31 +407,30 @@ getSeveriteValue(severite: SeveriteIncident): string {
     if (!this.incident) return;
     this.loading = true;
 
-    const dto: CreateIncidentDTO = {
-      titreIncident: this.incident.titreIncident,
-      descriptionIncident: this.incident.descriptionIncident,
-      severiteIncident: this.incident.severiteIncident,
-      entitesImpactees: this.incident.entitesImpactees.map((e: EntiteImpactee) => ({
-        id: e.id,
-        typeEntiteImpactee: e.typeEntiteImpactee,
-        nom: e.nom
-      }))
-    };
+//     const dto: CreateIncidentDTO = {
+//       descriptionIncident: this.incident.descriptionIncident,
+//       severiteIncident: this.incident.severiteIncident,
+//       entitesImpactees: this.incident.entitesImpactees.map((e: EntiteImpactee) => ({
+//         id: e.id,
+//         typeEntiteImpactee: e.typeEntiteImpactee,
+//         nom: e.nom
+//       }))
+//     };
 
-    this.incidentService.updateIncident(this.incident.id, {
-      ...dto,
-      statutIncident: this.incident.statutIncident
-    }).subscribe({
-      next: (updated: Incident) => {
-        console.log('Incident mis à jour:', updated);
-        this.loading = false;
-this.router.navigate(['/incidents', this.incident.id]);
-      },
-      error: (err: any) => {
-        console.error(err);
-        this.error = 'Erreur lors de la mise à jour.';
-        this.loading = false;
-      }
-    });
-  }
-}
+//     this.incidentService.updateIncident(this.incident.id, {
+//       ...dto,
+//       statutIncident: this.incident.statutIncident
+//     }).subscribe({
+//       next: (updated: Incident) => {
+//         console.log('Incident mis à jour:', updated);
+//         this.loading = false;
+// this.router.navigate(['/incidents', this.incident.id]);
+//       },
+//       error: (err: any) => {
+//         console.error(err);
+//         this.error = 'Erreur lors de la mise à jour.';
+//         this.loading = false;
+//       }
+//     });
+//   }
+}}

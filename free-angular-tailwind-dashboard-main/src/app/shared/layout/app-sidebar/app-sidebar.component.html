@@ -79,7 +79,8 @@
             }
           </h2>
           <ul class="flex flex-col gap-1">
-            @for (nav of navItems; track $index;let i = $index) {
+            <!-- CHANGEMENT ICI: filteredNavItems au lieu de navItems -->
+            @for (nav of filteredNavItems; track $index;let i = $index) {
             <li>
               @if (nav.subItems) {
                 <button
@@ -283,7 +284,8 @@
           </h2>
 
           <ul class="flex flex-col gap-1">
-            @for (nav of othersItems; track $index;let i = $index) {
+            <!-- CHANGEMENT ICI: filteredOthersItems au lieu de othersItems -->
+            @for (nav of filteredOthersItems; track $index;let i = $index) {
             <li>
               @if (nav.subItems) {
                 <button

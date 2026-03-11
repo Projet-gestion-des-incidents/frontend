@@ -26,19 +26,7 @@
 
     <div class="space-y-4">
       <!-- Titre -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-          Titre de l'incident <span class="text-error-500">*</span>
-        </label>
-        <input
-          type="text"
-          [(ngModel)]="incident.titreIncident"
-          name="titre"
-          required
-          class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-          placeholder="Ex: Panne du serveur de production"
-        />
-      </div>
+     
 
       <!-- Description -->
       <div>
@@ -107,7 +95,7 @@
   </div>
 
   <!-- Entités impactées -->
-  <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+ <!-- <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
     <div class="flex justify-between items-center mb-4">
       <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
         Entités impactées
@@ -127,17 +115,17 @@
   </svg>
   {{ showNewEntiteForm ? 'Annuler' : 'Ajouter une entité' }}
 </button>
-    </div>
+    </div>-->
 
     <!-- Liste des entités actuelles -->
-    <div *ngIf="incident.entitesImpactees && incident.entitesImpactees.length > 0" class="space-y-3 mb-4">
+   <!-- <div *ngIf="incident.entitesImpactees && incident.entitesImpactees.length > 0" class="space-y-3 mb-4">
       <div *ngFor="let entite of incident.entitesImpactees; let i = index" 
            class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-        
+         -->
         <!-- Type d'entité -->
          
 <!-- Type d'entité -->
-<select
+<!--<select
   [(ngModel)]="entite.typeEntiteImpactee"
   (ngModelChange)="entite.typeEntiteImpactee = $event"
   name="typeEntite_{{i}}"
@@ -148,27 +136,28 @@
     {{ option.label }}
   </option>
 </select>
-
+-->
 
 
 
         <!-- Nom de l'entité -->
-        <input
+      <!--   <input
           type="text"
           [(ngModel)]="entite.nom"
           
           [name]="'nom_' + i"
           placeholder="Nom de l'entité"
           class="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
-        />
+        />-->
 
         <!-- Badge pour les entités existantes -->
-        <span *ngIf="entite.id" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
+       <!-- <span *ngIf="entite.id" class="text-xs bg-green-100 text-green-700 px-2 py-1 rounded-full">
           Existante
-        </span>
+        </span>-->
 
         <!-- Bouton supprimer -->
-        <button
+      
+        <!--   <button
           type="button"
           (click)="supprimerEntite(i)"
           class="text-error-500 hover:text-error-600 p-1"
@@ -179,10 +168,10 @@
           </svg>
         </button>
       </div>
-    </div>
+    </div> -->
 
     <!-- Message si aucune entité -->
-    <div *ngIf="!incident.entitesImpactees || incident.entitesImpactees.length === 0" 
+     <!-- <div *ngIf="!incident.entitesImpactees || incident.entitesImpactees.length === 0" 
          class="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
       <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -196,9 +185,9 @@
         Cliquez sur "Ajouter une entité" pour en créer une
       </p>
     </div>
-
+-->
     <!-- Formulaire d'ajout d'une nouvelle entité -->
-    <div *ngIf="showNewEntiteForm" class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+    <!-- <div *ngIf="showNewEntiteForm" class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
       <h4 class="text-sm font-medium text-gray-700 dark:text-gray-400 mb-3">
         Nouvelle entité
       </h4>
@@ -237,7 +226,7 @@
         </button>
       </div>
     </div>
-  </div>
+  </div>-->
 
   <!-- Boutons d'action -->
   <div class="flex justify-end gap-3">

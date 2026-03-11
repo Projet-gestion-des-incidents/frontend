@@ -17,24 +17,11 @@
     <!-- Informations générales -->
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
       <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
-        Informations générales
+        Informations incident
       </h3>
 
       <div class="space-y-4">
-        <!-- Titre -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-            Titre de l'incident <span class="text-error-500">*</span>
-          </label>
-          <input
-            type="text"
-            [(ngModel)]="incident.titreIncident"
-            name="titre"
-            required
-            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-            placeholder="Ex: Panne du serveur de production"
-          />
-        </div>
+       
 
         <!-- Description -->
         <div>
@@ -47,181 +34,78 @@
             required
             rows="4"
             class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-            placeholder="Décrivez l'incident en détail..."
+        placeholder="Décrivez le problème rencontré..."
           ></textarea>
         </div>
+           <!-- emplacement -->
+    <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+        Emplacement <span class="text-error-500">*</span>
+      </label>
+<!-- Carte Leaflet -->
+<div class="mb-4">
+<app-map (locationSelected)="onLocationSelected($event)"></app-map></div>
+  
+    </div>
    <!-- Type de problème -->
     <div>
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
        Quel type de problème rencontrez-vous ? <span class="text-error-500">*</span>
       </label>
       <select
-      
+           [(ngModel)]="incident.typeProbleme"
         name="typeProbleme"
         required
         class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
       >
-        <option [ngValue]="'Paiement refusé'">Paiement refusé</option>
-        <option [ngValue]="'Terminal hors ligne'">Terminal hors ligne</option>
-        <option [ngValue]="'Lenteur'">Lenteur</option>
-        <option [ngValue]="'Bug affichage'">Bug affichage</option>
-        <option [ngValue]="'Erreur flux transactionnel'">Erreur flux transactionnel</option>
+        <option [ngValue]="undefined" disabled selected>-- Sélectionnez un type --</option>
+
+       <option [ngValue]="1">Paiement refusé</option>
+        <option [ngValue]="2">Terminal hors ligne</option>
+        <option [ngValue]="3">Lenteur</option>
+        <option [ngValue]="4">Bug affichage</option>
+        <option [ngValue]="5">Connexion réseau</option>
+        <option [ngValue]="6">Erreur flux transactionnel</option>
+        <option [ngValue]="7">Problème logiciel TPE</option>
+        <option [ngValue]="8">Autre</option>
       </select>
     </div>
 
-    <!-- Sélection du terminal TPE -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-      TPE <span class="text-error-500">*</span>
-      </label>
-      <select
-        name="idTPE"
-        required
-        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-      >
-       
-      </select>
-    </div>
+  <!-- Sélection du terminal TPE -->
+<!--  <div>
+  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+    Terminal TPE <span class="text-error-500">*</span>
+  </label>
+  
+  <select
+    [(ngModel)]="incident.TPEIds"
+    name="TPEIds"
+    required
+    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
+  >
+  <option [ngValue]="undefined" disabled selected>-- Sélectionnez un ou plusieurs TPE --</option>
+    <option *ngFor="let tpe of tpes" [value]="tpe.id">
+      {{ tpe.numSerieComplet }} - {{ tpe.modele }}
+    </option>
+  </select>
+</div>-->
+    <!-- Sélection du terminal TPE avec app-multi-select -->
+<div>
+  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+    Terminal TPE <span class="text-error-500">*</span>
+  </label>
 
-        <!-- Sévérité -->
-        <!--<div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-            Sévérité <span class="text-error-500">*</span>
-          </label>
-          <select
-            [(ngModel)]="incident.severiteIncident"
-            name="severite"
-            required
-            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-          >
-            <option *ngFor="let option of severiteOptions" [value]="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-        </div>-->
-      </div>
-    </div>
-
-    <!-- Entités impactées -->
-    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-      <div class="flex justify-between items-center mb-4">
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-          Entités impactées
-        </h3>
-<!-- Dans incident-form.component.html et incident-edit.component.html -->
-<button
-  type="button"
-  (click)="toggleNewEntiteForm()"
-  class="inline-flex items-center gap-2 text-sm text-brand-500 hover:text-brand-600"
->
-  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <ng-container *ngIf="!showNewEntiteForm">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"/>
-    </ng-container>
-    <ng-container *ngIf="showNewEntiteForm">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-    </ng-container>
-  </svg>
-  {{ showNewEntiteForm ? 'Annuler' : 'Ajouter une entité' }}
-</button>
-      </div>
-
-      <!-- Liste des entités -->
-      <div *ngIf="incident.entitesImpactees && incident.entitesImpactees.length > 0" class="space-y-3 mb-4">
-        <div *ngFor="let entite of incident.entitesImpactees; let i = index" 
-             class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
-          
-          <!-- Type d'entité -->
-          <select
-            [(ngModel)]="entite.typeEntiteImpactee"
-            [name]="'type_' + i"
-            class="w-1/3 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
-          >
-            <option *ngFor="let option of typeEntiteOptions" [ngValue]="option.value">
-              {{ option.label }}
-            </option>
-          </select>
-
-          <!-- Nom de l'entité -->
-          <input
-            type="text"
-            [(ngModel)]="entite.nom"
-            [name]="'nom_' + i"
-            placeholder="Nom de l'entité"
-            class="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm dark:border-gray-700 dark:bg-gray-900 dark:text-gray-400"
-          />
-
-          <!-- Bouton supprimer -->
-          <button
-            type="button"
-            (click)="supprimerEntite(i)"
-            class="text-error-500 hover:text-error-600 p-1"
-            title="Supprimer"
-          >
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Message si aucune entité -->
-      <div *ngIf="!incident.entitesImpactees || incident.entitesImpactees.length === 0" 
-           class="text-center py-8 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z">
-          </path>
-        </svg>
-        <p class="text-gray-500 dark:text-gray-400">
-          Aucune entité impactée
-        </p>
-        <p class="text-sm text-gray-400 dark:text-gray-500 mt-1">
-          Cliquez sur "Ajouter une entité" pour en créer une
-        </p>
-      </div>
-
-      <!-- Formulaire d'ajout d'une nouvelle entité -->
-      <div *ngIf="showNewEntiteForm" class="mt-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-400 mb-3">
-          Nouvelle entité
-        </h4>
+  <app-multi-select
+    [options]="tpeOptions"
+    [defaultSelected]="incident.TPEIds"
+    (selectionChange)="onTpeSelectionChange($event)"
+  ></app-multi-select>
+</div>
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-          <div>
-            <select
-              [(ngModel)]="newEntite.typeEntiteImpactee"
-              name="newType"
-              class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-            >
-              <option *ngFor="let option of typeEntiteOptions" [ngValue]="option.value">
-                {{ option.label }}
-              </option>
-            </select>
-          </div>
-          <div>
-            <input
-              type="text"
-              [(ngModel)]="newEntite.nom"
-              name="newNom"
-              placeholder="Nom de l'entité"
-              class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-            />
-          </div>
-        </div>
-        
-        <div class="flex justify-end mt-3">
-          <button
-            type="button"
-            (click)="ajouterEntite()"
-            [disabled]="!newEntite.nom"
-            class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50"
-          >
-            Ajouter
-          </button>
-        </div>
-      </div>
+      </div> 
     </div>
+
+   
 
     <!-- Boutons d'action -->
     <div class="flex justify-end gap-3">

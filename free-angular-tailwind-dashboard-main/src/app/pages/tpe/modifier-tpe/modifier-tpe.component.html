@@ -1,0 +1,78 @@
+<div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow">
+  <div class="mb-6">
+
+    <h1 class="text-2xl font-semibold text-gray-800 dark:text-white/90">
+Modifier TPE
+    </h1>
+    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+      Modifiez les informations du TPE
+    </p>
+      </div>
+
+<form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
+
+<div>
+<label class="block text-sm font-medium mb-1">
+Numéro de série
+</label>
+
+<input
+type="text"
+formControlName="numSerie"
+maxlength="6"
+class="w-full border rounded-lg px-3 py-2"
+/>
+
+</div>
+
+<div>
+<label class="block text-sm font-medium mb-1">
+Modèle
+</label>
+
+<select formControlName="modele" class="w-full border rounded-lg px-3 py-2">
+
+
+<option *ngFor="let m of modeleOptions" [value]="m.value">
+  {{ m.label }}
+</option>
+
+</select>
+</div>
+
+<div>
+<label class="block text-sm font-medium mb-1">
+Commerçant
+</label>
+
+<select formControlName="commercantId" class="w-full border rounded-lg px-3 py-2">
+
+
+<option *ngFor="let c of commercants" [value]="c.id">
+{{ c.nom }} {{ c.prenom }}
+</option>
+
+</select>
+
+</div>
+  <div class="flex justify-end gap-3">
+
+    <button
+      type="button"
+      (click)="cancel()"
+      class="px-6 py-2.5 text-theme-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+    >
+      Annuler
+    </button>
+<button
+type="submit"
+      class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
+      <span *ngIf="loading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
+      {{ loading ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+    </button>
+  </div>
+
+</form>
+
+</div>

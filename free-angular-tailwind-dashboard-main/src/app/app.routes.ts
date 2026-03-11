@@ -38,6 +38,7 @@ import { TicketDetailComponent } from './pages/ticket-detail/ticket-detail.compo
 import { TicketEditComponent } from './pages/ticket-edit/ticket-edit.component';
 import { TpeListComponent } from './pages/tpe/tpe-list/tpe-list.component';
 import { AjoutTPEComponent } from './pages/tpe/ajout-tpe/ajout-tpe.component';
+import { ModifierTpeComponent } from './pages/tpe/modifier-tpe/modifier-tpe.component';
 
 export const routes: Routes = [
   {
@@ -74,33 +75,95 @@ export const routes: Routes = [
   component: CommercantDashboardComponent,
   canActivate: [AuthGuard],
   data: { roles: ['Commercant'] }
-},{
-  path: 'tpes',
-  children: [
-    { path: '', component: TpeListComponent, canActivate: [AuthGuard], data: { roles: ['Admin'] } },
-    { path: 'new', component: AjoutTPEComponent, canActivate: [AuthGuard], data: { roles: ['Admin'] } }
-  ]
-},
- {
+}, {
+        path: 'tpes',
+        children: [
+          // Admin peut voir tous les TPEs
+          { 
+            path: '', 
+            component: TpeListComponent, 
+            canActivate: [AuthGuard], 
+            data: { roles: ['Admin', 'Commercant'] } // Commercant voit ses TPEs
+          },
+          // Admin uniquement
+          { 
+            path: 'new', 
+            component: AjoutTPEComponent, 
+            canActivate: [AuthGuard], 
+            data: { roles: ['Admin'] } 
+          },
+          { 
+            path: 'edit/:id', 
+            component: ModifierTpeComponent, 
+            canActivate: [AuthGuard], 
+            data: { roles: ['Admin'] } 
+          }
+        ]
+      },
+{
   path: 'incidents',
   children: [
-    { path: '', component: IncidentListComponent },
-    { path: 'new', component: IncidentFormComponent },
-        { path: 'edit/:id', component: IncidentEditComponent }, // ✅ AJOUT ICI
-
-    { path: ':id', component: IncidentDetailComponent }
-  ]
-},{
-  path: 'tickets',
-  children: [
-        { path: '', component: TicketsComponent },
-
-    // { path: '', component: TicketListComponent },
-     { path: 'new', component: TicketFormComponent },
-    { path: 'edit/:id', component: TicketEditComponent },
-    { path: ':id', component: TicketDetailComponent }
-  ]
-}
+    // Liste des incidents
+    { 
+      path: '', 
+      component: IncidentListComponent,
+      canActivate: [AuthGuard],
+      data: { roles: ['Admin', 'Commercant'] } // Admin voit tout, Commercant voit ses propres
+    },
+    { 
+            path: 'new', 
+            component: IncidentFormComponent, 
+            canActivate: [AuthGuard], 
+            data: { roles: ['Commercant'] } 
+          },
+          // Modification d'un incident (Admin + Commercant)
+          { 
+            path: 'edit/:id', 
+            component: IncidentEditComponent, 
+            canActivate: [AuthGuard], 
+            data: { roles: ['Admin', 'Commercant'] } 
+          },
+          // Détail d'un incident (Admin + Commercant)
+          { 
+            path: ':id', 
+            component: IncidentDetailComponent, 
+            canActivate: [AuthGuard], 
+            data: { roles: ['Admin', 'Commercant'] } 
+          }
+        ]
+      },  {
+        path: 'tickets',
+        children: [
+          // Liste des tickets
+          { 
+            path: '', 
+            component: TicketsComponent,
+            canActivate: [AuthGuard],
+            data: { roles: ['Admin', 'Technicien'] } // Admin voit tout, Technicien voit ses tickets assignés
+          },
+          // Création d'un ticket (Admin uniquement)
+          { 
+            path: 'new', 
+            component: TicketFormComponent,
+            canActivate: [AuthGuard],
+            data: { roles: ['Admin'] } 
+          },
+          // Modification d'un ticket (Admin + Technicien)
+          { 
+            path: 'edit/:id', 
+            component: TicketEditComponent,
+            canActivate: [AuthGuard],
+            data: { roles: ['Admin', 'Technicien'] } 
+          },
+          // Détail d'un ticket (Admin + Technicien)
+          { 
+            path: ':id', 
+            component: TicketDetailComponent,
+            canActivate: [AuthGuard],
+            data: { roles: ['Admin', 'Technicien'] } 
+          }
+        ]
+      }
 
 ,
       {

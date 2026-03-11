@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { ApiResponse, CommentaireDTO, CreateTicketDTO, TicketDetailDTO, TicketDTO } from '../models/Ticket.models';
 import { AuthService } from './auth.service';
+import { Incident } from '../models/incident.model';
 
 @Injectable({
   providedIn: 'root'
@@ -46,6 +47,24 @@ export class TicketService {
 
   return { headers };
 }
+// Dans ticket.service.ts
+getIncidentsByTicket(ticketId: string): Observable<Incident[]> {
+  console.log('🔍 Récupération des incidents pour le ticket:', ticketId);
+  
+  return this.http.get<ApiResponse<Incident[]>>(
+    `${this.baseUrl}/${ticketId}/incidents`,
+    this.getAuthHeaders()
+  ).pipe(
+    map(response => {
+      console.log('📦 Incidents reçus:', response);
+      return response.data || [];
+    }),
+    catchError(error => {
+      console.error('❌ Erreur récupération incidents:', error);
+      return of([]);
+    })
+  );
+}
 addCommentaire(ticketId: string, formData: FormData) {
   return this.http.post<ApiResponse<CommentaireDTO>>(
     `https://localhost:7063/api/commentaires?ticketId=${ticketId}`,
@@ -79,6 +98,16 @@ getTicketDetails(id: string): Observable<ApiResponse<TicketDetailDTO>> {
   return this.http.get<ApiResponse<TicketDetailDTO>>(
     `${this.baseUrl}/${id}/details`,
     this.getAuthHeaders()
+  );
+}
+// Dans ticket.service.ts
+lierIncidents(ticketId: string, incidentIds: string[]): Observable<ApiResponse<any>> {
+  // Le backend attend List<Guid> directement dans le body
+  // Pas besoin de wrapper dans un objet
+  return this.http.post<ApiResponse<any>>(
+    `${this.baseUrl}/${ticketId}/lier-incidents`,
+    incidentIds, // ← Envoyer directement le tableau
+    this.getAuthHeaders() // Utiliser getAuthHeaders() qui a Content-Type: application/json
   );
 }
   /** Supprimer un ticket */
