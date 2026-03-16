@@ -1,3 +1,5 @@
+import { PieceJointeDTO } from "./incident.model";
+
 export interface TicketDTO {
   id: string;
   referenceTicket: string;
@@ -31,7 +33,7 @@ export interface CreateTicketDTO {
   statutTicket: number;
     commentaireInitial?: string;  // nouveau champ
   commentaireInterne?: boolean;
-  fichiers?: CreatePieceJointeDTO[];
+    piecesJointes?: File[];
 }
 export interface CreatePieceJointeDTO {
   nomFichier: string;
@@ -43,16 +45,13 @@ export interface ApiResponse<T> {
   message: string;
   data: T;
 }
-export interface PieceJointeDTO {
-  id: string;
-  nomFichier: string;
-  taille: number;
-  contentType: string;
-  typePieceJointe: number; // correspond à TypePieceJointe enum côté back
-  dateAjout: string;
-  url: string; // URL du fichier
+export interface TechnicianUpdateTicketDTO {
+  assigneeId?: string | null;
+  statutTicket?: number;
 }
-
+export interface UpdateTicketResponseDTO extends TicketDTO {
+  commentaires: CommentaireDTO[];
+}
 export interface CommentaireDTO {
   id: string;
   message: string;
@@ -60,7 +59,8 @@ export interface CommentaireDTO {
   estInterne: boolean;
   auteurId: string;
   auteurNom: string;
-  piecesJointes: PieceJointeDTO[];
+  piecesJointes: PieceJointeDTO[]; // ← Corriger ici : tableau de PieceJointeDTO, pas de File
+
 }
 
 export interface TicketDetailDTO extends TicketDTO {

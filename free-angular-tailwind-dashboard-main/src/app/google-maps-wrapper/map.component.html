@@ -1,11 +1,4 @@
-  <!-- carte -->
-  <div
-    id="map"
-    class="rounded-xl border shadow"
-    style="height:420px"
-  ></div>
-  <br>
-<div class="space-y-3 relative">
+<div class="space-y-3 relative" style="position: relative;">
 
   <!-- champ recherche -->
   <input
@@ -16,10 +9,11 @@
     class="w-full border rounded-lg px-3 py-2 shadow-sm focus:ring focus:ring-blue-200"
   />
 
-  <!-- suggestions -->
+  <!-- suggestions - avec z-index élevé -->
   <div
     *ngIf="suggestions.length"
-    class="absolute z-50 w-full bg-white border rounded-lg shadow-lg max-h-48 overflow-auto"
+    class="absolute z-[9999] w-full bg-white border rounded-lg shadow-lg max-h-48 overflow-auto"
+    style="top: 45px; left: 0; right: 0;"
   >
     <div
       *ngFor="let s of suggestions"
@@ -30,6 +24,11 @@
     </div>
   </div>
 
-
+  <!-- carte - avec z-index plus bas -->
+  <div
+    id="map"
+    class="rounded-xl border shadow relative z-[1]"
+    style="height:420px; width:100%;"
+  ></div>
 
 </div>

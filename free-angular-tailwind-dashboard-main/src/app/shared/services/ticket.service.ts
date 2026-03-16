@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { catchError, map, Observable, of } from 'rxjs';
-import { ApiResponse, CommentaireDTO, CreateTicketDTO, TicketDetailDTO, TicketDTO } from '../models/Ticket.models';
+import { catchError, map, Observable, of, tap, throwError } from 'rxjs';
+import { ApiResponse, CommentaireDTO, CreateTicketDTO, TechnicianUpdateTicketDTO, TicketDetailDTO, TicketDTO, UpdateTicketResponseDTO } from '../models/Ticket.models';
 import { AuthService } from './auth.service';
 import { Incident } from '../models/incident.model';
 
@@ -65,10 +65,43 @@ getIncidentsByTicket(ticketId: string): Observable<Incident[]> {
     })
   );
 }
+
+// Dans ticket.service.ts
 addCommentaire(ticketId: string, formData: FormData) {
+  console.log('📤 ENVOI COMMENTAIRE - Début');
+  console.log('📤 Ticket ID:', ticketId);
+  
+  // Afficher TOUT le contenu du FormData
+  console.log('📤 Contenu du FormData:');
+  formData.forEach((value, key) => {
+    if (value instanceof File) {
+      console.log(`  - ${key}: ${value.name} (${value.size} bytes, type: ${value.type})`);
+    } else {
+      console.log(`  - ${key}: "${value}"`);
+    }
+  });
+
+  const headers = this.getAuthHeaders1(true);
+  console.log('📤 Headers:', headers);
+
   return this.http.post<ApiResponse<CommentaireDTO>>(
     `https://localhost:7063/api/commentaires?ticketId=${ticketId}`,
-    formData, this.getAuthHeaders1(true) 
+    formData, 
+    headers
+  ).pipe(
+    tap(response => {
+      console.log('📥 Réponse commentaire SUCCÈS:', response);
+    }),
+    catchError(error => {
+      console.error('📥 ERREUR commentaire DÉTAILLÉE:', {
+        status: error.status,
+        statusText: error.statusText,
+        message: error.error?.message,
+        error: error.error,
+        headers: error.headers
+      });
+      return throwError(() => error);
+    })
   );
 }
 updateCommentaire(commentaireId: string, formData: FormData) {
@@ -78,14 +111,13 @@ updateCommentaire(commentaireId: string, formData: FormData) {
     this.getAuthHeaders1(true)
   );
 }
-  updateTicket(id: string, formData: FormData) {
-  return this.http.put(
-    `${this.baseUrl}/${id}`,
-    formData,         this.getAuthHeaders1(true) // ✅ important
-
-
-  );
-}
+  updateTicket(id: string, formData: FormData): Observable<ApiResponse<UpdateTicketResponseDTO>> {
+    return this.http.put<ApiResponse<UpdateTicketResponseDTO>>(
+      `${this.baseUrl}/${id}`,
+      formData,
+      this.getAuthHeaders1(true)
+    );
+  }
  /** Récupérer un ticket par son id */
   getTicketById(id: string): Observable<ApiResponse<TicketDTO>> {
     return this.http.get<ApiResponse<TicketDTO>>(
@@ -150,5 +182,34 @@ getTicketsPaged(request: any) {
       this.getAuthHeaders1(true) // true = isFormData
     );
   }
+  technicianUpdateTicket(id: string, dto: TechnicianUpdateTicketDTO): Observable<ApiResponse<UpdateTicketResponseDTO>> {
+    return this.http.put<ApiResponse<UpdateTicketResponseDTO>>(
+      `${this.baseUrl}/${id}/technician-update`,
+      dto,
+      this.getAuthHeaders()
+    );
+  }
 
+  /**
+   * 🔹 Récupérer les tickets assignés à l'utilisateur connecté (technicien)
+   * GET /api/ticket/mes-tickets
+   */
+  getMesTicketsAssignes(): Observable<ApiResponse<any>> {
+    return this.http.get<any>(
+      `${this.baseUrl}/mes-tickets`,
+      this.getAuthHeaders()
+    );
+  }
+
+  /**
+   * 🔹 Mettre à jour uniquement le statut d'un ticket
+   */
+  updateStatut(ticketId: string, statutTicket: number): Observable<ApiResponse<TicketDTO>> {
+    const dto = { statutTicket };
+    return this.http.put<ApiResponse<TicketDTO>>(
+      `${this.baseUrl}/${ticketId}/statut`,
+      dto,
+      this.getAuthHeaders()
+    );
+  }
 }

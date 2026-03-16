@@ -3,38 +3,32 @@ export enum SeveriteIncident {
   Moyenne = 2,
   Forte = 3
 }
-export interface IncidentSearchRequest {
-  searchTerm?: string;
-  severiteIncident?: number;
-  statutIncident?: number;
-  page: number;
-  pageSize: number;
-  sortBy?: string;
-  sortDescending?: boolean; 
-}
 
-export interface PagedResult<T> {
-  items: T[];
-  totalCount: number;
-  page: number;
-  pageSize: number;
-}
 export enum StatutIncident {
-   EnCours = 1,
-   Ferme = 2
+  EnCours = 1,
+  Ferme = 2
 }
 
 export enum TypeEntiteImpactee {
-MachineTPE = 1,
-FluxTransactionnel = 2,
-Reseau = 3,
-ServiceApplicatif = 4,
+  MachineTPE = 1,
+  FluxTransactionnel = 2,
+  Reseau = 3,
+  ServiceApplicatif = 4,
 }
 
-
-
+export enum TypeProbleme {
+  PaiementRefuse = 1,
+  TerminalHorsLigne = 2,
+  Lenteur = 3,
+  BugAffichage = 4,
+  ConnexionReseau = 5,
+  ErreurFluxTransactionnel = 6,
+  ProblemeLogicielTPE = 7,
+  Autre = 8
+}
 
 export interface EntiteImpactee {
+  id?: string;
   typeEntiteImpactee: TypeEntiteImpactee;
 }
 
@@ -52,18 +46,35 @@ export interface Incident {
   updatedAt?: Date;
   createdById?: string;
   createdByName?: string;
-    typeProbleme?: string; // <-- add this line
-      emplacement?: string;  // <-- add this line
-
+  typeProbleme?: TypeProbleme;  // ← Changé de string à TypeProbleme
+  emplacement?: string;
   nombreTickets: number;
   nombreEntitesImpactees: number;
 }
 
 export interface IncidentDetail extends Incident {
   tickets: IncidentTicket[];
-  entitesImpactees: EntiteImpactee[]; // Changé de EntiteImpactee à EntiteImpacteeDTO
+  entitesImpactees: EntiteImpactee[];
+  tpEs?: TpeLiaison[]; // Note: c'est "tpEs" dans la réponse, pas "tpes"
+  piecesJointes?: PieceJointeDTO[];
+}
+export interface TpeLiaison {
+  tpeId: string;
+  numSerie: string;
+  numSerieComplet: string;
+  modele: string;
+  modeleNom: string;
+  dateAssociation: string;
 }
 
+export interface PieceJointeDTO {
+  id: string;
+  nomFichier: string;
+  taille: number;
+  contentType?: string | null;
+  dateAjout: string;
+  url: string;
+}
 export interface IncidentTicket {
   ticketId: string;
   referenceTicket?: string;
@@ -72,28 +83,44 @@ export interface IncidentTicket {
   prioriteTicket: number;
 }
 
+export interface UpdateIncidentDTO {
+  descriptionIncident?: string;
+  emplacement?: string;
+  typeProbleme?: TypeProbleme;
+  severiteIncident?: SeveriteIncident; // Admin only
+
+}
+
 export interface CreateIncidentDTO {
   descriptionIncident?: string;
-  typeProbleme?: TypeProbleme; // <-- optionnel, peut être undefined
+  typeProbleme?: TypeProbleme;
   emplacement: string;
   TPEIds: string[];
   PiecesJointes?: File[];
 }
-export enum TypeProbleme {
 
-        PaiementRefuse = 1,
-        TerminalHorsLigne = 2,
-        Lenteur = 3,
-        BugAffichage = 4,
-        ConnexionReseau = 5,
-        ErreurFluxTransactionnel = 6,
-        ProblemeLogicielTPE = 7,
-        Autre = 8
-}
 export interface ApiResponse<T> {
   data: T;
   errors?: string[];
   message?: string;
   resultCode: number;
   isSuccess: boolean;
+}
+
+// Interfaces supplémentaires
+export interface IncidentSearchRequest {
+  searchTerm?: string;
+  severiteIncident?: number;
+  statutIncident?: number;
+  page: number;
+  pageSize: number;
+  sortBy?: string;
+  sortDescending?: boolean; 
+}
+
+export interface PagedResult<T> {
+  items: T[];
+  totalCount: number;
+  page: number;
+  pageSize: number;
 }

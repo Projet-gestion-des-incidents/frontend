@@ -248,4 +248,22 @@ searchIncidents(params: any) {
       return response;
     })
   );
-}}
+}
+  lierTpe(incidentId: string, tpeId: string): Observable<ApiResponse<any>> {
+    // Note: Vous devez créer cet endpoint dans le backend si nécessaire
+    return this.http.post<ApiResponse<any>>(
+      `${this.apiUrl}/${incidentId}/lier-tpe`,
+      { tpeId }, // Envoyer l'ID du TPE
+      this.getAuthHeaders()
+    );
+  }
+
+  // Retirer un TPE d'un incident
+  retirerTpe(incidentId: string, tpeId: string): Observable<ApiResponse<boolean>> {
+    return this.http.delete<ApiResponse<boolean>>(
+      `${this.apiUrl}/${incidentId}/tpe/${tpeId}`,
+      this.getAuthHeaders()
+    );
+  }
+
+}

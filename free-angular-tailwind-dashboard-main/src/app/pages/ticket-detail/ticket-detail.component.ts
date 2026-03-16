@@ -39,7 +39,25 @@ selectedImage: string | null = null;
 
     this.loadTicketDetails(id);
   }
+// Pour les badges d'incidents
+getIncidentStatutBadgeColor(statut: number): 'success' | 'warning' | 'error' | 'info' {
+  if (!statut || statut === 0) return 'info';
+  switch(statut) {
+    case 1: return 'warning'; // EnCours
+    case 2: return 'success'; // Ferme
+    default: return 'info';
+  }
+}
 
+getIncidentSeveriteBadgeColor(severite: number): 'success' | 'warning' | 'error' {
+  if (!severite || severite === 0) return 'warning';
+  switch(severite) {
+    case 1: return 'success'; // Faible
+    case 2: return 'warning'; // Moyenne
+    case 3: return 'error';   // Forte
+    default: return 'warning';
+  }
+}
   loadTicketDetails(id: string): void {
     this.loading = true;
     

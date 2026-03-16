@@ -245,16 +245,43 @@ filterMerchantIncidents(): void {
     this.filteredIncidents = this.incidents;
   } else {
     const term = this.searchTerm.toLowerCase();
-    this.filteredIncidents = this.incidents.filter(incident => 
-      incident.codeIncident?.toLowerCase().includes(term) ||
-      incident.emplacement?.toLowerCase().includes(term) ||
-      incident.typeProbleme?.toLowerCase().includes(term) 
-    );
+    this.filteredIncidents = this.incidents.filter(incident => {
+      // Convertir le typeProbleme (enum) en string pour la recherche
+      const typeProblemeStr = this.getTypeProblemeLibelle(incident.typeProbleme)?.toLowerCase() || '';
+      
+      return incident.codeIncident?.toLowerCase().includes(term) ||
+             incident.emplacement?.toLowerCase().includes(term) ||
+             typeProblemeStr.includes(term);
+    });
   }
   this.totalCount = this.filteredIncidents.length;
   this.totalPages = Math.ceil(this.totalCount / this.pageSize);
 }
-
+getTypeProblemeLibelle(typeProbleme: any): string {
+  if (typeProbleme === undefined || typeProbleme === null) return '';
+  
+  // Si c'est déjà un nombre (enum)
+  if (typeof typeProbleme === 'number') {
+    switch(typeProbleme) {
+      case 1: return 'Paiement refusé';
+      case 2: return 'Terminal hors ligne';
+      case 3: return 'Lenteur';
+      case 4: return 'Bug affichage';
+      case 5: return 'Connexion réseau';
+      case 6: return 'Erreur flux transactionnel';
+      case 7: return 'Problème logiciel TPE';
+      case 8: return 'Autre';
+      default: return '';
+    }
+  }
+  
+  // Si c'est une string (ancien format)
+  if (typeof typeProbleme === 'string') {
+    return typeProbleme;
+  }
+  
+  return '';
+}
 // Application des filtres
 applyFilters(): void {
   console.log('🎯 Filtres appliqués - Sévérité:', this.tempFilters.severite, 'Statut:', this.tempFilters.statut);
@@ -281,10 +308,13 @@ filterMerchantIncidentsWithFilters(): void {
   // Filtre par terme de recherche
   if (this.searchTerm) {
     const term = this.searchTerm.toLowerCase();
-    filtered = filtered.filter(incident => 
-      incident.codeIncident?.toLowerCase().includes(term) ||
-      incident.emplacement?.toLowerCase().includes(term) ||
-      incident.typeProbleme?.toLowerCase().includes(term)     );
+    filtered = filtered.filter(incident => {
+      const typeProblemeStr = this.getTypeProblemeLibelle(incident.typeProbleme)?.toLowerCase() || '';
+      
+      return incident.codeIncident?.toLowerCase().includes(term) ||
+             incident.emplacement?.toLowerCase().includes(term) ||
+             typeProblemeStr.includes(term);
+    });
   }
   
   // Filtre par sévérité
@@ -305,6 +335,7 @@ filterMerchantIncidentsWithFilters(): void {
   this.totalCount = filtered.length;
   this.totalPages = Math.ceil(this.totalCount / this.pageSize);
 }
+
 // Reset des filtres
 resetFilters(): void {
   console.log('🔄 Reset tous les filtres');
@@ -405,14 +436,14 @@ resetFilters(): void {
     this.router.navigate(['/incidents', id]);
   }
 
-// Dans incident-list.component.ts
-
-// Helper pour les badges de sévérité
-// Dans incident-list.component.ts
-
-// Helper pour les badges de sévérité
-// Helper pour les badges de sévérité
-getSeveriteBadgeColor(severite: SeveriteIncident | string): BadgeColor {
+getSeveriteBadgeColor(severite: any): BadgeColor {
+  console.log('Sévérité reçue:', severite, 'Type:', typeof severite);
+  
+  // Cas 1: La sévérité est 0 ou null
+  if (severite === 0 || severite === null || severite === undefined) {
+    return 'light'; // Gris pour "Non définie"
+  }
+  
   // Convertir en nombre si c'est une string
   let severiteValue: number;
   
@@ -429,7 +460,9 @@ getSeveriteBadgeColor(severite: SeveriteIncident | string): BadgeColor {
         severiteValue = SeveriteIncident.Forte;
         break;
       default:
-        severiteValue = SeveriteIncident.Moyenne;
+        // Si la string n'est pas reconnue, essayer de la parser en nombre
+        const parsed = parseInt(severite);
+        severiteValue = isNaN(parsed) ? 0 : parsed;
     }
   } else {
     severiteValue = severite;
@@ -443,11 +476,43 @@ getSeveriteBadgeColor(severite: SeveriteIncident | string): BadgeColor {
     case SeveriteIncident.Forte:
       return 'error'; // Rouge
     default:
-      return 'info';
+      return 'light'; // Gris pour les autres cas
   }
 }
-
-// Helper pour les badges de statut
+getSeveriteLibelle(incident: any): string {
+  // Si le libellé est déjà fourni
+  if (incident.severiteIncidentLibelle) {
+    return incident.severiteIncidentLibelle;
+  }
+  
+  // Si la sévérité est 0 ou null
+  if (incident.severiteIncident === 0 || 
+      incident.severiteIncident === null || 
+      incident.severiteIncident === undefined) {
+    return 'Non définie';
+  }
+  
+  // Si c'est une string comme "Moyenne"
+  if (typeof incident.severiteIncident === 'string') {
+    return incident.severiteIncident;
+  }
+  
+  // Si c'est un nombre, le convertir en libellé
+  if (typeof incident.severiteIncident === 'number') {
+    switch(incident.severiteIncident) {
+      case SeveriteIncident.Faible:
+        return 'Faible';
+      case SeveriteIncident.Moyenne:
+        return 'Moyenne';
+      case SeveriteIncident.Forte:
+        return 'Forte';
+      default:
+        return 'Non définie';
+    }
+  }
+  
+  return 'Non définie';
+}
 // Helper pour les badges de statut
 getStatutBadgeColor(statut: StatutIncident | string): BadgeColor {
   console.log('Statut reçu:', statut, 'Type:', typeof statut);

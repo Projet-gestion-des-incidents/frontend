@@ -10,119 +10,398 @@
 
   <form (ngSubmit)="onSubmit()" #incidentForm="ngForm" class="space-y-6">
     <!-- Message d'erreur -->
-    <div *ngIf="error" class="p-4 bg-error-50 text-error-600 rounded-lg">
+    <div *ngIf="error" class="p-4 bg-error-50 text-error-600 rounded-lg animate-shake">
       {{ error }}
     </div>
 
-    <!-- Informations générales -->
+    <!-- SECTION 1: Description -->
     <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
-      <h3 class="mb-4 text-lg font-semibold text-gray-800 dark:text-white/90">
-        Informations incident
-      </h3>
+      <div class="flex items-center gap-2 mb-4">
+        <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-500/10">
+          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+          Description de l'incident
+        </h3>
+      </div>
 
       <div class="space-y-4">
-       
-
         <!-- Description -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-            Description detaillée<span class="text-error-500">*</span>
+            Description détaillée <span class="text-error-500">*</span>
           </label>
           <textarea
             [(ngModel)]="incident.descriptionIncident"
             name="description"
             required
             rows="4"
-            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-        placeholder="Décrivez le problème rencontré..."
+            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 transition-colors"
+            placeholder="Décrivez le problème rencontré..."
           ></textarea>
+          <p class="text-xs text-gray-500 mt-1">Minimum 10 caractères</p>
         </div>
-           <!-- emplacement -->
-    <div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: Localisation -->
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-500/10">
+          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+          Localisation
+        </h3>
+      </div>
+
+      <div class="space-y-4">
+        <!-- Emplacement avec carte -->
+        <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-        Emplacement <span class="text-error-500">*</span>
-      </label>
-<!-- Carte Leaflet -->
-<div class="mb-4">
-<app-map (locationSelected)="onLocationSelected($event)"></app-map></div>
-  
+            Emplacement <span class="text-error-500">*</span>
+          </label>
+          
+          <!-- Message d'information -->
+          <div class="mb-4 text-sm text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>Cliquez sur la carte pour sélectionner l'emplacement exact</span>
+            </div>
+          </div>
+          
+          <!-- Carte Leaflet -->
+             <div class="mb-4">
+            <app-map (locationSelected)="onLocationSelected($event)"></app-map>
+          </div>
+          
+          <!-- Adresse sélectionnée -->
+          <div *ngIf="incident.emplacement" class="mt-3 p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-brand-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+              <span class="text-sm text-gray-700 dark:text-gray-300">{{ incident.emplacement }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-   <!-- Type de problème -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-       Quel type de problème rencontrez-vous ? <span class="text-error-500">*</span>
-      </label>
-      <select
-           [(ngModel)]="incident.typeProbleme"
-        name="typeProbleme"
-        required
-        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-      >
-        <option [ngValue]="undefined" disabled selected>-- Sélectionnez un type --</option>
 
-       <option [ngValue]="1">Paiement refusé</option>
-        <option [ngValue]="2">Terminal hors ligne</option>
-        <option [ngValue]="3">Lenteur</option>
-        <option [ngValue]="4">Bug affichage</option>
-        <option [ngValue]="5">Connexion réseau</option>
-        <option [ngValue]="6">Erreur flux transactionnel</option>
-        <option [ngValue]="7">Problème logiciel TPE</option>
-        <option [ngValue]="8">Autre</option>
-      </select>
+    <!-- SECTION 3: Type de problème -->
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-500/10">
+          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+          Type de problème
+        </h3>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+            Catégorie <span class="text-error-500">*</span>
+          </label>
+          
+          <!-- Message d'information -->
+          <div class="mb-4 text-sm text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span>Choisissez le type de problème rencontré</span>
+            </div>
+          </div>
+          
+          <select
+            [(ngModel)]="incident.typeProbleme"
+            name="typeProbleme"
+            required
+            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 transition-colors"
+          >
+            <option [ngValue]="undefined" disabled selected>-- Sélectionnez un type --</option>
+            <option [ngValue]="1">Paiement refusé</option>
+            <option [ngValue]="2">Terminal hors ligne</option>
+            <option [ngValue]="3">Lenteur</option>
+            <option [ngValue]="4">Bug affichage</option>
+            <option [ngValue]="5">Connexion réseau</option>
+            <option [ngValue]="6">Erreur flux transactionnel</option>
+            <option [ngValue]="7">Problème logiciel TPE</option>
+            <option [ngValue]="8">Autre</option>
+          </select>
+        </div>
+      </div>
     </div>
 
-  <!-- Sélection du terminal TPE -->
-<!--  <div>
-  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-    Terminal TPE <span class="text-error-500">*</span>
-  </label>
-  
-  <select
-    [(ngModel)]="incident.TPEIds"
-    name="TPEIds"
-    required
-    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400"
-  >
-  <option [ngValue]="undefined" disabled selected>-- Sélectionnez un ou plusieurs TPE --</option>
-    <option *ngFor="let tpe of tpes" [value]="tpe.id">
-      {{ tpe.numSerieComplet }} - {{ tpe.modele }}
-    </option>
-  </select>
-</div>-->
-    <!-- Sélection du terminal TPE avec app-multi-select -->
-<div>
-  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-    Terminal TPE <span class="text-error-500">*</span>
-  </label>
-
-  <app-multi-select
-    [options]="tpeOptions"
-    [defaultSelected]="incident.TPEIds"
-    (selectionChange)="onTpeSelectionChange($event)"
-  ></app-multi-select>
-</div>
+    <!-- SECTION 4: Sélection du terminal TPE (améliorée) -->
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03] relative overflow-visible" style="overflow: visible !important;">
+      
+      <!-- En-tête avec icône -->
+      <div class="flex items-center gap-2 mb-4">
+        <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-500/10">
+          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+          Terminaux TPE concernés
+        </h3>
+      </div>
+      
+      <!-- Message d'information -->
+      <div class="mb-4 text-sm text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
+        <div class="flex items-start gap-2">
+          <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span>Sélectionnez un ou plusieurs terminaux TPE concernés par cet incident</span>
+        </div>
+      </div>
+      
+      <!-- Conteneur avec hauteur automatique et overflow visible -->
+      <div class="multi-select-container" style="position: relative; min-height: 40px; overflow: visible; z-index: 1000;">
+        <app-multi-select
+          [options]="tpeOptions"
+          [defaultSelected]="incident.TPEIds"
+          (selectionChange)="onTpeSelectionChange($event)"
+          placeholder="Choisir des terminaux TPE..."
+          class="w-full block"
+          style="display: block; width: 100%;"
+        ></app-multi-select>
         
-      </div> 
+        <!-- Indicateur de compteur -->
+        <div class="absolute right-3 top-1/2 -translate-y-1/2 text-xs font-medium pointer-events-none"
+             [class.text-green-600]="incident.TPEIds.length > 0"
+             [class.text-gray-400]="incident.TPEIds.length === 0">
+          {{ incident.TPEIds.length }} sélectionné(s)
+        </div>
+      </div>
+      
+      <!-- Message d'erreur -->
+      <div *ngIf="showTpeError && incident.TPEIds.length === 0" 
+           class="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1 animate-shake">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Veuillez sélectionner au moins un terminal TPE
+      </div>
+      
+      <!-- Aperçu des sélections -->
+      <div *ngIf="incident.TPEIds.length > 0" class="mt-4">
+        <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-2">
+          TPE sélectionnés ({{ incident.TPEIds.length }}) :
+        </div>
+        <div class="flex flex-wrap gap-2">
+          <div *ngFor="let tpeId of incident.TPEIds.slice(0, 3)" 
+               class="inline-flex items-center gap-1 px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs">
+            <span class="w-1.5 h-1.5 rounded-full bg-brand-500"></span>
+            {{ getTpeCode(tpeId) }}
+          </div>
+          <div *ngIf="incident.TPEIds.length > 3" 
+               class="inline-flex items-center px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full text-xs">
+            +{{ incident.TPEIds.length - 3 }} autre(s)
+          </div>
+        </div>
+      </div>
+      
+      <!-- Message si aucun TPE disponible -->
+      <div *ngIf="tpeOptions.length === 0" class="mt-4 p-4 text-center bg-amber-50 dark:bg-amber-900/20 rounded-lg">
+        <svg class="w-12 h-12 mx-auto text-amber-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+        </svg>
+        <p class="text-sm text-amber-600 dark:text-amber-400">
+          Aucun TPE disponible. Veuillez d'abord ajouter des TPE.
+        </p>
+        <button 
+          routerLink="/tpes/new" 
+          class="mt-3 inline-flex items-center gap-1 text-sm text-brand-600 hover:text-brand-700 font-medium">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          Ajouter un TPE
+        </button>
+      </div>
     </div>
 
-   
+    <!-- SECTION 5: Pièces jointes (améliorée) -->
+    <div class="rounded-2xl border border-gray-200 bg-white p-5 dark:border-gray-800 dark:bg-white/[0.03]">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-500/10">
+          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+          </svg>
+        </div>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+          Pièces jointes
+        </h3>
+      </div>
 
-    <!-- Boutons d'action -->
-    <div class="flex justify-end gap-3">
+      <!-- Message d'information -->
+      <div class="mb-4 text-sm text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
+        <div class="flex items-start gap-2">
+          <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span>Vous pouvez joindre des captures d'écran, des documents ou tout autre fichier pertinent (max 10 fichiers, 10MB par fichier)</span>
+        </div>
+      </div>
+
+      <!-- Zone de drop/upload améliorée -->
+      <div class="relative">
+        <input
+          #fileInput
+          type="file"
+          multiple
+          (change)="onFileSelected($event)"
+          class="hidden"
+          accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+        />
+        
+        <div 
+          (click)="fileInput.click()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+          class="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-200"
+          [class.border-brand-300]="isDragActive"
+          [class.bg-brand-50]="isDragActive"
+          [class.border-gray-300]="!isDragActive"
+          [class.hover:border-brand-400]="!isDragActive"
+          [class.hover:bg-gray-50]="!isDragActive"
+          [class.hover:shadow-md]="!isDragActive"
+        >
+          <svg class="w-12 h-12 mx-auto text-gray-400 mb-3 transition-transform duration-200"
+               [class.scale-110]="isDragActive"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+          </svg>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            <span class="font-medium text-brand-600">{{ isDragActive ? 'Déposez vos fichiers' : 'Cliquez pour uploader' }}</span>
+            {{ !isDragActive ? 'ou glissez-déposez' : '' }}
+          </p>
+          <p class="text-xs text-gray-500 mt-1">
+            Images, PDF, documents (max 10MB par fichier)
+          </p>
+        </div>
+      </div>
+
+      <!-- Liste des fichiers sélectionnés -->
+      <div *ngIf="selectedFiles.length > 0" class="mt-4">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">
+              {{ selectedFiles.length }} fichier(s) sélectionné(s)
+            </span>
+     
+          </div>
+          <button 
+            type="button"
+            (click)="clearAllFiles()"
+            class="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"></path>
+            </svg>
+            Tout effacer
+          </button>
+        </div>
+        
+        <div class="space-y-2 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
+          <div *ngFor="let file of selectedFiles; let i = index" 
+               class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg group hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all duration-200 border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
+            
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+              <!-- Icône selon le type de fichier -->
+              <div class="flex-shrink-0">
+                <svg *ngIf="file.type.startsWith('image/')" class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <svg *ngIf="file.type === 'application/pdf'" class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+                <svg *ngIf="file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')" 
+                     class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <svg *ngIf="file.type.includes('excel') || file.name.endsWith('.xls') || file.name.endsWith('.xlsx')" 
+                     class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <svg *ngIf="!file.type.startsWith('image/') && file.type !== 'application/pdf' && !file.type.includes('word') && !file.type.includes('excel') && !file.name.match(/\.(doc|docx|xls|xlsx)$/)" 
+                     class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+              </div>
+              
+              <!-- Infos du fichier -->
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate" [title]="file.name">
+                  {{ file.name }}
+                </p>
+                <p class="text-xs text-gray-500">
+                  {{ formatFileSize(file.size) }}
+                </p>
+              </div>
+            </div>
+            
+            <!-- Bouton supprimer -->
+            <button 
+              type="button"
+              (click)="removeFile(i)"
+              class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-all opacity-0 group-hover:opacity-100"
+              title="Supprimer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <!-- Avertissement de limite -->
+        <div *ngIf="selectedFiles.length >= 10" class="mt-3 p-2 text-xs text-amber-600 bg-amber-50 dark:bg-amber-900/20 rounded-lg flex items-center gap-2">
+          <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+          Vous avez atteint la limite de 10 fichiers
+        </div>
+      </div>
+      
+      <!-- Message si aucun fichier -->
+      <div *ngIf="selectedFiles.length === 0" class="mt-2 text-xs text-gray-500 italic text-center py-2">
+        Aucun fichier sélectionné
+      </div>
+    </div>
+
+    <!-- SECTION 6: Boutons d'action -->
+    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
       <button
         type="button"
         (click)="cancel()"
-        class="px-6 py-2.5 text-theme-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
+        class="px-6 py-2.5 text-theme-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
       >
         Annuler
       </button>
       <button
         type="submit"
         [disabled]="loading || !incidentForm.form.valid"
-        class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
+        class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg"
       >
-        <span *ngIf="loading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-        {{ loading ? 'Création...' : 'Créer l\'incident' }}
+        <span *ngIf="loading" class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+        <span>{{ loading ? 'Création en cours...' : 'Créer l\'incident' }}</span>
+        <svg *ngIf="!loading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+        </svg>
       </button>
     </div>
   </form>

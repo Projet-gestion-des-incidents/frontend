@@ -1,6 +1,5 @@
-<div class="overflow-hidden rounded-2xl border border-gray-200 bg-white pt-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
-  
-  <!-- Alert interactif -->
+<div class="space-y-4">
+  <!-- Alert interactif amélioré -->
   <app-alert
     *ngIf="alert.show"
     [variant]="alert.variant"
@@ -10,124 +9,179 @@
     <div class="mt-3 flex justify-end gap-2" *ngIf="alert.variant === 'warning'">
       <button
         (click)="confirmDelete()"
-        class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
       >
         Confirmer
       </button>
       <button
         (click)="cancelDelete()"
-        class="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
       >
         Annuler
       </button>
     </div>
   </app-alert>
-  
-  <br>
-  
-  <!-- En-tête -->
-  <div class="flex flex-col gap-4 px-6 mb-4 sm:flex-row sm:items-center sm:justify-between">
-    <div>
-      <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-        Liste des TPE
-      </h3>
-      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-        {{ tpes.length }} TPE(s) trouvé(s)
-      </p>
+
+  <!-- Carte principale -->
+  <div class="rounded-2xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] shadow-sm overflow-hidden">
+    
+    <!-- En-tête avec titre et compteur -->
+    <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
+      <div class="flex items-center justify-between">
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 flex items-center gap-2">
+            Liste des TPE
+            <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400 rounded-full">
+              {{ tpes.length }}
+            </span>
+          </h3>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            {{ tpes.length }} terminal(s) de paiement enregistré(s)
+          </p>
+        </div>
+        
+        <!-- Bouton Ajouter (Admin seulement) -->
+        <app-button
+          *ngIf="userRole === 'Admin'"
+          variant="primary"
+          size="sm"
+          className="flex items-center gap-2 rounded-xl"
+          routerLink="/tpes/new"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+          </svg>
+          Ajouter un TPE
+        </app-button>
+      </div>
+    </div>
+
+    <!-- Loading indicator amélioré -->
+    <div *ngIf="loading" class="flex justify-center items-center py-16">
+      <div class="animate-spin rounded-full h-10 w-10 border-4 border-brand-200 border-t-brand-600"></div>
+    </div>
+
+    <!-- Tableau -->
+    <div *ngIf="!loading" class="overflow-x-auto">
+      <table class="min-w-full">
+        <thead>
+          <tr class="border-y border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
+            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Numéro de série</th>
+            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Modèle</th>
+            
+            <!-- Colonne Commerçant - visible seulement pour Admin -->
+            <th *ngIf="userRole === 'Admin'" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Commerçant</th>
+            
+            <!-- Colonne Actions - visible seulement pour Admin -->
+            <th *ngIf="userRole === 'Admin'" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Actions</th>
+          </tr>
+        </thead>
+        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+          <tr *ngFor="let tpe of tpes" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
+            <!-- Numéro de série -->
+            <td class="px-6 py-4 whitespace-nowrap">
+              <span class="text-sm font-mono font-medium text-gray-900 dark:text-white">
+                {{ tpe.numSerieComplet }}
+              </span>
+            </td>
+            
+            <!-- Modèle avec badge -->
+            <td class="px-6 py-4 whitespace-nowrap">
+              <app-badge 
+                variant="light" 
+                [color]="getBadgeColor(tpe.modele)" 
+                size="sm"
+                class="font-medium"
+              >
+                {{ tpe.modele }}
+              </app-badge>
+            </td>
+            
+            <!-- Commerçant - visible seulement pour Admin -->
+            <td *ngIf="userRole === 'Admin'" class="px-6 py-4 whitespace-nowrap">
+            
+                 <div class="flex items-center gap-3">
+            <app-avatar-text 
+              [name]="tpe.commercantNom || 'N/A'" 
+              class="w-8 h-8"
+            />
+            <div>
+              <span class="block text-theme-sm font-medium text-gray-700 dark:text-gray-400">
+                {{ tpe.commercantNom  }}
+              </span>
+            </div>
+          </div>
+            </td>
+            
+            <!-- Actions - visible seulement pour Admin -->
+            <td *ngIf="userRole === 'Admin'" class="px-6 py-4 whitespace-nowrap">
+              <div class="flex items-center gap-1">
+                <!-- Bouton Modifier -->
+                <button 
+                  class="p-2 text-gray-400 hover:text-warning-600 rounded-lg hover:bg-warning-50 dark:hover:bg-warning-900/20 transition-colors"
+                  title="Modifier"
+                  [routerLink]="['/tpes/edit', tpe.id]"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M11 4h2m-1-1v2m7.071 2.929a2 2 0 010 2.828l-8.486 8.486a2 2 0 01-.878.515l-4 1a1 1 0 01-1.213-1.213l1-4a2 2 0 01.515-.878l8.486-8.486a2 2 0 012.828 0z">
+                    </path>
+                  </svg>
+                </button>
+                
+                <!-- Bouton Supprimer -->
+                <button
+                  (click)="deleteTPE(tpe.id)"
+                  class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                  title="Supprimer"
+                >
+                  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+                  </svg>
+                </button>
+              </div>
+            </td>
+          </tr>
+          
+          <!-- Message si aucun TPE -->
+          <tr *ngIf="tpes.length === 0">
+            <td [attr.colspan]="userRole === 'Admin' ? 4 : 2" class="px-6 py-16 text-center">
+              <div class="flex flex-col items-center justify-center">
+                <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
+                </svg>
+                <p class="text-gray-500 dark:text-gray-400 text-lg font-medium">Aucun TPE trouvé</p>
+                <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">
+                  <ng-container *ngIf="userRole === 'Admin'">
+                    Commencez par ajouter un nouveau TPE
+                  </ng-container>
+                  <ng-container *ngIf="userRole !== 'Admin'">
+                    Aucun TPE n'est associé à votre compte
+                  </ng-container>
+                </p>
+                <button 
+                  *ngIf="userRole === 'Admin'"
+                  routerLink="/tpes/new"
+                  class="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 transition-colors"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                  </svg>
+                  Ajouter un TPE
+                </button>
+              </div>
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pied de tableau avec informations supplémentaires (optionnel) -->
+    <div *ngIf="!loading && tpes.length > 0" class="px-6 py-3 border-t border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400">
+      <div class="flex items-center justify-between">
+        <span>Total: {{ tpes.length }} TPE(s)</span>
+    
+      </div>
     </div>
   </div>
-
-  <!-- Loading indicator -->
-  <div *ngIf="loading" class="flex justify-center items-center py-12">
-    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
-  </div>
-
-  <!-- Tableau -->
-  <div *ngIf="!loading" class="max-w-full overflow-x-auto">
-    <table class="min-w-full">
-      <thead class="px-6 py-3.5 border-t border-y bg-gray-50 dark:bg-gray-900">
-        <tr>
-          <th class="px-6 py-3 text-theme-xs text-gray-500 text-start">Numéro Série</th>
-          <th class="px-6 py-3 text-theme-xs text-gray-500 text-start">Modèle</th>
-          
-          <!-- Colonne Commerçant - visible seulement pour Admin -->
-          <th *ngIf="userRole === 'Admin'" class="px-6 py-3 text-theme-xs text-gray-500 text-start">Commerçant</th>
-          
-          <!-- Colonne Actions - visible seulement pour Admin -->
-          <th *ngIf="userRole === 'Admin'" class="px-6 py-3 text-theme-xs text-gray-500 text-start">Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let tpe of tpes" class="hover:bg-gray-50">
-          <td class="px-6 py-3">
-            <span class="font-medium text-gray-700">{{ tpe.numSerieComplet }}</span>
-          </td>
-          <td class="px-6 py-3">
-            <app-badge variant="light" [color]="getBadgeColor(tpe.modele)" size="sm">
-              {{ tpe.modele }}
-            </app-badge>
-          </td>
-          
-          <!-- Commerçant - visible seulement pour Admin -->
-          <td *ngIf="userRole === 'Admin'" class="px-6 py-3">
-            <span class="font-medium text-gray-700">
-              {{ tpe.commercantNom || 'Non assigné' }}
-            </span>
-          </td>
-          
-          <!-- Actions - visible seulement pour Admin -->
-          <td *ngIf="userRole === 'Admin'" class="px-6 py-3">
-            <div class="flex items-center gap-2">
-              <!-- Bouton Supprimer -->
-              <button
-                (click)="deleteTPE(tpe.id)"
-                class="inline-flex items-center gap-1 text-red-500 hover:text-red-600 font-medium text-sm"
-                title="Supprimer"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
-                </svg>
-              </button>
-              
-              <!-- Bouton Modifier -->
-              <button 
-                class="inline-flex items-center gap-1 text-warning-500 hover:text-warning-600 font-medium text-sm"
-                title="Modifier"
-                [routerLink]="['/tpes/edit', tpe.id]"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                    d="M11 4h2m-1-1v2m7.071 2.929a2 2 0 010 2.828l-8.486 8.486a2 2 0 01-.878.515l-4 1a1 1 0 01-1.213-1.213l1-4a2 2 0 01.515-.878l8.486-8.486a2 2 0 012.828 0z">
-                  </path>
-                </svg>
-              </button>
-            </div>
-          </td>
-        </tr>
-        
-        <!-- Message si aucun TPE -->
-        <tr *ngIf="tpes.length === 0">
-          <td [attr.colspan]="userRole === 'Admin' ? 4 : 2" class="text-center py-10 text-gray-500">
-            Aucun TPE trouvé
-          </td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
 </div>
-
-<br>
-
-<!-- Bouton Ajouter (Admin seulement) -->
-<app-button
-  *ngIf="userRole === 'Admin'"
-  variant="primary"
-  size="sm"
-  className="flex items-center gap-2"
-  routerLink="/tpes/new"
->
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-  </svg>
-  Ajouter un TPE
-</app-button>

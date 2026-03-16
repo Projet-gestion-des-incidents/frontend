@@ -1,224 +1,30 @@
-// import { Component, OnInit } from '@angular/core';
-// import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-// import { FormsModule } from '@angular/forms';
-// import { CommonModule } from '@angular/common';
-// import { forkJoin } from 'rxjs'; // 🔥 IMPORT AJOUTÉ
-// import {
-//   IncidentDetail,
-//   SeveriteIncident,
-//   StatutIncident,
-//   TypeEntiteImpactee,
-//   EntiteImpactee
-// } from '../../shared/models/incident.model';
-// import { IncidentService } from '../../shared/services/incident.service';
-// import { EntiteImpacteeService } from '../../shared/services/entite-impactee.service';
-
-// @Component({
-//   selector: 'app-incident-edit',
-//   standalone: true,
-//   imports: [CommonModule, FormsModule, RouterModule],
-//   templateUrl: './incident-edit.component.html'
-// })
-// export class IncidentEditComponent implements OnInit {
-//   incidentId!: string;
-//   incident!: IncidentDetail;
-
-//   // Options pour les selects
-//   severiteOptions = [
-//     { value: SeveriteIncident.Faible, label: 'Faible' },
-//     { value: SeveriteIncident.Moyenne, label: 'Moyenne' },
-//     { value: SeveriteIncident.Forte, label: 'Forte' }
-//   ];
-
-//   statutOptions = [
-//     { value: StatutIncident.Nouveau, label: 'Nouveau' },
-//     { value: StatutIncident.Assigne, label: 'Assigné' },
-//     { value: StatutIncident.EnCours, label: 'En cours' },
-//     { value: StatutIncident.EnAttente, label: 'En attente' },
-//     { value: StatutIncident.Resolu, label: 'Résolu' },
-//     { value: StatutIncident.Ferme, label: 'Fermé' }
-//   ];
-
-//   typeEntiteOptions = [
-//     { value: TypeEntiteImpactee.Hardware, label: 'Hardware' },
-//     { value: TypeEntiteImpactee.Software, label: 'Software' },
-//     { value: TypeEntiteImpactee.Reseau, label: 'Réseau' },
-//     { value: TypeEntiteImpactee.BaseDonnees, label: 'Base de données' },
-//     { value: TypeEntiteImpactee.Application, label: 'Application' },
-//     { value: TypeEntiteImpactee.Utilisateur, label: 'Utilisateur' },
-//     { value: TypeEntiteImpactee.Securite, label: 'Sécurité' },
-//     { value: TypeEntiteImpactee.Autre, label: 'Autre' }
-//   ];
-
-//   // Pour l'ajout d'une nouvelle entité
-//   showNewEntiteForm = false;
-//   newEntite: Partial<EntiteImpactee> = {
-//     typeEntiteImpactee: TypeEntiteImpactee.Application,
-//     nom: ''
-//   };
-
-//   loading = true;
-//   error: string | null = null;
-
-//   constructor(
-//     private route: ActivatedRoute,
-//     private incidentService: IncidentService,
-//     private router: Router,
-//     private entiteService: EntiteImpacteeService,
-//   ) {}
-
-//   ngOnInit(): void {
-//     this.incidentId = this.route.snapshot.paramMap.get('id')!;
-//     this.loadIncident();
-//   }
-
-//   cancel() {
-//     this.router.navigate(['/incidents', this.incidentId]);
-//   }
-
-//   loadIncident() {
-//     this.incidentService.getIncidentDetails(this.incidentId).subscribe({
-//       next: (data) => {
-//         console.log('📥 Données reçues:', data);
-        
-//         this.incident = {
-//           ...data,
-//           severiteIncident: Number(data.severiteIncident),
-//           statutIncident: Number(data.statutIncident),
-//           entitesImpactees: data.entitesImpactees?.map(e => ({
-//             id: e.id,
-//             nom: e.nom,
-//             typeEntiteImpactee: Number(e.typeEntiteImpactee) as TypeEntiteImpactee
-//           })) || []
-//         };
-
-//         console.log('✅ Entités avec IDs conservés:', this.incident.entitesImpactees);
-//         this.loading = false;
-//       },
-//       error: (err) => {
-//         console.error('❌ Erreur chargement incident:', err);
-//         this.error = 'Erreur chargement incident';
-//         this.loading = false;
-//       }
-//     });
-//   }
-
-//   // Supprimer une entité
-//   supprimerEntite(index: number) {
-//     this.incident.entitesImpactees.splice(index, 1);
-//   }
-
-//   // Sauvegarder
-// save() {
-//   const dto = {
-//     titreIncident: this.incident.titreIncident,
-//     descriptionIncident: this.incident.descriptionIncident,
-//     severiteIncident: Number(this.incident.severiteIncident),
-//     statutIncident: Number(this.incident.statutIncident),
-//     entitesImpactees: this.incident.entitesImpactees.map(e => ({
-//       id: e.id ?? undefined, // important !
-//       typeEntiteImpactee: e.typeEntiteImpactee,
-//       nom: e.nom
-//     }))
-//   };
-
-//   console.log('📦 DTO complet envoyé:', dto);
-
-//   this.incidentService.updateIncident(this.incidentId, dto)
-//     .subscribe({
-//       next: () => this.router.navigate(['/incidents', this.incidentId]),
-//       error: err => {
-//         console.error(err);
-//         this.error = 'Erreur mise à jour';
-//       }
-//     });
-// }
-
-//   // Méthode pour mettre à jour l'incident
-//   private updateIncident(nouvellesEntites: Partial<EntiteImpactee>[]) {
-//     // 🔥 Filtrer les entités pour s'assurer qu'elles ont les propriétés requises
-//     const entitesValides = nouvellesEntites
-//       .filter(e => e.typeEntiteImpactee !== undefined && e.nom !== undefined)
-//       .map(e => ({
-//         typeEntiteImpactee: e.typeEntiteImpactee as TypeEntiteImpactee,
-//         nom: e.nom as string
-//       }));
-
-//     const dto = {
-//       titreIncident: this.incident.titreIncident,
-//       descriptionIncident: this.incident.descriptionIncident,
-//       severiteIncident: Number(this.incident.severiteIncident) as SeveriteIncident,
-//       statutIncident: Number(this.incident.statutIncident) as StatutIncident,
-//       entitesImpactees: entitesValides
-//     };
-
-//     console.log('📦 DTO incident envoyé:', JSON.stringify(dto, null, 2));
-
-//     this.incidentService.updateIncident(this.incidentId, dto).subscribe({
-//       next: () => {
-//         this.router.navigate(['/incidents', this.incidentId]);
-//       },
-//       error: (err: any) => {
-//         console.error('❌ Erreur mise à jour incident:', err);
-//         this.error = 'Erreur lors de la mise à jour';
-//         this.loading = false;
-//       }
-//     });
-//   }
-
-//   getTypeEntiteLabel(type: TypeEntiteImpactee): string {
-//     const option = this.typeEntiteOptions.find(o => o.value === type);
-//     return option ? option.label : '';
-//   }
-
-//   toggleNewEntiteForm(): void {
-//     if (!this.showNewEntiteForm) {
-//       this.showNewEntiteForm = true;
-//     } else {
-//       this.resetNewEntiteForm();
-//       this.showNewEntiteForm = false;
-//     }
-//   }
-
-//   resetNewEntiteForm(): void {
-//     this.newEntite = {
-//       typeEntiteImpactee: TypeEntiteImpactee.Application,
-//       nom: ''
-//     };
-//   }
-
-//   ajouterEntite(): void {
-//     if (!this.newEntite.nom || !this.newEntite.nom.trim()) {
-//       return;
-//     }
-
-//     const entite: EntiteImpactee = {
-//       typeEntiteImpactee: this.newEntite.typeEntiteImpactee as TypeEntiteImpactee,
-//       nom: this.newEntite.nom.trim()
-//     };
-    
-//     this.incident.entitesImpactees.push(entite);
-//     this.resetNewEntiteForm();
-//     this.showNewEntiteForm = false;
-//   }
-// }
 import { Component, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { CreateIncidentDTO, EntiteImpactee, Incident, IncidentDetail, SeveriteIncident, StatutIncident, TypeEntiteImpactee } from '../../shared/models/incident.model';
+import { ApiResponse, CreateIncidentDTO, EntiteImpactee, Incident, IncidentDetail, SeveriteIncident, StatutIncident, TypeEntiteImpactee, TypeProbleme } from '../../shared/models/incident.model';
 import { IncidentService } from '../../shared/services/incident.service';
 import { EntiteImpacteeService } from '../../shared/services/entite-impactee.service';
 import { CommonModule } from '@angular/common';
-import { SelectComponent } from '../../shared/components/form/select/select.component';
+import { UserService } from '../../shared/services/user.service';
+import { TPEService } from '../../shared/services/tpe.service';
+import { MultiSelectComponent } from '../../shared/components/form/multi-select/multi-select.component';
+import { MapComponent } from '../../google-maps-wrapper/map.component';
 
-
-
+interface MultiOption {
+  value: string;
+  text: string;
+  selected: boolean;
+}
 
 @Component({
   selector: 'app-incident-edit',
   templateUrl: './incident-edit.component.html',
-   imports: [CommonModule,SelectComponent, FormsModule, RouterModule],
-
+  imports: [
+    CommonModule, 
+    FormsModule, MapComponent,
+    RouterModule,
+    MultiSelectComponent
+  ],
   styleUrls: ['./incident-edit.component.css']
 })
 export class IncidentEditComponent implements OnInit {
@@ -226,118 +32,295 @@ export class IncidentEditComponent implements OnInit {
   incident!: IncidentDetail;
   loading = false;
   error: string | null = null;
+  userRole: string = '';
 
+  // Options pour les selects
+  severiteOptions = [
+    { value: 'Faible', label: 'Faible' },
+    { value: 'Moyenne', label: 'Moyenne' },
+    { value: 'Forte', label: 'Forte' }
+  ];
 
-  // Options pour les select
-//  severiteOptions = [
-//   { value: 'Faible', label: 'Faible' },
-//   { value: 'Moyenne', label: 'Moyenne' },
-//   { value: 'Forte', label: 'Forte' }
-// ];
-severiteOptions = [
-  { value: '1', label: 'Faible' },
-  { value: '2', label: 'Moyenne' },
-  { value: '3', label: 'Forte' }
-];
+  severiteStringToEnum: { [key: string]: SeveriteIncident } = {
+    'Faible': SeveriteIncident.Faible,
+    'Moyenne': SeveriteIncident.Moyenne,
+    'Forte': SeveriteIncident.Forte
+  };
+// Pour les fichiers
+  selectedFiles: File[] = [];
+  isDragActive = false;
+  maxFileSize = 10 * 1024 * 1024; // 10MB
+  maxFiles = 10;
 
+  severiteEnumToString: { [key: number]: string } = {
+    [SeveriteIncident.Faible]: 'Faible',
+    [SeveriteIncident.Moyenne]: 'Moyenne',
+    [SeveriteIncident.Forte]: 'Forte'
+  };
 
-statutOptions = [
-  { value: 'Nouveau', label: 'Nouveau' },
-  { value: 'Assigné', label: 'Assigné' },
-  { value: 'En cours', label: 'En cours' },
-  { value: 'En attente', label: 'En attente' },
-  { value: 'Résolu', label: 'Résolu' },
-  { value: 'Fermé', label: 'Fermé' },
-];
+  // ========== PROPRIÉTÉS POUR LES TPES ==========
+tpEsDisponibles: any[] = []; // Liste des TPEs disponibles pour le multi-select
+tpeOptions: MultiOption[] = []; // Options pour le multi-select
+selectedTpeIds: string[] = []; // IDs des TPEs liés à l'incident
+showTpeSelector = false; // Pour afficher/masquer le sélecteur de TPEs
 
+  typeProblemeOptions = [
+    { value: 'PaiementRefuse', label: 'Paiement refusé' },
+    { value: 'TerminalHorsLigne', label: 'Terminal hors ligne' },
+    { value: 'Lenteur', label: 'Lenteur' },
+    { value: 'BugAffichage', label: 'Bug affichage' },
+    { value: 'ConnexionReseau', label: 'Connexion réseau' },
+    { value: 'ErreurFluxTransactionnel', label: 'Erreur flux transactionnel' },
+    { value: 'ProblemeLogicielTPE', label: 'Problème logiciel TPE' },
+    { value: 'Autre', label: 'Autre' }
+  ];
 
-// Convertir enum en string pour le composant select
-typeEntiteOptions = [
-  { value: 'Hardware', label: 'Hardware' },
-  { value: 'Software', label: 'Software' },
-  { value: 'Reseau', label: 'Réseau' },
-  { value: 'BaseDonnees', label: 'Base de données' },
-  { value: 'Application', label: 'Application' },
-  { value: 'Utilisateur', label: 'Utilisateur' },
-  { value: 'Securite', label: 'Sécurité' },
-  { value: 'Autre', label: 'Autre' },
-];
+  typeProblemeStringToEnum: { [key: string]: TypeProbleme } = {
+    'PaiementRefuse': TypeProbleme.PaiementRefuse,
+    'TerminalHorsLigne': TypeProbleme.TerminalHorsLigne,
+    'Lenteur': TypeProbleme.Lenteur,
+    'BugAffichage': TypeProbleme.BugAffichage,
+    'ConnexionReseau': TypeProbleme.ConnexionReseau,
+    'ErreurFluxTransactionnel': TypeProbleme.ErreurFluxTransactionnel,
+    'ProblemeLogicielTPE': TypeProbleme.ProblemeLogicielTPE,
+    'Autre': TypeProbleme.Autre
+  };
 
+  typeEntiteOptions = [
+    { value: TypeEntiteImpactee.MachineTPE, label: 'Machine TPE' },
+    { value: TypeEntiteImpactee.FluxTransactionnel, label: 'Flux Transactionnel' },
+    { value: TypeEntiteImpactee.Reseau, label: 'Réseau' },
+    { value: TypeEntiteImpactee.ServiceApplicatif, label: 'Service Applicatif' }
+  ];
 
-  // Formulaire ajout entité
-  // showNewEntiteForm = false;
-  // newEntite: EntiteImpactee = {
-  //   typeEntiteImpactee: TypeEntiteImpactee.Autre,
-  //   nom: ''
-  // };
+  typeProblemeString: string = '';
+  severiteString: string = '';
+
+  showNewEntiteForm = false;
+  newEntite: { typeEntiteImpactee: TypeEntiteImpactee } = {
+    typeEntiteImpactee: TypeEntiteImpactee.MachineTPE
+  };
 
   constructor(
     private route: ActivatedRoute,
     private router: Router,
     private incidentService: IncidentService,
-    private entiteService: EntiteImpacteeService
+    private entiteService: EntiteImpacteeService,
+    private tpeService: TPEService,
+    private userService: UserService
   ) { }
 
   ngOnInit(): void {
+    this.userService.getMyProfile().subscribe({
+      next: (user) => {
+        this.userRole = user.role;
+        console.log('Rôle utilisateur:', this.userRole);
+        this.loadTpesDisponibles(); // Charger après avoir le rôle
+      },
+      error: (err) => console.error('Erreur récupération rôle:', err)
+    });
+
     const incidentId = this.route.snapshot.paramMap.get('id');
     if (incidentId) {
       this.loadIncident(incidentId);
     }
   }
-  
-// Méthode pour convertir la valeur string du select en enum
-// setTypeEntite(entite: EntiteImpactee, value: any) {
-//   const val = typeof value === 'string' ? value : (value.target?.value ?? 'Autre');
 
-//   switch(val) {
-//     case 'Hardware': entite.typeEntiteImpactee = TypeEntiteImpactee.Hardware; break;
-//     case 'Software': entite.typeEntiteImpactee = TypeEntiteImpactee.Software; break;
-//     case 'Reseau': entite.typeEntiteImpactee = TypeEntiteImpactee.Reseau; break;
-//     case 'BaseDonnees': entite.typeEntiteImpactee = TypeEntiteImpactee.BaseDonnees; break;
-//     case 'Application': entite.typeEntiteImpactee = TypeEntiteImpactee.Application; break;
-//     case 'Utilisateur': entite.typeEntiteImpactee = TypeEntiteImpactee.Utilisateur; break;
-//     case 'Securite': entite.typeEntiteImpactee = TypeEntiteImpactee.Securite; break;
-//     case 'Autre': entite.typeEntiteImpactee = TypeEntiteImpactee.Autre; break;
-//     default: entite.typeEntiteImpactee = TypeEntiteImpactee.Autre;
-//   }
-// }
-
-// setTypeSeverite(incident: IncidentDetail, value: string) {
-
-//   switch (value) {
-//     case 'Faible': incident.severiteIncident = SeveriteIncident.Faible; break;
-//     case 'Moyenne': incident.severiteIncident = SeveriteIncident.Moyenne; break;
-//     case 'Forte': incident.severiteIncident = SeveriteIncident.Forte; break;
-//     default: incident.severiteIncident = SeveriteIncident.Faible;
-//   }
-// }
-setTypeSeverite(incident: IncidentDetail, value: string) {
-  switch(value) {
-    case '1': incident.severiteIncident = SeveriteIncident.Faible; break;
-    case '2': incident.severiteIncident = SeveriteIncident.Moyenne; break;
-    case '3': incident.severiteIncident = SeveriteIncident.Forte; break;
-    default: incident.severiteIncident = SeveriteIncident.Faible;
+  get isAdmin(): boolean {
+    return this.userRole === 'Admin';
   }
+
+  get isCommercant(): boolean {
+    return this.userRole === 'Commercant';
+  }
+
+  // ========== GESTION DES TPES DISPONIBLES ==========
+
+ loadTpesDisponibles() {
+  console.log('📦 Chargement des TPEs disponibles...');
+  
+  // Pour le commerçant : ses propres TPEs via getMyTpes()
+  const tpeObservable = this.isCommercant 
+    ? this.tpeService.getMyTpes() 
+    : this.tpeService.getAllTPEs();
+  
+  tpeObservable.subscribe({
+    next: (tpes) => {
+      this.tpEsDisponibles = tpes || [];
+      this.updateTpeOptions();
+      console.log('📦 TPEs disponibles:', this.tpEsDisponibles);
+    },
+    error: (err) => {
+      console.error('❌ Erreur chargement TPEs:', err);
+      this.tpEsDisponibles = [];
+      this.tpeOptions = [];
+      this.error = 'Impossible de charger la liste des TPEs';
+    }
+  });
 }
 
-setStatut(incident: IncidentDetail, value: string) {
-  switch (value) {
-  
-    case 'En cours': incident.statutIncident = StatutIncident.EnCours; break;
-
-    case 'Fermé': incident.statutIncident = StatutIncident.Ferme; break;
-    default: incident.statutIncident = StatutIncident.EnCours;
-  }
+  // Mettre à jour les options du multi-select
+updateTpeOptions() {
+  this.tpeOptions = this.tpEsDisponibles.map(tpe => ({
+    value: tpe.id,
+    text: `${tpe.numSerieComplet} - ${tpe.modele}`,
+    selected: this.selectedTpeIds.includes(tpe.id)
+  }));
+  console.log('📦 Options TPE mises à jour:', this.tpeOptions);
 }
+
+  // Obtenir le code d'un TPE à partir de son ID
+  getTpeCode(tpeId: string): string {
+    const tpe = this.tpEsDisponibles.find(t => t.id === tpeId);
+    return tpe ? tpe.numSerieComplet : 'TPE';
+  }
+
+  // Gérer le changement de sélection dans le multi-select
+// Version simplifiée de onTpeSelectionChange
+onTpeSelectionChange(selectedIds: string[]) {
+  console.log('📦 TPEs sélectionnés:', selectedIds);
+  this.selectedTpeIds = selectedIds;
+  this.updateTpeOptions();
+  
+  // Optionnel : message temporaire sans utiliser showTemporaryMessage
+  this.error = 'Modifications en attente - cliquez sur Enregistrer pour appliquer';
+  setTimeout(() => {
+    this.error = null;
+  }, 3000);
+}
+
+  // Ajouter un TPE à l'incident
+  ajouterTpe(tpeId: string) {
+    if (!this.isCommercant) {
+      this.error = 'Seul le commerçant peut ajouter des TPEs';
+      return;
+    }
+    
+    console.log('➕ Ajout TPE:', tpeId);
+    
+    const tpeAjoute = this.tpEsDisponibles.find(t => t.id === tpeId);
+    if (!tpeAjoute) {
+      this.error = 'TPE non trouvé';
+      return;
+    }
+
+    this.incidentService.lierTpe(this.incident.id, tpeId).subscribe({
+      next: (response) => {
+        if (response.isSuccess) {
+          if (!this.incident.tpEs) {
+            this.incident.tpEs = [];
+          }
+          
+          this.incident.tpEs.push({
+            tpeId: tpeAjoute.id,
+            numSerie: tpeAjoute.numSerie,
+            numSerieComplet: tpeAjoute.numSerieComplet,
+            modele: tpeAjoute.modele,
+            modeleNom: tpeAjoute.modeleNom || tpeAjoute.modele,
+            dateAssociation: new Date().toISOString()
+          });
+          
+          this.selectedTpeIds.push(tpeId);
+          this.updateTpeOptions();
+          this.showTemporaryMessage('TPE lié avec succès', 'success');
+        } else {
+          this.error = response.message || 'Erreur lors de la liaison';
+        }
+      },
+      error: (err) => {
+        console.error('❌ Erreur liaison TPE:', err);
+        this.error = err.error?.message || 'Erreur lors de la liaison du TPE';
+      }
+    });
+  }
+
+  // Supprimer un TPE de l'incident
+  supprimerTpe(tpeId: string, index: number) {
+    if (!this.isCommercant) {
+      this.error = 'Seul le commerçant peut supprimer des TPEs';
+      return;
+    }
+
+    if (!confirm('Voulez-vous vraiment retirer ce TPE de l\'incident ?')) {
+      return;
+    }
+
+    console.log('🗑️ Suppression TPE:', tpeId);
+    
+    this.incidentService.retirerTpe(this.incident.id, tpeId).subscribe({
+      next: (response) => {
+        if (response.isSuccess) {
+          this.incident.tpEs?.splice(index, 1);
+          this.selectedTpeIds = this.selectedTpeIds.filter(id => id !== tpeId);
+          this.updateTpeOptions();
+          this.showTemporaryMessage('TPE retiré avec succès', 'success');
+        } else {
+          this.error = response.message || 'Erreur lors du retrait';
+        }
+      },
+      error: (err) => {
+        console.error('❌ Erreur retrait TPE:', err);
+        this.error = err.error?.message || 'Erreur lors du retrait du TPE';
+      }
+    });
+  }
+
+  // Basculer l'affichage du sélecteur de TPEs
+  toggleTpeSelector() {
+    if (!this.isCommercant) {
+      this.error = 'Seul le commerçant peut modifier les TPEs';
+      return;
+    }
+    this.showTpeSelector = !this.showTpeSelector;
+  }
+
+  // ========== CHARGEMENT DE L'INCIDENT ==========
 
   loadIncident(id: string) {
     this.loading = true;
     this.incidentService.getIncidentDetails(id).subscribe({
       next: (data: IncidentDetail) => {
         this.incident = data;
-            console.log('✅ Incident assigné au composant:', this.incident);
-      console.log('🎯 Sévérité reçue:', this.incident.severiteIncident);
-      console.log('🎯 Statut reçu:', this.incident.statutIncident);
+        
+        console.log('📦 Entités reçues:', this.incident.entitesImpactees);
+        console.log('📦 TPEs reçus:', this.incident.tpEs);
+        
+        // Initialiser les TPEs liés
+        if (this.incident.tpEs) {
+          this.selectedTpeIds = this.incident.tpEs.map(tpe => tpe.tpeId);
+          console.log('📦 TPEs liés IDs:', this.selectedTpeIds);
+        } else {
+          this.incident.tpEs = [];
+          this.selectedTpeIds = [];
+        }
+        
+        // Mettre à jour les options avec les sélections
+        this.updateTpeOptions();
+        
+        // Convertir le typeProbleme pour l'affichage
+        if (this.incident.typeProbleme) {
+          if (typeof this.incident.typeProbleme === 'number') {
+            const found = Object.entries(this.typeProblemeStringToEnum).find(
+              ([key, value]) => value === this.incident.typeProbleme
+            );
+            if (found) {
+              this.typeProblemeString = found[0];
+            }
+          } else if (typeof this.incident.typeProbleme === 'string') {
+            this.typeProblemeString = this.incident.typeProbleme;
+          }
+        }
+        
+        // Convertir la sévérité pour l'affichage
+        if (this.incident.severiteIncident) {
+          if (typeof this.incident.severiteIncident === 'number') {
+            this.severiteString = this.severiteEnumToString[this.incident.severiteIncident] || '';
+          } else if (typeof this.incident.severiteIncident === 'string') {
+            this.severiteString = this.incident.severiteIncident;
+          }
+        }
+        
+        console.log('✅ Incident chargé:', this.incident);
         this.loading = false;
       },
       error: (err: any) => {
@@ -348,89 +331,266 @@ setStatut(incident: IncidentDetail, value: string) {
     });
   }
 
-  // toggleNewEntiteForm() {
-  //   this.showNewEntiteForm = !this.showNewEntiteForm;
-  //   if (!this.showNewEntiteForm) {
-  //     this.newEntite = { typeEntiteImpactee: TypeEntiteImpactee.Autre, nom: '' };
-  //   }
-  // }
+  // ========== SAUVEGARDE ==========
 
+save() {
+  if (!this.incident) return;
+  this.loading = true;
 
+  const updateDto: any = {};
 
-  // ajouterEntite() {
-  //   if (!this.newEntite.nom) return;
-  //   this.incident.entitesImpactees.push({ ...this.newEntite });
-  //   this.toggleNewEntiteForm();
-  // }
+  if (this.incident.descriptionIncident !== undefined) {
+    updateDto.descriptionIncident = this.incident.descriptionIncident;
+  }
+  if (this.incident.emplacement !== undefined) {
+    updateDto.emplacement = this.incident.emplacement;
+  }
+  
+  if (this.typeProblemeString) {
+    updateDto.typeProbleme = this.typeProblemeStringToEnum[this.typeProblemeString] || 
+                              (typeof this.incident.typeProbleme === 'string' ? 
+                               this.incident.typeProbleme : this.incident.typeProbleme);
+  }
 
-  // supprimerEntite(index: number) {
-  //   const entite = this.incident.entitesImpactees[index];
-  //   if (entite.id) {
-  //     this.entiteService.delete(entite.id).subscribe({
-  //       next: (success: boolean) => {
-  //         if (success) this.incident.entitesImpactees.splice(index, 1);
-  //       },
-  //       error: (err: any) => console.error(err)
-  //     });
-  //   } else {
-  //     this.incident.entitesImpactees.splice(index, 1);
-  //   }
-  // }
+  if (this.isAdmin && this.severiteString) {
+    updateDto.severiteIncident = this.severiteStringToEnum[this.severiteString] || 
+                                  (typeof this.incident.severiteIncident === 'number' ? 
+                                   this.incident.severiteIncident : undefined);
+  }
+
+  // 🔥 IMPORTANT: Ajouter les TPEIds sélectionnés au DTO
+  updateDto.tpeIds = this.selectedTpeIds; // ou TPEIds selon le nom attendu par le backend
+
+  console.log('📦 DTO envoyé avec TPEIds:', updateDto);
+
+  this.incidentService.updateIncident(this.incident.id, updateDto).subscribe({
+    next: (updated) => {
+      console.log('✅ Incident mis à jour:', updated);
+      this.loading = false;
+      this.router.navigate(['/incidents', this.incident.id]);
+    },
+    error: (err: any) => {
+      console.error('❌ Erreur:', err);
+      this.error = err.error?.message || 'Erreur lors de la mise à jour.';
+      this.loading = false;
+    }
+  });
+}
+
+  // ========== GESTION DES ENTITÉS ==========
+
+  toggleNewEntiteForm() {
+    if (!this.isAdmin) {
+      this.error = 'Seul l\'administrateur peut modifier les entités impactées';
+      return;
+    }
+    this.showNewEntiteForm = !this.showNewEntiteForm;
+    if (!this.showNewEntiteForm) {
+      this.newEntite = { typeEntiteImpactee: TypeEntiteImpactee.MachineTPE };
+    }
+  }
+
+  ajouterEntite() {
+    if (!this.isAdmin) return;
+    
+    this.entiteService.addToIncident(this.incident.id, this.newEntite.typeEntiteImpactee).subscribe({
+      next: (response) => {
+        if (response.isSuccess && response.data) {
+          this.incident.entitesImpactees.push({
+            id: response.data.id,
+            typeEntiteImpactee: response.data.typeEntiteImpactee
+          });
+          this.showNewEntiteForm = false;
+          this.newEntite = { typeEntiteImpactee: TypeEntiteImpactee.MachineTPE };
+        } else {
+          this.error = response.message || 'Erreur lors de l\'ajout';
+        }
+      },
+      error: (err) => {
+        console.error('❌ Erreur ajout entité:', err);
+        this.error = 'Erreur lors de l\'ajout de l\'entité';
+      }
+    });
+  }
+
+  supprimerEntite(entiteId: string | undefined, index: number) {
+    if (!this.isAdmin) {
+      this.error = 'Seul l\'administrateur peut supprimer des entités';
+      return;
+    }
+    
+    if (!entiteId) {
+      console.warn('⚠️ Entité sans ID - suppression locale seulement');
+      this.incident.entitesImpactees.splice(index, 1);
+      return;
+    }
+
+    if (!confirm('Voulez-vous vraiment supprimer cette entité ?')) {
+      return;
+    }
+
+    console.log('🗑️ Suppression entité:', entiteId);
+    
+    this.entiteService.removeFromIncident(entiteId).subscribe({
+      next: (response: ApiResponse<boolean>) => {
+        console.log('✅ Réponse suppression:', response);
+        
+        if (response.isSuccess) {
+          this.incident.entitesImpactees.splice(index, 1);
+          this.showTemporaryMessage('Entité supprimée avec succès', 'success');
+        } else {
+          this.error = response.message || 'Erreur lors de la suppression';
+        }
+      },
+      error: (err: any) => {
+        console.error('❌ Erreur détaillée:', err);
+        
+        if (err.status === 404) {
+          this.error = 'Entité non trouvée';
+        } else if (err.status === 403) {
+          this.error = 'Vous n\'avez pas les droits pour supprimer cette entité';
+        } else {
+          this.error = err.error?.message || 'Erreur lors de la suppression';
+        }
+      }
+    });
+  }
+
+  // Mapping pour les entités
+  typeEntiteStringToEnum: { [key: string]: TypeEntiteImpactee } = {
+    'MachineTPE': TypeEntiteImpactee.MachineTPE,
+    'FluxTransactionnel': TypeEntiteImpactee.FluxTransactionnel,
+    'Reseau': TypeEntiteImpactee.Reseau,
+    'ServiceApplicatif': TypeEntiteImpactee.ServiceApplicatif
+  };
+
+  typeEntiteEnumToString: { [key: number]: string } = {
+    [TypeEntiteImpactee.MachineTPE]: 'Machine TPE',
+    [TypeEntiteImpactee.FluxTransactionnel]: 'Flux Transactionnel',
+    [TypeEntiteImpactee.Reseau]: 'Réseau',
+    [TypeEntiteImpactee.ServiceApplicatif]: 'Service Applicatif'
+  };
+
+  getTypeEntiteLabel(type: any): string {
+    console.log('Type reçu:', type, 'type:', typeof type);
+    
+    if (typeof type === 'string') {
+      const enumValue = this.typeEntiteStringToEnum[type];
+      if (enumValue !== undefined) {
+        return this.typeEntiteEnumToString[enumValue] || type;
+      }
+      return type.replace(/([A-Z])/g, ' $1').trim();
+    }
+    
+    if (typeof type === 'number') {
+      return this.typeEntiteEnumToString[type] || `Type ${type}`;
+    }
+    
+    return 'Inconnu';
+  }
+
+  showTemporaryMessage(message: string, type: 'success' | 'error' = 'success') {
+    this.error = message;
+    setTimeout(() => {
+      if (this.error === message) {
+        this.error = null;
+      }
+    }, 3000);
+  }
 
   cancel() {
-    this.router.navigate(['/incidents']);
+    this.router.navigate(['/incidents', this.incident?.id]);
   }
-getStatutValue(statut: StatutIncident): string {
-  switch (statut) {
-    case StatutIncident.EnCours: return 'En cours';
-    case StatutIncident.Ferme: return 'Fermé';
-    default: return 'Nouveau';
+
+   onLocationSelected(location: any) {
+    this.incident.emplacement = location.address;
+    console.log('Latitude:', location.lat);
+    console.log('Longitude:', location.lng);
+  }
+   // ========== GESTION DES FICHIERS AMÉLIORÉE ==========
+
+  onFileSelected(event: any): void {
+    const files: FileList = event.target.files;
+    if (!files) return;
+    
+    this.addFiles(Array.from(files));
+  }
+
+  onDragOver(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragActive = true;
+  }
+
+  onDragLeave(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragActive = false;
+  }
+
+  onDrop(event: DragEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+    this.isDragActive = false;
+    
+    const files = event.dataTransfer?.files;
+    if (files) {
+      this.addFiles(Array.from(files));
+    }
+  }
+
+  private addFiles(files: File[]): void {
+    // Filtrer les fichiers trop volumineux
+    const validFiles = files.filter(file => {
+      if (file.size > this.maxFileSize) {
+        console.warn(`Fichier ${file.name} trop volumineux (max ${this.maxFileSize / 1024 / 1024}MB)`);
+        return false;
+      }
+      return true;
+    });
+
+    // Vérifier la limite de nombre de fichiers
+    if (this.selectedFiles.length + validFiles.length > this.maxFiles) {
+      this.showError(`Vous ne pouvez pas ajouter plus de ${this.maxFiles} fichiers`);
+      return;
+    }
+
+    // Ajouter les fichiers
+    this.selectedFiles = [...this.selectedFiles, ...validFiles];
+    this.updateIncidentFiles();
+  }
+
+  private showError(message: string): void {
+    alert(message);
+  }
+  removeFile(index: number): void {
+    this.selectedFiles.splice(index, 1);
+    this.updateIncidentFiles();
+  }
+
+  clearAllFiles(): void {
+    this.selectedFiles = [];
+    this.updateIncidentFiles();
+  }
+  isImage(contentType: string | null | undefined): boolean {
+    if (!contentType) {
+      // Si contentType est null, on vérifie l'extension
+      return false;
+    }
+    return contentType.startsWith('image/');
+  }
+  openImage(url: string): void {
+  window.open(url, '_blank');
+}
+  private updateIncidentFiles(): void {
+  this.incident.piecesJointes = this.selectedFiles as any; // Solution temporaire
+  }
+
+  formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 Bytes';
+    const k = 1024;
+    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
 }
-
-
-// Convertir enum SeveriteIncident en string compatible avec select
-// getSeveriteValue(severite: SeveriteIncident): string {
-//   switch (severite) {
-//     case SeveriteIncident.Faible: return 'Faible';
-//     case SeveriteIncident.Moyenne: return 'Moyenne';
-//     case SeveriteIncident.Forte: return 'Forte';
-//     default: return 'Faible';
-//   }
-// }
-
-getSeveriteValue(severite: SeveriteIncident): string {
-  return severite.toString(); // Faible=1 => "1", Moyenne=2 => "2", Forte=3 => "3"
-}
-
-  save() {
-    if (!this.incident) return;
-    this.loading = true;
-
-//     const dto: CreateIncidentDTO = {
-//       descriptionIncident: this.incident.descriptionIncident,
-//       severiteIncident: this.incident.severiteIncident,
-//       entitesImpactees: this.incident.entitesImpactees.map((e: EntiteImpactee) => ({
-//         id: e.id,
-//         typeEntiteImpactee: e.typeEntiteImpactee,
-//         nom: e.nom
-//       }))
-//     };
-
-//     this.incidentService.updateIncident(this.incident.id, {
-//       ...dto,
-//       statutIncident: this.incident.statutIncident
-//     }).subscribe({
-//       next: (updated: Incident) => {
-//         console.log('Incident mis à jour:', updated);
-//         this.loading = false;
-// this.router.navigate(['/incidents', this.incident.id]);
-//       },
-//       error: (err: any) => {
-//         console.error(err);
-//         this.error = 'Erreur lors de la mise à jour.';
-//         this.loading = false;
-//       }
-//     });
-//   }
-}}

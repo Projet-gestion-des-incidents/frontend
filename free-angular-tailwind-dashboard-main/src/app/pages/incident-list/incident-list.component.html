@@ -1,6 +1,6 @@
-<div class="overflow-hidden rounded-2xl border border-gray-200 bg-white pt-4 dark:border-white/[0.05] dark:bg-white/[0.03]">
+<div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] shadow-sm">
   
-  <!-- Alert interactif -->
+  <!-- Alert interactif amélioré -->
   <app-alert
     *ngIf="alert.show"
     [variant]="alert.variant"
@@ -10,222 +10,231 @@
     <div class="mt-3 flex justify-end gap-2" *ngIf="alert.variant === 'warning'">
       <button
         (click)="confirmDelete()"
-        class="px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700"
+        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
       >
         Confirmer
       </button>
       <button
         (click)="cancelDelete()"
-        class="px-3 py-1 bg-gray-300 text-gray-800 rounded hover:bg-gray-400"
+        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
       >
         Annuler
       </button>
     </div>
   </app-alert>
-  
-  <br>
 
-<!-- En-tête avec titre et recherche -->
-<div class="flex flex-col gap-4 px-6 mb-4 sm:flex-row sm:items-center sm:justify-between">
-  <div>
-    <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-      Liste des incidents
-    </h3>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-      {{ totalCount }} incident(s) trouvé(s)
-    </p>
-  </div>
-  
-  <!-- Barre de recherche seulement -->
-  <div class="relative">
-    <span class="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2">
-      <svg class="fill-gray-500 dark:fill-gray-400" width="20" height="20" viewBox="0 0 20 20" fill="none">
-        <path fill-rule="evenodd" clip-rule="evenodd"
-          d="M3.04175 9.37363C3.04175 5.87693 5.87711 3.04199 9.37508 3.04199C12.8731 3.04199 15.7084 5.87693 15.7084 9.37363C15.7084 12.8703 12.8731 15.7053 9.37508 15.7053C5.87711 15.7053 3.04175 12.8703 3.04175 9.37363ZM9.37508 1.54199C5.04902 1.54199 1.54175 5.04817 1.54175 9.37363C1.54175 13.6991 5.04902 17.2053 9.37508 17.2053C11.2674 17.2053 13.003 16.5344 14.357 15.4176L17.177 18.238C17.4699 18.5309 17.9448 18.5309 18.2377 18.238C18.5306 17.9451 18.5306 17.4703 18.2377 17.1774L15.418 14.3573C16.5365 13.0033 17.2084 11.2669 17.2084 9.37363C17.2084 5.04817 13.7011 1.54199 9.37508 1.54199Z"
-          fill="" />
-      </svg>
-    </span>
-    <input 
-      type="text" 
-      placeholder="Rechercher par code, titre, créateur..." 
-      [(ngModel)]="searchTerm"
-      (input)="onSearch()"
-      class="dark:bg-dark-900 h-11 w-full rounded-lg border border-gray-200 bg-transparent py-2.5 pl-12 pr-14 text-sm text-gray-800 shadow-theme-xs placeholder:text-gray-400 focus:border-brand-300 focus:outline-hidden focus:ring-3 focus:ring-brand-500/10 dark:border-gray-800 dark:bg-gray-900 dark:bg-white/[0.03] dark:text-white/90 dark:placeholder:text-white/30 dark:focus:border-brand-800 xl:w-[430px]"
-    />
-  </div>
-</div>
-
-<!-- Barre d'actions avec bouton Filtrer et Nouvel incident -->
-<div class="flex flex-col gap-4 px-6 mb-4 sm:flex-row sm:items-center sm:justify-between">
-  <!-- Bouton Filtrer à gauche -->
-  <div class="flex items-center gap-3">
-    <button
-      (click)="toggleFilters()"
-      class="inline-flex items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm font-medium text-gray-700 shadow-theme-xs hover:bg-gray-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 dark:hover:bg-white/[0.03]"
-      [class.bg-brand-50]="showFilters"
-      [class.text-brand-600]="showFilters"
-    >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
-      </svg>
-      Filtrer
-      <span *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedYear" class="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-brand-500 rounded-full">
-        {{ (selectedSeverite !== undefined ? 1 : 0) + (selectedStatut !== undefined ? 1 : 0) + (selectedYear ? 1 : 0) }}
-      </span>
-    </button>
-
-    <!-- Indicateur de filtres actifs (optionnel) -->
-    <div *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedYear" class="text-sm text-gray-500">
-      <span>Filtres actifs</span>
-      <button (click)="clearFilters()" class="ml-2 text-brand-500 hover:text-brand-600">
-        <svg class="w-4 h-4 inline" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+  <!-- En-tête avec titre et recherche -->
+  <div class="flex flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 dark:border-gray-800">
+    <div>
+      <h3 class="text-xl font-bold text-gray-800 dark:text-white/90">
+        Liste des incidents
+      </h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1 flex items-center gap-1">
+        <span class="inline-flex items-center justify-center w-5 h-5 bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 rounded-full text-xs font-medium">
+          {{ totalCount }}
+        </span>
+        incident(s) trouvé(s)
+      </p>
+    </div>
+    
+    <!-- Barre de recherche améliorée -->
+    <div class="relative w-full sm:w-auto">
+      <span class="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2">
+        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
         </svg>
+      </span>
+      <input 
+        type="text" 
+        placeholder="Rechercher par code, type, emplacement..." 
+        [(ngModel)]="searchTerm"
+        (input)="onSearch()"
+        class="h-11 w-full sm:w-[350px] lg:w-[430px] rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-11 pr-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-white/30 transition-all"
+      />
+    </div>
+  </div>
+
+  <!-- Barre d'actions avec bouton Filtrer et Nouvel incident -->
+  <div class="flex flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 dark:border-gray-800">
+    <!-- Bouton Filtrer à gauche -->
+    <div class="flex items-center gap-3">
+      <button
+        (click)="toggleFilters()"
+        class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-all"
+        [class.bg-brand-50]="showFilters"
+        [class.text-brand-600]="showFilters"
+        [class.border-brand-300]="showFilters"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
+        </svg>
+        Filtrer
+        <span *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedYear" 
+              class="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-brand-500 rounded-full">
+          {{ (selectedSeverite !== undefined ? 1 : 0) + (selectedStatut !== undefined ? 1 : 0) + (selectedYear ? 1 : 0) }}
+        </span>
+      </button>
+
+      <!-- Indicateur de filtres actifs -->
+      <div *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedYear" 
+           class="flex items-center gap-2 px-3 py-1.5 bg-brand-50 dark:bg-brand-900/20 rounded-lg">
+        <span class="text-xs text-brand-600 dark:text-brand-400">Filtres actifs</span>
+        <button (click)="clearFilters()" class="text-brand-600 hover:text-brand-700 dark:text-brand-400">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Bouton nouvel incident à droite -->
+    <div class="flex justify-end">
+      <button 
+        *ngIf="userRole === 'Commercant'"
+        routerLink="/incidents/new"
+        class="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-brand-600 transition-all hover:shadow-md"
+      >
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+        Nouvel incident
       </button>
     </div>
   </div>
 
-  <!-- Bouton nouvel incident à droite -->
-  <div class="flex justify-end">
-    <button 
-      routerLink="/incidents/new"
-      class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-3 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-600"
-    >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path>
-      </svg>
-      Nouvel incident
-    </button>
-  </div>
-</div>
+  <!-- Panneau de filtres amélioré -->
+  <div *ngIf="showFilters" class="mx-6 my-4 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+    <div class="flex items-center gap-2 mb-4">
+      <div class="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-500/10">
+        <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+        </svg>
+      </div>
+      <h4 class="text-md font-semibold text-gray-700 dark:text-gray-300">Filtres avancés</h4>
+    </div>
+    
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+      <!-- Filtre par sévérité -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+          Sévérité
+        </label>
+        <select
+          [(ngModel)]="tempFilters.severite"
+          class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors"
+        >
+          <option [ngValue]="undefined">Toutes sévérités</option>
+          <option *ngFor="let option of severiteOptions" [ngValue]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
 
-<!-- Panneau de filtres (caché par défaut) -->
-<div *ngIf="showFilters" class="mx-6 mb-6 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700">
-  <h4 class="text-md font-semibold text-gray-700 dark:text-gray-300 mb-4">Filtres avancés</h4>
-  
-  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <!-- Filtre par sévérité -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-        Sévérité
-      </label>
-      <select
-        [(ngModel)]="tempFilters.severite"
-        class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800"
-      >
-        <option [ngValue]="undefined">Toutes sévérités</option>
-        <option *ngFor="let option of severiteOptions" [ngValue]="option.value">
-          {{ option.label }}
-        </option>
-      </select>
+      <!-- Filtre par statut -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+          Statut
+        </label>
+        <select
+          [(ngModel)]="tempFilters.statut"
+          class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors"
+        >
+          <option [ngValue]="undefined">Tous statuts</option>
+          <option *ngFor="let option of statutOptions" [ngValue]="option.value">
+            {{ option.label }}
+          </option>
+        </select>
+      </div>
+
+      <!-- Filtre par année -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+          Année de création
+        </label>
+        <select
+          [(ngModel)]="selectedYear"
+          class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors"
+        >
+          <option value="">Toutes années</option>
+          <option *ngFor="let year of yearOptions" [value]="year">
+            {{ year }}
+          </option>
+        </select>
+      </div>
     </div>
 
-    <!-- Filtre par statut -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-        Statut
-      </label>
-      <select
-        [(ngModel)]="tempFilters.statut"
-        class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800"
+    <!-- Boutons d'action du panneau -->
+    <div class="flex justify-end gap-3 mt-6">
+      <button
+        (click)="cancelFilters()"
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
       >
-        <option [ngValue]="undefined">Tous statuts</option>
-        <option *ngFor="let option of statutOptions" [ngValue]="option.value">
-          {{ option.label }}
-        </option>
-      </select>
-    </div>
-
-    <!-- Filtre par année (optionnel - si vous voulez le garder) -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-        Année de création
-      </label>
-      <select
-        [(ngModel)]="selectedYear"
-        class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 dark:border-gray-700 dark:bg-gray-800"
+        Annuler
+      </button>
+      <button
+        (click)="clearFilters()"
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
       >
-        <option value="">Toutes années</option>
-        <option *ngFor="let year of yearOptions" [value]="year">
-          {{ year }}
-        </option>
-      </select>
+        Effacer tout
+      </button>
+      <button
+        (click)="applyFilters()"
+        class="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors shadow-sm"
+      >
+        Appliquer les filtres
+      </button>
     </div>
-
-    <!-- Vous pouvez ajouter d'autres filtres ici -->
   </div>
 
-  <!-- Boutons d'action du panneau -->
-  <div class="flex justify-end gap-3 mt-6">
-    <button
-      (click)="cancelFilters()"
-      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-700"
-    >
-      Annuler
-    </button>
-    <button
-      (click)="clearFilters()"
-      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-700 dark:hover:bg-gray-700"
-    >
-      Effacer tout
-    </button>
-    <button
-      (click)="applyFilters()"
-      class="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600"
-    >
-      Appliquer les filtres
-    </button>
-  </div>
-</div>
-  <!-- Loading indicator -->
-  <div *ngIf="loading" class="flex justify-center items-center py-12">
-    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+  <!-- Loading indicator amélioré -->
+  <div *ngIf="loading" class="flex justify-center items-center py-16">
+    <div class="animate-spin rounded-full h-10 w-10 border-4 border-brand-200 border-t-brand-600"></div>
   </div>
   
-  <!-- Error message -->
-  <div *ngIf="error" class="mx-6 mb-4 p-4 bg-error-50 text-error-600 rounded-lg">
-    {{ error }}
+  <!-- Error message amélioré -->
+  <div *ngIf="error" class="mx-6 my-4 p-4 bg-red-50 text-red-600 rounded-xl border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 flex items-center gap-3">
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    <span class="text-sm">{{ error }}</span>
   </div>
   
   <!-- Tableau des incidents -->
-  <div *ngIf="!loading && !error" class="max-w-full overflow-x-auto">
+  <div *ngIf="!loading && !error" class="overflow-x-auto">
     <table class="min-w-full">
-      <thead class="px-6 py-3.5 border-t border-gray-100 border-y bg-gray-50 dark:border-white/[0.05] dark:bg-gray-900">
-        <tr>
-          <th class="px-6 py-3 font-medium text-gray-500 sm:px-6 text-theme-xs dark:text-gray-400 text-start">Code</th>
-          <th class="px-6 py-3 font-medium text-gray-500 sm:px-6 text-theme-xs dark:text-gray-400 text-start">Type Probleme</th>
-                    <th class="px-6 py-3 font-medium text-gray-500 sm:px-6 text-theme-xs dark:text-gray-400 text-start">Emplacement</th>
-        <th *ngIf="userRole !== 'Commercant'" class="px-6 py-3 font-medium text-gray-500 sm:px-6 text-theme-xs dark:text-gray-400 text-start">Créateur</th>          <th class="px-6 py-3 font-medium text-gray-500 sm:px-6 text-theme-xs dark:text-gray-400 text-start">Date Création</th>
-          <th class="px-6 py-3 font-medium text-gray-500 sm:px-6 text-theme-xs dark:text-gray-400 text-start">Sévérité</th>
-          <th class="px-6 py-3 font-medium text-gray-500 sm:px-6 text-theme-xs dark:text-gray-400 text-start">Statut</th>
-          <th class="px-6 py-3 font-medium text-gray-500 sm:px-6 text-theme-xs dark:text-gray-400 text-start">Actions</th>
+      <thead>
+        <tr class="border-y border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
+          <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Code</th>
+          <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Type Problème</th>
+          <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Emplacement</th>
+          <th *ngIf="userRole !== 'Commercant'" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Créateur</th>
+          <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Date</th>
+          <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Sévérité</th>
+          <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Statut</th>
+          <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Actions</th>
         </tr>
       </thead>
-      <tbody>
-        <tr *ngFor="let incident of filteredIncidents" class="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-          <td class="px-4 sm:px-6 py-3.5">
-            <span class="block font-medium text-gray-700 text-theme-sm dark:text-gray-400">
+      <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+        <tr *ngFor="let incident of filteredIncidents" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="text-sm font-mono font-medium text-gray-900 dark:text-white">
               {{ incident.codeIncident }}
             </span>
           </td>
           
-          <td class="px-4 sm:px-6 py-3.5">
-            <div class="flex flex-col">
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="text-sm text-gray-600 dark:text-gray-400">
+              {{ incident.typeProbleme }}
+            </span>
+          </td>
           
-              <span class="text-gray-500 text-theme-xs dark:text-gray-400 line-clamp-1">
-                {{ incident.typeProbleme  }}
-              </span>
-            </div>
+          <td class="px-6 py-4 max-w-xs">
+            <span class="text-sm text-gray-600 dark:text-gray-400 block truncate" [title]="incident.emplacement">
+              {{ incident.emplacement }}
+            </span>
           </td>
-           <td class="px-4 sm:px-6 py-3.5">
-            <div class="flex items-center gap-3">
-           
-                <span class="block text-theme-sm font-medium text-gray-700 dark:text-gray-400">
-                  {{ incident.emplacement  }}
-                </span>
-            </div>
-          </td>
-      <td *ngIf="userRole !== 'Commercant'" class="px-4 sm:px-6 py-3.5">
+          
+        <td *ngIf="userRole !== 'Commercant'" class="px-4 sm:px-6 py-3.5">
           <div class="flex items-center gap-3">
             <app-avatar-text 
               [name]="incident.createdByName || 'N/A'" 
@@ -239,26 +248,28 @@
           </div>
         </td>
           
-          <td class="px-4 sm:px-6 py-3.5">
-            <span class="text-gray-700 text-theme-sm dark:text-gray-400">
-              {{ formatDate(incident.dateDetection) }}
-            </span>
-            <span class="block text-xs text-gray-400">
-              {{ extractYear(incident.dateDetection) }}
-            </span>
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div>
+              <span class="text-sm text-gray-700 dark:text-gray-300">
+                {{ formatDate(incident.dateDetection) }}
+              </span>
+              <span class="block text-xs text-gray-400">
+                {{ extractYear(incident.dateDetection) }}
+              </span>
+            </div>
           </td>
           
-          <td class="px-4 sm:px-6 py-3.5">
-            <app-badge
-              variant="light"
-              [color]="getSeveriteBadgeColor(incident.severiteIncident)"
-              size="sm"
-            >
-              {{ incident.severiteIncidentLibelle }}
-            </app-badge>
-          </td>
+        <td class="px-6 py-4 whitespace-nowrap">
+  <app-badge
+    variant="light"
+    [color]="getSeveriteBadgeColor(incident.severiteIncident)"
+    size="sm"
+  >
+    {{ getSeveriteLibelle(incident) }}
+  </app-badge>
+</td>
           
-          <td class="px-4 sm:px-6 py-3.5">
+          <td class="px-6 py-4 whitespace-nowrap">
             <app-badge
               variant="light"
               [color]="getStatutBadgeColor(incident.statutIncident)"
@@ -268,42 +279,39 @@
             </app-badge>
           </td>
           
-          <td class="px-4 sm:px-6 py-3.5">
-            <div class="flex items-center gap-2">
+          <td class="px-6 py-4 whitespace-nowrap">
+            <div class="flex items-center gap-1">
               <button 
                 (click)="viewIncidentDetails(incident.id)"
-                class="inline-flex items-center gap-1 text-brand-500 hover:text-brand-600 font-medium text-sm"
+                class="p-2 text-gray-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
                 title="Voir détails"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                 </svg>
-                
               </button>
               
               <button 
                 [routerLink]="['/incidents/edit', incident.id]"
-                class="inline-flex items-center gap-1 text-warning-500 hover:text-warning-600 font-medium text-sm"
-                title="Modifier incident"
+                class="p-2 text-gray-400 hover:text-warning-600 rounded-lg hover:bg-warning-50 dark:hover:bg-warning-900/20 transition-colors"
+                title="Modifier"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                     d="M11 4h2m-1-1v2m7.071 2.929a2 2 0 010 2.828l-8.486 8.486a2 2 0 01-.878.515l-4 1a1 1 0 01-1.213-1.213l1-4a2 2 0 01.515-.878l8.486-8.486a2 2 0 012.828 0z">
                   </path>
                 </svg>
-                
               </button>
               
               <button
                 (click)="onDelete(incident)"
-                class="inline-flex items-center gap-1 text-red-500 hover:text-red-600 font-medium text-sm"
-                title="Supprimer incident"
+                class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+                title="Supprimer"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                  <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
                 </svg>
-                
               </button>
             </div>
           </td>
@@ -311,61 +319,64 @@
         
         <!-- Message si aucun incident -->
         <tr *ngIf="filteredIncidents.length === 0">
-          <td colspan="7" class="px-6 py-12 text-center text-gray-500 dark:text-gray-400">
-            Aucun incident trouvé
+          <td [attr.colspan]="userRole !== 'Commercant' ? 8 : 7" class="px-6 py-16 text-center">
+            <div class="flex flex-col items-center justify-center">
+              <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <p class="text-gray-500 dark:text-gray-400 text-lg font-medium">Aucun incident trouvé</p>
+              <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Essayez de modifier vos filtres ou d'ajouter un nouvel incident</p>
+            </div>
           </td>
         </tr>
       </tbody>
     </table>
   </div>
 
-  <!-- Pagination Controls -->
-  <div class="px-6 py-4 border-t border-gray-200 dark:border-white/[0.05]" *ngIf="!loading && !error && filteredIncidents.length > 0">
+  <!-- Pagination améliorée -->
+  <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-800" *ngIf="!loading && !error && filteredIncidents.length > 0">
     <div class="flex items-center justify-between">
       <!-- Previous Button -->
-      <app-button
-        size="sm"
-        variant="outline"
-        (btnClick)="onPageChange(currentPage - 1)"
+      <button
+        (click)="onPageChange(currentPage - 1)"
         [disabled]="currentPage === 1 || totalPages === 0"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
       >
-        <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" clip-rule="evenodd"
-            d="M12.7071 5.29289C13.0976 5.68342 13.0976 6.31658 12.7071 6.70711L9.41421 10L12.7071 13.2929C13.0976 13.6834 13.0976 14.3166 12.7071 14.7071C12.3166 15.0976 11.6834 15.0976 11.2929 14.7071L7.29289 10.7071C6.90237 10.3166 6.90237 9.68342 7.29289 9.29289L11.2929 5.29289C11.6834 4.90237 12.3166 4.90237 12.7071 5.29289Z"
-            fill="" />
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
         </svg>
         <span class="hidden sm:inline">Précédent</span>
-      </app-button>
+      </button>
       
       <!-- Page Info (Mobile) -->
-      <span class="block text-sm font-medium text-gray-700 dark:text-gray-400 sm:hidden">
+      <span class="text-sm font-medium text-gray-700 dark:text-gray-400 sm:hidden">
         Page {{ currentPage }} / {{ totalPages || 1 }}
       </span>
       
       <!-- Page Numbers (Desktop) -->
-      <ul class="hidden items-center gap-0.5 sm:flex">
+      <ul class="hidden items-center gap-1 sm:flex">
         <ng-container *ngIf="totalPages > 0; else noPages">
           <li *ngFor="let page of getPageNumbers()">
             <ng-container *ngIf="page !== -1; else ellipsis">
               <button
                 (click)="onPageChange(page)"
-                class="flex h-10 w-10 items-center justify-center rounded-lg text-theme-sm font-medium"
+                class="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-colors"
                 [ngClass]="{
-                  'bg-brand-500 text-white': currentPage === page,
-                  'text-gray-700 hover:bg-brand-500/[0.08] dark:text-gray-400': currentPage !== page
+                  'bg-brand-500 text-white hover:bg-brand-600': currentPage === page,
+                  'text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800': currentPage !== page
                 }"
               >
                 {{ page }}
               </button>
             </ng-container>
             <ng-template #ellipsis>
-              <span class="flex h-10 w-10 items-center justify-center text-gray-500">...</span>
+              <span class="flex h-9 w-9 items-center justify-center text-gray-500">...</span>
             </ng-template>
           </li>
         </ng-container>
         <ng-template #noPages>
           <li>
-            <button class="flex h-10 w-10 items-center justify-center rounded-lg bg-brand-500 text-white">
+            <button class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-500 text-white">
               1
             </button>
           </li>
@@ -373,19 +384,16 @@
       </ul>
       
       <!-- Next Button -->
-      <app-button
-        (btnClick)="onPageChange(currentPage + 1)"
-        size="sm"
-        variant="outline"
+      <button
+        (click)="onPageChange(currentPage + 1)"
         [disabled]="currentPage === totalPages || totalPages === 0"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
       >
         <span class="hidden sm:inline">Suivant</span>
-        <svg class="fill-current" width="20" height="20" viewBox="0 0 20 20">
-          <path fill-rule="evenodd" clip-rule="evenodd"
-            d="M7.29289 14.7071C6.90237 14.3166 6.90237 13.6834 7.29289 13.2929L10.5858 10L7.29289 6.70711C6.90237 6.31658 6.90237 5.68342 7.29289 5.29289C7.68342 4.90237 8.31658 4.90237 8.70711 5.29289L12.7071 9.29289C13.0976 9.68342 13.0976 10.3166 12.7071 10.7071L8.70711 14.7071C8.31658 15.0976 7.68342 15.0976 7.29289 14.7071Z"
-            fill="" />
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
         </svg>
-      </app-button>
+      </button>
     </div>
   </div>
 </div>

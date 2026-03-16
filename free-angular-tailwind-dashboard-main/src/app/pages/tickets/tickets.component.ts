@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { TicketService } from '../../shared/services/ticket.service';
+import { UserService } from '../../shared/services/user.service';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { Router, RouterModule } from '@angular/router';
 import { CommonModule } from '@angular/common';
@@ -41,6 +42,11 @@ export class TicketsComponent implements OnInit {
   filteredTickets: any[] = [];
   searchTerm: string = '';
   
+  // Gestion des rôles
+  userRole: string | null = null;
+  isAdmin: boolean = false;
+  isTechnicien: boolean = false;
+  
   alert = {
     show: false,
     variant: 'info' as 'success' | 'error' | 'warning' | 'info',
@@ -79,12 +85,32 @@ export class TicketsComponent implements OnInit {
 
   constructor(
     private ticketService: TicketService,
+    private userService: UserService,
     private router: Router
   ) {}
 
   ngOnInit(): void {
     this.generateYearOptions();
-    this.loadTickets();
+    
+    // Récupérer le rôle de l'utilisateur connecté
+    this.userService.getMyProfile().subscribe({
+      next: (user) => {
+        this.userRole = user.role;
+        this.isAdmin = user.role === 'Admin';
+        this.isTechnicien = user.role === 'Technicien';
+        console.log('👤 Rôle utilisateur:', this.userRole);
+        console.log('  - isAdmin:', this.isAdmin);
+        console.log('  - isTechnicien:', this.isTechnicien);
+        
+        // Charger les tickets selon le rôle
+        this.loadTickets();
+      },
+      error: (err) => {
+        console.error('❌ Erreur récupération rôle:', err);
+        this.error = 'Impossible de récupérer votre profil';
+        this.loading = false;
+      }
+    });
   }
 
   generateYearOptions(): void {
@@ -180,42 +206,98 @@ export class TicketsComponent implements OnInit {
     }, 400);
   }
 
+  /**
+   * Charge les tickets en fonction du rôle de l'utilisateur
+   * - Admin: voit tous les tickets via getTicketsPaged()
+   * - Technicien: voit seulement ses tickets assignés via getMesTicketsAssignes()
+   */
   loadTickets() {
+    if (!this.userRole) {
+      console.log('⏳ En attente du chargement du rôle...');
+      return;
+    }
+
     this.loading = true;
     this.error = null;
 
-    const request = {
-      page: this.currentPage,
-      pageSize: this.pageSize,
-      searchTerm: this.searchTerm || null,
-      statut: this.selectedStatut ?? null,
-      priorite: this.selectedPriorite ?? null,
-      dateDebut: this.tempFilters.dateDebut || null,
-      sortBy: "date",
-      sortDescending: true
-    };
+    // ADMIN: voir tous les tickets
+    if (this.isAdmin) {
+      console.log('👑 Admin: Chargement de tous les tickets');
+      const request = {
+        page: this.currentPage,
+        pageSize: this.pageSize,
+        searchTerm: this.searchTerm || null,
+        statut: this.selectedStatut ?? null,
+        priorite: this.selectedPriorite ?? null,
+        dateDebut: this.tempFilters.dateDebut || null,
+        sortBy: "date",
+        sortDescending: true
+      };
 
-    console.log("📤 Request envoyée:", request);
+      console.log("📤 Request envoyée:", request);
 
-    this.ticketService.getTicketsPaged(request).subscribe({
-      next: (res) => {
-        const paged = res.data;
-        this.tickets = paged.items;
-        this.filteredTickets = paged.items;
-        this.totalCount = paged.totalCount;
-        this.totalPages = paged.totalPages;
-        this.currentPage = paged.page;
-        
-        // Nettoyer les sélections si on change de page
-        this.selectedTickets = [];
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error("❌ Erreur:", err);
-        this.error = "Impossible de charger les tickets";
-        this.loading = false;
-      }
-    });
+      this.ticketService.getTicketsPaged(request).subscribe({
+        next: (res) => {
+          const paged = res.data;
+          this.tickets = paged.items;
+          this.filteredTickets = paged.items;
+          this.totalCount = paged.totalCount;
+          this.totalPages = paged.totalPages;
+          this.currentPage = paged.page;
+          
+          console.log(`✅ ${this.tickets.length} tickets chargés pour l'admin`);
+          
+          // Nettoyer les sélections si on change de page
+          this.selectedTickets = [];
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error("❌ Erreur:", err);
+          this.error = "Impossible de charger les tickets";
+          this.loading = false;
+        }
+      });
+    }
+    
+    // TECHNICIEN: voir seulement ses tickets assignés
+    else if (this.isTechnicien) {
+      console.log('🔧 Technicien: Chargement de mes tickets assignés');
+      
+      this.ticketService.getMesTicketsAssignes().subscribe({
+        next: (res) => {
+          if (res.isSuccess && res.data) {
+            // La réponse peut être PagedResult ou directement la liste
+            if (res.data.items) {
+              // Format PagedResult
+              this.tickets = res.data.items;
+              this.totalCount = res.data.totalCount;
+              this.totalPages = res.data.totalPages;
+            } else {
+              // Format simple liste
+              this.tickets = res.data;
+              this.totalCount = this.tickets.length;
+              this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+            }
+            
+            this.filteredTickets = this.tickets;
+            
+            console.log(`✅ ${this.tickets.length} tickets assignés chargés pour le technicien`);
+          } else {
+            this.tickets = [];
+            this.totalCount = 0;
+            this.totalPages = 1;
+          }
+          
+          this.selectedTickets = [];
+          this.loading = false;
+        },
+        error: (err) => {
+          console.error("❌ Erreur chargement tickets assignés:", err);
+          this.error = "Impossible de charger vos tickets assignés";
+          this.loading = false;
+        }
+      });
+    }
   }
 
   // ========== GESTION DE LA SÉLECTION MULTIPLE ==========
@@ -276,116 +358,109 @@ export class TicketsComponent implements OnInit {
     };
   }
 
- confirmDelete() {
-  // Cas suppression multiple
-  if (this.ticketsToDelete && this.ticketsToDelete.length > 0) {
-    this.deletingSelected = true;
-    
-    // Compter les succès et échecs
-    let successCount = 0;
-    let errorCount = 0;
-    const errors: any[] = [];
-    
-    // Créer un tableau d'observables pour chaque suppression
-    const deleteObservables = this.ticketsToDelete.map(id =>
-      this.ticketService.deleteTicket(id).pipe(
-        catchError(error => {
-          console.error(`❌ Erreur suppression ticket ${id}:`, error);
-          errorCount++;
-          errors.push({ id, error: error.error?.message || error.message });
-          return of(null); // Retourner null pour ne pas casser forkJoin
-        }),
-        tap(result => {
-          if (result && result.isSuccess) {
-            successCount++;
-          } else if (result && !result.isSuccess) {
+  confirmDelete() {
+    // Cas suppression multiple
+    if (this.ticketsToDelete && this.ticketsToDelete.length > 0) {
+      this.deletingSelected = true;
+      
+      // Compter les succès et échecs
+      let successCount = 0;
+      let errorCount = 0;
+      const errors: any[] = [];
+      
+      // Créer un tableau d'observables pour chaque suppression
+      const deleteObservables = this.ticketsToDelete.map(id =>
+        this.ticketService.deleteTicket(id).pipe(
+          catchError(error => {
+            console.error(`❌ Erreur suppression ticket ${id}:`, error);
             errorCount++;
-          }
-        })
-      )
-    );
+            errors.push({ id, error: error.error?.message || error.message });
+            return of(null);
+          }),
+          tap(result => {
+            if (result && result.isSuccess) {
+              successCount++;
+            } else if (result && !result.isSuccess) {
+              errorCount++;
+            }
+          })
+        )
+      );
 
-    // Exécuter toutes les suppressions en parallèle
-    forkJoin(deleteObservables).pipe(
-      finalize(() => {
-        this.deletingSelected = false;
-        
-        // Afficher le résultat
-        if (successCount === this.ticketsToDelete!.length) {
-          // Toutes les suppressions ont réussi
-          this.showAlert(
-            'success',
-            'Succès',
-            `${successCount} ticket(s) supprimé(s) avec succès.`
-          );
-        } else if (successCount > 0) {
-          // Certaines ont réussi, d'autres non
-          this.showAlert(
-            'warning',
-            'Suppression partielle',
-            `${successCount} ticket(s) supprimé(s), ${errorCount} échec(s).`
-          );
-        } else {
-          // Toutes ont échoué
-          this.showAlert(
-            'error',
-            'Échec',
-            `Impossible de supprimer les tickets sélectionnés.`
-          );
-        }
-        
-        // Nettoyer les sélections
-        this.selectedTickets = [];
-        this.ticketsToDelete = null;
-        
-        // Recharger la liste
-        this.loadTickets();
-      })
-    ).subscribe({
-      error: (err) => {
-        console.error('❌ Erreur fatale:', err);
-        this.deletingSelected = false;
-        this.showAlert('error', 'Erreur', 'Une erreur inattendue est survenue.');
-      }
-    });
-  } 
-  // Cas suppression simple
-  else if (this.confirmTicket) {
-    this.ticketService.deleteTicket(this.confirmTicket.id).subscribe({
-      next: (response) => {
-        if (response.isSuccess) {
-          this.showAlert(
-            'success',
-            'Ticket supprimé',
-            `Le ticket "${this.confirmTicket!.titreTicket}" a été supprimé.`
-          );
+      forkJoin(deleteObservables).pipe(
+        finalize(() => {
+          this.deletingSelected = false;
           
-          // Retirer des sélections si présent
-          this.selectedTickets = this.selectedTickets.filter(id => id !== this.confirmTicket!.id);
-          this.confirmTicket = null;
+          // Afficher le résultat
+          if (successCount === this.ticketsToDelete!.length) {
+            this.showAlert(
+              'success',
+              'Succès',
+              `${successCount} ticket(s) supprimé(s) avec succès.`
+            );
+          } else if (successCount > 0) {
+            this.showAlert(
+              'warning',
+              'Suppression partielle',
+              `${successCount} ticket(s) supprimé(s), ${errorCount} échec(s).`
+            );
+          } else {
+            this.showAlert(
+              'error',
+              'Échec',
+              `Impossible de supprimer les tickets sélectionnés.`
+            );
+          }
+          
+          this.selectedTickets = [];
+          this.ticketsToDelete = null;
           this.loadTickets();
-        } else {
+        })
+      ).subscribe({
+        error: (err) => {
+          console.error('❌ Erreur fatale:', err);
+          this.deletingSelected = false;
+          this.showAlert('error', 'Erreur', 'Une erreur inattendue est survenue.');
+        }
+      });
+    } 
+    // Cas suppression simple
+    else if (this.confirmTicket) {
+      this.ticketService.deleteTicket(this.confirmTicket.id).subscribe({
+        next: (response) => {
+          if (response.isSuccess) {
+            this.showAlert(
+              'success',
+              'Ticket supprimé',
+              `Le ticket "${this.confirmTicket!.titreTicket}" a été supprimé.`
+            );
+            
+            this.selectedTickets = this.selectedTickets.filter(id => id !== this.confirmTicket!.id);
+            this.confirmTicket = null;
+            this.loadTickets();
+          } else {
+            this.showAlert(
+              'error',
+              'Erreur',
+              response.message || `Impossible de supprimer le ticket "${this.confirmTicket!.titreTicket}".`
+            );
+            this.confirmTicket = null;
+          }
+        },
+        error: (err) => {
+          console.error('❌ Erreur:', err);
+          const errorMessage = err.error?.message || err.message || 'Erreur inconnue';
           this.showAlert(
             'error',
             'Erreur',
-            response.message || `Impossible de supprimer le ticket "${this.confirmTicket!.titreTicket}".`
+            `Impossible de supprimer le ticket: ${errorMessage}`
           );
           this.confirmTicket = null;
         }
-      },
-      error: (err) => {
-        console.error('❌ Erreur:', err);
-        const errorMessage = err.error?.message || err.message || 'Erreur inconnue';
-        this.showAlert(
-          'error',
-          'Erreur',
-          `Impossible de supprimer le ticket: ${errorMessage}`
-        );
-        this.confirmTicket = null;
-      }
-    });
+      });
+    }
   }
-}
+
   cancelDelete() {
     this.confirmTicket = null;
     this.ticketsToDelete = null;

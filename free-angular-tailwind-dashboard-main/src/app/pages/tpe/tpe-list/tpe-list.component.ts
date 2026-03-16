@@ -6,11 +6,12 @@ import { TPEService } from '../../../shared/services/tpe.service';
 import { UserService } from '../../../shared/services/user.service';
 import { BadgeColor, BadgeComponent } from '../../../shared/components/ui/badge/badge.component';
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
+import { AvatarTextComponent } from '../../../shared/components/ui/avatar/avatar-text.component';
 
 @Component({
   selector: 'app-tpe-list',
   standalone: true,
-  imports: [ButtonComponent, CommonModule, RouterModule, BadgeComponent, AlertComponent],
+  imports: [ButtonComponent, CommonModule, AvatarTextComponent,RouterModule, BadgeComponent, AlertComponent],
   templateUrl: './tpe-list.component.html',
 })
 export class TpeListComponent implements OnInit {

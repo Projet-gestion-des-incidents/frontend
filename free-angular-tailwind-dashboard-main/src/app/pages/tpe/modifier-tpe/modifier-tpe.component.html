@@ -1,78 +1,119 @@
-<div class="max-w-xl mx-auto bg-white p-6 rounded-xl shadow">
-  <div class="mb-6">
-
-    <h1 class="text-2xl font-semibold text-gray-800 dark:text-white/90">
-Modifier TPE
-    </h1>
-    <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-      Modifiez les informations du TPE
-    </p>
+<div class="max-w-2xl mx-auto p-6">
+  
+  <!-- En-tête avec bouton retour -->
+  <div class="flex items-center justify-between mb-8">
+    <div class="flex items-center gap-3">
+      <div class="p-3 rounded-xl bg-brand-50 dark:bg-brand-500/10">
+        <svg class="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+        </svg>
       </div>
-
-<form [formGroup]="form" (ngSubmit)="submit()" class="space-y-4">
-
-<div>
-<label class="block text-sm font-medium mb-1">
-Numéro de série
-</label>
-
-<input
-type="text"
-formControlName="numSerie"
-maxlength="6"
-class="w-full border rounded-lg px-3 py-2"
-/>
-
-</div>
-
-<div>
-<label class="block text-sm font-medium mb-1">
-Modèle
-</label>
-
-<select formControlName="modele" class="w-full border rounded-lg px-3 py-2">
-
-
-<option *ngFor="let m of modeleOptions" [value]="m.value">
-  {{ m.label }}
-</option>
-
-</select>
-</div>
-
-<div>
-<label class="block text-sm font-medium mb-1">
-Commerçant
-</label>
-
-<select formControlName="commercantId" class="w-full border rounded-lg px-3 py-2">
-
-
-<option *ngFor="let c of commercants" [value]="c.id">
-{{ c.nom }} {{ c.prenom }}
-</option>
-
-</select>
-
-</div>
-  <div class="flex justify-end gap-3">
-
-    <button
-      type="button"
-      (click)="cancel()"
-      class="px-6 py-2.5 text-theme-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200"
-    >
-      Annuler
-    </button>
-<button
-type="submit"
-      class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed"
-    >
-      <span *ngIf="loading" class="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></span>
-      {{ loading ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white/90">
+          Modifier TPE
+        </h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Modifiez les informations du terminal de paiement
+        </p>
+      </div>
+    </div>
+    <button 
+      (click)="cancel()" 
+      class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-all duration-200 hover:gap-3 group">
+      <svg class="w-5 h-5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+      </svg>
+      Retour
     </button>
   </div>
 
-</form>
+  <!-- Message d'erreur 
+  <div *ngIf="error" 
+       class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20 animate-shake">
+    <div class="flex items-center gap-3 text-red-600 dark:text-red-400">
+      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <span class="text-sm font-medium">{{ error }}</span>
+    </div>
+  </div>-->
 
+  <form [formGroup]="form" (ngSubmit)="submit()" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm hover:shadow-md transition-shadow">
+
+
+    <div class="space-y-5">
+      <!-- Numéro de série -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+          Numéro de série <span class="text-error-500">*</span>
+        </label>
+        <input
+          type="text"
+          formControlName="numSerie"
+          maxlength="6"
+          placeholder="Ex: 123456"
+          class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 transition-colors"
+        />
+        <small *ngIf="form.get('numSerie')?.invalid && form.get('numSerie')?.touched"
+               class="text-red-500 mt-1 block">
+          Le numéro de série est obligatoire (6 caractères)
+        </small>
+      </div>
+
+      <!-- Modèle -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+          Modèle <span class="text-error-500">*</span>
+        </label>
+        <select formControlName="modele" 
+                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 transition-colors">
+          <option value="" disabled selected>-- Choisir un modèle --</option>
+          <option *ngFor="let m of modeleOptions" [value]="m.value">{{ m.label }}</option>
+        </select>
+        <small *ngIf="form.get('modele')?.invalid && form.get('modele')?.touched"
+               class="text-red-500 mt-1 block">
+          Le modèle est obligatoire
+        </small>
+      </div>
+
+      <!-- Commerçant -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+          Commerçant <span class="text-error-500">*</span>
+        </label>
+        <select formControlName="commercantId" 
+                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 transition-colors">
+          <option value="" disabled selected>-- Sélectionner un commerçant --</option>
+          <option *ngFor="let c of commercants" [value]="c.id">{{ c.nom }} {{ c.prenom }}</option>
+        </select>
+        <small *ngIf="form.get('commercantId')?.invalid && form.get('commercantId')?.touched"
+               class="text-red-500 mt-1 block">
+          Le commerçant est obligatoire
+        </small>
+      </div>
+    </div>
+
+    <!-- Boutons d'action -->
+    <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <button
+        type="button"
+        (click)="cancel()"
+        class="px-6 py-2.5 text-theme-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
+      >
+        Annuler
+      </button>
+      <button
+        type="submit"
+        [disabled]="loading || form.invalid"
+        class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg"
+      >
+        <span *ngIf="loading" class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+        <span>{{ loading ? 'Enregistrement...' : 'Enregistrer les modifications' }}</span>
+        <svg *ngIf="!loading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </button>
+    </div>
+
+  </form>
 </div>
