@@ -320,15 +320,17 @@ submit() {
   });
 }
 
+// Dans ticket-form.component.ts
+
 private handleCommentaire(ticketId: string): Observable<any> {
   const commentaireFormData = new FormData();
   commentaireFormData.append('Message', this.ticketForm.value.commentaireInitial || '');
   commentaireFormData.append('EstInterne', String(this.ticketForm.value.commentaireInterne));
 
-  // Ajouter les fichiers
+  // ✅ CORRECTION : Utiliser "fichiers" comme nom de champ (pluriel)
   if (this.files?.length) {
     this.files.forEach(file => {
-      commentaireFormData.append('piecesJointes', file, file.name);
+      commentaireFormData.append('fichiers', file, file.name); // ← "fichiers" au lieu de "piecesJointes"
     });
   }
 

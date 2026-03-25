@@ -32,7 +32,166 @@ Modifiez cet incident en remplissant le formulaire ci-dessous
       Retour
     </button>
   </div>
+<!-- MODALE DE CONFIRMATION POUR SUPPRESSION D'ENTITÉ -->
+<div *ngIf="showDeleteEntiteModal" 
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+     (click)="fermerModalEntite()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl"
+       (click)="$event.stopPropagation()">
+    
+    <!-- Icône de confirmation -->
+    <div class="flex justify-center mb-4">
+      <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+        </svg>
+      </div>
+    </div>
+    
+    <!-- Titre -->
+    <h3 class="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">
+      Confirmer la suppression
+    </h3>
+    
+    <!-- Message -->
+    <p class="text-center text-gray-600 dark:text-gray-400 mb-6">
+      Êtes-vous sûr de vouloir supprimer l'entité 
+      <span class="font-semibold text-gray-900 dark:text-white">
+        "{{ entiteToDelete?.label }}"
+      </span> ?
+    </p>
+    
+    <!-- Boutons -->
+    <div class="flex gap-3">
+      <button 
+        (click)="fermerModalEntite()"
+        class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors">
+        Annuler
+      </button>
+      <button 
+        (click)="confirmerSuppressionEntite()"
+        class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
+        Supprimer
+      </button>
+    </div>
+  </div>
+</div>
 
+<!-- MODALE DE CONFIRMATION POUR SUPPRESSION DE TPE -->
+<div *ngIf="showDeleteTpeModal" 
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+     (click)="fermerModalTpe()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl"
+       (click)="$event.stopPropagation()">
+    
+    <!-- Icône de confirmation -->
+    <div class="flex justify-center mb-4">
+      <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+        </svg>
+      </div>
+    </div>
+    
+    <!-- Titre -->
+    <h3 class="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">
+      Confirmer le retrait
+    </h3>
+    
+    <!-- Message -->
+    <p class="text-center text-gray-600 dark:text-gray-400 mb-6">
+      Êtes-vous sûr de vouloir retirer le TPE 
+      <span class="font-semibold text-gray-900 dark:text-white">
+        "{{ tpeToDelete?.label }}"
+      </span> de cet incident ?
+    </p>
+    
+    <!-- Boutons -->
+    <div class="flex gap-3">
+      <button 
+        (click)="fermerModalTpe()"
+        class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors">
+        Annuler
+      </button>
+      <button 
+        (click)="confirmerSuppressionTpe()"
+        class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
+        Retirer
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- MODALE DE SUCCÈS (optionnelle) -->
+<div *ngIf="showSuccessModal" 
+     class="fixed top-4 right-4 z-50 animate-slide-in-right">
+  <div class="bg-white dark:bg-gray-800 rounded-xl shadow-lg border-l-4 border-green-500 overflow-hidden">
+    <div class="flex items-center p-4">
+      <div class="flex-shrink-0 mr-3">
+        <div class="w-8 h-8 rounded-full bg-green-100 dark:bg-green-900/20 flex items-center justify-center">
+          <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="flex-1">
+        <p class="text-sm font-medium text-gray-900 dark:text-white">{{ successMessage }}</p>
+      </div>
+      <button (click)="showSuccessModal = false" class="ml-4 text-gray-400 hover:text-gray-600">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- MODALE DE CONFIRMATION POUR SUPPRESSION DE PIÈCE JOINTE -->
+<div *ngIf="showDeletePieceModal" 
+     class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4"
+     (click)="fermerModalPiece()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl"
+       (click)="$event.stopPropagation()">
+    
+    <!-- Icône de confirmation -->
+    <div class="flex justify-center mb-4">
+      <div class="w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/20 flex items-center justify-center">
+        <svg class="w-8 h-8 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+        </svg>
+      </div>
+    </div>
+    
+    <!-- Titre -->
+    <h3 class="text-xl font-bold text-center text-gray-900 dark:text-white mb-2">
+      Confirmer la suppression
+    </h3>
+    
+    <!-- Message -->
+    <p class="text-center text-gray-600 dark:text-gray-400 mb-6">
+      Êtes-vous sûr de vouloir supprimer le fichier 
+      <span class="font-semibold text-gray-900 dark:text-white">
+        "{{ pieceToDelete?.nom }}"
+      </span> ?
+    </p>
+    
+    <!-- Boutons -->
+    <div class="flex gap-3">
+      <button 
+        (click)="fermerModalPiece()"
+        class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors">
+        Annuler
+      </button>
+      <button 
+        (click)="confirmerSuppressionPiece()"
+        class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors">
+        Supprimer
+      </button>
+    </div>
+  </div>
+</div>
   <!-- Message d'erreur -->
   <div *ngIf="error" class="rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20 animate-shake">
     <div class="flex items-center gap-3 text-red-600 dark:text-red-400">
@@ -506,11 +665,9 @@ Modifiez cet incident en remplissant le formulaire ci-dessous
       Pièces jointes
     </h3>
     <span class="ml-2 text-sm font-normal text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
-      {{ (incident.piecesJointes?.length || 0) + selectedFiles.length }}
+      {{ piecesJointesExistantes.length + selectedFiles.length }}
     </span>
   </div>
-
-  
 
   <!-- Message d'information -->
   <div class="mb-4 text-sm text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-100 dark:border-blue-800">
@@ -521,6 +678,55 @@ Modifiez cet incident en remplissant le formulaire ci-dessous
       <span>Ajoutez des captures d'écran, des documents ou tout autre fichier pertinent (max 10 fichiers, 10MB par fichier)</span>
     </div>
   </div>
+
+ <!-- Pièces jointes existantes -->
+<div *ngIf="piecesJointesExistantes && piecesJointesExistantes.length > 0" class="mb-6">
+  <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3 flex items-center gap-2">
+    <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+    </svg>
+    Fichiers existants ({{ piecesJointesExistantes.length }})
+  </h4>
+  <div class="space-y-2">
+    <div *ngFor="let piece of piecesJointesExistantes; let i = index" 
+         class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 group hover:shadow-sm transition-all">
+      
+      <div class="flex items-center gap-3 flex-1 min-w-0">
+        <div class="flex-shrink-0">
+          <svg *ngIf="isImage(piece.contentType)" class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+          </svg>
+          <svg *ngIf="!isImage(piece.contentType)" class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        
+        <div class="flex-1 min-w-0">
+          <a [href]="piece.url" 
+             target="_blank" 
+             class="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 dark:hover:text-brand-300 truncate block">
+            {{ piece.nomFichier }}
+          </a>
+          <p class="text-xs text-gray-500">
+            Ajouté le {{ piece.dateAjout | date:'dd/MM/yyyy HH:mm' }}
+          </p>
+        </div>
+      </div>
+      
+      <!-- Bouton de suppression - visible SEULEMENT pour l'admin -->
+      <button
+        type="button"
+        (click)="supprimerPieceJointe(piece.id, i)"
+        class="p-2 text-gray-400 hover:text-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors opacity-0 group-hover:opacity-100"
+        title="Supprimer ce fichier"
+      >
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
 
   <!-- Zone de drop/upload -->
   <div class="relative">
@@ -561,6 +767,12 @@ Modifiez cet incident en remplissant le formulaire ci-dessous
     </div>
   </div>
 
+  <!-- Indicateur d'upload -->
+  <div *ngIf="uploadingFiles" class="mt-4 flex items-center justify-center gap-2 text-sm text-brand-600">
+    <div class="animate-spin rounded-full h-4 w-4 border-2 border-brand-500 border-t-transparent"></div>
+    <span>Upload en cours...</span>
+  </div>
+
   <!-- Liste des nouveaux fichiers sélectionnés -->
   <div *ngIf="selectedFiles.length > 0" class="mt-4">
     <div class="flex items-center justify-between mb-3">
@@ -586,7 +798,6 @@ Modifiez cet incident en remplissant le formulaire ci-dessous
            class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg group hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
         
         <div class="flex items-center gap-3 flex-1 min-w-0">
-          <!-- Icône selon le type -->
           <div class="flex-shrink-0">
             <svg *ngIf="file.type.startsWith('image/')" class="w-8 h-8 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
@@ -603,7 +814,6 @@ Modifiez cet incident en remplissant le formulaire ci-dessous
             </svg>
           </div>
           
-          <!-- Infos -->
           <div class="flex-1 min-w-0">
             <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate" [title]="file.name">
               {{ file.name }}
@@ -614,7 +824,6 @@ Modifiez cet incident en remplissant le formulaire ci-dessous
           </div>
         </div>
         
-        <!-- Bouton supprimer -->
         <button 
           type="button"
           (click)="removeFile(i)"
@@ -627,7 +836,6 @@ Modifiez cet incident en remplissant le formulaire ci-dessous
       </div>
     </div>
     
-    <!-- Avertissement de limite -->
     <div *ngIf="selectedFiles.length >= maxFiles" class="mt-3 p-2 text-xs text-amber-600 bg-amber-50 dark:bg-amber-900/20 rounded-lg flex items-center gap-2">
       <svg class="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
@@ -637,7 +845,7 @@ Modifiez cet incident en remplissant le formulaire ci-dessous
   </div>
   
   <!-- Message si aucun fichier -->
-  <div *ngIf="(!incident.piecesJointes || incident.piecesJointes.length === 0) && selectedFiles.length === 0"
+  <div *ngIf="piecesJointesExistantes.length === 0 && selectedFiles.length === 0 && !uploadingFiles"
        class="mt-4 text-center py-6 text-gray-500 dark:text-gray-400 text-sm bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
     <svg class="w-10 h-10 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" 

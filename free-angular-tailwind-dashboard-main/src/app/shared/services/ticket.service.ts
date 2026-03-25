@@ -11,6 +11,7 @@ import { Incident } from '../models/incident.model';
 export class TicketService {
 
   private baseUrl = 'https://localhost:7063/api/ticket'; 
+  private incidentBaseUrl = 'https://localhost:7063/api/incident'; // Ajouter cette ligne
 
   constructor(private http: HttpClient,    private authService: AuthService
   ) { }
@@ -65,7 +66,64 @@ getIncidentsByTicket(ticketId: string): Observable<Incident[]> {
     })
   );
 }
+// Dans ticket.service.ts
 
+/**
+ * Récupère tous les commentaires d'un ticket
+ */
+getAllCommentaires(ticketId: string): Observable<CommentaireDTO[]> {
+  console.log('🔍 Récupération de tous les commentaires pour le ticket:', ticketId);
+  
+  return this.http.get<ApiResponse<CommentaireDTO[]>>(
+    `https://localhost:7063/api/commentaires?ticketId=${ticketId}`,
+    this.getAuthHeaders()
+  ).pipe(
+    map(response => response.data || []),
+    catchError(error => {
+      console.error('❌ Erreur récupération commentaires:', error);
+      return of([]);
+    })
+  );
+}
+
+/**
+ * Récupère les commentaires du technicien connecté pour un ticket spécifique
+ */
+getMesCommentaires(ticketId: string): Observable<CommentaireDTO[]> {
+  console.log('🔍 Récupération de mes commentaires pour le ticket:', ticketId);
+  
+  return this.http.get<ApiResponse<CommentaireDTO[]>>(
+    `https://localhost:7063/api/commentaires/mes-commentaires?ticketId=${ticketId}`,
+    this.getAuthHeaders()
+  ).pipe(
+    map(response => response.data || []),
+    catchError(error => {
+      console.error('❌ Erreur récupération mes commentaires:', error);
+      return of([]);
+    })
+  );
+}
+// Dans ticket.service.ts
+
+/**
+ * Supprimer un commentaire
+ */
+deleteCommentaire(commentaireId: string): Observable<ApiResponse<boolean>> {
+  console.log('🗑️ Suppression du commentaire:', commentaireId);
+  
+  return this.http.delete<ApiResponse<boolean>>(
+    `https://localhost:7063/api/commentaires/${commentaireId}`,
+    this.getAuthHeaders()
+  ).pipe(
+    tap(response => {
+      console.log('📥 Réponse suppression commentaire:', response);
+    }),
+    catchError(error => {
+      console.error('❌ Erreur suppression commentaire:', error);
+      return throwError(() => error);
+    })
+  );
+}
 // Dans ticket.service.ts
 addCommentaire(ticketId: string, formData: FormData) {
   console.log('📤 ENVOI COMMENTAIRE - Début');
@@ -104,11 +162,35 @@ addCommentaire(ticketId: string, formData: FormData) {
     })
   );
 }
-updateCommentaire(commentaireId: string, formData: FormData) {
-  return this.http.put(
+// Dans ticket.service.ts
+
+/**
+ * Mettre à jour un commentaire avec ses pièces jointes
+ */
+updateCommentaire(commentaireId: string, formData: FormData): Observable<ApiResponse<CommentaireDTO>> {
+  console.log('📤 updateCommentaire - ID:', commentaireId);
+  console.log('📤 FormData entries:');
+  formData.forEach((value, key) => {
+    if (value instanceof File) {
+      console.log(`  - ${key}: ${value.name} (${value.size} bytes)`);
+    } else {
+      console.log(`  - ${key}: ${value}`);
+    }
+  });
+  
+  return this.http.put<ApiResponse<CommentaireDTO>>(
     `https://localhost:7063/api/commentaires/${commentaireId}`,
     formData,
-    this.getAuthHeaders1(true)
+    this.getAuthHeaders1(true) // true = isFormData
+  ).pipe(
+    tap(response => {
+      console.log('✅ Réponse updateCommentaire:', response);
+    }),
+    catchError(error => {
+      console.error('❌ Erreur updateCommentaire:', error);
+      console.error('❌ Détails:', error.error);
+      return throwError(() => error);
+    })
   );
 }
   updateTicket(id: string, formData: FormData): Observable<ApiResponse<UpdateTicketResponseDTO>> {
@@ -140,6 +222,23 @@ lierIncidents(ticketId: string, incidentIds: string[]): Observable<ApiResponse<a
     `${this.baseUrl}/${ticketId}/lier-incidents`,
     incidentIds, // ← Envoyer directement le tableau
     this.getAuthHeaders() // Utiliser getAuthHeaders() qui a Content-Type: application/json
+  );
+}
+delierIncident(ticketId: string, incidentId: string): Observable<ApiResponse<boolean>> {
+  console.log('🗑️ Suppression liaison - Ticket:', ticketId, 'Incident:', incidentId);
+  
+  return this.http.delete<ApiResponse<boolean>>(
+    `${this.baseUrl}/${ticketId}/incidents/${incidentId}`,
+    
+    this.getAuthHeaders()
+  ).pipe(
+    tap(response => {
+      console.log('📥 Réponse suppression liaison:', response);
+    }),
+    catchError(error => {
+      console.error('❌ Erreur suppression liaison:', error);
+      return throwError(() => error);
+    })
   );
 }
   /** Supprimer un ticket */
@@ -182,11 +281,22 @@ getTicketsPaged(request: any) {
       this.getAuthHeaders1(true) // true = isFormData
     );
   }
-  technicianUpdateTicket(id: string, dto: TechnicianUpdateTicketDTO): Observable<ApiResponse<UpdateTicketResponseDTO>> {
-    return this.http.put<ApiResponse<UpdateTicketResponseDTO>>(
-      `${this.baseUrl}/${id}/technician-update`,
-      dto,
+ 
+  resoudreIncident(incidentId: string): Observable<ApiResponse<boolean>> {
+    console.log('🔧 Résolution de l\'incident:', incidentId);
+    
+    return this.http.put<ApiResponse<boolean>>(
+      `${this.incidentBaseUrl}/${incidentId}/resoudre`,
+      {}, // Body vide
       this.getAuthHeaders()
+    ).pipe(
+      tap(response => {
+        console.log('📥 Réponse résolution incident:', response);
+      }),
+      catchError(error => {
+        console.error('❌ Erreur résolution incident:', error);
+        return throwError(() => error);
+      })
     );
   }
 
@@ -201,15 +311,5 @@ getTicketsPaged(request: any) {
     );
   }
 
-  /**
-   * 🔹 Mettre à jour uniquement le statut d'un ticket
-   */
-  updateStatut(ticketId: string, statutTicket: number): Observable<ApiResponse<TicketDTO>> {
-    const dto = { statutTicket };
-    return this.http.put<ApiResponse<TicketDTO>>(
-      `${this.baseUrl}/${ticketId}/statut`,
-      dto,
-      this.getAuthHeaders()
-    );
-  }
+
 }

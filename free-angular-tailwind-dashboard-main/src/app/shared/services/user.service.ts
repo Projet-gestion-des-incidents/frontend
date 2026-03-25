@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { map, Observable, switchMap, tap } from 'rxjs';
+import { catchError, map, Observable, of, switchMap, tap } from 'rxjs';
 import { AuthService } from './auth.service';
 import { User } from '../models/User.model';
 import { PagedResponse } from '../models/PagedResponse.model';
@@ -272,10 +272,44 @@ private determineStatut(user: any): 'Actif' | 'Inactif' {
   );
 }
 // Dans user.service.ts
+
 getTechniciens(): Observable<User[]> {
-  return this.http.get<any>(`${this.apiUrl}/roles`, this.getAuthHeaders())
+  console.log('🔍 Récupération des techniciens...');
+  
+  return this.http.get<any>(`${this.apiUrl}/techniciens`, this.getAuthHeaders())
     .pipe(
-      map(res => res.data.filter((u: any) => u.role === 'Technicien'))
+      tap(response => {
+        console.log('📦 Réponse API techniciens:', response);
+      }),
+      map(response => {
+        // Le backend renvoie ApiResponse avec data
+        if (response?.data && Array.isArray(response.data)) {
+          return response.data.map((user: any) => ({
+            id: user.id,
+            nom: user.nom,
+            prenom: user.prenom,
+            email: user.email,
+            role: user.role,
+            image: this.getFullImageUrl(user.image)
+          }));
+        }
+        // Si c'est un tableau direct
+        if (Array.isArray(response)) {
+          return response.map((user: any) => ({
+            id: user.id,
+            nom: user.nom,
+            prenom: user.prenom,
+            email: user.email,
+            role: user.role,
+            image: this.getFullImageUrl(user.image)
+          }));
+        }
+        return [];
+      }),
+      catchError(error => {
+        console.error('❌ Erreur récupération techniciens:', error);
+        return of([]);
+      })
     );
 }
 updateMyProfile(data: any): Observable<User> {

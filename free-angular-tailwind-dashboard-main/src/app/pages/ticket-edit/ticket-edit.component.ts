@@ -31,6 +31,7 @@ import { catchError, map } from 'rxjs/operators';
 export class TicketEditComponent implements OnInit {
   // Fichiers
   piecesASupprimer: string[] = [];
+    piecesASupprimerBackup: string[] = []; // Backup pour persistance
   nouveauxFichiers: File[] = [];
   piecesExistantes: any[] = [];
   
@@ -55,18 +56,22 @@ export class TicketEditComponent implements OnInit {
   incidents: any[] = [];
   incidentsLies: any[] = [];
   incidentsSelectionnes: string[] = [];
+  deletingIncidentId: string | null = null;
+
+  // État de résolution
+  resolvingIncidentId: string | null = null;
 
   // Statuts disponibles
   statuts: any[] = [];
   statutsAdmin = [
     { label: 'Assigné', value: 'Assigné' },
     { label: 'En cours', value: 'EnCours' },
-    { label: 'Résolu', value: 'Résolu' }
+    { label: 'Résolu', value: 'Resolu' }
   ];
   
   statutsTechnicien = [
     { label: 'En cours', value: 'EnCours' },
-    { label: 'Résolu', value: 'Résolu' }
+    { label: 'Résolu', value: 'Resolu' }
   ];
 
   // Propriétés pour la gestion des fichiers
@@ -127,28 +132,161 @@ export class TicketEditComponent implements OnInit {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
+
+/**
+ * Vérifie si l'utilisateur peut supprimer un fichier
+ * - Admin: peut supprimer tous les fichiers de tous les commentaires
+ * - Technicien: ne peut supprimer que les fichiers de SES PROPRES commentaires
+ */
+canDeleteFile(commentaire: any, piece: any): boolean {
+  if (!commentaire) return false;
+  
+  // Admin peut tout supprimer
+  if (this.isAdmin) return true;
+  
+  // Technicien ne peut supprimer que ses propres fichiers
+  if (this.isTechnicien && commentaire.auteurId === this.userId) return true;
+  
+  return false;
+}
+
+/**
+ * Vérifie si l'utilisateur peut modifier le commentaire
+ * - Admin: peut modifier ses propres commentaires
+ * - Technicien: ne peut modifier que ses propres commentaires
+ */
+canEditComment(commentaire: any): boolean {
+  if (!commentaire) return false;
+  
+  // Admin ne modifie que ses propres commentaires
+  if (this.isAdmin && commentaire.auteurId === this.userId) return true;
+  
+  // Technicien ne modifie que ses propres commentaires
+  if (this.isTechnicien && commentaire.auteurId === this.userId) return true;
+  
+  return false;
+}
+/**
+ * Récupère les commentaires visibles selon le rôle
+ */
+getCommentairesVisibles(): any[] {
+  if (!this.tousLesCommentaires) return [];
+  
+  return this.tousLesCommentaires.filter(comment => this.isCommentVisible(comment));
+}
+getTechnicienComment(): any {
+  if (!this.tousLesCommentaires || this.tousLesCommentaires.length === 0) {
+    return null;
+  }
+  
+  // Pour admin, retourner son propre commentaire
+  if (this.isAdmin) {
+    return this.tousLesCommentaires.find((c: any) => c.auteurId === this.userId) || null;
+  }
+  
+  // Pour technicien, trouver son commentaire
+  return this.tousLesCommentaires.find((comment: any) => comment.auteurId === this.userId);
+}
+// Dans ticket-edit.component.ts
+
+/**
+ * Trouve le commentaire contenant une pièce jointe spécifique
+ */
+getCommentContainingPiece(piece: any): any {
+  // Utiliser tousLesCommentaires au lieu de ticket.commentaires
+  if (!this.tousLesCommentaires || this.tousLesCommentaires.length === 0) {
+    return null;
+  }
+  
+  // Chercher dans tous les commentaires
+  return this.tousLesCommentaires.find((comment: any) => 
+    comment.piecesJointes && comment.piecesJointes.some((p: any) => p.id === piece.id)
+  );
+}
   /**
-   * Vérifie si l'utilisateur peut modifier le commentaire
-   * Le technicien ne peut modifier que ses propres commentaires
+   * Vérifie si le technicien peut résoudre un incident
    */
-  canEditComment(commentaire: any): boolean {
-    if (this.isAdmin) return true;
-    if (this.isTechnicien && commentaire.auteurId === this.userId) return true;
+/**
+ * Vérifie si le technicien peut résoudre un incident
+ */
+canResolveIncident(incident: any): boolean {
+  if (!this.isTechnicien) return false;
+  
+  // Convertir en string et en minuscules pour la comparaison
+  const statut = String(incident.statutIncident).toLowerCase();
+  
+  // Ne pas résoudre si déjà résolu
+  if (statut.includes('résolu') || statut.includes('resolu') || statut.includes('ferme')) {
     return false;
+  }
+  
+  // Résoluble seulement si en cours
+  return statut.includes('encours') || statut.includes('en cours');
+}
+  /**
+   * Résoudre un incident
+   */
+  resoudreIncident(incidentId: string): void {
+    if (!this.isTechnicien) {
+      this.showError('Seuls les techniciens peuvent résoudre des incidents');
+      return;
+    }
+
+    if (!confirm('Voulez-vous marquer cet incident comme résolu ?')) {
+      return;
+    }
+
+    this.resolvingIncidentId = incidentId;
+
+    this.ticketService.resoudreIncident(incidentId).subscribe({
+      next: (response) => {
+        if (response.isSuccess) {
+          // Recharger les incidents pour voir le nouveau statut
+          this.reloadIncidents();
+          this.showSuccess('Incident résolu avec succès');
+          
+          // Mettre à jour le statut du ticket dans l'interface
+          // (Le backend le fera automatiquement si tous les incidents sont résolus)
+        } else {
+          this.showError(response.message || 'Erreur lors de la résolution');
+        }
+        this.resolvingIncidentId = null;
+      },
+      error: (err) => {
+        console.error('❌ Erreur:', err);
+        this.showError(err.error?.message || 'Erreur lors de la résolution');
+        this.resolvingIncidentId = null;
+      }
+    });
   }
 
   /**
-   * Vérifie si l'utilisateur peut supprimer un fichier
+   * Recharger seulement les incidents
    */
-  canDeleteFile(commentaire: any, piece: any): boolean {
-    if (this.isAdmin) return true;
-    if (this.isTechnicien && commentaire.auteurId === this.userId) return true;
-    return false;
+  reloadIncidents(): void {
+    this.ticketService.getIncidentsByTicket(this.ticketId).subscribe({
+      next: (incidents) => {
+        this.incidentsLies = incidents;
+        this.incidentsSelectionnes = incidents.map((i: any) => i.id);
+      },
+      error: (err) => {
+        console.error('Erreur rechargement incidents:', err);
+      }
+    });
   }
 
-  loadTechniciens(): void {
-    this.userService.getTechniciens().subscribe({
-      next: (users) => {
+// Dans ticket-edit.component.ts
+
+// Dans ticket-edit.component.ts
+
+loadTechniciens(): void {
+  console.log('🔍 Chargement des techniciens...');
+  
+  this.userService.getTechniciens().subscribe({
+    next: (users) => {
+      console.log('✅ Techniciens reçus:', users);
+      
+      if (users && users.length > 0) {
         this.techniciens = users.map(u => ({
           id: u.id,
           nom: u.nom,
@@ -160,15 +298,25 @@ export class TicketEditComponent implements OnInit {
           label: `${t.nom} ${t.prenom}`
         }));
         
-        console.log('Techniciens chargés:', this.techniciens);
-      },
-      error: (err) => {
-        console.error('Erreur chargement techniciens:', err);
-        // Ne pas bloquer l'interface, juste logger
+        console.log('📋 Techniciens chargés:', this.techniciens.length);
+        console.log('📋 Options:', this.technicienOptions);
+      } else {
+        console.warn('⚠️ Aucun technicien trouvé');
         this.technicienOptions = [];
+        
+        // Message d'information pour l'utilisateur
+        if (this.isAdmin) {
+          this.showError('Aucun technicien disponible. Veuillez en créer un d\'abord.');
+        }
       }
-    });
-  }
+    },
+    error: (err) => {
+      console.error('❌ Erreur chargement techniciens:', err);
+      this.technicienOptions = [];
+      this.showError('Impossible de charger la liste des techniciens');
+    }
+  });
+}
 
   // Méthodes pour le drag & drop
   onDragOver(event: DragEvent): void {
@@ -200,32 +348,7 @@ export class TicketEditComponent implements OnInit {
     }
   }
 
-  removeFile(index: number): void {
-    this.selectedFiles.splice(index, 1);
-    this.nouveauxFichiers.splice(index, 1);
-  }
 
-  clearAllFiles(): void {
-    this.selectedFiles = [];
-    this.nouveauxFichiers = [];
-  }
-
-  private handleFiles(files: File[]): void {
-    const validFiles = files.filter(file => {
-      if (file.size > 10 * 1024 * 1024) {
-        console.warn(`Fichier ${file.name} trop volumineux (max 10MB)`);
-        return false;
-      }
-      return true;
-    });
-
-    if (validFiles.length !== files.length) {
-      alert('Certains fichiers dépassent la limite de 10MB et ont été ignorés');
-    }
-
-    this.nouveauxFichiers = [...this.nouveauxFichiers, ...validFiles];
-    this.selectedFiles = [...this.nouveauxFichiers];
-  }
 
   formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
@@ -247,72 +370,327 @@ export class TicketEditComponent implements OnInit {
     if (!this.isAdmin) return; // Seul l'admin peut tout désélectionner
     this.incidentsSelectionnes = [];
   }
+incidentsDisponibles: any[] = []; // Incidents qui peuvent être liés (non traités)
 
-  loadData(): void {
-    this.loading = true;
-    this.loadingIncidents = true;
+// Dans loadData(), après avoir chargé le ticket
+// Dans ticket-edit.component.ts - loadData()
+  tousLesCommentaires: any[] = [];  // Pour la consultation (tous les commentaires)
+  monCommentaire: any = null;  
+loadData(): void {
+  this.loading = true;
+  this.loadingIncidents = true;
 
-    forkJoin({
-      ticketDetails: this.ticketService.getTicketDetails(this.ticketId),
-      incidents: this.incidentService.getAllIncidents().pipe(
-        catchError(err => {
-          console.error('Erreur chargement incidents:', err);
-          return of([]);
-        })
-      ),
-      incidentsLies: this.ticketService.getIncidentsByTicket(this.ticketId).pipe(
-        catchError(err => {
-          console.error('Erreur chargement incidents liés:', err);
-          return of([]);
-        })
-      )
-    }).pipe(
-      finalize(() => {
-        this.loading = false;
-        this.loadingIncidents = false;
+  forkJoin({
+    ticketDetails: this.ticketService.getTicketDetails(this.ticketId),
+    allIncidents: this.incidentService.getAllIncidents().pipe(
+      catchError(err => {
+        console.error('Erreur chargement incidents:', err);
+        return of([]);
       })
-    ).subscribe({
-      next: (results) => {
-        if (results.ticketDetails.isSuccess && results.ticketDetails.data) {
-          this.ticket = results.ticketDetails.data;
-
-          this.incidentsLies = results.incidentsLies;
-          this.incidentsSelectionnes = this.incidentsLies.map((i: any) => i.id);
-
-          // Initialiser les commentaires
-          if (this.ticket.commentaires && this.ticket.commentaires.length > 0) {
-            // Pour l'édition, on garde le premier commentaire comme commentaire principal
-            this.ticket.commentaireMessage = this.ticket.commentaires[0].message;
-            this.ticket.commentaireInterne = this.ticket.commentaires[0].estInterne;
-            this.ticket.commentaireId = this.ticket.commentaires[0].id;
-            this.ticket.commentaireAuteurId = this.ticket.commentaires[0].auteurId;
-            this.piecesExistantes = this.ticket.commentaires[0].piecesJointes || [];
+    ),
+    incidentsLies: this.ticketService.getIncidentsByTicket(this.ticketId).pipe(
+      catchError(err => {
+        console.error('Erreur chargement incidents liés:', err);
+        return of([]);
+      })
+    ),
+    tousLesCommentaires: this.ticketService.getAllCommentaires(this.ticketId).pipe(
+      catchError(err => {
+        console.error('Erreur chargement commentaires:', err);
+        return of([]);
+      })
+    ),
+    mesCommentaires: this.isTechnicien 
+      ? this.ticketService.getMesCommentaires(this.ticketId).pipe(
+          catchError(err => {
+            console.error('Erreur chargement mes commentaires:', err);
+            return of([]);
+          })
+        )
+      : of([])
+  }).pipe(
+    finalize(() => {
+      this.loading = false;
+      this.loadingIncidents = false;
+    })
+  ).subscribe({
+    next: (results) => {
+      if (results.ticketDetails.isSuccess && results.ticketDetails.data) {
+        this.ticket = results.ticketDetails.data;
+        
+        // ✅ Stocker tous les commentaires pour consultation
+        this.tousLesCommentaires = results.tousLesCommentaires;
+        
+        // ✅ TRAITEMENT POUR ADMIN
+        if (this.isAdmin) {
+          this.monCommentaire = results.tousLesCommentaires.find((c: any) => c.auteurId === this.userId) || null;
+          
+          if (this.monCommentaire) {
+            this.ticket.commentaireMessage = this.monCommentaire.message;
+            this.ticket.commentaireInterne = this.monCommentaire.estInterne;
+            this.ticket.commentaireId = this.monCommentaire.id;
+            this.ticket.originalMessage = this.monCommentaire.message;
+            this.piecesExistantes = this.monCommentaire.piecesJointes || [];
           } else {
             this.ticket.commentaireMessage = '';
             this.ticket.commentaireInterne = false;
             this.ticket.commentaireId = null;
-            this.ticket.commentaireAuteurId = null;
             this.piecesExistantes = [];
+            this.ticket.originalMessage = '';
           }
-        } else {
-          this.error = 'Ticket introuvable';
+        }
+        
+        // ✅ CORRECTION: TRAITEMENT POUR TECHNICIEN
+        if (this.isTechnicien) {
+          // Chercher son propre commentaire dans tous les commentaires
+          this.monCommentaire = results.tousLesCommentaires.find((c: any) => c.auteurId === this.userId) || null;
+          
+          console.log('🔍 Technicien - monCommentaire trouvé:', this.monCommentaire ? 'OUI' : 'NON');
+          console.log('🔍 Technicien - userId:', this.userId);
+          console.log('🔍 Technicien - Tous les commentaires:', results.tousLesCommentaires);
+          
+          if (this.monCommentaire) {
+            // Le technicien a déjà un commentaire, on le charge pour édition
+            this.ticket.commentaireMessage = this.monCommentaire.message;
+            this.ticket.commentaireInterne = this.monCommentaire.estInterne;
+            this.ticket.commentaireId = this.monCommentaire.id;
+            this.ticket.originalMessage = this.monCommentaire.message;
+            this.piecesExistantes = this.monCommentaire.piecesJointes || [];
+          } else {
+            // Le technicien n'a pas encore de commentaire
+            this.ticket.commentaireMessage = '';
+            this.ticket.commentaireInterne = false;
+            this.ticket.commentaireId = null;
+            this.piecesExistantes = [];
+            this.ticket.originalMessage = '';
+          }
         }
 
-        this.incidents = results.incidents;
-        console.log('✅ Incidents chargés:', this.incidents);
-        console.log('✅ Incidents liés:', this.incidentsLies);
-      },
-      error: (err) => {
-        console.error('❌ Erreur:', err);
-        this.error = 'Erreur lors du chargement des données';
+        this.incidentsLies = results.incidentsLies;
+        this.incidentsSelectionnes = this.incidentsLies.map((i: any) => i.id);
+
+        const tousLesIncidents = results.allIncidents;
+        this.incidents = tousLesIncidents.filter((incident: any) => {
+          return this.estIncidentDisponible(incident);
+        });
+      } else {
+        this.error = 'Ticket introuvable';
       }
+    },
+    error: (err) => {
+      console.error('❌ Erreur:', err);
+      this.error = 'Erreur lors du chargement des données';
+    }
+  });
+}
+// Dans ticket-edit.component.ts
+  commentaireEnEdition: { id: string, message: string, estInterne: boolean } | null = null;
+// Dans ticket-edit.component.ts
+
+/**
+ * Activer le mode édition pour un commentaire
+ */
+// Dans ticket-edit.component.ts
+
+activerEdition(commentaire: any): void {
+  // Vérifier les permissions
+  if (!this.canEditComment(commentaire)) {
+    this.showError('Vous ne pouvez pas modifier ce commentaire');
+    return;
+  }
+  
+  // Sauvegarder le commentaire en édition
+  this.commentaireEnEdition = {
+    id: commentaire.id,
+    message: commentaire.message,
+    estInterne: commentaire.estInterne
+  };
+  
+  // IMPORTANT: Initialiser les champs d'édition avec le contenu du commentaire
+  this.ticket.commentaireMessage = commentaire.message;
+  this.ticket.commentaireInterne = commentaire.estInterne;
+  this.ticket.commentaireId = commentaire.id;
+  this.ticket.originalMessage = commentaire.message;
+  
+  // Initialiser les pièces jointes pour ce commentaire
+  this.piecesExistantes = commentaire.piecesJointes || [];
+  this.nouveauxFichiers = [];
+  this.piecesASupprimer = [];
+  this.piecesASupprimerBackup = [];
+}
+
+/**
+ * Annuler l'édition
+ */
+annulerEdition(): void {
+  this.commentaireEnEdition = null;
+}
+
+
+// ✅ Utiliser loadData() pour rafraîchir les données
+sauvegarderCommentaire(): void {
+  if (!this.commentaireEnEdition) return;
+  
+  this.loading = true;
+  
+  const formData = new FormData();
+  formData.append('Id', this.commentaireEnEdition.id);
+  formData.append('Message', this.commentaireEnEdition.message);
+  formData.append('EstInterne', String(this.commentaireEnEdition.estInterne));
+  
+  const messageVide = !this.commentaireEnEdition.message || this.commentaireEnEdition.message.trim() === '';
+  formData.append('EffacerMessage', String(messageVide));
+  
+  if (this.piecesASupprimer.length > 0) {
+    this.piecesASupprimer.forEach(id => {
+      formData.append('PiecesJointesASupprimer', id);
     });
   }
+  
+  if (this.nouveauxFichiers.length > 0) {
+    this.nouveauxFichiers.forEach(file => {
+      formData.append('NouveauxFichiers', file, file.name);
+    });
+  }
+  
+  this.ticketService.updateCommentaire(this.commentaireEnEdition.id, formData).subscribe({
+    next: (response) => {
+      if (response.isSuccess && response.data) {
+        this.showSuccess('Commentaire modifié avec succès');
+        
+        // ✅ SIMPLE : Recharger toutes les données
+        this.loadData();
+        
+        // Vider les listes temporaires
+        this.nouveauxFichiers = [];
+        this.piecesASupprimer = [];
+        this.piecesASupprimerBackup = [];
+        
+        // Quitter le mode édition
+        this.annulerEdition();
+      } else {
+        this.showError(response.message || 'Erreur lors de la modification');
+      }
+      this.loading = false;
+    },
+    error: (err: any) => {
+      console.error('❌ Erreur:', err);
+      this.showError(err.error?.message || 'Erreur lors de la modification');
+      this.loading = false;
+    }
+  });
+}
+// Dans ticket-edit.component.ts
 
+// Ajoutez cette propriété
+showAddCommentForm: boolean = false;
+
+/**
+ * Afficher/masquer le formulaire d'ajout de commentaire
+ */
+toggleAddCommentForm(): void {
+  this.showAddCommentForm = !this.showAddCommentForm;
+  // Réinitialiser le formulaire quand on l'affiche
+  if (this.showAddCommentForm) {
+    this.nouveauCommentaireMessage = '';
+    this.nouveauCommentaireInterne = false;
+    this.nouveauxFichiers = [];
+  }
+}
+/**
+ * Supprimer un commentaire
+ * - Admin: peut supprimer tous les commentaires
+ * - Technicien: ne peut supprimer que son propre commentaire
+ */
+supprimerCommentaire(commentaireId: string): void {
+  // Vérifier les permissions
+  if (!this.isAdmin && !this.isTechnicien) {
+    this.showError('Vous n\'avez pas les droits pour supprimer un commentaire');
+    return;
+  }
+
+  // Pour le technicien, vérifier que c'est bien son commentaire
+  if (this.isTechnicien && this.monCommentaire && this.monCommentaire.id !== commentaireId) {
+    this.showError('Vous ne pouvez supprimer que votre propre commentaire');
+    return;
+  }
+
+  if (!confirm('Voulez-vous vraiment supprimer ce commentaire ? Cette action est irréversible.')) {
+    return;
+  }
+
+  this.loading = true;
+
+  this.ticketService.deleteCommentaire(commentaireId).subscribe({
+    next: (response) => {
+      if (response.isSuccess) {
+        this.showSuccess('Commentaire supprimé avec succès');
+        
+        // Recharger les données
+        this.loadData();
+      } else {
+        this.showError(response.message || 'Erreur lors de la suppression du commentaire');
+      }
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('❌ Erreur suppression commentaire:', err);
+      this.showError(err.error?.message || 'Erreur lors de la suppression du commentaire');
+      this.loading = false;
+    }
+  });
+}
+/**
+ * Vérifie si un incident est disponible pour liaison
+ * Disponible = statut différent de "EnCours" et "Résolu"/"Ferme"
+ */
+estIncidentDisponible(incident: any): boolean {
+  // Si le libellé est disponible, l'utiliser
+  if (incident.statutIncidentLibelle) {
+    const libelle = incident.statutIncidentLibelle.toLowerCase();
+    // Disponible si le libellé contient "non traité" ou "nouveau"
+    if (libelle.includes('non') || libelle.includes('nouveau')) {
+      return true;
+    }
+    // Non disponible si c'est "en cours" ou "résolu"
+    return false;
+  }
+  
+  // Sinon, utiliser la valeur
+  if (typeof incident.statutIncident === 'number') {
+    // 0 = Non traité (disponible)
+    // 1 = En cours (non disponible)
+    // 2 = Résolu/Fermé (non disponible)
+    return incident.statutIncident === 0;
+  }
+  
+  if (typeof incident.statutIncident === 'string') {
+    const statut = incident.statutIncident.toLowerCase();
+    // Disponible si ce n'est pas "encours", "ferme", "resolu"
+    return !statut.includes('encours') && 
+           !statut.includes('ferme') && 
+           !statut.includes('resolu');
+  }
+  
+  // Si pas de statut (null ou undefined), considéré comme disponible
+  return true;
+}
+selectAllIncidents(): void {
+  if (!this.isAdmin) return;
+  this.incidentsSelectionnes = this.incidents.map(i => i.id);
+}
   // Vérifier si un incident est sélectionné
   isIncidentSelected(incidentId: string): boolean {
     return this.incidentsSelectionnes.includes(incidentId);
   }
+// Ajoutez cette méthode dans la classe TicketEditComponent
+isImage(contentType: string | null | undefined): boolean {
+  if (!contentType) {
+    return false;
+  }
+  return contentType.startsWith('image/');
+}
+maxFiles: number = 10; // Limite de fichiers
 
   // Basculer la sélection d'un incident
   toggleIncident(incidentId: string, event: any): void {
@@ -331,6 +709,26 @@ export class TicketEditComponent implements OnInit {
   getIncidentCode(incidentId: string): string {
     const incident = this.incidents.find(i => i.id === incidentId);
     return incident ? incident.codeIncident : 'Incident';
+  }
+
+  // Obtenir le libellé du statut d'un incident
+  getIncidentStatutLibelle(statut: number): string {
+    const statutMap: { [key: number]: string } = {
+      0: 'Nouveau',
+      1: 'En cours',
+      2: 'Résolu'
+    };
+    return statutMap[statut] || 'Inconnu';
+  }
+
+  // Couleur du badge pour le statut de l'incident
+  getIncidentStatutBadgeColor(statut: number): string {
+    switch(statut) {
+      case 0: return 'info';     // Nouveau
+      case 1: return 'warning';  // En cours
+      case 2: return 'success';  // Résolu
+      default: return 'light';
+    }
   }
 
   // Navigation vers le détail d'un incident
@@ -357,15 +755,242 @@ export class TicketEditComponent implements OnInit {
   /**
    * Supprimer une pièce jointe existante
    */
-  supprimerPieceJointe(pieceId: string): void {
-    if (!this.ticket.commentaireId) return;
-    
-    if (confirm('Voulez-vous vraiment supprimer cette pièce jointe ?')) {
-      this.piecesASupprimer.push(pieceId);
-      this.piecesExistantes = this.piecesExistantes.filter((p: any) => p.id !== pieceId);
+ // Ajoutez ces propriétés
+showDeletePieceModal: boolean = false;
+pieceToDelete: { id: string; index: number; nom: string } | null = null;
+
+// Dans ticket-edit.component.ts
+
+// Dans ticket-edit.component.ts
+
+/**
+ * Supprimer une pièce jointe existante
+ */
+// Dans ticket-edit.component.ts
+
+/**
+ * Supprimer une pièce jointe existante
+ */
+supprimerPieceJointe(pieceId: string, index: number) {
+  // Récupérer la pièce jointe
+  const piece = this.piecesExistantes[index];
+  if (!piece) {
+    console.error('Pièce jointe non trouvée à l\'index', index);
+    return;
+  }
+  
+  // Récupérer le commentaire contenant cette pièce
+  const commentaire = this.getCommentContainingPiece(piece);
+  
+  console.log('🗑️ Suppression demandée pour:', piece.nomFichier, 'ID:', pieceId);
+  console.log('Commentaire associé:', commentaire?.id, 'Auteur:', commentaire?.auteurId);
+  console.log('Utilisateur courant:', this.userId);
+  
+  // Vérifier les permissions
+  if (!this.isAdmin) {
+    // Pour un technicien, vérifier que le commentaire lui appartient
+    if (!commentaire || commentaire.auteurId !== this.userId) {
+      this.showError('Vous ne pouvez pas supprimer ce fichier');
+      return;
     }
   }
+  
+  // Stocker les infos pour confirmation
+  this.pieceToDelete = {
+    id: pieceId,
+    index: index,
+    nom: piece.nomFichier
+  };
+  this.showDeletePieceModal = true;
+}
+// Dans ticket-edit.component.ts
 
+/**
+ * Gestion des fichiers pour l'ajout de nouveau commentaire
+ */
+onFileSelectedForNewComment(event: any): void {
+  if (event.target.files && event.target.files.length > 0) {
+    this.handleFiles(Array.from(event.target.files));
+  }
+}
+// Dans ticket-edit.component.ts
+
+/**
+ * Confirmer la suppression d'une pièce jointe
+ */
+confirmerSuppressionPiece() {
+  if (!this.pieceToDelete) return;
+
+  console.log('✅ Confirmation suppression:', this.pieceToDelete);
+  
+  // Récupérer la pièce à supprimer
+  const piece = this.piecesExistantes[this.pieceToDelete.index];
+  if (!piece) {
+    this.showError('Fichier non trouvé');
+    this.fermerModalPiece();
+    return;
+  }
+  
+  // Récupérer le commentaire contenant cette pièce
+  const commentaire = this.getCommentContainingPiece(piece);
+  
+  if (!commentaire) {
+    this.showError('Commentaire associé non trouvé');
+    this.fermerModalPiece();
+    return;
+  }
+  
+  console.log('Ajout de la suppression pour le commentaire:', commentaire.id);
+  
+  // Ajouter l'ID à la liste des pièces à supprimer
+  const idToDelete = this.pieceToDelete.id;
+  
+  if (!this.piecesASupprimer.includes(idToDelete)) {
+    this.piecesASupprimer.push(idToDelete);
+    this.piecesASupprimerBackup.push(idToDelete);
+  }
+  
+  // Retirer de la liste d'affichage
+  this.piecesExistantes = this.piecesExistantes.filter((_, i) => i !== this.pieceToDelete!.index);
+  
+  // Mettre à jour les pièces jointes dans le commentaire local
+  if (commentaire.piecesJointes) {
+    commentaire.piecesJointes = commentaire.piecesJointes.filter((p: any) => p.id !== idToDelete);
+  }
+  
+  // ✅ NE PAS SUPPRIMER LE COMMENTAIRE ICI
+  // Le commentaire ne sera supprimé que lors de la sauvegarde si le message est vide
+  
+  console.log('📋 piecesASupprimer après ajout:', this.piecesASupprimer);
+  console.log('📋 piecesExistantes après suppression:', this.piecesExistantes.length);
+  
+  this.showSuccess('Fichier marqué pour suppression');
+  this.fermerModalPiece();
+}
+
+
+/**
+ * Supprimer un commentaire sans confirmation (utilisé pour suppression automatique)
+ */
+supprimerCommentaireSansConfirmation(commentaireId: string): void {
+  this.ticketService.deleteCommentaire(commentaireId).subscribe({
+    next: (response) => {
+      if (response.isSuccess) {
+        // Supprimer localement
+        this.tousLesCommentaires = this.tousLesCommentaires.filter(c => c.id !== commentaireId);
+        
+        // Si c'était mon commentaire, le vider
+        if (this.monCommentaire && this.monCommentaire.id === commentaireId) {
+          this.monCommentaire = null;
+          this.ticket.commentaireMessage = '';
+          this.ticket.commentaireInterne = false;
+          this.ticket.commentaireId = null;
+          this.piecesExistantes = [];
+        }
+      }
+    },
+    error: (err) => {
+      console.error('❌ Erreur suppression auto commentaire:', err);
+    }
+  });
+}
+/**
+ * Fermer le modal de suppression
+ */
+fermerModalPiece() {
+  this.showDeletePieceModal = false;
+  this.pieceToDelete = null;
+}
+// Dans ticket-edit.component.ts
+
+/**
+ * Ajouter des fichiers (appelé lors du drop/upload)
+ */
+private handleFiles(files: File[]): void {
+  console.log('📁 handleFiles appelé avec', files.length, 'fichier(s)');
+  
+  const validFiles = files.filter(file => {
+    if (file.size > 10 * 1024 * 1024) {
+      console.warn(`Fichier ${file.name} trop volumineux (max 10MB)`);
+      this.showError(`Le fichier ${file.name} dépasse la limite de 10MB`);
+      return false;
+    }
+    return true;
+  });
+
+  if (validFiles.length !== files.length) {
+    this.showError(`${files.length - validFiles.length} fichier(s) ont été ignorés car trop volumineux`);
+  }
+
+  // Ajouter aux tableaux
+  this.nouveauxFichiers = [...this.nouveauxFichiers, ...validFiles];
+  this.selectedFiles = [...this.nouveauxFichiers];
+  
+  console.log('✅ nouveauxFichiers après ajout:', this.nouveauxFichiers.length);
+}
+
+/**
+ * Retirer un fichier de la liste des nouveaux
+ */
+removeFile(index: number): void {
+  console.log('🗑️ Retrait du fichier à l\'index', index);
+  this.nouveauxFichiers.splice(index, 1);
+  this.selectedFiles = [...this.nouveauxFichiers];
+}
+getPieceIndex(comment: any, piece: any): number {
+  if (!comment || !comment.piecesJointes) return -1;
+  return comment.piecesJointes.findIndex((p: any) => p.id === piece.id);
+}
+// Dans ticket-edit.component.ts
+
+// Propriétés pour nouveau commentaire
+nouveauCommentaireMessage: string = '';
+nouveauCommentaireInterne: boolean = false;
+
+
+
+/**
+ * Gestion des fichiers pour l'édition
+ */
+onFileSelectedForEdit(event: any): void {
+  if (event.target.files && event.target.files.length > 0) {
+    this.handleFiles(Array.from(event.target.files));
+  }
+}
+
+canAddComment(): boolean {
+  // Admin peut toujours ajouter/modifier
+  if (this.isAdmin) return true;
+  
+  // Technicien peut ajouter s'il n'a pas encore de commentaire
+  if (this.isTechnicien) {
+    // Vérifier si le technicien a déjà un commentaire
+    const technicienComment = this.getTechnicienComment();
+    return !technicienComment; // Retourne true s'il n'a PAS de commentaire
+  }
+  
+  return false;
+}
+/**
+ * Effacer tous les nouveaux fichiers
+ */
+clearAllFiles(): void {
+  console.log('🗑️ Effacement de tous les nouveaux fichiers');
+  this.nouveauxFichiers = [];
+  this.selectedFiles = [];
+}
+// Ajoutez ces propriétés
+showSuccessModal: boolean = false;
+successMessage: string = '';
+
+// Ajoutez cette méthode
+showSuccess(message: string): void {
+  this.successMessage = message;
+  this.showSuccessModal = true;
+  setTimeout(() => {
+    this.showSuccessModal = false;
+  }, 3000);
+}
   // Couleur des badges
   getBadgeColor(status: string): string {
     switch (status) {
@@ -382,185 +1007,542 @@ export class TicketEditComponent implements OnInit {
     this.router.navigate(['/tickets']);
   }
 
-  save() {
-    if (!this.ticket) return;
 
-    this.loading = true;
-    this.error = null;
+getStatutLibelle(statut: string): string {
 
-    // ADMIN: peut tout modifier via updateTicket (FormData)
-    if (this.isAdmin) {
-      console.log('👑 Admin: mise à jour complète du ticket');
-      this.saveAsAdmin();
+  
+  const statutMap: { [key: string]: string } = {
+    'Assigné': 'Assigné',
+    'EnCours': 'En cours',
+    'Resolu': 'Résolu'
+  };
+  
+  const resultat = statutMap[statut] || statut || 'Non assigné';
+  
+  return resultat;
+}
+ getStatutBadgeColor(statut: number): 'success' | 'warning' | 'error' | 'info' {
+    if (!statut || statut === 0) {
+      return 'info';
     }
-    // TECHNICIEN: ne peut modifier que statut, assignation et son commentaire
-    else if (this.isTechnicien) {
-      console.log('🔧 Technicien: mise à jour limitée du ticket');
-      
-      // Vérifier si le technicien peut modifier le commentaire
-     // if (this.ticket.commentaireId && this.ticket.commentaireAuteurId !== this.userId) {
-        // Le technicien essaie de modifier un commentaire qui n'est pas le sien
-        // if (this.ticket.commentaireMessage || this.nouveauxFichiers.length > 0 || this.piecesASupprimer.length > 0) {
-        //   this.error = 'Vous ne pouvez modifier que vos propres commentaires';
-        //   this.loading = false;
-        //   return;
-        // }
-    //  }
-      
-      this.saveAsTechnicien();
+    
+    switch(statut) {
+      case 1: return 'warning';   // EnCours
+      case 2: return 'success';   // Ferme
+      default: return 'info';
     }
   }
 
-  /**
-   * Sauvegarde pour ADMIN (peut tout modifier)
-   */
-  private saveAsAdmin(): void {
-    const ticketFormData = new FormData();
-    ticketFormData.append('TitreTicket', this.ticket.titreTicket);
-    ticketFormData.append('DescriptionTicket', this.ticket.descriptionTicket);
+  getStatutIncidentLibelle(statut: number, statutLibelle: string): string {
+    if (!statut || statut === 0) {
+      return 'Non défini';
+    }
+    return statutLibelle || `Statut ${statut}`;
+  }
+// Dans ticket-edit.component.ts
+
+private saveAsAdmin(): void {
+  const ticketFormData = new FormData();
+  ticketFormData.append('TitreTicket', this.ticket.titreTicket);
+  ticketFormData.append('DescriptionTicket', this.ticket.descriptionTicket);
+  
+  if (this.ticket.statutTicket && this.ticket.statutTicket !== 'null' && this.ticket.statutTicket.trim() !== '') {
     ticketFormData.append('StatutTicket', this.ticket.statutTicket);
-    
-    if (this.ticket.assigneeId) {
-      ticketFormData.append('AssigneeId', this.ticket.assigneeId);
-    } else {
-      ticketFormData.append('AssigneeId', '');
-    }
-    
-    if (this.ticket.dateLimite) {
-      ticketFormData.append('DateLimite', new Date(this.ticket.dateLimite).toISOString());
-    }
-
-    this.ticketService.updateTicket(this.ticketId, ticketFormData)
-      .subscribe({
-        next: (response) => {
-          if (response.isSuccess) {
-            this.updateCommentaire();
-          } else {
-            this.error = response.message || 'Erreur mise à jour ticket';
-            this.loading = false;
-          }
-        },
-        error: (err) => {
-          console.error(err);
-          this.error = err.error?.message || 'Erreur mise à jour ticket';
-          this.loading = false;
+  }
+  
+  if (this.ticket.assigneeId) {
+    ticketFormData.append('AssigneeId', this.ticket.assigneeId);
+  } else {
+    ticketFormData.append('AssigneeId', '');
+  }
+  
+  if (this.ticket.dateLimite) {
+    ticketFormData.append('DateLimite', new Date(this.ticket.dateLimite).toISOString());
+  }
+  
+  this.ticketService.updateTicket(this.ticketId, ticketFormData).subscribe({
+    next: (response) => {
+      if (response.isSuccess) {
+        // Mettre à jour le ticket localement
+        if (response.data) {
+          this.ticket.titreTicket = response.data.titreTicket || this.ticket.titreTicket;
+          this.ticket.descriptionTicket = response.data.descriptionTicket || this.ticket.descriptionTicket;
+          this.ticket.statutTicket = response.data.statutTicket || this.ticket.statutTicket;
+          this.ticket.assigneeId = response.data.assigneeId || this.ticket.assigneeId;
+          //this.ticket.dateLimite = response.data.dateLimite || this.ticket.dateLimite;
         }
-      });
+        
+        // ✅ Toujours appeler updateCommentaire, qui gérera l'ajout/modification
+        this.updateCommentaire();
+      } else {
+        this.error = response.message || 'Erreur mise à jour ticket';
+        this.loading = false;
+      }
+    },
+    error: (err) => {
+      console.error('❌ Erreur:', err.error);
+      this.error = err.error?.errors?.StatutTicket?.[0] || err.error?.message || 'Erreur mise à jour ticket';
+      this.loading = false;
+    }
+  });
+}
+
+save() {
+  if (!this.ticket) return;
+
+  this.loading = true;
+  this.error = null;
+
+  if (this.isAdmin) {
+    console.log('👑 Admin: mise à jour complète du ticket');
+    this.saveAsAdmin();
+  } else if (this.isTechnicien) {
+    console.log('🔧 Technicien: mise à jour limitée du ticket');
+    this.saveAsTechnicien();
+  }
+}
+
+private saveAsTechnicien(): void {
+  const ticketFormData = new FormData();
+  
+  const statutMap: { [key: string]: string } = {
+    'Assigné': 'Assigné',
+    'EnCours': 'EnCours',
+    'Résolu': 'Résolu'
+  };
+  
+  if (this.ticket.statutTicket) {
+    const statutValue = statutMap[this.ticket.statutTicket] || this.ticket.statutTicket;
+    ticketFormData.append('StatutTicket', statutValue);
+  }
+  
+  if (this.ticket.assigneeId !== undefined) {
+    ticketFormData.append('AssigneeId', this.ticket.assigneeId || '');
   }
 
-  /**
-   * Sauvegarde pour TECHNICIEN (ne peut modifier que statut, assignation et son commentaire)
-   */
-  private saveAsTechnicien(): void {
-    const dto: any = {};
-    
-    // Statut (si modifié)
-    if (this.ticket.statutTicket) {
-      dto.statutTicket = this.ticket.statutTicket;
-    }
-    
-    // Assignation (si modifiée)
-    if (this.ticket.assigneeId !== undefined) {
-      dto.assigneeId = this.ticket.assigneeId || null;
-    }
-
-    console.log('📤 Technician update DTO:', dto);
-
-    // Mettre à jour le ticket d'abord
-    this.ticketService.technicianUpdateTicket(this.ticketId, dto)
-      .subscribe({
-        next: (response) => {
-          if (response.isSuccess) {
-            // Ensuite mettre à jour le commentaire si nécessaire
-            this.updateCommentaire();
-          } else {
-            this.error = response.message || 'Erreur mise à jour ticket';
-            this.loading = false;
+  // Si le technicien a un commentaire à ajouter, on le gère
+  const hasCommentToAdd = (!this.ticket.commentaireId && 
+                           (this.ticket.commentaireMessage?.trim() || this.nouveauxFichiers.length > 0));
+  
+  if (hasCommentToAdd) {
+    // Pour l'ajout de commentaire, on appelle directement ajouterCommentaireAvecFichiers
+    // sans passer par updateTicket s'il n'y a pas de changement de statut
+    if (!this.ticket.statutTicket && !this.ticket.assigneeId) {
+      // Seulement un commentaire, pas de modification du ticket
+      this.ajouterCommentaireAvecFichiers(
+        this.ticket.commentaireMessage || 'Fichiers joints',
+        this.ticket.commentaireInterne || false,
+        this.nouveauxFichiers,
+        {
+          isFromForm: true,
+          resetForm: () => {
+            this.nouveauxFichiers = [];
+            this.ticket.commentaireMessage = '';
+            this.ticket.commentaireInterne = false;
           }
-        },
-        error: (err) => {
-          console.error(err);
-          this.error = err.error?.message || 'Erreur mise à jour ticket';
-          this.loading = false;
         }
-      });
-  }
-
-  private updateCommentaire(): void {
-    // Si pas de commentaire et pas de fichiers, passer directement aux incidents
-    if (!this.ticket.commentaireMessage && this.nouveauxFichiers.length === 0 && this.piecesASupprimer.length === 0) {
-      this.updateIncidents();
+      );
       return;
     }
+  }
+  
+  // Mettre à jour le ticket d'abord
+  this.ticketService.updateTicket(this.ticketId, ticketFormData).subscribe({
+    next: (response) => {
+      if (response.isSuccess) {
+        // ✅ Mettre à jour le ticket localement si besoin
+        if (response.data) {
+          this.ticket.statutTicket = response.data.statutTicket || this.ticket.statutTicket;
+          this.ticket.assigneeId = response.data.assigneeId || this.ticket.assigneeId;
+        }
+        
+        // ✅ Gérer le commentaire
+        this.updateCommentaire();
+      } else {
+        this.error = response.message || 'Erreur mise à jour ticket';
+        this.loading = false;
+      }
+    },
+    error: (err) => {
+      console.error('❌ Erreur:', err);
+      this.error = err.error?.message || 'Erreur mise à jour ticket';
+      this.loading = false;
+    }
+  });
+}
+// Dans ticket-edit.component.ts
 
-    const commentaireExistant = !!this.ticket.commentaireId;
+/**
+ * Ajouter un commentaire avec fichiers
+ * @param message - Le message du commentaire
+ * @param estInterne - Si le commentaire est interne
+ * @param fichiers - Liste des fichiers à joindre
+ * @param options - Options supplémentaires
+ */
+ajouterCommentaireAvecFichiers(
+  message: string,
+  estInterne: boolean,
+  fichiers: File[],
+  options?: { isFromForm?: boolean; resetForm?: () => void }
+): void {
+  if (!message.trim() && fichiers.length === 0) {
+    this.showError('Veuillez saisir un message ou ajouter un fichier');
+    return;
+  }
+  
+  this.loading = true;
+  
+  const formData = new FormData();
+  formData.append('Message', message);
+  formData.append('EstInterne', String(estInterne));
+  
+  fichiers.forEach(file => {
+    formData.append('fichiers', file, file.name);
+  });
+  
+  this.ticketService.addCommentaire(this.ticketId, formData).subscribe({
+    next: (response) => {
+      if (response.isSuccess && response.data) {
+        this.showSuccess('Commentaire ajouté avec succès');
+        
+        // Recharger les données
+        this.loadData();
+        
+        // Vider les listes temporaires
+        this.nouveauxFichiers = [];
+        this.piecesASupprimer = [];
+        this.piecesASupprimerBackup = [];
+        
+        // Réinitialiser le formulaire si nécessaire
+        if (options?.resetForm) {
+          options.resetForm();
+        }
+        
+        // Quitter le mode édition si actif
+        if (this.commentaireEnEdition) {
+          this.annulerEdition();
+        }
+        
+        // Fermer le formulaire d'ajout
+        if (options?.isFromForm) {
+          this.showAddCommentForm = false;
+        }
+        
+        // Mettre à jour monCommentaire pour technicien
+        if (this.isTechnicien && !this.monCommentaire && response.data.auteurId === this.userId) {
+          this.monCommentaire = response.data;
+        }
+      } else {
+        this.showError(response.message || 'Erreur lors de l\'ajout');
+      }
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('❌ Erreur:', err);
+      this.showError(err.error?.message || 'Erreur lors de l\'ajout');
+      this.loading = false;
+    }
+  });
+}
+/**
+ * Ajouter un commentaire depuis le formulaire (admin ou technicien)
+ */
+ajouterCommentaire(): void {
+  this.ajouterCommentaireAvecFichiers(
+    this.nouveauCommentaireMessage,
+    this.nouveauCommentaireInterne,
+    this.nouveauxFichiers,
+    {
+      isFromForm: true,
+      resetForm: () => {
+        this.nouveauCommentaireMessage = '';
+        this.nouveauCommentaireInterne = false;
+      }
+    }
+  );
+}
+private updateCommentaire(): void {
+  const allPiecesToDelete = [...this.piecesASupprimer, ...this.piecesASupprimerBackup];
+  const uniquePiecesToDelete = [...new Set(allPiecesToDelete)];
+  
+  let commentaireId = this.ticket.commentaireId;
+  if (this.commentaireEnEdition) {
+    commentaireId = this.commentaireEnEdition.id;
+  }
+  
+  const aNouveauxFichiers = this.nouveauxFichiers.length > 0;
+  const aFichiersASupprimer = uniquePiecesToDelete.length > 0;
+  const messageActuel = this.ticket.commentaireMessage || '';
+  const messageOriginal = this.ticket.originalMessage || '';
+  const aMessageModifie = messageActuel !== messageOriginal;
+  
+  // ✅ CORRECTION: Détecter si c'est un nouveau commentaire
+  // Un commentaire est nouveau si:
+  // 1. Pas d'ID de commentaire existant
+  // 2. ET (il y a un message non vide OU il y a des fichiers)
+  const estNouveauCommentaire = !commentaireId && (messageActuel.trim() !== '' || aNouveauxFichiers);
+  
+  // ✅ Si c'est un nouveau commentaire, l'ajouter directement et rediriger
+  if (estNouveauCommentaire) {
+    console.log('📝 Création d\'un nouveau commentaire');
     
+    const message = messageActuel.trim() || 'Fichiers joints';
+    const estInterne = this.ticket.commentaireInterne || false;
+    
+    this.ajouterCommentaireAvecFichiers(
+      message,
+      estInterne,
+      this.nouveauxFichiers,
+      {
+        isFromForm: true,
+        resetForm: () => {
+          // Réinitialiser les formulaires
+          this.nouveauxFichiers = [];
+          this.piecesASupprimer = [];
+          this.piecesASupprimerBackup = [];
+          this.ticket.commentaireMessage = '';
+          this.ticket.commentaireInterne = false;
+          this.ticket.commentaireId = null;
+          this.ticket.originalMessage = '';
+          
+          // ✅ IMPORTANT: Rediriger après l'ajout du commentaire
+          // La redirection se fera dans ajouterCommentaireAvecFichiers après le rechargement
+        }
+      }
+    );
+    return;
+  }
+  
+  // ✅ Si ce n'est pas un nouveau commentaire et qu'il n'y a pas de changements
+  if (!aNouveauxFichiers && !aFichiersASupprimer && !aMessageModifie && commentaireId) {
+    this.loading = false;
+    // Rediriger vers la page de détails
+    this.router.navigate(['/tickets', this.ticketId]);
+    return;
+  }
+  
+  // ✅ Si c'est une modification de commentaire existant
+  if (commentaireId) {
     const commentaireFormData = new FormData();
+    commentaireFormData.append('Id', commentaireId);
+    commentaireFormData.append('Message', messageActuel);
+    commentaireFormData.append('EstInterne', String(this.ticket.commentaireInterne || false));
     
-    if (commentaireExistant) {
-      commentaireFormData.append('Id', this.ticket.commentaireId);
+    const messageVide = !messageActuel || messageActuel.trim() === '';
+    commentaireFormData.append('EffacerMessage', String(messageVide));
+    
+    if (uniquePiecesToDelete.length > 0) {
+      uniquePiecesToDelete.forEach(id => {
+        commentaireFormData.append('PiecesJointesASupprimer', id);
+      });
     }
     
-    commentaireFormData.append('Message', this.ticket.commentaireMessage || '');
-    commentaireFormData.append('EstInterne', String(this.ticket.commentaireInterne || false));
-
-    // Fichiers à supprimer
-    this.piecesASupprimer.forEach(id => {
-      commentaireFormData.append('PiecesJointesASupprimer', id);
-    });
-
-    // Nouveaux fichiers
-    this.nouveauxFichiers.forEach(file => {
-      commentaireFormData.append('NouveauxFichiers', file, file.name);
-    });
-
-    const request = commentaireExistant
-      ? this.ticketService.updateCommentaire(this.ticket.commentaireId, commentaireFormData)
-      : this.ticketService.addCommentaire(this.ticketId, commentaireFormData);
-
-    request.subscribe({
-      next: () => {
-        this.updateIncidents();
+    if (this.nouveauxFichiers.length > 0) {
+      this.nouveauxFichiers.forEach(file => {
+        commentaireFormData.append('NouveauxFichiers', file, file.name);
+      });
+    }
+    
+    this.ticketService.updateCommentaire(commentaireId, commentaireFormData).subscribe({
+      next: (response: any) => {
+        if (response.isSuccess && response.data) {
+          this.showSuccess('Commentaire modifié avec succès');
+          
+          // Recharger les données puis rediriger
+          this.loadData();
+          // ✅ Rediriger après rechargement
+          setTimeout(() => {
+            this.router.navigate(['/tickets', this.ticketId]);
+          }, 1000);
+        } else {
+          this.showError(response.message || 'Erreur lors de la modification');
+        }
+        this.loading = false;
       },
-      error: (err) => {
-        console.error('Erreur mise à jour commentaire:', err);
-        this.error = err.error?.message || 'Erreur mise à jour commentaire';
+      error: (err: any) => {
+        console.error('❌ Erreur:', err);
+        this.showError(err.error?.message || 'Erreur lors de la modification');
         this.loading = false;
       }
     });
+  } else {
+    // Si aucun commentaire n'existe et qu'on a des changements mais que ce n'est pas un nouveau commentaire
+    this.loading = false;
+    this.router.navigate(['/tickets', this.ticketId]);
+  }
+}
+
+delierIncident(incidentId: string): void {
+  if (!this.isAdmin) {
+    this.showError('Seuls les administrateurs peuvent retirer des incidents');
+    return;
   }
 
-  private updateIncidents(): void {
-    // Seul l'admin peut modifier les incidents liés
-    if (!this.isAdmin) {
-      this.loading = false;
-      this.router.navigate(['/tickets', this.ticketId]);
-      return;
-    }
-    
-    const incidentsActuels = this.incidentsLies.map((i: any) => i.id).sort();
-    const ontChange = JSON.stringify(incidentsActuels) !== JSON.stringify([...this.incidentsSelectionnes].sort());
-    
-    if (!ontChange) {
-      this.loading = false;
-      this.router.navigate(['/tickets', this.ticketId]);
-      return;
-    }
+  // Récupérer l'incident pour afficher son code
+  const incident = this.incidentsLies.find(i => i.id === incidentId);
+  const incidentCode = incident?.codeIncident || 'cet incident';
 
-    this.ticketService.lierIncidents(this.ticketId, this.incidentsSelectionnes).subscribe({
-      next: () => {
+  if (!confirm(`Voulez-vous vraiment retirer ${incidentCode} de ce ticket ?`)) {
+    return;
+  }
+
+  this.deletingIncidentId = incidentId;
+
+  this.ticketService.delierIncident(this.ticketId, incidentId).subscribe({
+    next: (response) => {
+      if (response.isSuccess) {
+        // Retirer l'incident de la liste locale
+        this.incidentsLies = this.incidentsLies.filter(i => i.id !== incidentId);
+        this.incidentsSelectionnes = this.incidentsSelectionnes.filter(id => id !== incidentId);
+        
+        this.showSuccess('Incident retiré avec succès');
+      } else {
+        this.showError(response.message || 'Erreur lors du retrait');
+      }
+      this.deletingIncidentId = null;
+    },
+    error: (err) => {
+      console.error('❌ Erreur:', err);
+      this.showError(err.error?.message || 'Erreur lors du retrait');
+      this.deletingIncidentId = null;
+    }
+  });
+}
+private updateIncidents(): void {
+  if (!this.isAdmin) {
+    this.loading = false;
+    this.router.navigate(['/tickets', this.ticketId]);
+    return;
+  }
+  
+  const incidentsActuels = this.incidentsLies.map((i: any) => i.id).sort();
+  const nouvellesSelections = [...this.incidentsSelectionnes].sort();
+  
+  // Vérifier s'il y a des changements
+  if (JSON.stringify(incidentsActuels) === JSON.stringify(nouvellesSelections)) {
+    this.loading = false;
+    this.router.navigate(['/tickets', this.ticketId]);
+    return;
+  }
+
+  // Trouver les incidents à supprimer (présents dans actuels mais pas dans nouvelles)
+  const aSupprimer = incidentsActuels.filter(id => !nouvellesSelections.includes(id));
+  
+  // Trouver les incidents à ajouter (présents dans nouvelles mais pas dans actuels)
+  const aAjouter = nouvellesSelections.filter(id => !incidentsActuels.includes(id));
+
+  console.log('📊 Incidents à supprimer:', aSupprimer);
+  console.log('📊 Incidents à ajouter:', aAjouter);
+
+  // S'il n'y a rien à faire
+  if (aSupprimer.length === 0 && aAjouter.length === 0) {
+    this.loading = false;
+    this.router.navigate(['/tickets', this.ticketId]);
+    return;
+  }
+
+  // Créer un tableau d'observables pour les suppressions
+  const deleteRequests = aSupprimer.map(id => 
+    this.ticketService.delierIncident(this.ticketId, id).pipe(
+      catchError(err => {
+        console.error(`Erreur suppression incident ${id}:`, err);
+        return of(null);
+      })
+    )
+  );
+
+  // Exécuter d'abord toutes les suppressions
+  forkJoin(deleteRequests).pipe(
+    finalize(() => {
+      // Ensuite ajouter les nouveaux incidents
+      if (aAjouter.length > 0) {
+        this.ticketService.lierIncidents(this.ticketId, aAjouter).subscribe({
+          next: () => {
+            this.loading = false;
+            this.router.navigate(['/tickets', this.ticketId]);
+          },
+          error: (err) => {
+            console.error('Erreur ajout incidents:', err);
+            this.error = err.error?.message || 'Erreur mise à jour des incidents';
+            this.loading = false;
+          }
+        });
+      } else {
         this.loading = false;
         this.router.navigate(['/tickets', this.ticketId]);
-      },
-      error: (err) => {
-        console.error('Erreur liaison incidents:', err);
-        this.error = err.error?.message || 'Erreur mise à jour des incidents';
-        this.loading = false;
       }
-    });
-  }
+    })
+  ).subscribe();
+}
 
   private showError(message: string): void {
     alert(message);
   }
+showDeleteCommentModal: boolean = false;
+commentToDelete: { id: string, auteurNom: string } | null = null;
+/**
+ * Demander confirmation avant de supprimer un commentaire
+ */
+confirmerSuppressionCommentaire(commentaireId: string, auteurNom: string): void {
+  this.commentToDelete = { id: commentaireId, auteurNom: auteurNom };
+  this.showDeleteCommentModal = true;
+}
+
+/**
+ * Exécuter la suppression du commentaire
+ */
+executerSuppressionCommentaire(): void {
+  if (!this.commentToDelete) return;
+  
+  this.loading = true;
+  
+  this.ticketService.deleteCommentaire(this.commentToDelete.id).subscribe({
+    next: (response) => {
+      if (response.isSuccess) {
+        this.showSuccess('Commentaire supprimé avec succès');
+        
+        // Recharger les données
+        this.loadData();
+      } else {
+        this.showError(response.message || 'Erreur lors de la suppression');
+      }
+      this.loading = false;
+      this.fermerModalCommentaire();
+    },
+    error: (err) => {
+      console.error('❌ Erreur:', err);
+      this.showError(err.error?.message || 'Erreur lors de la suppression');
+      this.loading = false;
+      this.fermerModalCommentaire();
+    }
+  });
+}
+
+/**
+ * Fermer le modal de suppression de commentaire
+ */
+fermerModalCommentaire(): void {
+  this.showDeleteCommentModal = false;
+  this.commentToDelete = null;
+}
+
+/**
+ * Vérifier si un commentaire est visible pour le technicien
+ * (Les commentaires internes ne sont visibles que par les admins)
+ */
+isCommentVisible(comment: any): boolean {
+  // Admin voit tous les commentaires
+  if (this.isAdmin) return true;
+  
+  // Technicien
+  if (this.isTechnicien) {
+    // Son propre commentaire : toujours visible (même interne)
+    if (comment.auteurId === this.userId) return true;
+    
+    // Commentaires des autres : visible seulement si non-interne
+    return !comment.estInterne;
+  }
+  
+  return true;
+}
 }

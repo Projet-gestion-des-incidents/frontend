@@ -3,9 +3,10 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { BadgeComponent } from '../../shared/components/ui/badge/badge.component';
 import { AvatarTextComponent } from '../../shared/components/ui/avatar/avatar-text.component';
-import { IncidentDetail, TypeEntiteImpactee, TypeProbleme, SeveriteIncident, StatutIncident } from '../../shared/models/incident.model';
+import { IncidentDetail, TypeEntiteImpactee, TypeProbleme, SeveriteIncident, StatutIncident, PieceJointeDTO } from '../../shared/models/incident.model';
 import { IncidentService } from '../../shared/services/incident.service';
 import { UserService } from '../../shared/services/user.service';
+import { forkJoin } from 'rxjs';
 
 @Component({
   selector: 'app-incident-detail',
@@ -25,9 +26,11 @@ import { UserService } from '../../shared/services/user.service';
 })
 export class IncidentDetailComponent implements OnInit {
   incident!: IncidentDetail;
+  piecesJointes: PieceJointeDTO[] = [];
   loading = true;
   error: string | null = null;
   userRole: string = '';
+  selectedImage: string | null = null;
 
   typeEntiteImpacteeLabels: { [key in TypeEntiteImpactee]: string } = {
     [TypeEntiteImpactee.MachineTPE]: 'Machine TPE',
@@ -88,11 +91,17 @@ export class IncidentDetailComponent implements OnInit {
     this.loading = true;
     this.error = null;
     
-    this.incidentService.getIncidentDetails(id).subscribe({
-      next: (data) => {
-        if (data) {
-          this.incident = data;
+    // Charger l'incident et ses pièces jointes en parallèle
+    forkJoin({
+      incident: this.incidentService.getIncidentDetails(id),
+      piecesJointes: this.incidentService.getPiecesJointesByIncident(id)
+    }).subscribe({
+      next: (results) => {
+        if (results.incident) {
+          this.incident = results.incident;
+          this.piecesJointes = results.piecesJointes;
           console.log('Incident chargé:', this.incident);
+          console.log('Pièces jointes chargées:', this.piecesJointes);
         } else {
           this.error = 'Incident non trouvé';
         }
@@ -143,12 +152,10 @@ export class IncidentDetailComponent implements OnInit {
       return 'Non définie';
     }
     
-    // Si c'est une string comme "Forte"
     if (typeof severite === 'string') {
       return severite;
     }
     
-    // Si c'est un nombre
     if (typeof severite === 'number') {
       return severiteLibelle || this.getSeveriteLabelFromValue(severite);
     }
@@ -170,7 +177,6 @@ export class IncidentDetailComponent implements OnInit {
       return 'warning';
     }
     
-    // Si c'est une string
     if (typeof severite === 'string') {
       switch(severite) {
         case 'Faible': return 'success';
@@ -180,12 +186,11 @@ export class IncidentDetailComponent implements OnInit {
       }
     }
     
-    // Si c'est un nombre
     if (typeof severite === 'number') {
       switch(severite) {
-        case 1: return 'success';   // Faible
-        case 2: return 'warning';   // Moyenne
-        case 3: return 'error';     // Forte
+        case 1: return 'success';
+        case 2: return 'warning';
+        case 3: return 'error';
         default: return 'warning';
       }
     }
@@ -197,14 +202,11 @@ export class IncidentDetailComponent implements OnInit {
   getTypeProblemeLibelle(typeProbleme: any): string {
     if (!typeProbleme) return 'Non spécifié';
     
-    // Si c'est une string comme "ConnexionReseau"
     if (typeof typeProbleme === 'string') {
       return this.typeProblemeLabels[typeProbleme] || typeProbleme;
     }
     
-    // Si c'est un nombre (enum)
     if (typeof typeProbleme === 'number') {
-      // Convertir le nombre en string correspondante
       const typeMap: { [key: number]: string } = {
         1: 'PaiementRefuse',
         2: 'TerminalHorsLigne',
@@ -224,7 +226,6 @@ export class IncidentDetailComponent implements OnInit {
 
   // ========== GESTION DES TICKETS ==========
   getTicketStatutBadgeColor(statut: any): 'success' | 'warning' | 'error' | 'info' | 'primary' {
-    // Si c'est une string comme "Assigne"
     if (typeof statut === 'string') {
       switch(statut) {
         case 'Assigne': return 'primary';
@@ -234,11 +235,10 @@ export class IncidentDetailComponent implements OnInit {
       }
     }
     
-    // Si c'est un nombre
     switch(statut) {
-      case 1: return 'primary';   // Assigné
-      case 2: return 'warning';   // En cours
-      case 3: return 'success';   // Résolu
+      case 1: return 'primary';
+      case 2: return 'warning';
+      case 3: return 'success';
       default: return 'info';
     }
   }
@@ -278,10 +278,24 @@ export class IncidentDetailComponent implements OnInit {
   // ========== GESTION DES PIÈCES JOINTES ==========
   isImage(contentType: string | null | undefined): boolean {
     if (!contentType) {
-      // Si contentType est null, on vérifie l'extension
       return false;
     }
     return contentType.startsWith('image/');
+  }
+
+  isImageByExtension(fileName: string): boolean {
+    if (!fileName) return false;
+    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
+    const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
+    return imageExtensions.includes(ext);
+  }
+
+  openImage(url: string): void {
+    this.selectedImage = url;
+  }
+
+  closeImageModal(): void {
+    this.selectedImage = null;
   }
 
   // ========== NAVIGATION ==========
@@ -292,4 +306,6 @@ export class IncidentDetailComponent implements OnInit {
   goBack(): void {
     this.router.navigate(['/incidents']);
   }
+
+
 }

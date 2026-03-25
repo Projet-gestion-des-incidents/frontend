@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, map } from 'rxjs';
+import { Observable, map, tap } from 'rxjs';
 import { 
   Incident, 
   IncidentDetail, 
@@ -10,7 +10,9 @@ import {
   StatutIncident,
   TypeEntiteImpactee,
   IncidentSearchRequest,
-  PagedResult
+  PagedResult,
+  IncidentTPEDTO,
+  PieceJointeDTO
 } from '../models/incident.model';
 import { AuthService } from './auth.service'; 
 import { PagedResponse } from '../models/PagedResponse.model';
@@ -249,21 +251,96 @@ searchIncidents(params: any) {
     })
   );
 }
-  lierTpe(incidentId: string, tpeId: string): Observable<ApiResponse<any>> {
-    // Note: Vous devez créer cet endpoint dans le backend si nécessaire
-    return this.http.post<ApiResponse<any>>(
-      `${this.apiUrl}/${incidentId}/lier-tpe`,
-      { tpeId }, // Envoyer l'ID du TPE
+ lierPlusieursTpes(incidentId: string, tpeIds: string[]): Observable<ApiResponse<IncidentTPEDTO[]>> {
+    console.log('➕ Liaison de plusieurs TPEs - Incident:', incidentId, 'TPEs:', tpeIds);
+    
+    return this.http.post<ApiResponse<IncidentTPEDTO[]>>(
+      `${this.apiUrl}/${incidentId}/tpes`,
+      tpeIds, // Envoyer directement le tableau d'IDs
       this.getAuthHeaders()
+    ).pipe(
+      tap(response => console.log('📥 Réponse liaison TPEs:', response))
     );
   }
 
-  // Retirer un TPE d'un incident
-  retirerTpe(incidentId: string, tpeId: string): Observable<ApiResponse<boolean>> {
-    return this.http.delete<ApiResponse<boolean>>(
-      `${this.apiUrl}/${incidentId}/tpe/${tpeId}`,
-      this.getAuthHeaders()
-    );
+  /**
+   * 🔹 Lier un seul TPE à un incident (pour compatibilité)
+   * Utilise le nouvel endpoint avec un tableau d'un seul élément
+   */
+  lierTpe(incidentId: string, tpeId: string): Observable<ApiResponse<IncidentTPEDTO[]>> {
+    return this.lierPlusieursTpes(incidentId, [tpeId]);
   }
+
+// Dans incident.service.ts
+// Dans incident.service.ts
+
+/**
+ * 🔹 Ajouter des pièces jointes à un incident
+ * POST /api/incident/{incidentId}/upload
+ */
+// Dans incident.service.ts
+
+/**
+ * 🔹 Ajouter des pièces jointes à un incident
+ * POST /api/incident/{incidentId}/upload
+ */
+ajouterPiecesJointes(incidentId: string, fichiers: File[]): Observable<ApiResponse<PieceJointeDTO[]>> {
+  const formData = new FormData();
+  
+  fichiers.forEach(file => {
+    formData.append('fichiers', file, file.name);
+  });
+  
+  const token = this.authService.getAccessToken();
+  const headers = new HttpHeaders({
+    'Authorization': `Bearer ${token}`
+    // NE PAS mettre Content-Type
+  });
+  
+  console.log('📤 Upload de', fichiers.length, 'fichier(s) pour l\'incident:', incidentId);
+  
+  // ✅ CORRECTION : Utiliser l'URL correcte avec pieces-jointes
+  return this.http.post<ApiResponse<PieceJointeDTO[]>>(
+    `https://localhost:7063/api/pieces-jointes/incident/${incidentId}/upload`,
+    formData,
+    { headers }
+  ).pipe(
+    tap(response => console.log('📥 Réponse upload:', response))
+  );
+}
+// Dans incident.service.ts
+
+// Dans incident.service.ts
+
+getPiecesJointesByIncident(incidentId: string): Observable<PieceJointeDTO[]> {
+  return this.http.get<ApiResponse<PieceJointeDTO[]>>(
+    `https://localhost:7063/api/pieces-jointes/incident/${incidentId}`,
+    this.getAuthHeaders()
+  ).pipe(
+    map(response => response.data || []),
+    tap(pieces => console.log(`📦 Pièces jointes chargées:`, pieces.length))
+  );
+}
+
+/**
+ * 🔹 Supprimer une pièce jointe
+ * DELETE /api/pieces-jointes/{pieceId}
+ */
+supprimerPieceJointe(pieceId: string): Observable<ApiResponse<boolean>> {
+  return this.http.delete<ApiResponse<boolean>>(
+    `https://localhost:7063/api/pieces-jointes/${pieceId}`,
+    this.getAuthHeaders()
+  );
+}
+/**
+ * Retirer un TPE d'un incident
+ */
+retirerTpe(incidentId: string, tpeId: string): Observable<ApiResponse<boolean>> {
+  // URL avec "tpes" (pluriel) comme dans votre contrôleur
+  return this.http.delete<ApiResponse<boolean>>(
+    `${this.apiUrl}/${incidentId}/tpes/${tpeId}`, // ← Changé de "tpe" à "tpes"
+    this.getAuthHeaders()
+  );
+}
 
 }

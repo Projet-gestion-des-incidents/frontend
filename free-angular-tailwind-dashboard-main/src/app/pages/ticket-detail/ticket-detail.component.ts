@@ -106,7 +106,61 @@ getIncidentSeveriteBadgeColor(severite: number): 'success' | 'warning' | 'error'
     default: return 'light'; // ✅ au lieu de secondary
   }
 }
-  
+  // ========== GESTION DE LA SÉVÉRITÉ ==========
+  getSeveriteLibelle(severite: any, severiteLibelle: string): string {
+    if (!severite) {
+      return 'Non définie';
+    }
+    
+    // Si c'est une string comme "Forte"
+    if (typeof severite === 'string') {
+      return severite;
+    }
+    
+    // Si c'est un nombre
+    if (typeof severite === 'number') {
+      return severiteLibelle || this.getSeveriteLabelFromValue(severite);
+    }
+    
+    return 'Non définie';
+  }
+
+  private getSeveriteLabelFromValue(severite: number): string {
+    switch(severite) {
+      case 1: return 'Faible';
+      case 2: return 'Moyenne';
+      case 3: return 'Forte';
+      default: return 'Non définie';
+    }
+  }
+
+  getSeveriteBadgeColor(severite: any): 'success' | 'warning' | 'error' {
+    if (!severite) {
+      return 'warning';
+    }
+    
+    // Si c'est une string
+    if (typeof severite === 'string') {
+      switch(severite) {
+        case 'Faible': return 'success';
+        case 'Moyenne': return 'warning';
+        case 'Forte': return 'error';
+        default: return 'warning';
+      }
+    }
+    
+    // Si c'est un nombre
+    if (typeof severite === 'number') {
+      switch(severite) {
+        case 1: return 'success';   // Faible
+        case 2: return 'warning';   // Moyenne
+        case 3: return 'error';     // Forte
+        default: return 'warning';
+      }
+    }
+    
+    return 'warning';
+  } 
   goBack() {
     this.router.navigate(['/tickets']);
   }

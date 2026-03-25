@@ -58,6 +58,13 @@ export interface IncidentDetail extends Incident {
   tpEs?: TpeLiaison[]; // Note: c'est "tpEs" dans la réponse, pas "tpes"
   piecesJointes?: PieceJointeDTO[];
 }
+export interface IncidentTPEDTO {
+  tpeId: string;
+  numSerie: string;
+  numSerieComplet: string;
+  modele: string;
+  dateAssociation: string;
+}
 export interface TpeLiaison {
   tpeId: string;
   numSerie: string;
