@@ -11,6 +11,7 @@ import { BadgeComponent } from '../../shared/components/ui/badge/badge.component
 import { AvatarTextComponent } from '../../shared/components/ui/avatar/avatar-text.component';
 import { forkJoin, finalize, of } from 'rxjs';
 import { catchError, map } from 'rxjs/operators';
+import { TechnicianUpdateTicketDTO } from '../../shared/models/Ticket.models';
 
 @Component({
   selector: 'app-ticket-edit',
@@ -69,10 +70,10 @@ export class TicketEditComponent implements OnInit {
     { label: 'Résolu', value: 'Resolu' }
   ];
   
-  statutsTechnicien = [
-    { label: 'En cours', value: 'EnCours' },
-    { label: 'Résolu', value: 'Resolu' }
-  ];
+statutsTechnicien = [
+  { label: 'En cours', value: 'EnCours' },
+  { label: 'Résolu', value: 'Resolu' }
+];
 
   // Propriétés pour la gestion des fichiers
   isDragActive = false;
@@ -417,7 +418,9 @@ loadData(): void {
     next: (results) => {
       if (results.ticketDetails.isSuccess && results.ticketDetails.data) {
         this.ticket = results.ticketDetails.data;
-        
+        // Après avoir assigné this.ticket, ajoutez :
+this.ticket.originalStatut = this.ticket.statutTicket;
+this.ticket.originalAssigneeId = this.ticket.assigneeId;
         // Stocker tous les commentaires
         this.tousLesCommentaires = results.tousLesCommentaires;
         
@@ -1196,60 +1199,71 @@ save() {
 }
 
 private saveAsTechnicien(): void {
-  const ticketFormData = new FormData();
+  // ✅ Utiliser le DTO spécifique pour technicien
+  const technicianUpdateDTO: TechnicianUpdateTicketDTO = {};
   
-  const statutMap: { [key: string]: string } = {
-    'Assigné': 'Assigné',
-    'EnCours': 'EnCours',
-    'Résolu': 'Résolu'
+  const statutMap: { [key: string]: number } = {
+    'Assigné': 1,
+    'EnCours': 2,
+    'Resolu': 3
   };
   
   if (this.ticket.statutTicket) {
-    const statutValue = statutMap[this.ticket.statutTicket] || this.ticket.statutTicket;
-    ticketFormData.append('StatutTicket', statutValue);
+    technicianUpdateDTO.statutTicket = statutMap[this.ticket.statutTicket] || 2;
   }
   
+  // ✅ Le technicien peut modifier l'assignation
   if (this.ticket.assigneeId !== undefined) {
-    ticketFormData.append('AssigneeId', this.ticket.assigneeId || '');
+    technicianUpdateDTO.assigneeId = this.ticket.assigneeId || null;
   }
 
-  // Si le technicien a un commentaire à ajouter, on le gère
+  // Vérifier s'il y a des changements
+  const hasStatusChange = this.ticket.statutTicket && this.ticket.statutTicket !== this.ticket.originalStatut;
+  const hasAssigneeChange = this.ticket.assigneeId !== this.ticket.originalAssigneeId;
+  
+  // Si seulement un commentaire à ajouter sans autres changements
   const hasCommentToAdd = (!this.ticket.commentaireId && 
                            (this.ticket.commentaireMessage?.trim() || this.nouveauxFichiers.length > 0));
   
-  if (hasCommentToAdd) {
-    // Pour l'ajout de commentaire, on appelle directement ajouterCommentaireAvecFichiers
-    // sans passer par updateTicket s'il n'y a pas de changement de statut
-    if (!this.ticket.statutTicket && !this.ticket.assigneeId) {
-      // Seulement un commentaire, pas de modification du ticket
-      this.ajouterCommentaireAvecFichiers(
-        this.ticket.commentaireMessage || 'Fichiers joints',
-        this.ticket.commentaireInterne || false,
-        this.nouveauxFichiers,
-        {
-          isFromForm: true,
-          resetForm: () => {
-            this.nouveauxFichiers = [];
-            this.ticket.commentaireMessage = '';
-            this.ticket.commentaireInterne = false;
-          }
+  if (hasCommentToAdd && !hasStatusChange && !hasAssigneeChange) {
+    // Seulement un commentaire, pas de modification du ticket
+    this.ajouterCommentaireAvecFichiers(
+      this.ticket.commentaireMessage || 'Fichiers joints',
+      this.ticket.commentaireInterne || false,
+      this.nouveauxFichiers,
+      {
+        isFromForm: true,
+        resetForm: () => {
+          this.nouveauxFichiers = [];
+          this.ticket.commentaireMessage = '';
+          this.ticket.commentaireInterne = false;
         }
-      );
-      return;
-    }
+      }
+    );
+    return;
   }
   
-  // Mettre à jour le ticket d'abord
-  this.ticketService.updateTicket(this.ticketId, ticketFormData).subscribe({
+  // S'il n'y a aucune modification du ticket
+  if (!hasStatusChange && !hasAssigneeChange && !hasCommentToAdd) {
+    this.loading = false;
+    this.router.navigate(['/tickets', this.ticketId]);
+    return;
+  }
+  
+  // ✅ Utiliser l'endpoint spécifique pour technicien
+  this.ticketService.technicianUpdateTicket(this.ticketId, technicianUpdateDTO).subscribe({
     next: (response) => {
       if (response.isSuccess) {
-        // ✅ Mettre à jour le ticket localement si besoin
+        // Mettre à jour le ticket localement
         if (response.data) {
-          this.ticket.statutTicket = response.data.statutTicket || this.ticket.statutTicket;
-          this.ticket.assigneeId = response.data.assigneeId || this.ticket.assigneeId;
+          this.ticket.statutTicket = response.data.statutTicket;
+          this.ticket.assigneeId = response.data.assigneeId;
+          // Sauvegarder les valeurs originales pour la prochaine comparaison
+          this.ticket.originalStatut = this.ticket.statutTicket;
+          this.ticket.originalAssigneeId = this.ticket.assigneeId;
         }
         
-        // ✅ Gérer le commentaire
+        // Gérer le commentaire
         this.updateCommentaire();
       } else {
         this.error = response.message || 'Erreur mise à jour ticket';
@@ -1264,7 +1278,9 @@ private saveAsTechnicien(): void {
   });
 }
 // Dans ticket-edit.component.ts
-
+// Dans les propriétés de la classe, ajoutez :
+originalStatut: string = '';
+originalAssigneeId: string | null = null;
 /**
  * Ajouter un commentaire avec fichiers
  * @param message - Le message du commentaire
@@ -1597,8 +1613,16 @@ commentToDelete: { id: string, auteurNom: string } | null = null;
 // }
 // Ajoutez la méthode pour confirmer le délien d'un incident
 confirmerDelierIncident(incidentId: string, incidentCode: string): void {
+  console.log('🔔 Confirmation délien incident:', incidentId, incidentCode);
+  console.log('🔔 showDeleteIncidentModal AVANT:', this.showDeleteIncidentModal);
   this.incidentToDelete = { id: incidentId, code: incidentCode };
   this.showDeleteIncidentModal = true;
+  console.log('🔔 showDeleteIncidentModal APRÈS:', this.showDeleteIncidentModal);
+  
+  // Forcer la détection des changements (si nécessaire)
+  setTimeout(() => {
+    console.log('🔔 Vérification après setTimeout - showDeleteIncidentModal:', this.showDeleteIncidentModal);
+  }, 100);
 }
 
 // Ajoutez la méthode pour exécuter le délien

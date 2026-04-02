@@ -132,24 +132,25 @@ export class TicketFormComponent implements OnInit {
     return incident ? incident.codeIncident : 'Incident';
   }
 
- loadIncidents(): void {
-    this.incidentService.getAllIncidents().subscribe({
-      next: (incidents) => {
-        // Filtrer les incidents qui n'ont aucun ticket lié (nombreTickets === 0)
-        this.incidents = incidents.filter(incident => incident.nombreTickets === 0);
-        console.log('Incidents disponibles (sans tickets):', this.incidents.length);
-        
-        // Réinitialiser la sélection si des incidents sélectionnés ne sont plus disponibles
-        this.selectedIncidentIds = this.selectedIncidentIds.filter(id => 
-          this.incidents.find(i => i.id === id)
-        );
-      },
-      error: (err) => {
-        console.error('Erreur chargement incidents:', err);
-        this.showError('Impossible de charger les incidents');
-      }
-    });
-  }
+// Dans ticket-form.component.ts
+loadIncidents(): void {
+  // ✅ Utiliser le nouvel endpoint qui récupère les incidents sans aucun ticket lié
+  this.incidentService.getIncidentsSansTicket().subscribe({
+    next: (incidents) => {
+      this.incidents = incidents;
+      console.log('Incidents disponibles (sans aucun ticket lié):', this.incidents.length);
+      
+      // Réinitialiser la sélection si des incidents sélectionnés ne sont plus disponibles
+      this.selectedIncidentIds = this.selectedIncidentIds.filter(id => 
+        this.incidents.find(i => i.id === id)
+      );
+    },
+    error: (err) => {
+      console.error('Erreur chargement incidents:', err);
+      this.showError('Impossible de charger les incidents');
+    }
+  });
+}
 
 
 

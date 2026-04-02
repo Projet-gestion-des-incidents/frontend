@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
-import { Observable, map, tap } from 'rxjs';
+import { Observable, catchError, map, of, tap } from 'rxjs';
 import { 
   Incident, 
   IncidentDetail, 
@@ -309,7 +309,21 @@ ajouterPiecesJointes(incidentId: string, fichiers: File[]): Observable<ApiRespon
   );
 }
 // Dans incident.service.ts
-
+getIncidentsSansTicket(): Observable<Incident[]> {
+  console.log('🔍 Récupération des incidents sans ticket lié');
+  
+  return this.http.get<ApiResponse<Incident[]>>(
+    `${this.apiUrl}/disponibles`,
+    this.getAuthHeaders()
+  ).pipe(
+    map(response => response.data),
+    tap(incidents => console.log(`📦 ${incidents.length} incident(s) sans ticket trouvé(s)`)),
+    catchError(error => {
+      console.error('❌ Erreur récupération incidents sans ticket:', error);
+      return of([]);
+    })
+  );
+}
 // Dans incident.service.ts
 
 getPiecesJointesByIncident(incidentId: string): Observable<PieceJointeDTO[]> {

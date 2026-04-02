@@ -228,7 +228,7 @@
              : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'">
         
         <!-- Code de l'incident -->
-        <span>{{ incident.codeIncident }}</span>
+        <span>{{ incident.codeIncident }} -- {{incident.typeProbleme}}</span>
         
         <!-- Indicateur de sélection -->
         <svg *ngIf="isIncidentSelected(incident.id)" 

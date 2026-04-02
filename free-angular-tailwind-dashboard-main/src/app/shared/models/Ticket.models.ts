@@ -25,7 +25,11 @@ export interface TicketDTO {
   nombrePiecesJointes: number;
   
 }
-
+// Dans Ticket.models.ts
+export interface TechnicianUpdateTicketDTO {
+  assigneeId?: string | null;
+  statutTicket?: number;
+}
 export interface CreateTicketDTO {
   titreTicket: string;
   descriptionTicket?: string;

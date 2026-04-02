@@ -1,9 +1,9 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { catchError, map, Observable, of, tap, throwError } from 'rxjs';
 import { ApiResponse, CommentaireDTO, CreateTicketDTO, TechnicianUpdateTicketDTO, TicketDetailDTO, TicketDTO, UpdateTicketResponseDTO } from '../models/Ticket.models';
 import { AuthService } from './auth.service';
-import { Incident } from '../models/incident.model';
+import { Incident, PagedResult } from '../models/incident.model';
 
 @Injectable({
   providedIn: 'root'
@@ -66,8 +66,21 @@ getIncidentsByTicket(ticketId: string): Observable<Incident[]> {
     })
   );
 }
-// Dans ticket.service.ts
-
+technicianUpdateTicket(id: string, dto: TechnicianUpdateTicketDTO): Observable<ApiResponse<TicketDTO>> {
+  console.log('🔧 Mise à jour technicien - Ticket:', id, 'DTO:', dto);
+  
+  return this.http.put<ApiResponse<TicketDTO>>(
+    `${this.baseUrl}/${id}/technician-update`,
+    dto,
+    this.getAuthHeaders()
+  ).pipe(
+    tap(response => console.log('📥 Réponse mise à jour technicien:', response)),
+    catchError(error => {
+      console.error('❌ Erreur mise à jour technicien:', error);
+      return throwError(() => error);
+    })
+  );
+}
 /**
  * Récupère tous les commentaires d'un ticket
  */
@@ -300,16 +313,37 @@ getTicketsPaged(request: any) {
     );
   }
 
-  /**
-   * 🔹 Récupérer les tickets assignés à l'utilisateur connecté (technicien)
-   * GET /api/ticket/mes-tickets
-   */
-  getMesTicketsAssignes(): Observable<ApiResponse<any>> {
-    return this.http.get<any>(
-      `${this.baseUrl}/mes-tickets`,
-      this.getAuthHeaders()
-    );
+/**
+ * 🔹 Récupérer les tickets assignés à l'utilisateur connecté (technicien) avec pagination
+ * GET /api/ticket/mes-tickets
+ */
+getMesTicketsAssignes(request: any): Observable<ApiResponse<PagedResult<TicketDTO>>> {
+  // Construire les paramètres de requête avec HttpParams
+  let params = new HttpParams()
+    .set('page', request.page.toString())
+    .set('pageSize', request.pageSize.toString())
+    .set('sortBy', request.sortBy || 'date')
+    .set('sortDescending', request.sortDescending !== undefined ? request.sortDescending : true);
+
+  // Ajouter les filtres optionnels
+  if (request.searchTerm) {
+    params = params.set('searchTerm', request.searchTerm);
   }
+  if (request.statut) {
+    params = params.set('statut', request.statut);
+  }
+  if (request.priorite) {
+    params = params.set('priorite', request.priorite);
+  }
+  if (request.dateDebut) {
+    params = params.set('dateDebut', request.dateDebut);
+  }
+
+  return this.http.get<ApiResponse<PagedResult<TicketDTO>>>(
+    `${this.baseUrl}/mes-tickets`,
+    { params, headers: this.getAuthHeaders().headers }
+  );
+}
 
 
 }

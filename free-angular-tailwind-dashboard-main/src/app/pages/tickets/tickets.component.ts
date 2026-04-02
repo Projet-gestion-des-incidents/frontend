@@ -37,7 +37,8 @@ export class TicketsComponent implements OnInit {
   private searchTimeout: any;
   yearOptions: string[] = [];
   maxTicketDate: Date = new Date();
-
+  successMessage: string = '';
+  
   tickets: any[] = [];
   filteredTickets: any[] = [];
   searchTerm: string = '';
@@ -78,7 +79,7 @@ export class TicketsComponent implements OnInit {
   // Suppression
   confirmTicket: TicketDTO | null = null;
   ticketsToDelete: string[] | null = null;
-  deletingSelected = false;
+  deletingSelected: boolean = false;
   
   // Sélection multiple
   selectedTickets: string[] = [];
@@ -259,45 +260,51 @@ export class TicketsComponent implements OnInit {
       });
     }
     
-    // TECHNICIEN: voir seulement ses tickets assignés
-    else if (this.isTechnicien) {
-      console.log('🔧 Technicien: Chargement de mes tickets assignés');
+else if (this.isTechnicien) {
+  console.log('🔧 Technicien: Chargement de mes tickets assignés avec pagination');
+  
+  const request = {
+    page: this.currentPage,
+    pageSize: this.pageSize,
+    searchTerm: this.searchTerm || null,
+    statut: this.selectedStatut ?? null,
+    priorite: this.selectedPriorite ?? null,
+    dateDebut: this.tempFilters.dateDebut || null,
+    sortBy: "date",
+    sortDescending: true
+  };
+
+  console.log("📤 Request technicien envoyée:", request);
+
+  this.ticketService.getMesTicketsAssignes(request).subscribe({
+    next: (res) => {
+      if (res.isSuccess && res.data) {
+        const paged = res.data;
+        // ✅ Utiliser les noms camelCase (items, totalCount, page)
+        this.tickets = paged.items || [];
+        this.filteredTickets = this.tickets;
+        this.totalCount = paged.totalCount || 0;
+        // Calculer totalPages à partir de totalCount et pageSize
+        this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+        this.currentPage = paged.page || 1;
+        
+        console.log(`✅ ${this.tickets.length} tickets assignés chargés pour le technicien`);
+      } else {
+        this.tickets = [];
+        this.totalCount = 0;
+        this.totalPages = 1;
+      }
       
-      this.ticketService.getMesTicketsAssignes().subscribe({
-        next: (res) => {
-          if (res.isSuccess && res.data) {
-            // La réponse peut être PagedResult ou directement la liste
-            if (res.data.items) {
-              // Format PagedResult
-              this.tickets = res.data.items;
-              this.totalCount = res.data.totalCount;
-              this.totalPages = res.data.totalPages;
-            } else {
-              // Format simple liste
-              this.tickets = res.data;
-              this.totalCount = this.tickets.length;
-              this.totalPages = Math.ceil(this.totalCount / this.pageSize);
-            }
-            
-            this.filteredTickets = this.tickets;
-            
-            console.log(`✅ ${this.tickets.length} tickets assignés chargés pour le technicien`);
-          } else {
-            this.tickets = [];
-            this.totalCount = 0;
-            this.totalPages = 1;
-          }
-          
-          this.selectedTickets = [];
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error("❌ Erreur chargement tickets assignés:", err);
-          this.error = "Impossible de charger vos tickets assignés";
-          this.loading = false;
-        }
-      });
+      this.selectedTickets = [];
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error("❌ Erreur chargement tickets assignés:", err);
+      this.error = "Impossible de charger vos tickets assignés";
+      this.loading = false;
     }
+  });
+}
   }
 
   // ========== GESTION DE LA SÉLECTION MULTIPLE ==========
@@ -335,13 +342,6 @@ export class TicketsComponent implements OnInit {
   deleteTicket(ticket: TicketDTO) {
     this.confirmTicket = ticket;
     this.ticketsToDelete = null;
-    
-    this.alert = {
-      show: true,
-      variant: 'warning',
-      title: 'Confirmation',
-      message: `Voulez-vous vraiment supprimer le ticket "${ticket.titreTicket}" ?`
-    };
   }
 
   deleteSelectedTickets(): void {
@@ -349,13 +349,6 @@ export class TicketsComponent implements OnInit {
     
     this.ticketsToDelete = [...this.selectedTickets];
     this.confirmTicket = null;
-    
-    this.alert = {
-      show: true,
-      variant: 'warning',
-      title: 'Confirmation',
-      message: `Voulez-vous vraiment supprimer ${this.selectedTickets.length} ticket(s) ?`
-    };
   }
 
   confirmDelete() {
@@ -363,18 +356,14 @@ export class TicketsComponent implements OnInit {
     if (this.ticketsToDelete && this.ticketsToDelete.length > 0) {
       this.deletingSelected = true;
       
-      // Compter les succès et échecs
       let successCount = 0;
       let errorCount = 0;
-      const errors: any[] = [];
       
-      // Créer un tableau d'observables pour chaque suppression
       const deleteObservables = this.ticketsToDelete.map(id =>
         this.ticketService.deleteTicket(id).pipe(
           catchError(error => {
             console.error(`❌ Erreur suppression ticket ${id}:`, error);
             errorCount++;
-            errors.push({ id, error: error.error?.message || error.message });
             return of(null);
           }),
           tap(result => {
@@ -391,25 +380,12 @@ export class TicketsComponent implements OnInit {
         finalize(() => {
           this.deletingSelected = false;
           
-          // Afficher le résultat
           if (successCount === this.ticketsToDelete!.length) {
-            this.showAlert(
-              'success',
-              'Succès',
-              `${successCount} ticket(s) supprimé(s) avec succès.`
-            );
+            this.showAlert('success', 'Succès', `${successCount} ticket(s) supprimé(s) avec succès.`);
           } else if (successCount > 0) {
-            this.showAlert(
-              'warning',
-              'Suppression partielle',
-              `${successCount} ticket(s) supprimé(s), ${errorCount} échec(s).`
-            );
+            this.showAlert('warning', 'Suppression partielle', `${successCount} ticket(s) supprimé(s), ${errorCount} échec(s).`);
           } else {
-            this.showAlert(
-              'error',
-              'Échec',
-              `Impossible de supprimer les tickets sélectionnés.`
-            );
+            this.showAlert('error', 'Échec', `Impossible de supprimer les tickets sélectionnés.`);
           }
           
           this.selectedTickets = [];
@@ -429,32 +405,20 @@ export class TicketsComponent implements OnInit {
       this.ticketService.deleteTicket(this.confirmTicket.id).subscribe({
         next: (response) => {
           if (response.isSuccess) {
-            this.showAlert(
-              'success',
-              'Ticket supprimé',
-              `Le ticket "${this.confirmTicket!.titreTicket}" a été supprimé.`
-            );
+            this.showAlert('success', 'Ticket supprimé', `Le ticket "${this.confirmTicket!.titreTicket}" a été supprimé.`);
             
             this.selectedTickets = this.selectedTickets.filter(id => id !== this.confirmTicket!.id);
             this.confirmTicket = null;
             this.loadTickets();
           } else {
-            this.showAlert(
-              'error',
-              'Erreur',
-              response.message || `Impossible de supprimer le ticket "${this.confirmTicket!.titreTicket}".`
-            );
+            this.showAlert('error', 'Erreur', response.message || `Impossible de supprimer le ticket "${this.confirmTicket!.titreTicket}".`);
             this.confirmTicket = null;
           }
         },
         error: (err) => {
           console.error('❌ Erreur:', err);
           const errorMessage = err.error?.message || err.message || 'Erreur inconnue';
-          this.showAlert(
-            'error',
-            'Erreur',
-            `Impossible de supprimer le ticket: ${errorMessage}`
-          );
+          this.showAlert('error', 'Erreur', `Impossible de supprimer le ticket: ${errorMessage}`);
           this.confirmTicket = null;
         }
       });
@@ -464,12 +428,23 @@ export class TicketsComponent implements OnInit {
   cancelDelete() {
     this.confirmTicket = null;
     this.ticketsToDelete = null;
-    this.alert.show = false;
   }
 
   showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string) {
-    this.alert = { show: true, variant, title, message };
-    setTimeout(() => (this.alert.show = false), 3000);
+    if (variant === 'success') {
+      this.successMessage = message;
+      setTimeout(() => {
+        this.successMessage = '';
+      }, 3000);
+    } else if (variant === 'error') {
+      this.error = message;
+      setTimeout(() => {
+        this.error = null;
+      }, 5000);
+    } else if (variant === 'warning') {
+      // Pour les avertissements, on peut utiliser l'alerte ou un toast
+      console.warn(message);
+    }
   }
 
   // ========== PAGINATION ==========
