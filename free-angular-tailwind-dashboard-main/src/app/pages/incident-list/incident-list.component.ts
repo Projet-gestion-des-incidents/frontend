@@ -135,6 +135,7 @@ loadMyIncidents(): void {
     }
   });
 }
+
 loadIncidents(): void {
   this.loading = true;
   this.error = null;
@@ -389,40 +390,37 @@ resetFilters(): void {
     return pages;
   }
 
-  // Pour la suppression simple
-  onDelete(incident: Incident) {
-    this.confirmIncident = incident;
-    this.alert = {
-      show: true,
-      variant: 'warning',
-      title: 'Confirmation',
-      message: `Voulez-vous vraiment supprimer l'incident "${incident.codeIncident}" ?`
-    };
-  }
+ // Pour la suppression simple - MODIFIER
+onDelete(incident: Incident) {
+  this.confirmIncident = incident;
+  // Ne pas utiliser l'alerte, on utilise le modal directement
+}
+StatutIncident = StatutIncident; 
+confirmDelete() {
+  if (!this.confirmIncident) return;
 
-  confirmDelete() {
-    if (!this.confirmIncident) return;
+  this.deleting = true;
+  
+  this.incidentService.deleteIncident(this.confirmIncident.id).subscribe({
+    next: () => {
+      this.showAlert('success', 'Incident supprimé', `L'incident "${this.confirmIncident!.codeIncident}" a été supprimé.`);
+      this.confirmIncident = null;
+      this.deleting = false;
+      this.loadIncidents(); // Recharger la liste
+    },
+    error: (err) => {
+      console.error(err);
+      this.showAlert('error', 'Erreur', `Impossible de supprimer l'incident "${this.confirmIncident!.codeIncident}".`);
+      this.confirmIncident = null;
+      this.deleting = false;
+    }
+  });
+}
 
-    this.incidentService.deleteIncident(this.confirmIncident.id).subscribe({
-      next: () => {
-        this.showAlert('success', 'Incident supprimé', `L'incident "${this.confirmIncident!.codeIncident}" a été supprimé.`);
-        this.confirmIncident = null;
-        this.alert.show = false;
-        this.loadIncidents(); // Recharger la liste
-      },
-      error: (err) => {
-        console.error(err);
-        this.showAlert('error', 'Erreur', `Impossible de supprimer l'incident "${this.confirmIncident!.codeIncident}".`);
-        this.confirmIncident = null;
-        this.alert.show = false;
-      }
-    });
-  }
-
-  cancelDelete() {
-    this.confirmIncident = null;
-    this.alert.show = false;
-  }
+cancelDelete() {
+  this.confirmIncident = null;
+  this.deleting = false;
+}
 
   showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string) {
     this.alert = { show: true, variant, title, message };
@@ -642,4 +640,6 @@ clearFilters(): void {
   }
   this.showFilters = false;
 }
+deleting = false;
+
 }

@@ -867,7 +867,12 @@ async uploaderFichiers(): Promise<boolean> {
   private updateIncidentFiles(): void {
     this.incident.piecesJointes = this.selectedFiles as any;
   }
-
+// Ajoutez cette propriété dans la classe IncidentEditComponent
+get tpEsDisponiblesFiltres(): any[] {
+  // Filtrer les TPEs qui ne sont pas déjà associés
+  const tpesAssociesIds = this.incident.tpEs?.map(t => t.tpeId) || [];
+  return this.tpEsDisponibles.filter(tpe => !tpesAssociesIds.includes(tpe.id));
+}
   formatFileSize(bytes: number): string {
     if (bytes === 0) return '0 Bytes';
     const k = 1024;
@@ -875,4 +880,26 @@ async uploaderFichiers(): Promise<boolean> {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
+  // Dans IncidentEditComponent, ajoutez cette méthode pour gérer le changement de type de problème
+
+onTypeProblemeChange() {
+  if (!this.isAdmin && this.isCommercant) {
+    // Seul le commerçant peut modifier le type de problème
+    console.log('🔄 Type de problème changé:', this.typeProblemeString);
+    
+    // Afficher un message informatif
+    this.showTemporaryMessage(
+      'Le type de problème a été modifié. Les entités impactées seront automatiquement mises à jour lors de l\'enregistrement.',
+      'success'
+    );
+    
+    // Optionnel: Marquer que les entités ont changé pour rafraîchir l'affichage
+    this.entitesImpacteesModifiees = true;
+  }
+}
+
+// Ajoutez cette propriété
+entitesImpacteesModifiees = false;
+
+// Modifiez le template pour appeler onTypeProblemeChange
 }

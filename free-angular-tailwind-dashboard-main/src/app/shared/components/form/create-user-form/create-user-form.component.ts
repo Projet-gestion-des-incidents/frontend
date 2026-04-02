@@ -249,7 +249,7 @@ private showError(message: string, title = 'Erreur') {
 
 
 
-  private clearAlert() {
+  public clearAlert() {
     this.alert.show = false;
   }
 

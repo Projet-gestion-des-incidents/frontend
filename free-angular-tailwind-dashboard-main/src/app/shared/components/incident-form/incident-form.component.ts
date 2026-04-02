@@ -168,43 +168,37 @@ export class IncidentFormComponent implements OnInit {
   }
 
   // ========== VALIDATION ET SOUMISSION ==========
+showErrors = false;
+submitted = false;
 
-  onSubmit(): void {
-    this.showTpeError = false;
-    this.error = null;
+// Modifiez la méthode onSubmit
+onSubmit(): void {
+  this.submitted = true;
+  this.showErrors = true;
+  this.showTpeError = false;
+  this.error = null;
 
-    if (!this.incident.descriptionIncident || !this.incident.emplacement) {
-      this.error = 'Veuillez remplir les champs obligatoires';
-      setTimeout(() => {
-        document.querySelector('.rounded-2xl.border')?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'start'
-        });
-      }, 100);
-      return;
-    }
+  if (!this.incident.descriptionIncident || !this.incident.emplacement) {
+    this.error = 'Veuillez remplir les champs obligatoires';
+    return;
+  }
 
-    if (this.incident.typeProbleme === undefined) {
-      this.error = 'Veuillez sélectionner un type de problème';
-      return;
-    }
+  if (this.incident.typeProbleme === undefined) {
+    this.error = 'Veuillez sélectionner un type de problème';
+    return;
+  }
 
-    if (!this.incident.TPEIds || this.incident.TPEIds.length === 0) {
-      this.showTpeError = true;
-      setTimeout(() => {
-        document.querySelector('.rounded-2xl.border.overflow-visible')?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        });
-      }, 100);
-      return;
-    }
+  if (!this.incident.TPEIds || this.incident.TPEIds.length === 0) {
+    this.showTpeError = true;
+    this.error = 'Veuillez sélectionner au moins un terminal TPE';
+    return;
+  }
 
-    this.loading = true;
-    this.error = null;
+  // Reset validation flag on success
+  this.showErrors = false;
 
     const formData = new FormData();
-    formData.append('descriptionIncident', this.incident.descriptionIncident);
+    formData.append('descriptionIncident', this.incident.descriptionIncident .replace(/[^a-z0-9.]/g, ''));
     formData.append('typeProbleme', this.incident.typeProbleme.toString());
     formData.append('emplacement', this.incident.emplacement);
 

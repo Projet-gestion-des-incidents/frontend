@@ -1,161 +1,371 @@
-<app-component-card title="Créer un nouvel utilisateur">
-  <div class="space-y-8"> 
-    <app-alert
-      *ngIf="alert.show"
-      [variant]="alert.variant"
-      [title]="alert.title"
-      [message]="alert.message"
-      (click)="alert.show = false"
-    ></app-alert>
-<br>
+  <div class="space-y-6">
+    
+    <!-- Alerte améliorée -->
+    <div *ngIf="alert.show" 
+         class="rounded-xl border p-4 flex items-center justify-between animate-slide-down"
+         [ngClass]="{
+           'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20': alert.variant === 'error',
+           'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20': alert.variant === 'success'
+         }">
+      <div class="flex items-center gap-3">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center"
+               [ngClass]="{
+                 'bg-red-100 text-red-600 dark:bg-red-800/50 dark:text-red-400': alert.variant === 'error',
+                 'bg-green-100 text-green-600 dark:bg-green-800/50 dark:text-green-400': alert.variant === 'success'
+               }">
+            <svg *ngIf="alert.variant === 'error'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <svg *ngIf="alert.variant === 'success'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <p class="text-sm font-medium"
+             [ngClass]="{
+               'text-red-800 dark:text-red-200': alert.variant === 'error',
+               'text-green-800 dark:text-green-200': alert.variant === 'success'
+             }">
+            {{ alert.title }}
+          </p>
+          <p class="text-sm"
+             [ngClass]="{
+               'text-red-700 dark:text-red-300': alert.variant === 'error',
+               'text-green-700 dark:text-green-300': alert.variant === 'success'
+             }">
+            {{ alert.message }}
+          </p>
+        </div>
+      </div>
+      <button (click)="clearAlert()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+ <div class="flex items-center justify-between mb-8">
+    <div class="flex items-center gap-4">
+      <button 
+        (click)="cancel()"
+        class="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800 transition-colors"
+        title="Retour à la liste">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+      </button>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white/90">
+Créer un nouvel utilisateur        </h1>
+      <div class="flex items-center gap-2 mt-1">
+              <span class="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                Tous les champs marqués d'un <span class="text-red-500 font-semibold">*</span> sont obligatoires
+              </span>
+            </div>
+      </div>
+    </div>
+    
+ 
+  </div>
     <form (ngSubmit)="onSubmit()" [formGroup]="userForm" class="space-y-6">
       
-      <!-- Section 1 : Informations personnelles -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        <!-- Prénom -->
-        <div>
-          <app-label for="prenom">Prénom <span class="text-error-500">*</span></app-label>
-          <app-input-field
-            type="text"
-            id="prenom"
-            placeholder="Jean"
-            [value]="userForm.get('prenom')?.value"
-            (valueChange)="userForm.get('prenom')?.setValue($event)"
-          />
-          <div *ngIf="userForm.get('prenom')?.touched && userForm.get('prenom')?.invalid" 
-               class="text-error-500 text-sm mt-1">
-            Le prénom est requis (min. 2 caractères)
-          </div>
-        </div>
-
-        <!-- Nom -->
-        <div>
-          <app-label for="nom">Nom <span class="text-error-500">*</span></app-label>
-          <app-input-field
-            type="text"
-            id="nom"
-            placeholder="Dupont"
-            [value]="userForm.get('nom')?.value"
-            (valueChange)="userForm.get('nom')?.setValue($event)"
-          />
-          <div *ngIf="userForm.get('nom')?.touched && userForm.get('nom')?.invalid" 
-               class="text-error-500 text-sm mt-1">
-            Le nom est requis (min. 2 caractères)
-          </div>
-        </div>
+ <!-- Section unique : Informations personnelles et compte -->
+<div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+  <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50/30 dark:bg-gray-800/50">
+    <div class="flex items-center gap-3">
+      <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
+        <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
       </div>
-
-      <!-- Section 2 : Email & Role -->
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-        <!-- Email -->
-        <div>
-          <app-label for="email">Email <span class="text-error-500">*</span></app-label>
-          <app-input-field
-            type="email"
-            id="email"
-            placeholder="jean.dupont@example.com"
-            [value]="userForm.get('email')?.value"
-            (valueChange)="userForm.get('email')?.setValue($event)"
-          />
-          <div *ngIf="userForm.get('email')?.touched && userForm.get('email')?.invalid" 
-               class="text-error-500 text-sm mt-1">
-            Email invalide
-          </div>
-       
-        </div>
-
       <div>
-
-          <!-- Rôle -->
-          <app-label for="role">Rôle <span class="text-error-500">*</span></app-label>
-          <app-select
-              [options]="roleOptions"
-            placeholder="Sélectionner un rôle"
-            [value]="userForm.get('roleId')?.value"
-            (valueChange)="userForm.get('roleId')?.setValue($event)"
-            className="dark:bg-dark-900"
-          ></app-select>
-
-          <div *ngIf="userForm.get('roleId')?.touched && userForm.get('roleId')?.invalid" 
-               class="text-error-500 text-sm mt-1">
-            Le rôle est requis
-          </div>
-        </div>
-
-   </div> <!-- fin section Email & Role -->
-
-  <!-- 3️⃣ TPE uniquement si commerçant -->
-      <div *ngIf="isCommercant" class="space-y-4 border-t pt-6">
-        <p class="font-semibold text-gray-700 dark:text-gray-200">Liste des TPE</p>
-
-        <div formArrayName="tpes" class="space-y-4">
-          <div *ngFor="let tpe of tpes.controls; let i = index" [formGroupName]="i"
-               class="bg-white dark:bg-gray-800 shadow-md rounded-xl p-4 flex flex-col md:flex-row md:items-end md:gap-4 relative">
-
-             <!-- Numéro de série -->
-        <div class="flex-1">
-          <label class="block text-sm font-medium mb-1">Numéro de série *</label>
-          <input type="text"
-                 formControlName="numSerie"
-                 placeholder="123456"
-                 class="w-full border rounded-lg px-3 py-2 shadow-sm focus:ring-2 focus:ring-brand-400" />
-        </div>
-
-            <!-- Modèle -->
-            <div class="flex-1">
-          <label class="block text-sm font-medium mb-1">Modèle *</label>
-          <select formControlName="modele" 
-                  class="w-full border rounded-lg px-3 py-2 shadow-sm focus:ring-2 focus:ring-brand-400">
-            <option value="">Choisir un modèle</option>
-            <option *ngFor="let m of modeleOptions" [value]="m.value">{{ m.label }}</option>
-          </select>
-        </div>
-
-            <!-- Supprimer TPE -->
-            <button type="button" (click)="removeTPE(i)"
-                    class="absolute top-2 right-2 text-error-500 hover:text-error-600 p-2"
-                    title="Supprimer TPE">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M6 18L18 6M6 6l12 12"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-
-        <!-- Ajouter un TPE -->
-        <button type="button" (click)="addTPE()"
-                class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-white shadow hover:bg-brand-600">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                  d="M12 4v16m8-8H4"/>
-          </svg>
-          Ajouter un TPE
-        </button>
+        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+          Informations personnelles et compte
+        </h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Identité et identifiants de connexion</p>
       </div>
-      <!-- Section 5 : Mot de passe -->
-       
-      <!-- Boutons -->
-      <div class="flex justify-end space-x-4 pt-6 border-t dark:border-gray-700">
-        <app-button
+    </div>
+  </div>
+  
+  <div class="p-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <!-- Prénom -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Prénom <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+          </div>
+          <input
+            type="text"
+            formControlName="prenom"
+            placeholder="Jean"
+            maxlength="50"
+            class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+            [class.border-red-500]="userForm.get('prenom')?.invalid && userForm.get('prenom')?.touched"
+          />
+        </div>
+        <div *ngIf="userForm.get('prenom')?.touched && userForm.get('prenom')?.invalid" 
+             class="mt-2 text-xs text-red-500 flex items-center gap-1">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Le prénom est requis (min. 2 caractères)
+        </div>
+      </div>
+
+      <!-- Nom -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Nom <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+          </div>
+          <input
+            type="text"
+            formControlName="nom"
+            placeholder="Dupont"
+            maxlength="50"
+            class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+            [class.border-red-500]="userForm.get('nom')?.invalid && userForm.get('nom')?.touched"
+          />
+        </div>
+        <div *ngIf="userForm.get('nom')?.touched && userForm.get('nom')?.invalid" 
+             class="mt-2 text-xs text-red-500 flex items-center gap-1">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Le nom est requis (min. 2 caractères)
+        </div>
+      </div>
+
+      <!-- Email -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Email <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+            </svg>
+          </div>
+          <input
+            type="email"
+            formControlName="email"
+            placeholder="jean.dupont@example.com"
+            class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+            [class.border-red-500]="userForm.get('email')?.invalid && userForm.get('email')?.touched"
+          />
+        </div>
+        <div *ngIf="userForm.get('email')?.touched && userForm.get('email')?.invalid" 
+             class="mt-2 text-xs text-red-500 flex items-center gap-1">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Format d'email invalide
+        </div>
+      </div>
+
+      <!-- Rôle -->
+      <div>
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Rôle <span class="text-red-500">*</span>
+        </label>
+        <div class="relative">
+          <select
+            formControlName="roleId"
+            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm appearance-none focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+            [class.border-red-500]="userForm.get('roleId')?.invalid && userForm.get('roleId')?.touched">
+            <option value="" disabled selected>-- Sélectionner un rôle --</option>
+            <option *ngFor="let role of roleOptions" [value]="role.value">{{ role.label }}</option>
+          </select>
+          <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+        </div>
+        <div *ngIf="userForm.get('roleId')?.touched && userForm.get('roleId')?.invalid" 
+             class="mt-2 text-xs text-red-500 flex items-center gap-1">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Le rôle est requis
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      <!-- Section 3 : TPE (uniquement pour commerçant) -->
+      <div *ngIf="isCommercant" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+        <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50/30 dark:bg-gray-800/50">
+          <div class="flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
+                <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
+                </svg>
+              </div>
+              <div>
+                <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+                  Terminaux de paiement
+                </h3>
+                <p class="text-xs text-gray-500 dark:text-gray-400">TPE associés au commerçant</p>
+              </div>
+            </div>
+            <span class="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
+              {{ tpes.length }} TPE
+            </span>
+          </div>
+        </div>
+
+        <div class="p-6">
+          <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg p-3 mb-4">
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span class="text-xs text-blue-700 dark:text-blue-300">Vous pouvez ajouter plusieurs TPE pour ce commerçant</span>
+            </div>
+          </div>
+
+          <div formArrayName="tpes" class="space-y-4">
+            <div *ngFor="let tpe of tpes.controls; let i = index" [formGroupName]="i"
+                 class="bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 p-5 relative group hover:shadow-md transition-all">
+              
+              <div class="absolute -top-3 -right-3 z-10">
+                <button type="button" (click)="removeTPE(i)"
+                        class="bg-red-500 text-white rounded-full w-8 h-8 text-sm opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-600 shadow-lg flex items-center justify-center"
+                        title="Supprimer ce TPE">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+              
+              <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-600">
+                <div class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-sm font-medium">
+                  {{ i + 1 }}
+                </div>
+                <span class="text-sm font-medium text-gray-500 dark:text-gray-400">TPE #{{ i + 1 }}</span>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+                <!-- Numéro de série -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Numéro de série <span class="text-red-500">*</span>
+                  </label>
+                  <div class="relative">
+                    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
+                      </svg>
+                    </div>
+                    <input type="text"
+                           formControlName="numSerie"
+                           maxlength="6"
+                           placeholder="123456"
+                           class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all" />
+                  </div>
+                  <div *ngIf="tpe.get('numSerie')?.invalid && tpe.get('numSerie')?.touched"
+                       class="mt-2 text-xs text-red-500 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    <span *ngIf="tpe.get('numSerie')?.errors?.['required']">Le numéro de série est requis</span>
+                    <span *ngIf="tpe.get('numSerie')?.errors?.['pattern']">6 chiffres requis</span>
+                  </div>
+                </div>
+
+                <!-- Modèle -->
+                <div>
+                  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                    Modèle <span class="text-red-500">*</span>
+                  </label>
+                  <div class="relative">
+                    <select formControlName="modele" 
+                            class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm appearance-none focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all">
+                      <option value="" disabled selected>-- Choisir un modèle --</option>
+                      <option *ngFor="let m of modeleOptions" [value]="m.value">{{ m.label }}</option>
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+                      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                      </svg>
+                    </div>
+                  </div>
+                  <div *ngIf="tpe.get('modele')?.invalid && tpe.get('modele')?.touched"
+                       class="mt-2 text-xs text-red-500 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                    </svg>
+                    Le modèle est requis
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Message si aucun TPE -->
+            <div *ngIf="tpes.length === 0" 
+                 class="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl">
+              <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
+              </svg>
+              <p class="text-gray-500 dark:text-gray-400 font-medium">Aucun TPE ajouté</p>
+              <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Cliquez sur le bouton ci-dessous pour ajouter un TPE</p>
+            </div>
+          </div>
+
+          <!-- Ajouter un TPE -->
+          <button type="button" (click)="addTPE()"
+                  class="mt-4 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/20 dark:hover:bg-brand-900/30 rounded-xl transition-all duration-200 group">
+            <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            Ajouter un TPE
+          </button>
+        </div>
+      </div>
+
+
+      <!-- Boutons d'action -->
+      <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+        <button
           type="button"
-          variant="outline"
-          (btnClick)="cancel()"
+          (click)="cancel()"
+          class="order-2 sm:order-1 px-6 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
         >
           Annuler
-        </app-button>
-        <app-button
+        </button>
+        <button
           type="submit"
-          variant="primary"
           [disabled]="userForm.invalid || loading"
-          (btnClick)="onSubmit()"  
-
+          class="order-1 sm:order-2 inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-md"
         >
+          <svg *ngIf="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <svg *ngIf="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
           {{ loading ? 'Création en cours...' : 'Créer l\'utilisateur' }}
-        </app-button>
+        </button>
       </div>
     </form>
   </div>
-</app-component-card>

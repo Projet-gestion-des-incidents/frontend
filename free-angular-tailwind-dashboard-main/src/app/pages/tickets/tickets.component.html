@@ -147,29 +147,16 @@
       </div>
 
       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Priorité</label>
-          <select [(ngModel)]="tempFilters.priorite" 
-                  class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors">
-            <option [ngValue]="undefined">Toutes priorités</option>
-            <option [ngValue]="1">Basse</option>
-            <option [ngValue]="2">Normale</option>
-            <option [ngValue]="3">Haute</option>
-          </select>
-        </div>
+     
 
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Statut</label>
           <select [(ngModel)]="tempFilters.statut" 
                   class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors">
             <option [ngValue]="undefined">Tous statuts</option>
-            <option [ngValue]="1">Nouveau</option>
-            <option [ngValue]="2">Assigné</option>
-            <option [ngValue]="3">En cours</option>
-            <option [ngValue]="4">En Attente</option>
-            <option [ngValue]="5">Résolu</option>
-            <option [ngValue]="6">Clôturé</option>
-            <option [ngValue]="7">Réouvert</option>
+            <option [ngValue]="1">Assigné</option>
+            <option [ngValue]="2">En cours</option>
+            <option [ngValue]="3">Résolu</option>
           </select>
         </div>
 
@@ -287,11 +274,13 @@
                   </svg>
                 </button>
                 
-                <button 
-                  [routerLink]="['/tickets/edit', ticket.id]"
-                  class="p-2 text-gray-400 hover:text-warning-600 rounded-lg hover:bg-warning-50 dark:hover:bg-warning-900/20 transition-colors"
-                  title="Modifier"
-                >
+            <button 
+  [routerLink]="['/tickets/edit', ticket.id]"
+  [disabled]="ticket.statutTicketLibelle === 'Résolu'"
+  class="p-2 text-gray-400 hover:text-warning-600 rounded-lg hover:bg-warning-50 
+         dark:hover:bg-warning-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+  title="Modifier"
+>
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M11 4h2m-1-1v2m7.071 2.929a2 2 0 010 2.828l-8.486 8.486a2 2 0 01-.878.515l-4 1a1 1 0 01-1.213-1.213l1-4a2 2 0 01.515-.878l8.486-8.486a2 2 0 012.828 0z">

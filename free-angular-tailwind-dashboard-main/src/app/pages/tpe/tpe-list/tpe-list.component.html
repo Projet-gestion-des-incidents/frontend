@@ -1,46 +1,106 @@
 <div class="space-y-4">
-  <!-- Alert interactif amélioré -->
+  <!-- Alert interactif (pour les messages de succès/erreur) -->
   <app-alert
-    *ngIf="alert.show"
+    *ngIf="alert.show && alert.variant !== 'warning'"
     [variant]="alert.variant"
     [title]="alert.title"
     [message]="alert.message"
-  >
-    <div class="mt-3 flex justify-end gap-2" *ngIf="alert.variant === 'warning'">
-      <button
-        (click)="confirmDelete()"
-        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-      >
-        Confirmer
-      </button>
-      <button
-        (click)="cancelDelete()"
-        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-      >
-        Annuler
-      </button>
+    (click)="alert.show = false"
+    class="mb-4"
+  ></app-alert>
+<br>
+  <!-- Modal de confirmation pour la suppression -->
+  <div *ngIf="tpeToDeleteId" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
+      <!-- Header -->
+      <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+            <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+            Confirmation de suppression
+          </h3>
+        </div>
+        <button (click)="cancelDelete()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Body -->
+      <div class="p-6">
+        <p class="text-gray-600 dark:text-gray-300 mb-2">
+          Vous êtes sur le point de supprimer ce TPE :
+        </p>
+        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4">
+          <p class="font-medium text-gray-900 dark:text-white">
+            {{ tpeToDelete?.numSerieComplet || tpeToDelete?.numSerie }}
+          </p>
+          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            Modèle : {{ tpeToDelete?.modele }}
+          </p>
+          <p *ngIf="tpeToDelete?.commercantNom" class="text-sm text-gray-500 dark:text-gray-400">
+            Commerçant : {{ tpeToDelete?.commercantNom }}
+          </p>
+        </div>
+        <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+          <div class="flex gap-2">
+            <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <p class="text-sm text-amber-700 dark:text-amber-300">Cette action est irréversible.</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Footer -->
+      <div class="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+        <button
+          (click)="cancelDelete()"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
+        >
+          Annuler
+        </button>
+        <button
+          (click)="confirmDelete()"
+          [disabled]="deleting"
+          class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+        >
+          <span *ngIf="!deleting">Supprimer définitivement</span>
+          <span *ngIf="deleting" class="flex items-center gap-2">
+            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Suppression...
+          </span>
+        </button>
+      </div>
     </div>
-  </app-alert>
+  </div>
 
   <!-- Carte principale -->
   <div class="rounded-2xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] shadow-sm overflow-hidden">
     
-    <!-- En-tête avec titre et compteur -->
+    <!-- En-tête -->
     <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-800">
       <div class="flex items-center justify-between">
         <div>
           <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90 flex items-center gap-2">
             Liste des TPE
             <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400 rounded-full">
-              {{ tpes.length }}
+              {{ totalCount }}
             </span>
           </h3>
           <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
-            {{ tpes.length }} terminal(s) de paiement enregistré(s)
+            Gestion des terminaux de paiement
           </p>
         </div>
         
-        <!-- Bouton Ajouter (Admin seulement) -->
         <app-button
           *ngIf="userRole === 'Admin'"
           variant="primary"
@@ -56,7 +116,80 @@
       </div>
     </div>
 
-    <!-- Loading indicator amélioré -->
+    <!-- Barre de recherche et filtres (Admin seulement) -->
+    <div *ngIf="userRole === 'Admin'" class="flex flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 dark:border-gray-800">
+      
+      <!-- Barre de recherche -->
+      <div class="relative w-full sm:w-auto">
+        <span class="absolute -translate-y-1/2 pointer-events-none left-4 top-1/2">
+          <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+          </svg>
+        </span>
+        <input
+          type="text"
+          placeholder="Rechercher par numéro de série ..."
+          [(ngModel)]="searchTerm"
+          (input)="onSearch()"
+          class="h-11 w-full sm:w-[300px] lg:w-[400px] rounded-xl border border-gray-200 bg-gray-50 py-2.5 pl-11 pr-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-white/30 transition-all"
+        />
+      </div>
+  <div class="flex flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 dark:border-gray-800">
+
+      <!-- Filtres -->
+      <div class="flex items-center gap-3 flex-wrap">
+        <!-- Filtre par modèle -->
+        <div class="relative">
+          <select
+            [(ngModel)]="selectedModele"
+            (change)="applyFilters()"
+            class="h-11 px-4 pr-8 text-sm rounded-xl border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 appearance-none transition-colors"
+          >
+            <option *ngFor="let option of modeleOptions" [value]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+          <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Filtre par commerçant -->
+        <div class="relative">
+          <select
+            [(ngModel)]="selectedCommercantId"
+            (change)="applyFilters()"
+            class="h-11 px-4 pr-8 text-sm rounded-xl border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 appearance-none transition-colors"
+          >
+            <option value="">Tous les commerçants</option>
+            <option *ngFor="let c of commercants" [value]="c.id">
+              {{ c.prenom }} {{ c.nom }} 
+            </option>
+          </select>
+          <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none">
+            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Indicateur de filtres actifs -->
+        <div *ngIf="searchTerm || selectedModele || selectedCommercantId" 
+             class="flex items-center gap-2 px-3 py-1.5 bg-brand-50 dark:bg-brand-900/20 rounded-lg">
+          <span class="text-xs text-brand-600 dark:text-brand-400">Filtres actifs</span>
+          <button (click)="resetFilters()" class="text-brand-600 hover:text-brand-700 dark:text-brand-400">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <!-- Loading indicator -->
     <div *ngIf="loading" class="flex justify-center items-center py-16">
       <div class="animate-spin rounded-full h-10 w-10 border-4 border-brand-200 border-t-brand-600"></div>
     </div>
@@ -68,82 +201,48 @@
           <tr class="border-y border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Numéro de série</th>
             <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Modèle</th>
-            
-            <!-- Colonne Commerçant - visible seulement pour Admin -->
             <th *ngIf="userRole === 'Admin'" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Commerçant</th>
-            
-            <!-- Colonne Actions - visible seulement pour Admin -->
             <th *ngIf="userRole === 'Admin'" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Actions</th>
-          </tr>
+           </tr>
         </thead>
         <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
           <tr *ngFor="let tpe of tpes" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
-            <!-- Numéro de série -->
             <td class="px-6 py-4 whitespace-nowrap">
               <span class="text-sm font-mono font-medium text-gray-900 dark:text-white">
-                {{ tpe.numSerieComplet }}
+                {{ tpe.numSerieComplet || tpe.numSerie }}
               </span>
-            </td>
-            
-            <!-- Modèle avec badge -->
+             </td>
             <td class="px-6 py-4 whitespace-nowrap">
-              <app-badge 
-                variant="light" 
-                [color]="getBadgeColor(tpe.modele)" 
-                size="sm"
-                class="font-medium"
-              >
+              <app-badge variant="light" [color]="getBadgeColor(tpe.modele)" size="sm" class="font-medium">
                 {{ tpe.modele }}
               </app-badge>
-            </td>
-            
-            <!-- Commerçant - visible seulement pour Admin -->
+             </td>
             <td *ngIf="userRole === 'Admin'" class="px-6 py-4 whitespace-nowrap">
-            
-                 <div class="flex items-center gap-3">
-            <app-avatar-text 
-              [name]="tpe.commercantNom || 'N/A'" 
-              class="w-8 h-8"
-            />
-            <div>
-              <span class="block text-theme-sm font-medium text-gray-700 dark:text-gray-400">
-                {{ tpe.commercantNom  }}
-              </span>
-            </div>
-          </div>
-            </td>
-            
-            <!-- Actions - visible seulement pour Admin -->
+              <div class="flex items-center gap-3">
+                <app-avatar-text [name]="tpe.commercantNom || 'N/A'" class="w-8 h-8" />
+                <div>
+                  <span class="block text-theme-sm font-medium text-gray-700 dark:text-gray-400">
+                    {{ tpe.commercantNom || 'Non assigné' }}
+                  </span>
+                </div>
+              </div>
+             </td>
             <td *ngIf="userRole === 'Admin'" class="px-6 py-4 whitespace-nowrap">
               <div class="flex items-center gap-1">
-                <!-- Bouton Modifier -->
-                <button 
-                  class="p-2 text-gray-400 hover:text-warning-600 rounded-lg hover:bg-warning-50 dark:hover:bg-warning-900/20 transition-colors"
-                  title="Modifier"
-                  [routerLink]="['/tpes/edit', tpe.id]"
-                >
+                <button class="p-2 text-gray-400 hover:text-warning-600 rounded-lg hover:bg-warning-50 dark:hover:bg-warning-900/20 transition-colors" title="Modifier" [routerLink]="['/tpes/edit', tpe.id]">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-                      d="M11 4h2m-1-1v2m7.071 2.929a2 2 0 010 2.828l-8.486 8.486a2 2 0 01-.878.515l-4 1a1 1 0 01-1.213-1.213l1-4a2 2 0 01.515-.878l8.486-8.486a2 2 0 012.828 0z">
-                    </path>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4h2m-1-1v2m7.071 2.929a2 2 0 010 2.828l-8.486 8.486a2 2 0 01-.878.515l-4 1a1 1 0 01-1.213-1.213l1-4a2 2 0 01.515-.878l8.486-8.486a2 2 0 012.828 0z"></path>
                   </svg>
                 </button>
-                
-                <!-- Bouton Supprimer -->
-                <button
-                  (click)="deleteTPE(tpe.id)"
-                  class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                  title="Supprimer"
-                >
+                <button (click)="deleteTPE(tpe)" class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors" title="Supprimer">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
                   </svg>
                 </button>
               </div>
-            </td>
-          </tr>
+             </td>
+           </tr>
           
-          <!-- Message si aucun TPE -->
           <tr *ngIf="tpes.length === 0">
             <td [attr.colspan]="userRole === 'Admin' ? 4 : 2" class="px-6 py-16 text-center">
               <div class="flex flex-col items-center justify-center">
@@ -152,35 +251,79 @@
                 </svg>
                 <p class="text-gray-500 dark:text-gray-400 text-lg font-medium">Aucun TPE trouvé</p>
                 <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">
-                  <ng-container *ngIf="userRole === 'Admin'">
+                  <ng-container *ngIf="userRole === 'Admin' && (searchTerm || selectedModele || selectedCommercantId)">
+                    Aucun résultat ne correspond à vos critères de recherche.
+                  </ng-container>
+                  <ng-container *ngIf="userRole === 'Admin' && !searchTerm && !selectedModele && !selectedCommercantId">
                     Commencez par ajouter un nouveau TPE
                   </ng-container>
                   <ng-container *ngIf="userRole !== 'Admin'">
                     Aucun TPE n'est associé à votre compte
                   </ng-container>
                 </p>
-                <button 
-                  *ngIf="userRole === 'Admin'"
-                  routerLink="/tpes/new"
-                  class="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 transition-colors"
-                >
+                <button *ngIf="userRole === 'Admin' && !searchTerm && !selectedModele && !selectedCommercantId" routerLink="/tpes/new" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 transition-colors">
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
                   </svg>
                   Ajouter un TPE
                 </button>
+                <button *ngIf="userRole === 'Admin' && (searchTerm || selectedModele || selectedCommercantId)" (click)="resetFilters()" class="mt-4 inline-flex items-center gap-2 rounded-lg bg-brand-500 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+                  </svg>
+                  Réinitialiser les filtres
+                </button>
               </div>
-            </td>
-          </tr>
+             </td>
+           </tr>
         </tbody>
-      </table>
+       </table>
     </div>
 
-    <!-- Pied de tableau avec informations supplémentaires (optionnel) -->
+    <!-- Pagination (Admin seulement) -->
+    <div *ngIf="!loading && userRole === 'Admin' && totalPages > 1" class="px-6 py-4 border-t border-gray-200 dark:border-gray-800">
+      <div class="flex items-center justify-between">
+        <button (click)="onPageChange(currentPage - 1)" [disabled]="currentPage === 1" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+          </svg>
+          <span class="hidden sm:inline">Précédent</span>
+        </button>
+        
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-400 sm:hidden">
+          Page {{ currentPage }} / {{ totalPages }}
+        </span>
+        
+        <ul class="hidden items-center gap-1 sm:flex">
+          <ng-container *ngFor="let page of getPageNumbers()">
+            <li *ngIf="page !== -1">
+              <button (click)="onPageChange(page)" class="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-colors"
+                [ngClass]="{
+                  'bg-brand-500 text-white hover:bg-brand-600': currentPage === page,
+                  'text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800': currentPage !== page
+                }">
+                {{ page }}
+              </button>
+            </li>
+            <li *ngIf="page === -1">
+              <span class="flex h-9 w-9 items-center justify-center text-gray-500">...</span>
+            </li>
+          </ng-container>
+        </ul>
+        
+        <button (click)="onPageChange(currentPage + 1)" [disabled]="currentPage === totalPages" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors">
+          <span class="hidden sm:inline">Suivant</span>
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Pied de tableau -->
     <div *ngIf="!loading && tpes.length > 0" class="px-6 py-3 border-t border-gray-200 dark:border-gray-800 text-xs text-gray-500 dark:text-gray-400">
       <div class="flex items-center justify-between">
-        <span>Total: {{ tpes.length }} TPE(s)</span>
-    
+        <span>Affichage de {{ tpes.length }} sur {{ totalCount }} TPE(s)</span>
       </div>
     </div>
   </div>

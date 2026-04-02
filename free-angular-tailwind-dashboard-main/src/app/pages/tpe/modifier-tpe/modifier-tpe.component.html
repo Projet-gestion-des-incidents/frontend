@@ -1,8 +1,8 @@
-<div class="max-w-2xl mx-auto p-6">
+<div class="max-w-3xl mx-auto p-6">
   
-  <!-- En-tête avec bouton retour -->
+  <!-- En-tête avec icône et navigation -->
   <div class="flex items-center justify-between mb-8">
-    <div class="flex items-center gap-3">
+    <div class="flex items-center gap-4">
       <div class="p-3 rounded-xl bg-brand-50 dark:bg-brand-500/10">
         <svg class="w-6 h-6 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
@@ -27,93 +27,183 @@
     </button>
   </div>
 
-  <!-- Message d'erreur 
-  <div *ngIf="error" 
-       class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-800 dark:bg-red-900/20 animate-shake">
-    <div class="flex items-center gap-3 text-red-600 dark:text-red-400">
-      <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+  <!-- Alerte améliorée -->
+  <div *ngIf="alert.show" 
+       class="mb-6 rounded-xl border p-4 flex items-center justify-between animate-slide-down"
+       [ngClass]="{
+         'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20': alert.variant === 'error',
+         'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20': alert.variant === 'success'
+       }">
+    <div class="flex items-center gap-3">
+      <div class="flex-shrink-0">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center"
+             [ngClass]="{
+               'bg-red-100 text-red-600 dark:bg-red-800/50 dark:text-red-400': alert.variant === 'error',
+               'bg-green-100 text-green-600 dark:bg-green-800/50 dark:text-green-400': alert.variant === 'success'
+             }">
+          <svg *ngIf="alert.variant === 'error'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <svg *ngIf="alert.variant === 'success'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <p class="text-sm font-medium"
+           [ngClass]="{
+             'text-red-800 dark:text-red-200': alert.variant === 'error',
+             'text-green-800 dark:text-green-200': alert.variant === 'success'
+           }">
+          {{ alert.title }}
+        </p>
+        <p class="text-sm"
+           [ngClass]="{
+             'text-red-700 dark:text-red-300': alert.variant === 'error',
+             'text-green-700 dark:text-green-300': alert.variant === 'success'
+           }">
+          {{ alert.message }}
+        </p>
+      </div>
+    </div>
+    <button (click)="clearAlert()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
       </svg>
-      <span class="text-sm font-medium">{{ error }}</span>
-    </div>
-  </div>-->
+    </button>
+  </div>
 
-  <form [formGroup]="form" (ngSubmit)="submit()" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm hover:shadow-md transition-shadow">
-
-
-    <div class="space-y-5">
-      <!-- Numéro de série -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-          Numéro de série <span class="text-error-500">*</span>
-        </label>
-        <input
-          type="text"
-          formControlName="numSerie"
-          maxlength="6"
-          placeholder="Ex: 123456"
-          class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 transition-colors"
-        />
-        <small *ngIf="form.get('numSerie')?.invalid && form.get('numSerie')?.touched"
-               class="text-red-500 mt-1 block">
-          Le numéro de série est obligatoire (6 caractères)
-        </small>
-      </div>
-
-      <!-- Modèle -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-          Modèle <span class="text-error-500">*</span>
-        </label>
-        <select formControlName="modele" 
-                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 transition-colors">
-          <option value="" disabled selected>-- Choisir un modèle --</option>
-          <option *ngFor="let m of modeleOptions" [value]="m.value">{{ m.label }}</option>
-        </select>
-        <small *ngIf="form.get('modele')?.invalid && form.get('modele')?.touched"
-               class="text-red-500 mt-1 block">
-          Le modèle est obligatoire
-        </small>
-      </div>
-
-      <!-- Commerçant -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-          Commerçant <span class="text-error-500">*</span>
-        </label>
-        <select formControlName="commercantId" 
-                class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-theme-sm text-gray-700 shadow-theme-xs focus:border-brand-300 focus:outline-none dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400 transition-colors">
-          <option value="" disabled selected>-- Sélectionner un commerçant --</option>
-          <option *ngFor="let c of commercants" [value]="c.id">{{ c.nom }} {{ c.prenom }}</option>
-        </select>
-        <small *ngIf="form.get('commercantId')?.invalid && form.get('commercantId')?.touched"
-               class="text-red-500 mt-1 block">
-          Le commerçant est obligatoire
-        </small>
+  <!-- Formulaire -->
+  <form [formGroup]="form" (ngSubmit)="submit()" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+    
+    <!-- En-tête du formulaire -->
+    <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50/30 dark:bg-gray-800/50">
+      <div class="flex items-center gap-3">
+        <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
+          <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+            Informations du TPE
+          </h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Modifiez les détails du terminal de paiement</p>
+        </div>
       </div>
     </div>
 
-    <!-- Boutons d'action -->
-    <div class="flex justify-end gap-3 mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
-      <button
-        type="button"
-        (click)="cancel()"
-        class="px-6 py-2.5 text-theme-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 transition-colors rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800"
-      >
-        Annuler
-      </button>
-      <button
-        type="submit"
-        [disabled]="loading || form.invalid"
-        class="inline-flex items-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-theme-sm font-medium text-white shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg"
-      >
-        <span *ngIf="loading" class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
-        <span>{{ loading ? 'Enregistrement...' : 'Enregistrer les modifications' }}</span>
-        <svg *ngIf="!loading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-      </button>
-    </div>
+    <div class="p-6">
+      <div class="space-y-6">
+        <!-- Numéro de série -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Numéro de série <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
+              </svg>
+            </div>
+            <input
+              type="text"
+              formControlName="numSerie"
+              maxlength="6"
+              placeholder="123456"
+              class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 bg-white text-sm focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+              [class.border-red-500]="form.get('numSerie')?.invalid && form.get('numSerie')?.touched"
+            />
+          </div>
+          <div *ngIf="form.get('numSerie')?.invalid && form.get('numSerie')?.touched" 
+               class="mt-2 text-xs text-red-500 flex items-center gap-1">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span *ngIf="form.get('numSerie')?.errors?.['required']">Le numéro de série est requis</span>
+            <span *ngIf="form.get('numSerie')?.errors?.['pattern']">Le numéro de série doit contenir exactement 6 chiffres</span>
+          </div>
+        </div>
 
+        <!-- Modèle -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Modèle <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <select formControlName="modele" 
+                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm appearance-none focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+                    [class.border-red-500]="form.get('modele')?.invalid && form.get('modele')?.touched">
+              <option value="" disabled selected>-- Choisir un modèle --</option>
+              <option *ngFor="let m of modeleOptions" [value]="m.value">{{ m.label }}</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+          </div>
+          <div *ngIf="form.get('modele')?.invalid && form.get('modele')?.touched" 
+               class="mt-2 text-xs text-red-500 flex items-center gap-1">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Le modèle est requis
+          </div>
+        </div>
+
+        <!-- Commerçant -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Commerçant <span class="text-red-500">*</span>
+          </label>
+          <div class="relative">
+            <select formControlName="commercantId" 
+                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm appearance-none focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+                    [class.border-red-500]="form.get('commercantId')?.invalid && form.get('commercantId')?.touched">
+              <option value="" disabled selected>-- Sélectionner un commerçant --</option>
+              <option *ngFor="let c of commercantOptions" [value]="c.value">{{ c.label }}</option>
+            </select>
+            <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
+              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+              </svg>
+            </div>
+          </div>
+          <div *ngIf="form.get('commercantId')?.invalid && form.get('commercantId')?.touched" 
+               class="mt-2 text-xs text-red-500 flex items-center gap-1">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Le commerçant est requis
+          </div>
+        </div>
+      </div>
+
+      <!-- Boutons d'action -->
+      <div class="flex flex-col sm:flex-row justify-end gap-3 mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
+        <button
+          type="button"
+          (click)="cancel()"
+          class="order-2 sm:order-1 px-6 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        >
+          Annuler
+        </button>
+        <button
+          type="submit"
+          [disabled]="loading || form.invalid"
+          class="order-1 sm:order-2 inline-flex items-center justify-center gap-2 rounded-lg bg-brand-500 px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-md"
+        >
+          <svg *ngIf="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <svg *ngIf="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          {{ loading ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+        </button>
+      </div>
+    </div>
   </form>
 </div>

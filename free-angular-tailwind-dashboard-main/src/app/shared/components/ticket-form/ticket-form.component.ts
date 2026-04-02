@@ -50,8 +50,7 @@ export class TicketFormComponent implements OnInit {
   // Pour les incidents
   incidents: any[] = [];
   incidentOptions: MultiOption[] = [];
-  selectedIncidentIds: string[] = [];
-  showIncidentError = false;
+ selectedIncidentIds: string[] = [];   showIncidentError = false;
   today: string = this.getTodayString();
 
   constructor(
@@ -133,18 +132,17 @@ export class TicketFormComponent implements OnInit {
     return incident ? incident.codeIncident : 'Incident';
   }
 
-  loadIncidents(): void {
+ loadIncidents(): void {
     this.incidentService.getAllIncidents().subscribe({
       next: (incidents) => {
-        this.incidents = incidents;
+        // Filtrer les incidents qui n'ont aucun ticket lié (nombreTickets === 0)
+        this.incidents = incidents.filter(incident => incident.nombreTickets === 0);
+        console.log('Incidents disponibles (sans tickets):', this.incidents.length);
         
-        this.incidentOptions = this.incidents.map(incident => ({
-          value: incident.id,
-          text: `${incident.codeIncident} - ${incident.typeProbleme || 'Incident'}`,
-          selected: this.selectedIncidentIds.includes(incident.id)
-        }));
-        
-        console.log('Incidents chargés:', this.incidents);
+        // Réinitialiser la sélection si des incidents sélectionnés ne sont plus disponibles
+        this.selectedIncidentIds = this.selectedIncidentIds.filter(id => 
+          this.incidents.find(i => i.id === id)
+        );
       },
       error: (err) => {
         console.error('Erreur chargement incidents:', err);
@@ -153,10 +151,36 @@ export class TicketFormComponent implements OnInit {
     });
   }
 
-  onIncidentSelectionChange(selectedIds: string[]): void {
-    this.selectedIncidentIds = selectedIds;
+
+
+  /**
+   * Vérifie si un incident est sélectionné
+   */
+  isIncidentSelected(incidentId: string): boolean {
+    return this.selectedIncidentIds.includes(incidentId);
+  }
+
+  /**
+   * Ajoute ou retire un incident de la sélection
+   */
+  toggleIncidentSelection(incidentId: string): void {
+    if (this.isIncidentSelected(incidentId)) {
+      this.selectedIncidentIds = this.selectedIncidentIds.filter(id => id !== incidentId);
+    } else {
+      this.selectedIncidentIds = [...this.selectedIncidentIds, incidentId];
+    }
+    this.showIncidentError = false;
     console.log('Incidents sélectionnés:', this.selectedIncidentIds);
   }
+/**
+ * Récupère les détails d'un incident par son ID
+ */
+getIncidentDetails(incidentId: string): any {
+  return this.incidents.find(i => i.id === incidentId);
+}
+
+
+
 
   private showError(message: string): void {
     alert(message);
@@ -232,94 +256,94 @@ export class TicketFormComponent implements OnInit {
 
   // ========== SOUMISSION AVEC FORKJOIN ==========
 
-submit() {
-  this.showIncidentError = false;
+ submit() {
+    this.showIncidentError = false;
 
-  if (this.ticketForm.invalid) {
-    this.ticketForm.markAllAsTouched();
-    return;
-  }
-
-  if (!this.selectedIncidentIds || this.selectedIncidentIds.length === 0) {
-    this.showIncidentError = true;
-    
-    setTimeout(() => {
-      document.querySelector('.rounded-2xl.border-2')?.scrollIntoView({
-        behavior: 'smooth',
-        block: 'center'
-      });
-    }, 100);
-    
-    return;
-  }
-
-  this.loading = true;
-  console.log('🚀 Création du ticket...');
-
-  // 1. Créer le ticket d'abord
-  const ticketFormData = new FormData();
-  ticketFormData.append('TitreTicket', this.ticketForm.value.titreTicket);
-  ticketFormData.append('DescriptionTicket', this.ticketForm.value.descriptionTicket);
-  
-  if (this.ticketForm.value.assigneeId) {
-    ticketFormData.append('AssigneeId', this.ticketForm.value.assigneeId);
-  }
-  
-  if (this.ticketForm.value.dateLimite) {
-    ticketFormData.append('DateLimite', new Date(this.ticketForm.value.dateLimite).toISOString());
-  }
-
-  // Créer le ticket
-  this.ticketService.createTicket(ticketFormData).pipe(
-    switchMap(ticketResponse => {
-      const ticketId = ticketResponse.data.id;
-      console.log('✅ Ticket créé avec ID:', ticketId);
-      
-      // 2. Ajouter le commentaire si nécessaire
-      if (this.ticketForm.value.commentaireInitial || this.files?.length) {
-        return this.handleCommentaire(ticketId).pipe(
-          map(result => ({
-            ticketId,
-            commentaireResult: result
-          }))
-        );
-      }
-      
-      return of({ ticketId, commentaireResult: null });
-    }),
-    switchMap(result => {
-      // 3. Lier les incidents
-      if (this.selectedIncidentIds && this.selectedIncidentIds.length > 0) {
-        console.log('🔗 Liaison de', this.selectedIncidentIds.length, 'incident(s)...');
-        return this.ticketService.lierIncidents(result.ticketId, this.selectedIncidentIds).pipe(
-          map(incidentResult => ({
-            ...result,
-            incidentResult
-          }))
-        );
-      }
-      return of(result);
-    }),
-    catchError(error => {
-      console.error('❌ Erreur:', error);
-      return throwError(() => error);
-    }),
-    finalize(() => {
-      this.loading = false;
-    })
-  ).subscribe({
-    next: (result) => {
-      console.log('✅ Opérations terminées:', result);
-      this.router.navigate(['/tickets', result.ticketId]);
-    },
-    error: (error) => {
-      console.error('❌ Erreur fatale:', error);
-      this.showError('Erreur lors de la création du ticket');
-      this.loading = false;
+    if (this.ticketForm.invalid) {
+      this.ticketForm.markAllAsTouched();
+      return;
     }
-  });
-}
 
+    // Vérifier qu'au moins un incident est sélectionné
+    if (!this.selectedIncidentIds || this.selectedIncidentIds.length === 0) {
+      this.showIncidentError = true;
+      
+      setTimeout(() => {
+        document.querySelector('.rounded-2xl')?.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center'
+        });
+      }, 100);
+      
+      return;
+    }
+
+    this.loading = true;
+    console.log('🚀 Création du ticket...');
+
+    // 1. Créer le ticket d'abord
+    const ticketFormData = new FormData();
+    ticketFormData.append('TitreTicket', this.ticketForm.value.titreTicket);
+    ticketFormData.append('DescriptionTicket', this.ticketForm.value.descriptionTicket);
+    
+    if (this.ticketForm.value.assigneeId) {
+      ticketFormData.append('AssigneeId', this.ticketForm.value.assigneeId);
+    }
+    
+    if (this.ticketForm.value.dateLimite) {
+      ticketFormData.append('DateLimite', new Date(this.ticketForm.value.dateLimite).toISOString());
+    }
+
+    // Créer le ticket
+    this.ticketService.createTicket(ticketFormData).pipe(
+      switchMap(ticketResponse => {
+        const ticketId = ticketResponse.data.id;
+        console.log('✅ Ticket créé avec ID:', ticketId);
+        
+        // 2. Ajouter le commentaire si nécessaire
+        if (this.ticketForm.value.commentaireInitial || this.files?.length) {
+          return this.handleCommentaire(ticketId).pipe(
+            map(result => ({
+              ticketId,
+              commentaireResult: result
+            }))
+          );
+        }
+        
+        return of({ ticketId, commentaireResult: null });
+      }),
+      switchMap(result => {
+        // 3. Lier les incidents sélectionnés
+        if (this.selectedIncidentIds && this.selectedIncidentIds.length > 0) {
+          console.log('🔗 Liaison de', this.selectedIncidentIds.length, 'incident(s)...');
+          return this.ticketService.lierIncidents(result.ticketId, this.selectedIncidentIds).pipe(
+            map(incidentResult => ({
+              ...result,
+              incidentResult
+            }))
+          );
+        }
+        return of(result);
+      }),
+      catchError(error => {
+        console.error('❌ Erreur:', error);
+        return throwError(() => error);
+      }),
+      finalize(() => {
+        this.loading = false;
+      })
+    ).subscribe({
+      next: (result) => {
+        console.log('✅ Opérations terminées:', result);
+        this.router.navigate(['/tickets', result.ticketId]);
+      },
+      error: (error) => {
+        console.error('❌ Erreur fatale:', error);
+        this.showError('Erreur lors de la création du ticket');
+        this.loading = false;
+      }
+    });
+  }
 // Dans ticket-form.component.ts
 
 private handleCommentaire(ticketId: string): Observable<any> {
@@ -346,5 +370,10 @@ private handleCommentaire(ticketId: string): Observable<any> {
       return of(null); // Continuer même si le commentaire échoue
     })
   );
+}
+error: string | null = null;  
+
+cancel(): void {
+  this.router.navigate(['/tickets']);
 }
 }

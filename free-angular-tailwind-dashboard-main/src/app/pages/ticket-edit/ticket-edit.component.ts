@@ -418,10 +418,10 @@ loadData(): void {
       if (results.ticketDetails.isSuccess && results.ticketDetails.data) {
         this.ticket = results.ticketDetails.data;
         
-        // ✅ Stocker tous les commentaires pour consultation
+        // Stocker tous les commentaires
         this.tousLesCommentaires = results.tousLesCommentaires;
         
-        // ✅ TRAITEMENT POUR ADMIN
+        // Traitement pour ADMIN
         if (this.isAdmin) {
           this.monCommentaire = results.tousLesCommentaires.find((c: any) => c.auteurId === this.userId) || null;
           
@@ -440,24 +440,19 @@ loadData(): void {
           }
         }
         
-        // ✅ CORRECTION: TRAITEMENT POUR TECHNICIEN
+        // Traitement pour TECHNICIEN
         if (this.isTechnicien) {
-          // Chercher son propre commentaire dans tous les commentaires
           this.monCommentaire = results.tousLesCommentaires.find((c: any) => c.auteurId === this.userId) || null;
           
           console.log('🔍 Technicien - monCommentaire trouvé:', this.monCommentaire ? 'OUI' : 'NON');
-          console.log('🔍 Technicien - userId:', this.userId);
-          console.log('🔍 Technicien - Tous les commentaires:', results.tousLesCommentaires);
           
           if (this.monCommentaire) {
-            // Le technicien a déjà un commentaire, on le charge pour édition
             this.ticket.commentaireMessage = this.monCommentaire.message;
             this.ticket.commentaireInterne = this.monCommentaire.estInterne;
             this.ticket.commentaireId = this.monCommentaire.id;
             this.ticket.originalMessage = this.monCommentaire.message;
             this.piecesExistantes = this.monCommentaire.piecesJointes || [];
           } else {
-            // Le technicien n'a pas encore de commentaire
             this.ticket.commentaireMessage = '';
             this.ticket.commentaireInterne = false;
             this.ticket.commentaireId = null;
@@ -466,13 +461,37 @@ loadData(): void {
           }
         }
 
+        // Incidents déjà liés
         this.incidentsLies = results.incidentsLies;
         this.incidentsSelectionnes = this.incidentsLies.map((i: any) => i.id);
 
         const tousLesIncidents = results.allIncidents;
-        this.incidents = tousLesIncidents.filter((incident: any) => {
-          return this.estIncidentDisponible(incident);
+        
+        // ✅ CORRECTION: Filtrer les incidents disponibles
+        // Un incident est disponible si:
+        // 1. Il n'est pas déjà lié à ce ticket
+        // 2. Il a nombreTickets === 0 (aucun ticket lié)
+        // 3. Il a un statut approprié (Non traité ou Nouveau)
+        this.incidentsDisponibles = tousLesIncidents.filter((incident: any) => {
+          // Exclure les incidents déjà liés à ce ticket
+          const estDejaLie = this.incidentsLies.some((lie: any) => lie.id === incident.id);
+          if (estDejaLie) return false;
+          
+          // ✅ Vérifier que l'incident n'a aucun ticket lié
+          const aAucunTicketLie = incident.nombreTickets === 0;
+          if (!aAucunTicketLie) return false;
+          
+          // Vérifier si l'incident est disponible selon son statut
+          const estDisponibleParStatut = this.estIncidentDisponible(incident);
+          
+          return estDisponibleParStatut;
         });
+        
+        // Pour la compatibilité avec l'ancien code
+        this.incidents = this.incidentsDisponibles;
+        
+        console.log('📊 Incidents liés:', this.incidentsLies.length);
+        console.log('📊 Incidents disponibles (sans tickets):', this.incidentsDisponibles.length);
       } else {
         this.error = 'Ticket introuvable';
       }
@@ -480,6 +499,71 @@ loadData(): void {
     error: (err) => {
       console.error('❌ Erreur:', err);
       this.error = 'Erreur lors du chargement des données';
+    }
+  });
+}
+/**
+ * Recharger la liste des incidents disponibles
+ */
+reloadIncidentsDisponibles(): void {
+  this.incidentService.getAllIncidents().subscribe({
+    next: (incidents) => {
+      // Filtrer les incidents disponibles (sans tickets et non liés)
+      this.incidentsDisponibles = incidents.filter((incident: any) => {
+        const estDejaLie = this.incidentsLies.some((lie: any) => lie.id === incident.id);
+        if (estDejaLie) return false;
+        
+        const aAucunTicketLie = incident.nombreTickets === 0;
+        if (!aAucunTicketLie) return false;
+        
+        return this.estIncidentDisponible(incident);
+      });
+      
+      this.incidents = this.incidentsDisponibles;
+    },
+    error: (err) => {
+      console.error('Erreur rechargement incidents disponibles:', err);
+    }
+  });
+}
+
+showIncidentSelector: boolean = false;
+
+toggleIncidentSelector(): void {
+  this.showIncidentSelector = !this.showIncidentSelector;
+}
+lierIncident(incidentId: string): void {
+  if (!this.isAdmin) return;
+  
+  // Trouver l'incident dans la liste des disponibles
+  const incident = this.incidentsDisponibles.find(i => i.id === incidentId);
+  if (!incident) return;
+  
+  // Appeler le service pour lier l'incident
+  this.ticketService.lierIncidents(this.ticketId, [incidentId]).subscribe({
+    next: (response) => {
+      if (response.isSuccess) {
+        // Ajouter à la liste des incidents liés
+        this.incidentsLies.push(incident);
+        this.incidentsSelectionnes.push(incidentId);
+        
+        // Retirer de la liste des disponibles
+        this.incidentsDisponibles = this.incidentsDisponibles.filter(i => i.id !== incidentId);
+        
+        // Mettre à jour la liste incidents pour l'ancien code
+        this.incidents = this.incidentsDisponibles;
+        
+        this.showSuccess('Incident lié avec succès');
+        
+        // Recharger les incidents disponibles pour être sûr
+        this.reloadIncidentsDisponibles();
+      } else {
+        this.showError(response.message || 'Erreur lors de la liaison');
+      }
+    },
+    error: (err) => {
+      console.error('❌ Erreur liaison incident:', err);
+      this.showError(err.error?.message || 'Erreur lors de la liaison');
     }
   });
 }
@@ -983,13 +1067,22 @@ clearAllFiles(): void {
 showSuccessModal: boolean = false;
 successMessage: string = '';
 
-// Ajoutez cette méthode
+// Ajoutez ces propriétés
+showDeleteIncidentModal: boolean = false;
+incidentToDelete: { id: string; code: string } | null = null;
+
+// Dans la méthode showSuccess, remplacez alert par le message stylisé
 showSuccess(message: string): void {
   this.successMessage = message;
-  this.showSuccessModal = true;
   setTimeout(() => {
-    this.showSuccessModal = false;
+    this.successMessage = '';
   }, 3000);
+}
+
+// Ajoutez la méthode pour confirmer la suppression d'un commentaire
+confirmerSuppressionCommentaire(commentaireId: string, auteurNom: string): void {
+  this.commentToDelete = { id: commentaireId, auteurNom: auteurNom };
+  this.showDeleteCommentModal = true;
 }
   // Couleur des badges
   getBadgeColor(status: string): string {
@@ -1187,6 +1280,8 @@ ajouterCommentaireAvecFichiers(
 ): void {
   if (!message.trim() && fichiers.length === 0) {
     this.showError('Veuillez saisir un message ou ajouter un fichier');
+    // Réinitialiser le flag
+    this.isAddingComment = false;
     return;
   }
   
@@ -1232,8 +1327,12 @@ ajouterCommentaireAvecFichiers(
         if (this.isTechnicien && !this.monCommentaire && response.data.auteurId === this.userId) {
           this.monCommentaire = response.data;
         }
+        
+        // ✅ Réinitialiser le flag
+        this.isAddingComment = false;
       } else {
         this.showError(response.message || 'Erreur lors de l\'ajout');
+        this.isAddingComment = false;
       }
       this.loading = false;
     },
@@ -1241,6 +1340,7 @@ ajouterCommentaireAvecFichiers(
       console.error('❌ Erreur:', err);
       this.showError(err.error?.message || 'Erreur lors de l\'ajout');
       this.loading = false;
+      this.isAddingComment = false;
     }
   });
 }
@@ -1276,15 +1376,24 @@ private updateCommentaire(): void {
   const messageOriginal = this.ticket.originalMessage || '';
   const aMessageModifie = messageActuel !== messageOriginal;
   
-  // ✅ CORRECTION: Détecter si c'est un nouveau commentaire
-  // Un commentaire est nouveau si:
-  // 1. Pas d'ID de commentaire existant
-  // 2. ET (il y a un message non vide OU il y a des fichiers)
-  const estNouveauCommentaire = !commentaireId && (messageActuel.trim() !== '' || aNouveauxFichiers);
+  // ✅ Vérifier s'il y a réellement quelque chose à faire
+  const aUnContenu = messageActuel.trim() !== '' || aNouveauxFichiers;
   
-  // ✅ Si c'est un nouveau commentaire, l'ajouter directement et rediriger
+  // ✅ CORRECTION: Détecter si c'est un nouveau commentaire
+  const estNouveauCommentaire = !commentaireId && aUnContenu;
+  
+  // ✅ IMPORTANT: Ajouter un flag pour éviter les doublons
+  if (this.isAddingComment) {
+    console.log('⚠️ Déjà en cours d\'ajout de commentaire, ignore');
+    return;
+  }
+  
+  // ✅ Si c'est un nouveau commentaire, l'ajouter
   if (estNouveauCommentaire) {
     console.log('📝 Création d\'un nouveau commentaire');
+    
+    // Marquer qu'on est en train d'ajouter
+    this.isAddingComment = true;
     
     const message = messageActuel.trim() || 'Fichiers joints';
     const estInterne = this.ticket.commentaireInterne || false;
@@ -1305,8 +1414,8 @@ private updateCommentaire(): void {
           this.ticket.commentaireId = null;
           this.ticket.originalMessage = '';
           
-          // ✅ IMPORTANT: Rediriger après l'ajout du commentaire
-          // La redirection se fera dans ajouterCommentaireAvecFichiers après le rechargement
+          // Réinitialiser le flag
+          this.isAddingComment = false;
         }
       }
     );
@@ -1316,13 +1425,12 @@ private updateCommentaire(): void {
   // ✅ Si ce n'est pas un nouveau commentaire et qu'il n'y a pas de changements
   if (!aNouveauxFichiers && !aFichiersASupprimer && !aMessageModifie && commentaireId) {
     this.loading = false;
-    // Rediriger vers la page de détails
     this.router.navigate(['/tickets', this.ticketId]);
     return;
   }
   
   // ✅ Si c'est une modification de commentaire existant
-  if (commentaireId) {
+  if (commentaireId && aUnContenu) {
     const commentaireFormData = new FormData();
     commentaireFormData.append('Id', commentaireId);
     commentaireFormData.append('Message', messageActuel);
@@ -1347,10 +1455,7 @@ private updateCommentaire(): void {
       next: (response: any) => {
         if (response.isSuccess && response.data) {
           this.showSuccess('Commentaire modifié avec succès');
-          
-          // Recharger les données puis rediriger
           this.loadData();
-          // ✅ Rediriger après rechargement
           setTimeout(() => {
             this.router.navigate(['/tickets', this.ticketId]);
           }, 1000);
@@ -1366,11 +1471,11 @@ private updateCommentaire(): void {
       }
     });
   } else {
-    // Si aucun commentaire n'existe et qu'on a des changements mais que ce n'est pas un nouveau commentaire
     this.loading = false;
     this.router.navigate(['/tickets', this.ticketId]);
   }
 }
+isAddingComment: boolean = false;
 
 delierIncident(incidentId: string): void {
   if (!this.isAdmin) {
@@ -1378,7 +1483,6 @@ delierIncident(incidentId: string): void {
     return;
   }
 
-  // Récupérer l'incident pour afficher son code
   const incident = this.incidentsLies.find(i => i.id === incidentId);
   const incidentCode = incident?.codeIncident || 'cet incident';
 
@@ -1394,6 +1498,10 @@ delierIncident(incidentId: string): void {
         // Retirer l'incident de la liste locale
         this.incidentsLies = this.incidentsLies.filter(i => i.id !== incidentId);
         this.incidentsSelectionnes = this.incidentsSelectionnes.filter(id => id !== incidentId);
+        
+        // Vérifier si cet incident est maintenant disponible (nombreTickets === 0 après délien)
+        // Recharger les incidents disponibles
+        this.reloadIncidentsDisponibles();
         
         this.showSuccess('Incident retiré avec succès');
       } else {
@@ -1483,14 +1591,53 @@ commentToDelete: { id: string, auteurNom: string } | null = null;
 /**
  * Demander confirmation avant de supprimer un commentaire
  */
-confirmerSuppressionCommentaire(commentaireId: string, auteurNom: string): void {
-  this.commentToDelete = { id: commentaireId, auteurNom: auteurNom };
-  this.showDeleteCommentModal = true;
+// confirmerSuppressionCommentaire(commentaireId: string, auteurNom: string): void {
+//   this.commentToDelete = { id: commentaireId, auteurNom: auteurNom };
+//   this.showDeleteCommentModal = true;
+// }
+// Ajoutez la méthode pour confirmer le délien d'un incident
+confirmerDelierIncident(incidentId: string, incidentCode: string): void {
+  this.incidentToDelete = { id: incidentId, code: incidentCode };
+  this.showDeleteIncidentModal = true;
 }
 
-/**
- * Exécuter la suppression du commentaire
- */
+// Ajoutez la méthode pour exécuter le délien
+executerDelierIncident(): void {
+  if (!this.incidentToDelete) return;
+  
+  this.deletingIncidentId = this.incidentToDelete.id;
+
+  this.ticketService.delierIncident(this.ticketId, this.incidentToDelete.id).subscribe({
+    next: (response) => {
+      if (response.isSuccess) {
+        // Retirer l'incident de la liste locale
+        this.incidentsLies = this.incidentsLies.filter(i => i.id !== this.incidentToDelete!.id);
+        this.incidentsSelectionnes = this.incidentsSelectionnes.filter(id => id !== this.incidentToDelete!.id);
+        
+        // Recharger les incidents disponibles
+        this.reloadIncidentsDisponibles();
+        
+        this.showSuccess(`Incident ${this.incidentToDelete!.code} retiré avec succès`);
+      } else {
+        this.showError(response.message || 'Erreur lors du retrait');
+      }
+      this.deletingIncidentId = null;
+      this.fermerModalIncident();
+    },
+    error: (err) => {
+      console.error('❌ Erreur:', err);
+      this.showError(err.error?.message || 'Erreur lors du retrait');
+      this.deletingIncidentId = null;
+      this.fermerModalIncident();
+    }
+  });
+}
+
+// Ajoutez la méthode pour fermer le modal incident
+fermerModalIncident(): void {
+  this.showDeleteIncidentModal = false;
+  this.incidentToDelete = null;
+}
 executerSuppressionCommentaire(): void {
   if (!this.commentToDelete) return;
   
@@ -1517,7 +1664,6 @@ executerSuppressionCommentaire(): void {
     }
   });
 }
-
 /**
  * Fermer le modal de suppression de commentaire
  */
@@ -1544,5 +1690,26 @@ isCommentVisible(comment: any): boolean {
   }
   
   return true;
+}
+// Ajoutez ces propriétés
+showImageModal: boolean = false;
+currentImageUrl: string = '';
+currentImageName: string = '';
+/**
+ * Ouvrir le modal pour afficher l'image
+ */
+openImageModal(url: string, name: string): void {
+  this.currentImageUrl = url;
+  this.currentImageName = name;
+  this.showImageModal = true;
+}
+
+/**
+ * Fermer le modal d'image
+ */
+closeImageModal(): void {
+  this.showImageModal = false;
+  this.currentImageUrl = '';
+  this.currentImageName = '';
 }
 }

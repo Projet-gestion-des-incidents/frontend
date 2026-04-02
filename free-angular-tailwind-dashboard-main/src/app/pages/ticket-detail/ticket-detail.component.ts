@@ -7,6 +7,7 @@ import { BadgeColor, BadgeComponent } from '../../shared/components/ui/badge/bad
 import { AvatarTextComponent } from '../../shared/components/ui/avatar/avatar-text.component';
 import { finalize, forkJoin } from 'rxjs';
 import { Incident } from '../../shared/models/incident.model';
+import { UserService } from '../../shared/services/user.service';
 
 @Component({
   selector: 'app-ticket-detail',
@@ -23,13 +24,16 @@ export class TicketDetailComponent {
 
   errorMessage = '';
 selectedImage: string | null = null;
+   userRole: string = ''; // AJOUTER CETTE PROPRIÉTÉ
+
   constructor(
     private route: ActivatedRoute,
     private ticketService: TicketService,
-    private router: Router
+    private router: Router,
+    private userService: UserService // AJOUTER UserService
   ) {}
 
-    ngOnInit(): void {
+  ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
       this.errorMessage = 'ID du ticket manquant';
@@ -37,8 +41,55 @@ selectedImage: string | null = null;
       return;
     }
 
-    this.loadTicketDetails(id);
+    // Récupérer le rôle de l'utilisateur
+    this.userService.getMyProfile().subscribe({
+      next: (user) => {
+        this.userRole = user.role;
+        console.log('Rôle utilisateur:', this.userRole);
+        this.loadTicketDetails(id);
+      },
+      error: (err) => {
+        console.error('Erreur récupération rôle:', err);
+        this.loadTicketDetails(id);
+      }
+    });
   }
+// Ajoutez ces propriétés
+showImageModal: boolean = false;
+currentImageUrl: string = '';
+currentImageName: string = '';
+
+// Ajoutez cette méthode pour obtenir l'URL d'une pièce jointe
+getImageUrl(pieceId: string): string {
+  return `https://localhost:7063/api/pieces-jointes/${pieceId}`;
+}
+
+// Ajoutez cette méthode pour ouvrir le modal d'image
+openImageModal(pieceId: string, imageName: string): void {
+  this.currentImageUrl = this.getImageUrl(pieceId);
+  this.currentImageName = imageName;
+  this.showImageModal = true;
+}
+
+// Ajoutez cette méthode pour fermer le modal d'image
+closeImageModal(): void {
+  this.showImageModal = false;
+  this.currentImageUrl = '';
+  this.currentImageName = '';
+}
+  // Getter pour vérifier si l'utilisateur est admin
+  get isAdmin(): boolean {
+    return this.userRole === 'Admin';
+  }
+  getEntitesImpactees(incident: any): string {
+  if (!incident.entitesImpactees || incident.entitesImpactees.length === 0) {
+    return 'Non spécifié';
+  }
+
+  return incident.entitesImpactees
+    .map((e: any) => e.typeEntiteImpactee)
+    .join(', ');
+}
 // Pour les badges d'incidents
 getIncidentStatutBadgeColor(statut: number): 'success' | 'warning' | 'error' | 'info' {
   if (!statut || statut === 0) return 'info';
@@ -86,7 +137,8 @@ getIncidentSeveriteBadgeColor(severite: number): 'success' | 'warning' | 'error'
       }
     });
   }
-  isImage(contentType: string | undefined): boolean {
+// Modifiez cette méthode
+isImage(contentType: string | null | undefined): boolean {
   if (!contentType) return false;
   const imageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
   return imageTypes.includes(contentType.toLowerCase());
@@ -106,6 +158,7 @@ getIncidentSeveriteBadgeColor(severite: number): 'success' | 'warning' | 'error'
     default: return 'light'; // ✅ au lieu de secondary
   }
 }
+
   // ========== GESTION DE LA SÉVÉRITÉ ==========
   getSeveriteLibelle(severite: any, severiteLibelle: string): string {
     if (!severite) {

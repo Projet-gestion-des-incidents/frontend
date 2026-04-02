@@ -1,9 +1,10 @@
-import { HttpClient, HttpHeaders } from '@angular/common/http';
+import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { map, Observable, switchMap } from 'rxjs';
 import { AuthService } from './auth.service';
 import { User } from '../models/User.model';
 import { UserService } from './user.service';
+import { PagedResponse } from '../models/PagedResponse.model';
 
 @Injectable({
   providedIn: 'root'
@@ -57,5 +58,51 @@ getAllCommercants(): Observable<User[]> {
       map(res => res.data.filter((u: any) => u.role === 'Commercant'))
     );
 }
+// Dans tpe.service.ts, modifiez l'URL de la méthode getPagedTPEs
+getPagedTPEs(params: {
+  page: number;
+  pageSize: number;
+  searchTerm?: string;
+  modele?: string;
+  commercantId?: string;
+}): Observable<PagedResponse<any>> {
+  let httpParams = new HttpParams()
+    .set('Page', params.page.toString())
+    .set('PageSize', params.pageSize.toString());
 
+  if (params.searchTerm?.trim()) {
+    httpParams = httpParams.set('SearchTerm', params.searchTerm.trim());
+  }
+  if (params.modele) {
+    httpParams = httpParams.set('Modele', params.modele);
+  }
+  if (params.commercantId) {
+    httpParams = httpParams.set('CommercantId', params.commercantId);
+  }
+
+  // CORRECTION: Changer '/paged' par '/withFilters'
+  return this.http.get<any>(`${this.apiUrl}/withFilters`, {
+    params: httpParams,
+    ...this.getAuthHeaders()
+  }).pipe(
+    map(response => {
+      // Adapter selon la structure de réponse du backend
+      // Votre backend retourne ApiResponse<PagedResult<TPEDto>>
+      // La structure est: { data: { items, page, pageSize, totalCount }, ... }
+      const pagedResult = response.data;
+      
+      return {
+        data: pagedResult?.items || [],
+        pagination: {
+          page: pagedResult?.page || 1,
+          pageSize: pagedResult?.pageSize || params.pageSize,
+          totalCount: pagedResult?.totalCount || 0,
+          totalPages: pagedResult?.totalPages || 1,
+          hasPreviousPage: pagedResult?.hasPreviousPage || false,
+          hasNextPage: pagedResult?.hasNextPage || false
+        }
+      };
+    })
+  );
+}
 }

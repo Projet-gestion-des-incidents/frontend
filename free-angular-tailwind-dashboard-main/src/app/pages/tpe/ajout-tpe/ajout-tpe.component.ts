@@ -191,15 +191,32 @@ private getReadableLabel(key: string): string {
     });
   }
 
-  private showSuccess(message: string) {
-    this.alert = { show: true, variant: 'success', title: 'Succès', message };
-  }
+ private alertTimeout: any;
 
-  private showError(message: string) {
-    this.alert = { show: true, variant: 'error', title: 'Erreur', message };
-  }
+private showSuccess(message: string) {
+  this.alert = { show: true, variant: 'success', title: 'Succès', message };
+  this.scheduleAlertClear();
+}
 
-  private clearAlert() {
-    this.alert.show = false;
+private showError(message: string) {
+  this.alert = { show: true, variant: 'error', title: 'Erreur', message };
+  this.scheduleAlertClear();
+}
+
+private scheduleAlertClear() {
+  if (this.alertTimeout) {
+    clearTimeout(this.alertTimeout);
   }
+  this.alertTimeout = setTimeout(() => {
+    this.clearAlert();
+  }, 5000);
+}
+
+public clearAlert() {
+  this.alert.show = false;
+  if (this.alertTimeout) {
+    clearTimeout(this.alertTimeout);
+    this.alertTimeout = null;
+  }
+}
 }

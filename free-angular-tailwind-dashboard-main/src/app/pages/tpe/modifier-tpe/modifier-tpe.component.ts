@@ -29,6 +29,7 @@ export class ModifierTpeComponent implements OnInit {
   form!: FormGroup;
   tpeId!: string;
   loading = false;
+  private alertTimeout: any;
 
   alert = { show: false, variant: 'error' as 'error' | 'success', title: '', message: '' };
 
@@ -49,7 +50,6 @@ export class ModifierTpeComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-
     this.tpeId = this.route.snapshot.paramMap.get('id')!;
 
     this.form = this.fb.group({
@@ -83,62 +83,55 @@ export class ModifierTpeComponent implements OnInit {
   loadTPE() {
     this.tpeService.getTPEById(this.tpeId).subscribe({
       next: (res: any) => {
-
         const tpe = res.data;
-const modeleMap: any = {
-  'Ingenico': 1,
-  'Verifone': 2,
-  'PAX': 3
-};
+        const modeleMap: any = {
+          'Ingenico': 1,
+          'Verifone': 2,
+          'PAX': 3
+        };
         this.form.patchValue({
           numSerie: tpe.numSerie,
-  modele: modeleMap[tpe.modele],    
-         commercantId: tpe.commercantId
+          modele: modeleMap[tpe.modele],
+          commercantId: tpe.commercantId
         });
-
       },
       error: () => this.showError('Impossible de charger le TPE')
     });
   }
 
   submit() {
-
-    if (this.form.invalid) return;
+    if (this.form.invalid) {
+      // Marquer tous les champs comme touchés pour afficher les erreurs
+      Object.keys(this.form.controls).forEach(key => {
+        const control = this.form.get(key);
+        control?.markAsTouched();
+      });
+      return;
+    }
 
     this.loading = true;
+    this.clearAlert();
 
-    this.tpeService.updateTPE(this.tpeId, {
+        this.tpeService.updateTPE(this.tpeId, {
       ...this.form.value,
       modele: Number(this.form.value.modele)
     }).subscribe({
-
       next: () => {
-
         this.loading = false;
-
         this.showSuccess('TPE modifié avec succès');
-
         setTimeout(() => {
           this.router.navigate(['/tpes']);
-        }, 1200);
-
+        }, 1500);
       },
-
       error: (err) => {
-
         this.loading = false;
-
-        let message = 'Erreur lors de la modification';
-
+        let message = 'Erreur lors de la modification du TPE';
         if (err?.error?.message) {
           message = err.error.message;
         }
-
         this.showError(message);
       }
-
     });
-
   }
 
   cancel() {
@@ -147,10 +140,28 @@ const modeleMap: any = {
 
   private showSuccess(message: string) {
     this.alert = { show: true, variant: 'success', title: 'Succès', message };
+    this.scheduleAlertClear();
   }
 
   private showError(message: string) {
     this.alert = { show: true, variant: 'error', title: 'Erreur', message };
+    this.scheduleAlertClear();
   }
 
+  public clearAlert() {
+    this.alert.show = false;
+    if (this.alertTimeout) {
+      clearTimeout(this.alertTimeout);
+      this.alertTimeout = null;
+    }
+  }
+
+  private scheduleAlertClear() {
+    if (this.alertTimeout) {
+      clearTimeout(this.alertTimeout);
+    }
+    this.alertTimeout = setTimeout(() => {
+      this.clearAlert();
+    }, 5000);
+  }
 }
