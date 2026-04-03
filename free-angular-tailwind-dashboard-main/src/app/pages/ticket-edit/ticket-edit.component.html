@@ -67,7 +67,121 @@
   </button>
 </div>
 <!-- MODALES DE CONFIRMATION AMÉLIORÉES -->
-
+<!-- Modale résolution incident -->
+<div *ngIf="showResolveIncidentModal" 
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 transition-all duration-300"
+     (click)="fermerModalResolveIncident()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
+       (click)="$event.stopPropagation()">
+    <!-- En-tête avec dégradé -->
+    <div class="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 px-6 py-4 border-b border-green-200 dark:border-green-800">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center shadow-inner">
+          <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Confirmer la résolution</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Marquer l'incident comme résolu</p>
+        </div>
+      </div>
+    </div>
+    <!-- Corps -->
+    <div class="p-6">
+      <p class="text-gray-600 dark:text-gray-300 text-center">
+        Êtes-vous sûr de vouloir marquer l'incident 
+        <span class="font-semibold text-gray-900 dark:text-white block mt-1">"{{ incidentToResolve?.code }}"</span>
+        comme <span class="font-semibold text-green-600">RÉSOLU</span> ?
+      </p>
+      <p class="text-xs text-gray-500 dark:text-gray-400 text-center mt-3 line-clamp-2">
+        {{ incidentToResolve?.description }}
+      </p>
+      
+      <!-- Message d'avertissement -->
+      <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mt-4">
+        <div class="flex gap-2">
+          <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-amber-800 dark:text-amber-200">
+              Action irréversible
+            </p>
+            <p class="text-xs text-amber-700 dark:text-amber-300">
+              Une fois résolu, vous ne pourrez plus modifier cet incident.
+              Si tous les incidents de ce ticket sont résolus, le ticket sera automatiquement fermé.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Actions -->
+    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700 mt-2">
+      <button (click)="fermerModalResolveIncident()" 
+              type="button"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+        Annuler
+      </button>
+      <button (click)="executerResoudreIncident()" 
+              type="button"
+              [disabled]="resolvingIncidentId !== null"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-xl hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+        <span *ngIf="resolvingIncidentId !== null" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+        <span *ngIf="resolvingIncidentId === null">Marquer comme résolu</span>
+        <span *ngIf="resolvingIncidentId !== null">Résolution en cours...</span>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- Modale liaison incident -->
+<div *ngIf="showLinkIncidentModal" 
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 transition-all duration-300"
+     (click)="fermerModalLienIncident()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
+       (click)="$event.stopPropagation()">
+    <!-- En-tête avec dégradé -->
+    <div class="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 px-6 py-4 border-b border-green-200 dark:border-green-800">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center shadow-inner">
+          <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Confirmer la liaison</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Lier un incident à ce ticket</p>
+        </div>
+      </div>
+    </div>
+    <!-- Corps -->
+    <div class="p-6">
+      <p class="text-gray-600 dark:text-gray-300 text-center">
+        Êtes-vous sûr de vouloir lier l'incident 
+        <span class="font-semibold text-gray-900 dark:text-white block mt-1">"{{ incidentToLink?.code }}"</span>
+        à ce ticket ?
+      </p>
+      <p class="text-xs text-gray-500 dark:text-gray-400 text-center mt-3 line-clamp-2">
+        {{ incidentToLink?.description }}
+      </p>
+    </div>
+    <!-- Actions -->
+    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700 mt-2">
+      <button (click)="fermerModalLienIncident()" 
+              type="button"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+        Annuler
+      </button>
+      <button (click)="executerLierIncident()" 
+              type="button"
+              [disabled]="loading"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-xl hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+        <span *ngIf="loading" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+        Lier
+      </button>
+    </div>
+  </div>
+</div>
 <!-- Modale suppression commentaire -->
 <div *ngIf="showDeleteCommentModal" 
      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300"
@@ -1176,7 +1290,7 @@
         <span class="px-3 py-1 text-xs font-medium rounded-full bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400">
           {{ incidentsLies?.length || 0 }}
         </span>
-        <button *ngIf="isAdmin" (click)="toggleIncidentSelector()" type="button" class="px-3 py-1.5 text-sm font-medium text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/20 dark:hover:bg-brand-900/30 rounded-lg transition-all">
+        <button *ngIf="isAdmin && ticket.statutTicket === 'Assigne'"  (click)="toggleIncidentSelector()" type="button" class="px-3 py-1.5 text-sm font-medium text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/20 dark:hover:bg-brand-900/30 rounded-lg transition-all">
           <span class="flex items-center gap-1">
             <svg *ngIf="!showIncidentSelector" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
@@ -1238,22 +1352,21 @@
           </div>
           <div class="flex items-center gap-2">
             <!-- Bouton Résoudre pour technicien -->
-            <button 
-              *ngIf="isTechnicien && canResolveIncident(incident)"
-              (click)="resoudreIncident(incident.id)"
-                              type="button"
-
-              [disabled]="resolvingIncidentId === incident.id"
-              class="p-2 text-gray-400 hover:text-green-500 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all"
-              title="Résoudre l'incident">
-              <span *ngIf="resolvingIncidentId === incident.id" class="animate-spin inline-block w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full"></span>
-              <svg *ngIf="resolvingIncidentId !== incident.id" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-              </svg>
-            </button>
+<button 
+  *ngIf="isTechnicien && canResolveIncident(incident)"
+  (click)="confirmerResoudreIncident(incident.id, incident.codeIncident, incident.descriptionIncident)"
+  type="button"
+  [disabled]="resolvingIncidentId === incident.id"
+  class="p-2 text-gray-400 hover:text-green-500 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-all"
+  title="Résoudre l'incident">
+  <span *ngIf="resolvingIncidentId === incident.id" class="animate-spin inline-block w-4 h-4 border-2 border-green-500 border-t-transparent rounded-full"></span>
+  <svg *ngIf="resolvingIncidentId !== incident.id" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+  </svg>
+</button>
             <!-- Bouton retirer pour admin -->
             <button 
-              *ngIf="isAdmin"
+              *ngIf="isAdmin && ticket.statutTicket === 'Assigne'"
                 type="button"
 
   (click)="confirmerDelierIncident(incident.id, incident.codeIncident)"
@@ -1300,34 +1413,38 @@
   
         </div>
 
-        <!-- Liste des incidents disponibles -->
-        <div *ngIf="incidentsDisponibles.length > 0" class="space-y-3 max-h-96 overflow-y-auto pr-2">
-          <div *ngFor="let incident of incidentsDisponibles" 
-               class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all group cursor-pointer"
-               (click)="lierIncident(incident.id)">
-            <div class="flex items-center gap-3 flex-1">
-              <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
-                </svg>
-              </div>
-              <div class="flex-1">
-                <div class="flex items-center gap-2 flex-wrap">
-                  <p class="text-sm font-medium text-gray-900 dark:text-white">{{ incident.codeIncident }}</p>
-                  <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                    {{ getStatutIncidentLibelle(incident.statutIncident, incident.statutIncidentLibelle) }}
-                  </span>
-                </div>
-                <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">{{ incident.descriptionIncident }}</p>
-              </div>
-            </div>
-            <button class="p-2 text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg transition-all group-hover:scale-110" title="Lier cet incident">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-              </svg>
-            </button>
-          </div>
+    <!-- Dans la SECTION 3, modifier la liste des incidents disponibles -->
+<div *ngIf="incidentsDisponibles.length > 0" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+  <div *ngFor="let incident of incidentsDisponibles" 
+       class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all group">
+    <!-- Partie cliquable pour voir le détail (sans le bouton) -->
+    <div class="flex items-center gap-3 flex-1 cursor-pointer" (click)="viewIncident(incident.id)">
+      <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+        <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
+        </svg>
+      </div>
+      <div class="flex-1">
+        <div class="flex items-center gap-2 flex-wrap">
+          <p class="text-sm font-medium text-gray-900 dark:text-white">{{ incident.codeIncident }}</p>
+          <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
+            {{ getStatutIncidentLibelle(incident.statutIncident, incident.statutIncidentLibelle) }}
+          </span>
         </div>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-1">{{ incident.descriptionIncident }}</p>
+      </div>
+    </div>
+    <!-- Bouton de liaison séparé -->
+    <button (click)="lierIncident(incident.id)" 
+            type="button"
+            class="p-2 text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg transition-all group-hover:scale-110 ml-2" 
+            title="Lier cet incident">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+      </svg>
+    </button>
+  </div>
+</div>
 
         <!-- Actions rapides -->
         <div *ngIf="incidentsDisponibles.length > 0" class="flex items-center justify-between pt-3 border-t border-gray-200 dark:border-gray-700">

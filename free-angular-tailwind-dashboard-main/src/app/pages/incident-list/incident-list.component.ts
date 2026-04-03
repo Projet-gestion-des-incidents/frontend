@@ -42,17 +42,21 @@ export class IncidentListComponent implements OnInit {
   selectedStatut?: number;
   selectedYear: string = '';
 
-  // Options pour les filtres
-  severiteOptions = [
-    { value: SeveriteIncident.Faible, label: 'Faible' },
-    { value: SeveriteIncident.Moyenne, label: 'Moyenne' },
-    { value: SeveriteIncident.Forte, label: 'Forte' }
-  ];
+// Modifiez les options pour les filtres
+severiteOptions = [
+  { value: 0, label: 'Non définie' },      // Ajout de l'option Non définie (valeur 0)
+  { value: SeveriteIncident.Faible, label: 'Faible' },
+  { value: SeveriteIncident.Moyenne, label: 'Moyenne' },
+  { value: SeveriteIncident.Forte, label: 'Forte' }
+];
 
-  statutOptions = [
-    { value: StatutIncident.EnCours, label: 'En cours' },
-    { value: StatutIncident.Ferme, label: 'Fermé' }
-  ];
+statutOptions = [
+  { value: StatutIncident.NonTraite, label: 'Non traité' },  // Ajout de l'option Non traité
+  { value: StatutIncident.EnCours, label: 'En cours' },
+  { value: StatutIncident.Ferme, label: 'Fermé' }
+];
+
+
 
   // Années pour le filtre
   yearOptions: string[] = [];
@@ -79,25 +83,27 @@ export class IncidentListComponent implements OnInit {
   ) {}
 
 ngOnInit(): void {
-    this.generateYearOptions();
+  this.generateYearOptions();
 
-    // Récupérer le profil de l'utilisateur connecté
-    this.userService.getMyProfile().subscribe({
-      next: (user) => {
-        this.userRole = user.role; // Stocker le rôle
-        console.log(this.userRole)
-        if (user.role === 'Admin') {
-          this.loadIncidents(); // Admin utilise searchIncidents avec filtres
-        } else {
-          this.loadMyIncidents(); // Commerçant utilise getMyIncidents
-        }
-      },
-      error: (err) => {
-        this.error = 'Impossible de récupérer le profil utilisateur';
-        console.error(err);
+  this.userService.getMyProfile().subscribe({
+    next: (user) => {
+      this.userRole = user.role;
+      console.log('Rôle utilisateur:', this.userRole);
+      
+      if (user.role === 'Admin') {
+        this.loadIncidents();
+      } else {
+        // ✅ Charger avec les filtres dès le départ
+        this.loadMyIncidentsWithFilters();
       }
-    });
-  }
+    },
+    error: (err) => {
+      this.error = 'Impossible de récupérer le profil utilisateur';
+      console.error(err);
+      this.loading = false;
+    }
+  });
+}
 
 
 
@@ -112,26 +118,67 @@ ngOnInit(): void {
 // Pour le commerçant
 loadMyIncidents(): void {
   this.loading = true;
+  this.error = null;
+  
+  console.log('🔄 Chargement des incidents du commerçant...');
+  
   this.incidentService.getMyIncidents().subscribe({
     next: (response: any) => {
-      // Adapter selon la structure de réponse
-      if (response.data) {
-        this.incidents = response.data;
-      } else if (Array.isArray(response)) {
-        this.incidents = response;
-      } else {
-        this.incidents = [];
+      console.log('📦 Réponse brute my-incidents:', response);
+      
+      let incidentsList: Incident[] = [];
+      let total = 0;
+      
+      // ✅ CORRECTION: La réponse a directement les propriétés items, page, totalCount, etc.
+      // Pas de wrapper "data"
+      if (response?.items && Array.isArray(response.items)) {
+        incidentsList = response.items;
+        total = response.totalCount || incidentsList.length;
+        console.log('✅ Cas 1 - Structure avec items directement (pas de wrapper data)');
+      }
+      // Cas 2: Structure avec wrapper data
+      else if (response?.data?.items && Array.isArray(response.data.items)) {
+        incidentsList = response.data.items;
+        total = response.data.totalCount || incidentsList.length;
+        console.log('✅ Cas 2 - Structure paginée (data.items)');
+      }
+      // Cas 3: Structure simple { data: [...] }
+      else if (response?.data && Array.isArray(response.data)) {
+        incidentsList = response.data;
+        total = incidentsList.length;
+        console.log('✅ Cas 3 - Structure simple (data tableau)');
+      }
+      // Cas 4: Tableau direct
+      else if (Array.isArray(response)) {
+        incidentsList = response;
+        total = incidentsList.length;
+        console.log('✅ Cas 4 - Tableau direct');
+      }
+      else {
+        console.warn('⚠️ Structure non reconnue:', response);
       }
       
-      this.filteredIncidents = [...this.incidents];
-      this.totalCount = this.incidents.length;
+      console.log(`📊 ${incidentsList.length} incidents chargés`);
+      if (incidentsList.length > 0) {
+        console.log('📊 Premier incident:', incidentsList[0]);
+      }
+      
+      this.incidents = incidentsList;
+      this.filteredIncidents = [...incidentsList];
+      this.totalCount = total;
       this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+      this.currentPage = 1;
+      
       this.loading = false;
     },
     error: (err) => {
-      this.error = 'Impossible de charger vos incidents';
-      console.error(err);
+      console.error('❌ Erreur détaillée:', err);
+      this.error = 'Impossible de charger vos incidents: ' + (err.message || 'Erreur inconnue');
       this.loading = false;
+      this.incidents = [];
+      this.filteredIncidents = [];
+      this.totalCount = 0;
+      this.totalPages = 1;
     }
   });
 }
@@ -224,7 +271,6 @@ if (this.selectedYear) {
 }
 
 
-// Recherche avec debounce
 onSearch(): void {
   if (this.searchTimeout) clearTimeout(this.searchTimeout);
   
@@ -234,30 +280,13 @@ onSearch(): void {
     if (this.userRole === 'Admin') {
       this.loadIncidents();
     } else {
-      // Pour le commerçant, filtrer côté client
-      this.filterMerchantIncidents();
+      // ✅ Utiliser l'API avec le terme de recherche
+      this.loadMyIncidentsWithFilters();
     }
   }, 400);
 }
 
-// Filtrer les incidents du commerçant côté client
-filterMerchantIncidents(): void {
-  if (!this.searchTerm) {
-    this.filteredIncidents = this.incidents;
-  } else {
-    const term = this.searchTerm.toLowerCase();
-    this.filteredIncidents = this.incidents.filter(incident => {
-      // Convertir le typeProbleme (enum) en string pour la recherche
-      const typeProblemeStr = this.getTypeProblemeLibelle(incident.typeProbleme)?.toLowerCase() || '';
-      
-      return incident.codeIncident?.toLowerCase().includes(term) ||
-             incident.emplacement?.toLowerCase().includes(term) ||
-             typeProblemeStr.includes(term);
-    });
-  }
-  this.totalCount = this.filteredIncidents.length;
-  this.totalPages = Math.ceil(this.totalCount / this.pageSize);
-}
+
 getTypeProblemeLibelle(typeProbleme: any): string {
   if (typeProbleme === undefined || typeProbleme === null) return '';
   
@@ -283,9 +312,90 @@ getTypeProblemeLibelle(typeProbleme: any): string {
   
   return '';
 }
-// Application des filtres
+loadMyIncidentsWithFilters(): void {
+  this.loading = true;
+  this.error = null;
+  
+  // Construction des paramètres de recherche
+  const searchParams: any = {
+    Page: this.currentPage,
+    PageSize: this.pageSize,
+    SearchTerm: this.searchTerm || '',
+    SortBy: 'DateDetection',
+    SortDescending: true
+  };
+  
+  // ✅ CORRECTION CRUCIALE: Convertir le statut en STRING pour l'API
+  if (this.selectedStatut !== undefined && this.selectedStatut !== null) {
+    let statutString = '';
+    switch(this.selectedStatut) {
+      case 0: // StatutIncident.NonTraite
+        statutString = 'NonTraite';
+        break;
+      case 1: // StatutIncident.EnCours
+        statutString = 'EnCours';
+        break;
+      case 2: // StatutIncident.Ferme
+        statutString = 'Ferme';
+        break;
+      default:
+        statutString = '';
+    }
+    if (statutString) {
+      searchParams.StatutIncident = statutString;
+    }
+  }
+  
+  // Ajouter le filtre par année
+  if (this.selectedYear) {
+    searchParams.YearDetection = Number(this.selectedYear);
+  }
+  
+  console.log('🔍 Envoi requête my-incidents avec params:', searchParams);
+  
+  this.incidentService.searchMyIncidents(searchParams).subscribe({
+    next: (response: any) => {
+      console.log('📦 Réponse my-incidents filtrée:', response);
+      
+      let incidentsList: Incident[] = [];
+      let total = 0;
+      
+      if (response?.items && Array.isArray(response.items)) {
+        incidentsList = response.items;
+        total = response.totalCount || incidentsList.length;
+      }
+      else if (response?.data?.items && Array.isArray(response.data.items)) {
+        incidentsList = response.data.items;
+        total = response.data.totalCount || incidentsList.length;
+      }
+      else if (Array.isArray(response)) {
+        incidentsList = response;
+        total = incidentsList.length;
+      }
+      
+      this.incidents = incidentsList;
+      this.filteredIncidents = [...incidentsList];
+      this.totalCount = total;
+      this.totalPages = Math.ceil(total / this.pageSize);
+      
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('❌ Erreur:', err);
+      this.error = 'Impossible de charger vos incidents';
+      this.loading = false;
+      this.incidents = [];
+      this.filteredIncidents = [];
+      this.totalCount = 0;
+      this.totalPages = 1;
+    }
+  });
+}
 applyFilters(): void {
   console.log('🎯 Filtres appliqués - Sévérité:', this.tempFilters.severite, 'Statut:', this.tempFilters.statut);
+  
+  // ✅ Convertir la valeur du statut pour l'affichage et l'utilisation
+  let statutPourAffichage = this.tempFilters.statut;
   
   // Mettre à jour les filtres sélectionnés
   this.selectedSeverite = this.tempFilters.severite;
@@ -294,48 +404,16 @@ applyFilters(): void {
   this.currentPage = 1;
   
   if (this.userRole === 'Admin') {
-    this.loadIncidents(); // Admin utilise l'API avec filtres
+    this.loadIncidents();
   } else {
-    this.filterMerchantIncidentsWithFilters(); // Commerçant filtre côté client
+    // ✅ Recharger avec les nouveaux filtres
+    this.loadMyIncidentsWithFilters();
   }
   
   this.showFilters = false;
 }
 
-// Filtrer les incidents du commerçant avec tous les filtres
-filterMerchantIncidentsWithFilters(): void {
-  let filtered = [...this.incidents];
-  
-  // Filtre par terme de recherche
-  if (this.searchTerm) {
-    const term = this.searchTerm.toLowerCase();
-    filtered = filtered.filter(incident => {
-      const typeProblemeStr = this.getTypeProblemeLibelle(incident.typeProbleme)?.toLowerCase() || '';
-      
-      return incident.codeIncident?.toLowerCase().includes(term) ||
-             incident.emplacement?.toLowerCase().includes(term) ||
-             typeProblemeStr.includes(term);
-    });
-  }
-  
-  // Filtre par sévérité
-  if (this.selectedSeverite != null) {
-    filtered = filtered.filter(incident => 
-      Number(incident.severiteIncident) === this.selectedSeverite
-    );
-  }
-  
-  // Filtre par statut
-  if (this.selectedStatut != null) {
-    filtered = filtered.filter(incident => 
-      Number(incident.statutIncident) === this.selectedStatut
-    );
-  }
-  
-  this.filteredIncidents = filtered;
-  this.totalCount = filtered.length;
-  this.totalPages = Math.ceil(this.totalCount / this.pageSize);
-}
+
 
 // Reset des filtres
 resetFilters(): void {
@@ -348,13 +426,16 @@ resetFilters(): void {
   this.loadIncidents();
 }
 
-  // Gestion de la pagination
-  onPageChange(page: number): void {
-    if (page >= 1 && page <= this.totalPages) {
-      this.currentPage = page;
+ onPageChange(page: number): void {
+  if (page >= 1 && page <= this.totalPages) {
+    this.currentPage = page;
+    if (this.userRole === 'Admin') {
       this.loadIncidents();
+    } else {
+      this.loadMyIncidentsWithFilters();
     }
   }
+}
 
   // Génération des numéros de page
   getPageNumbers(): number[] {
@@ -435,19 +516,17 @@ cancelDelete() {
   }
 
 getSeveriteBadgeColor(severite: any): BadgeColor {
-  console.log('Sévérité reçue:', severite, 'Type:', typeof severite);
-  
   // Cas 1: La sévérité est 0 ou null
   if (severite === 0 || severite === null || severite === undefined) {
     return 'light'; // Gris pour "Non définie"
   }
   
-  // Convertir en nombre si c'est une string
   let severiteValue: number;
   
   if (typeof severite === 'string') {
-    // Mapper les strings vers les nombres
     switch(severite) {
+      case 'Non définie':
+        return 'light';
       case 'Faible':
         severiteValue = SeveriteIncident.Faible;
         break;
@@ -458,7 +537,6 @@ getSeveriteBadgeColor(severite: any): BadgeColor {
         severiteValue = SeveriteIncident.Forte;
         break;
       default:
-        // Si la string n'est pas reconnue, essayer de la parser en nombre
         const parsed = parseInt(severite);
         severiteValue = isNaN(parsed) ? 0 : parsed;
     }
@@ -474,7 +552,7 @@ getSeveriteBadgeColor(severite: any): BadgeColor {
     case SeveriteIncident.Forte:
       return 'error'; // Rouge
     default:
-      return 'light'; // Gris pour les autres cas
+      return 'light'; // Gris pour "Non définie"
   }
 }
 getSeveriteLibelle(incident: any): string {
@@ -490,80 +568,101 @@ getSeveriteLibelle(incident: any): string {
     return 'Non définie';
   }
   
-  // Si c'est une string comme "Moyenne"
+  // Si c'est une string
   if (typeof incident.severiteIncident === 'string') {
     return incident.severiteIncident;
   }
   
-  // Si c'est un nombre, le convertir en libellé
-  if (typeof incident.severiteIncident === 'number') {
-    switch(incident.severiteIncident) {
-      case SeveriteIncident.Faible:
-        return 'Faible';
-      case SeveriteIncident.Moyenne:
-        return 'Moyenne';
-      case SeveriteIncident.Forte:
-        return 'Forte';
-      default:
-        return 'Non définie';
-    }
+  // Si c'est un nombre
+  switch(incident.severiteIncident) {
+    case SeveriteIncident.Faible:
+      return 'Faible';
+    case SeveriteIncident.Moyenne:
+      return 'Moyenne';
+    case SeveriteIncident.Forte:
+      return 'Forte';
+    default:
+      return 'Non définie';
   }
-  
-  return 'Non définie';
 }
-// Helper pour les badges de statut
-getStatutBadgeColor(statut: StatutIncident | string): BadgeColor {
+getStatutBadgeColor(statut: StatutIncident | string | number): BadgeColor {
   console.log('Statut reçu:', statut, 'Type:', typeof statut);
   
   // Convertir en nombre si c'est une string
   let statutValue: number;
   
   if (typeof statut === 'string') {
-    console.log('Statut string reçu exactement:', JSON.stringify(statut));
-    
-    // Nettoyer la string (enlever les espaces, accents, etc)
     const statutClean = statut.trim().toLowerCase();
-    console.log('Statut nettoyé:', statutClean);
     
-    // Mapper les strings vers les nombres
     switch(statutClean) {
-     
-    
+      case 'non traité':
+      case 'nontraite':
+      case 'non_traite':
+        statutValue = StatutIncident.NonTraite;
+        break;
       case 'en cours':
       case 'encours':
         statutValue = StatutIncident.EnCours;
-        console.log('✅ Correspond à En cours');
         break;
-      case 'en attente':
-     
+      case 'fermé':
+      case 'ferme':
       case 'résolu':
       case 'resolu':
         statutValue = StatutIncident.Ferme;
-        console.log('✅ Correspond à Fermé');
         break;
-      case 'fermé':
-     
       default:
-        console.log('❌ Aucune correspondance trouvée pour:', statutClean);
-        statutValue = StatutIncident.EnCours;
+        statutValue = StatutIncident.NonTraite;
     }
   } else {
     statutValue = statut;
-    console.log('Statut nombre reçu:', statutValue);
   }
   
-  console.log('Valeur finale du statut:', statutValue);
-  
   switch(statutValue) {
-   
-  
+    case StatutIncident.NonTraite:
+      return 'info';  // Bleu pour "Non traité"
     case StatutIncident.EnCours:
-      return 'warning';
-  
+      return 'warning';  // Orange pour "En cours"
     case StatutIncident.Ferme:
-      return 'dark';
+      return 'success';  // Vert pour "Fermé"
     default:
       return 'info';
+  }
+}
+getStatutLibelle(statut: number | string): string {
+  if (statut === undefined || statut === null) return 'Non traité';
+  
+  let statutValue: number;
+  
+  if (typeof statut === 'string') {
+    const statutClean = statut.trim().toLowerCase();
+    switch(statutClean) {
+      case 'non traité':
+      case 'nontraite':
+        return 'Non traité';
+      case 'en cours':
+      case 'encours':
+        return 'En cours';
+      case 'fermé':
+      case 'ferme':
+      case 'résolu':
+      case 'resolu':
+        return 'Fermé';
+      default:
+        return statut;
+    }
+  }
+  
+  statutValue = statut;
+  
+  switch(statutValue) {
+    case StatutIncident.NonTraite:
+      return 'Non traité';
+    case StatutIncident.EnCours:
+      return 'En cours';
+    case StatutIncident.Ferme:
+      return 'Fermé';
+    default:
+      return 'Non traité';
   }
 }
   // Formatter la date
@@ -617,7 +716,6 @@ cancelFilters(): void {
   };
 }
 
-// Reset des filtres
 clearFilters(): void {
   this.tempFilters = {
     severite: undefined,
@@ -634,9 +732,8 @@ clearFilters(): void {
   if (this.userRole === 'Admin') {
     this.loadIncidents();
   } else {
-    this.filteredIncidents = this.incidents;
-    this.totalCount = this.incidents.length;
-    this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+    // ✅ Appeler loadMyIncidentsWithFilters avec les paramètres par défaut
+    this.loadMyIncidentsWithFilters();
   }
   this.showFilters = false;
 }

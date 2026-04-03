@@ -4,7 +4,9 @@ export enum SeveriteIncident {
   Forte = 3
 }
 
+// Dans votre fichier incident.model.ts, vérifiez que l'enum contient :
 export enum StatutIncident {
+  NonTraite = 0,  // ou la valeur appropriée
   EnCours = 1,
   Ferme = 2
 }

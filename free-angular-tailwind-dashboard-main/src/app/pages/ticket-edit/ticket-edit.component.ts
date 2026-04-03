@@ -260,22 +260,118 @@ canResolveIncident(incident: any): boolean {
       }
     });
   }
+/**
+ * Ouvrir la modale de confirmation pour résoudre un incident
+ */
+confirmerResoudreIncident(incidentId: string, incidentCode: string, incidentDescription: string): void {
+  if (!this.isTechnicien) {
+    this.showErrorDialog('Seuls les techniciens peuvent résoudre des incidents');
+    return;
+  }
+  
+  this.incidentToResolve = {
+    id: incidentId,
+    code: incidentCode,
+    description: incidentDescription
+  };
+  this.showResolveIncidentModal = true;
+}
 
+/**
+ * Exécuter la résolution de l'incident
+ */
+executerResoudreIncident(): void {
+  if (!this.incidentToResolve) return;
+  
+  this.resolvingIncidentId = this.incidentToResolve.id;
+
+  this.ticketService.resoudreIncident(this.incidentToResolve.id).subscribe({
+    next: (response) => {
+      if (response.isSuccess) {
+        // Mettre à jour le statut de l'incident dans la liste locale
+        const incidentResolu = this.incidentsLies.find(i => i.id === this.incidentToResolve!.id);
+        if (incidentResolu) {
+          incidentResolu.statutIncident = 2; // Statut Résolu/Fermé
+          incidentResolu.statutIncidentLibelle = 'Résolu';
+        }
+        
+        // Vérifier si tous les incidents sont résolus
+        const tousResolus = this.incidentsLies.every(incident => 
+          incident.statutIncident === 2 || 
+          incident.statutIncidentLibelle?.toLowerCase().includes('résolu') ||
+          incident.statutIncidentLibelle?.toLowerCase().includes('resolu')
+        );
+        
+        // Si tous les incidents sont résolus, mettre à jour le statut du ticket
+        if (tousResolus && this.ticket.statutTicket !== 'Resolu') {
+          this.ticket.statutTicket = 'Resolu';
+          this.showSuccess(`Tous les incidents sont résolus. Le ticket a été automatiquement fermé.`);
+        } else {
+          this.showSuccess(`Incident ${this.incidentToResolve!.code} résolu avec succès`);
+        }
+        
+        // Fermer la modale
+        this.fermerModalResolveIncident();
+      } else {
+        this.showErrorDialog(response.message || 'Erreur lors de la résolution');
+        this.fermerModalResolveIncident();
+      }
+      this.resolvingIncidentId = null;
+    },
+    error: (err) => {
+      console.error('❌ Erreur:', err);
+      const errorMessage = err.error?.message || err.message || 'Erreur lors de la résolution';
+      this.showErrorDialog(errorMessage);
+      this.resolvingIncidentId = null;
+      this.fermerModalResolveIncident();
+    }
+  });
+}
+/**
+ * Vérifie si tous les incidents sont résolus et met à jour le ticket si nécessaire
+ */
+verifierEtFermerTicket(): void {
+  const tousResolus = this.incidentsLies.every(incident => 
+    incident.statutIncident === 2 || 
+    incident.statutIncidentLibelle?.toLowerCase().includes('résolu') ||
+    incident.statutIncidentLibelle?.toLowerCase().includes('resolu')
+  );
+  
+  if (tousResolus && this.ticket.statutTicket !== 'Resolu') {
+    this.ticket.statutTicket = 'Resolu';
+    this.showSuccess(`✅ Tous les incidents sont résolus. Le ticket a été automatiquement fermé.`);
+  }
+}
+/**
+ * Fermer la modale de résolution
+ */
+fermerModalResolveIncident(): void {
+  this.showResolveIncidentModal = false;
+  this.incidentToResolve = null;
+}
   /**
    * Recharger seulement les incidents
    */
-  reloadIncidents(): void {
-    this.ticketService.getIncidentsByTicket(this.ticketId).subscribe({
-      next: (incidents) => {
-        this.incidentsLies = incidents;
-        this.incidentsSelectionnes = incidents.map((i: any) => i.id);
-      },
-      error: (err) => {
-        console.error('Erreur rechargement incidents:', err);
-      }
-    });
-  }
-
+ /**
+ * Recharger seulement les incidents
+ */
+reloadIncidents(): void {
+  this.ticketService.getIncidentsByTicket(this.ticketId).subscribe({
+    next: (incidents) => {
+      this.incidentsLies = incidents;
+      this.incidentsSelectionnes = incidents.map((i: any) => i.id);
+      
+      // Vérifier si tous les incidents sont résolus après le rechargement
+      this.verifierEtFermerTicket();
+    },
+    error: (err) => {
+      console.error('Erreur rechargement incidents:', err);
+    }
+  });
+}
+// Ajoutez ces propriétés avec les autres déclarations de modales
+showResolveIncidentModal: boolean = false;
+incidentToResolve: { id: string; code: string; description: string } | null = null;
 // Dans ticket-edit.component.ts
 
 // Dans ticket-edit.component.ts
@@ -383,9 +479,10 @@ loadData(): void {
 
   forkJoin({
     ticketDetails: this.ticketService.getTicketDetails(this.ticketId),
-    allIncidents: this.incidentService.getAllIncidents().pipe(
+    // ✅ CORRECTION: Utiliser getIncidentsSansTicket() au lieu de getAllIncidents()
+    incidentsDisponibles: this.incidentService.getIncidentsSansTicket().pipe(
       catchError(err => {
-        console.error('Erreur chargement incidents:', err);
+        console.error('Erreur chargement incidents disponibles:', err);
         return of([]);
       })
     ),
@@ -418,9 +515,9 @@ loadData(): void {
     next: (results) => {
       if (results.ticketDetails.isSuccess && results.ticketDetails.data) {
         this.ticket = results.ticketDetails.data;
-        // Après avoir assigné this.ticket, ajoutez :
-this.ticket.originalStatut = this.ticket.statutTicket;
-this.ticket.originalAssigneeId = this.ticket.assigneeId;
+        this.ticket.originalStatut = this.ticket.statutTicket;
+        this.ticket.originalAssigneeId = this.ticket.assigneeId;
+        
         // Stocker tous les commentaires
         this.tousLesCommentaires = results.tousLesCommentaires;
         
@@ -468,26 +565,14 @@ this.ticket.originalAssigneeId = this.ticket.assigneeId;
         this.incidentsLies = results.incidentsLies;
         this.incidentsSelectionnes = this.incidentsLies.map((i: any) => i.id);
 
-        const tousLesIncidents = results.allIncidents;
+        // ✅ CORRECTION: Utiliser incidentsDisponibles du résultat
+        // Ces incidents n'ont déjà AUCUN ticket lié (garanti par le service)
+        this.incidentsDisponibles = results.incidentsDisponibles || [];
         
-        // ✅ CORRECTION: Filtrer les incidents disponibles
-        // Un incident est disponible si:
-        // 1. Il n'est pas déjà lié à ce ticket
-        // 2. Il a nombreTickets === 0 (aucun ticket lié)
-        // 3. Il a un statut approprié (Non traité ou Nouveau)
-        this.incidentsDisponibles = tousLesIncidents.filter((incident: any) => {
-          // Exclure les incidents déjà liés à ce ticket
+        // Filtrer pour exclure ceux qui sont déjà liés (par sécurité)
+        this.incidentsDisponibles = this.incidentsDisponibles.filter((incident: any) => {
           const estDejaLie = this.incidentsLies.some((lie: any) => lie.id === incident.id);
-          if (estDejaLie) return false;
-          
-          // ✅ Vérifier que l'incident n'a aucun ticket lié
-          const aAucunTicketLie = incident.nombreTickets === 0;
-          if (!aAucunTicketLie) return false;
-          
-          // Vérifier si l'incident est disponible selon son statut
-          const estDisponibleParStatut = this.estIncidentDisponible(incident);
-          
-          return estDisponibleParStatut;
+          return !estDejaLie;
         });
         
         // Pour la compatibilité avec l'ancien code
@@ -505,27 +590,19 @@ this.ticket.originalAssigneeId = this.ticket.assigneeId;
     }
   });
 }
-/**
- * Recharger la liste des incidents disponibles
- */
 reloadIncidentsDisponibles(): void {
-  this.incidentService.getAllIncidents().subscribe({
+  this.incidentService.getIncidentsSansTicket().subscribe({
     next: (incidents) => {
-      // Filtrer les incidents disponibles (sans tickets et non liés)
-      this.incidentsDisponibles = incidents.filter((incident: any) => {
-        const estDejaLie = this.incidentsLies.some((lie: any) => lie.id === incident.id);
-        if (estDejaLie) return false;
-        
-        const aAucunTicketLie = incident.nombreTickets === 0;
-        if (!aAucunTicketLie) return false;
-        
-        return this.estIncidentDisponible(incident);
-      });
-      
+      // Exclure les incidents déjà liés
+      this.incidentsDisponibles = incidents.filter(incident => 
+        !this.incidentsLies.some(lie => lie.id === incident.id)
+      );
       this.incidents = this.incidentsDisponibles;
+      console.log('✅ Incidents disponibles (sans aucun ticket lié):', this.incidentsDisponibles.length);
     },
     error: (err) => {
-      console.error('Erreur rechargement incidents disponibles:', err);
+      console.error('❌ Erreur chargement incidents disponibles:', err);
+      this.showError('Impossible de charger les incidents');
     }
   });
 }
@@ -542,33 +619,8 @@ lierIncident(incidentId: string): void {
   const incident = this.incidentsDisponibles.find(i => i.id === incidentId);
   if (!incident) return;
   
-  // Appeler le service pour lier l'incident
-  this.ticketService.lierIncidents(this.ticketId, [incidentId]).subscribe({
-    next: (response) => {
-      if (response.isSuccess) {
-        // Ajouter à la liste des incidents liés
-        this.incidentsLies.push(incident);
-        this.incidentsSelectionnes.push(incidentId);
-        
-        // Retirer de la liste des disponibles
-        this.incidentsDisponibles = this.incidentsDisponibles.filter(i => i.id !== incidentId);
-        
-        // Mettre à jour la liste incidents pour l'ancien code
-        this.incidents = this.incidentsDisponibles;
-        
-        this.showSuccess('Incident lié avec succès');
-        
-        // Recharger les incidents disponibles pour être sûr
-        this.reloadIncidentsDisponibles();
-      } else {
-        this.showError(response.message || 'Erreur lors de la liaison');
-      }
-    },
-    error: (err) => {
-      console.error('❌ Erreur liaison incident:', err);
-      this.showError(err.error?.message || 'Erreur lors de la liaison');
-    }
-  });
+  // Ouvrir la modale de confirmation
+  this.confirmerLierIncident(incident.id, incident.codeIncident, incident.descriptionIncident);
 }
 // Dans ticket-edit.component.ts
   commentaireEnEdition: { id: string, message: string, estInterne: boolean } | null = null;
@@ -1614,18 +1666,19 @@ commentToDelete: { id: string, auteurNom: string } | null = null;
 // Ajoutez la méthode pour confirmer le délien d'un incident
 confirmerDelierIncident(incidentId: string, incidentCode: string): void {
   console.log('🔔 Confirmation délien incident:', incidentId, incidentCode);
-  console.log('🔔 showDeleteIncidentModal AVANT:', this.showDeleteIncidentModal);
+  
+  // ✅ Vérifier si c'est le dernier incident
+  if (this.incidentsLies.length === 1) {
+    this.showErrorDialog('Impossible de retirer le dernier incident lié. Un ticket doit avoir au moins un incident associé.');
+    return;
+  }
+  
   this.incidentToDelete = { id: incidentId, code: incidentCode };
   this.showDeleteIncidentModal = true;
-  console.log('🔔 showDeleteIncidentModal APRÈS:', this.showDeleteIncidentModal);
-  
-  // Forcer la détection des changements (si nécessaire)
-  setTimeout(() => {
-    console.log('🔔 Vérification après setTimeout - showDeleteIncidentModal:', this.showDeleteIncidentModal);
-  }, 100);
 }
 
-// Ajoutez la méthode pour exécuter le délien
+// Dans ticket-edit.component.ts
+
 executerDelierIncident(): void {
   if (!this.incidentToDelete) return;
   
@@ -1643,18 +1696,41 @@ executerDelierIncident(): void {
         
         this.showSuccess(`Incident ${this.incidentToDelete!.code} retiré avec succès`);
       } else {
-        this.showError(response.message || 'Erreur lors du retrait');
+        // ✅ Utiliser l'affichage d'erreur stylisé au lieu de alert
+        this.showErrorDialog(response.message || 'Erreur lors du retrait');
       }
       this.deletingIncidentId = null;
       this.fermerModalIncident();
     },
     error: (err) => {
       console.error('❌ Erreur:', err);
-      this.showError(err.error?.message || 'Erreur lors du retrait');
+      // ✅ Récupérer le message d'erreur du backend
+      const errorMessage = err.error?.message || err.message || 'Erreur lors du retrait';
+      this.showErrorDialog(errorMessage);
       this.deletingIncidentId = null;
       this.fermerModalIncident();
     }
   });
+}
+
+// ✅ Nouvelle méthode pour afficher les erreurs avec le style existant
+showErrorDialog(message: string): void {
+  this.error = message;
+  
+  // Faire défiler jusqu'au message d'erreur
+  setTimeout(() => {
+    const errorElement = document.querySelector('.rounded-xl.border-red-200');
+    if (errorElement) {
+      errorElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, 100);
+  
+  // Auto-fermeture après 5 secondes
+  setTimeout(() => {
+    if (this.error === message) {
+      this.error = null;
+    }
+  }, 5000);
 }
 
 // Ajoutez la méthode pour fermer le modal incident
@@ -1735,5 +1811,61 @@ closeImageModal(): void {
   this.showImageModal = false;
   this.currentImageUrl = '';
   this.currentImageName = '';
+}
+// Ajoutez ces propriétés avec les autres déclarations
+showLinkIncidentModal: boolean = false;
+incidentToLink: { id: string; code: string; description: string } | null = null;
+// Méthode pour confirmer la liaison d'un incident
+confirmerLierIncident(incidentId: string, incidentCode: string, incidentDescription: string): void {
+  this.incidentToLink = { id: incidentId, code: incidentCode, description: incidentDescription };
+  this.showLinkIncidentModal = true;
+}
+
+// Méthode pour exécuter la liaison
+executerLierIncident(): void {
+  if (!this.incidentToLink) return;
+  
+  this.loading = true;
+  
+  this.ticketService.lierIncidents(this.ticketId, [this.incidentToLink.id]).subscribe({
+    next: (response) => {
+      if (response.isSuccess) {
+        // Trouver l'incident complet dans la liste des disponibles
+        const incidentComplet = this.incidentsDisponibles.find(i => i.id === this.incidentToLink!.id);
+        
+        if (incidentComplet) {
+          // Ajouter à la liste des incidents liés
+          this.incidentsLies.push(incidentComplet);
+          this.incidentsSelectionnes.push(this.incidentToLink!.id);
+          
+          // Retirer de la liste des disponibles
+          this.incidentsDisponibles = this.incidentsDisponibles.filter(i => i.id !== this.incidentToLink!.id);
+          this.incidents = this.incidentsDisponibles;
+        }
+        
+        this.showSuccess(`Incident ${this.incidentToLink!.code} lié avec succès`);
+        
+        // Ne pas recharger toutes les données, juste fermer la modale
+        this.fermerModalLienIncident();
+      } else {
+        this.showErrorDialog(response.message || 'Erreur lors de la liaison');
+        this.fermerModalLienIncident();
+      }
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('❌ Erreur liaison incident:', err);
+      const errorMessage = err.error?.message || err.message || 'Erreur lors de la liaison';
+      this.showErrorDialog(errorMessage);
+      this.fermerModalLienIncident();
+      this.loading = false;
+    }
+  });
+}
+
+// Fermer le modal de liaison
+fermerModalLienIncident(): void {
+  this.showLinkIncidentModal = false;
+  this.incidentToLink = null;
 }
 }

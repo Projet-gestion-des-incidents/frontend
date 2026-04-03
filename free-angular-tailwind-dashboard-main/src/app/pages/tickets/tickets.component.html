@@ -177,7 +177,7 @@
         </button>
 
         <!-- Actions groupées quand des tickets sont sélectionnés -->
-        <div *ngIf="selectedTickets.length > 0" class="flex items-center gap-2">
+        <div *ngIf="selectedTickets.length > 0 && isAdmin" class="flex items-center gap-2">
           <span class="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-lg">
             {{ selectedTickets.length }} sélectionné(s)
           </span>
@@ -287,8 +287,8 @@
     <div class="overflow-x-auto">
       <table class="min-w-full">
         <thead>
-          <tr class="border-y border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
-            <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 w-10">
+          <tr  class="border-y border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
+            <th *ngIf="isAdmin"class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 w-10">
               <app-checkbox
                 [checked]="isAllSelected()"
                 (checkedChange)="toggleAllSelection($event)"
@@ -302,14 +302,14 @@
           </tr>
         </thead>
 
-        <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
+        <tbody  class="divide-y divide-gray-100 dark:divide-gray-800">
           @for (ticket of tickets; track ticket.id) {
           <tr [class.bg-brand-50]="isSelected(ticket.id)" 
               [class.dark:bg-brand-900/20]="isSelected(ticket.id)"
               class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
             
             <!-- Checkbox individuel -->
-            <td class="px-6 py-4">
+            <td *ngIf="isAdmin"class="px-6 py-4">
               <app-checkbox
                 [checked]="isSelected(ticket.id)"
                 (checkedChange)="toggleSelection(ticket.id, $event)"
@@ -374,7 +374,7 @@
                   </svg>
                 </button>
                 
-                <button
+                <button *ngIf="isAdmin"
                   (click)="deleteTicket(ticket)"
                   class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                   title="Supprimer"

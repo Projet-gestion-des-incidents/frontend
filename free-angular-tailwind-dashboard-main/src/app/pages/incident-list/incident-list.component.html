@@ -195,89 +195,88 @@
   </div>
 
   <!-- Panneau de filtres amélioré -->
-  <div *ngIf="showFilters" class="mx-6 my-4 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-    <div class="flex items-center gap-2 mb-4">
-      <div class="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-500/10">
-        <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
-        </svg>
-      </div>
-      <h4 class="text-md font-semibold text-gray-700 dark:text-gray-300">Filtres avancés</h4>
+<div *ngIf="showFilters" class="mx-6 my-4 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+  <div class="flex items-center gap-2 mb-4">
+    <div class="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-500/10">
+      <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+      </svg>
     </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <!-- Filtre par sévérité -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-          Sévérité
-        </label>
-        <select
-          [(ngModel)]="tempFilters.severite"
-          class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors"
-        >
-          <option [ngValue]="undefined">Toutes sévérités</option>
-          <option *ngFor="let option of severiteOptions" [ngValue]="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Filtre par statut -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-          Statut
-        </label>
-        <select
-          [(ngModel)]="tempFilters.statut"
-          class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors"
-        >
-          <option [ngValue]="undefined">Tous statuts</option>
-          <option *ngFor="let option of statutOptions" [ngValue]="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Filtre par année -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-          Année de création
-        </label>
-        <select
-          [(ngModel)]="selectedYear"
-          class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors"
-        >
-          <option value="">Toutes années</option>
-          <option *ngFor="let year of yearOptions" [value]="year">
-            {{ year }}
-          </option>
-        </select>
-      </div>
+    <h4 class="text-md font-semibold text-gray-700 dark:text-gray-300">Filtres avancés</h4>
+  </div>
+  
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+    <!-- ✅ Filtre par sévérité - UNIQUEMENT pour l'admin -->
+    <div *ngIf="userRole === 'Admin'">
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+        Sévérité
+      </label>
+      <select
+        [(ngModel)]="tempFilters.severite"
+        class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors"
+      >
+        <option [ngValue]="undefined">Toutes sévérités</option>
+        <option *ngFor="let option of severiteOptions" [ngValue]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
     </div>
 
-    <!-- Boutons d'action du panneau -->
-    <div class="flex justify-end gap-3 mt-6">
-      <button
-        (click)="cancelFilters()"
-        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
+    <!-- Filtre par statut -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+        Statut
+      </label>
+      <select
+        [(ngModel)]="tempFilters.statut"
+        class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors"
       >
-        Annuler
-      </button>
-      <button
-        (click)="clearFilters()"
-        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
+        <option [ngValue]="undefined">Tous statuts</option>
+        <option *ngFor="let option of statutOptions" [ngValue]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Filtre par année -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+        Année de création
+      </label>
+      <select
+        [(ngModel)]="selectedYear"
+        class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors"
       >
-        Effacer tout
-      </button>
-      <button
-        (click)="applyFilters()"
-        class="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors shadow-sm"
-      >
-        Appliquer les filtres
-      </button>
+        <option value="">Toutes années</option>
+        <option *ngFor="let year of yearOptions" [value]="year">
+          {{ year }}
+        </option>
+      </select>
     </div>
   </div>
 
+  <!-- Boutons d'action du panneau -->
+  <div class="flex justify-end gap-3 mt-6">
+    <button
+      (click)="cancelFilters()"
+      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
+    >
+      Annuler
+    </button>
+    <button
+      (click)="clearFilters()"
+      class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
+    >
+      Effacer tout
+    </button>
+    <button
+      (click)="applyFilters()"
+      class="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors shadow-sm"
+    >
+      Appliquer les filtres
+    </button>
+  </div>
+</div>
   <!-- Loading indicator amélioré -->
   <div *ngIf="loading" class="flex justify-center items-center py-16">
     <div class="animate-spin rounded-full h-10 w-10 border-4 border-brand-200 border-t-brand-600"></div>
@@ -400,13 +399,22 @@
               
      <button
       (click)="onDelete(incident)"
-      [disabled]="userRole === 'Commercant' && (incident.statutIncident?.toString() === 'EnCours' || incident.statutIncident?.toString() === 'Ferme')"
+      [disabled]="userRole === 'Commercant' &&  incident.statutIncident?.toString() === 'Ferme'"
       class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-      [title]="(userRole === 'Commercant' && (incident.statutIncident?.toString() === 'EnCours' || incident.statutIncident?.toString() === 'Ferme')) ? 'Suppression impossible : incident en cours ou fermé' : 'Supprimer l\'incident'"
+      [title]="(userRole === 'Commercant' && incident.statutIncident?.toString() === 'EnCours' ) ? 'Annuler l\'incident' : 'Supprimer l\'incident'"
     >
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
-      </svg>
+    <svg *ngIf="incident.statutIncident?.toString() === 'EnCours'" 
+       class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+          d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" />
+  </svg>
+  
+  <!-- Icône Corbeille (incident non traité) -->
+  <svg *ngIf="incident.statutIncident?.toString() !== 'EnCours'" 
+       class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+  </svg>
     </button>
             </div>
           </td>

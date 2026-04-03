@@ -72,8 +72,7 @@ piecesJointesExistantes: any[] = [];
   showDeleteEntiteModal: boolean = false;
   entiteToDelete: { id: string; index: number; label: string } | null = null;
   
-  showDeleteTpeModal: boolean = false;
-  tpeToDelete: { id: string; index: number; label: string } | null = null;
+  
   
   showSuccessModal: boolean = false;
   successMessage: string = '';
@@ -304,7 +303,10 @@ piecesJointesExistantes: any[] = [];
     }
     
     console.log('➕ Ajout TPE:', tpeId);
-    
+      if (this.isIncidentLieATicket) {
+    this.showErrorDialog(' Impossible de modifier les TPEs : cet incident est déjà lié à un ticket.');
+    return;
+  }
     const tpeAjoute = this.tpEsDisponibles.find(t => t.id === tpeId);
     if (!tpeAjoute) {
       this.error = 'TPE non trouvé';
@@ -350,25 +352,53 @@ piecesJointesExistantes: any[] = [];
 
   // ========== GESTION DES SUPPRESSIONS AVEC MODALES ==========
 
-  // Pour les TPEs
-  supprimerTpe(tpeId: string, index: number) {
-    if (!this.isCommercant) {
-      this.error = 'Seul le commerçant peut supprimer des TPEs';
-      return;
-    }
+  showDeleteTpeModal: boolean = false;
+tpeToDelete: { id: string; index: number; label: string } | null = null;
 
-    // Préparer les données pour la modale
-    const tpe = this.incident.tpEs?.[index];
-    const label = tpe?.numSerieComplet || 'ce TPE';
-    
-    this.tpeToDelete = {
-      id: tpeId,
-      index: index,
-      label: label
-    };
-    this.showDeleteTpeModal = true;
+// Modifiez la méthode supprimerTpe pour vérifier si c'est le dernier TPE
+supprimerTpe(tpeId: string, index: number) {
+  if (!this.isCommercant) {
+    this.error = 'Seul le commerçant peut supprimer des TPEs';
+    return;
+  }
+  if (this.isIncidentLieATicket) {
+    this.showErrorDialog(' Impossible de modifier les TPEs : cet incident est déjà lié à un ticket.');
+    return;
+  }
+  // ✅ Vérifier si c'est le dernier TPE
+  if (this.incident.tpEs && this.incident.tpEs.length === 1) {
+    this.showErrorDialog(' Impossible de retirer le dernier TPE associé. Un incident doit avoir au moins un TPE associé pour être traité.');
+    return;
   }
 
+  // Préparer les données pour la modale
+  const tpe = this.incident.tpEs?.[index];
+  const label = tpe?.numSerieComplet || 'ce TPE';
+  
+  this.tpeToDelete = {
+    id: tpeId,
+    index: index,
+    label: label
+  };
+  this.showDeleteTpeModal = true;
+}
+showErrorDialog(message: string, resultCode?: number): void {
+  // Personnaliser le message selon le code d'erreur
+  if (resultCode === 71) {
+    this.error = 'Cet incident ne peut pas être modifié car il est déjà pris en charge ';
+  } else if (resultCode === 70) {
+    this.error = 'Cet incident ne peut pas être modifié car il est déjà en cours ou fermé.';
+  } else {
+    this.error = message;
+  }
+  
+  // Auto-fermeture après 5 secondes
+  setTimeout(() => {
+    if (this.error === message || this.error === this.error) {
+      this.error = null;
+    }
+  }, 5000);
+}
   confirmerSuppressionTpe() {
     if (!this.tpeToDelete) return;
 
@@ -393,7 +423,39 @@ piecesJointesExistantes: any[] = [];
       }
     });
   }
-
+// Ajoutez cette propriété dans la classe
+get isIncidentLieATicket(): boolean {
+  return this.incident?.tickets && this.incident.tickets.length > 0;
+}
+get isIncidentModifiable(): boolean {
+  // Un incident est modifiable si :
+  // 1. Son statut est "Non traité" (valeur 0)
+  // 2. ET il n'est pas lié à un ticket
+  
+  let estNonTraite = false;
+  
+  // Vérifier par la valeur numérique
+  if (typeof this.incident?.statutIncident === 'number') {
+    estNonTraite = this.incident.statutIncident === 0; // 0 = Non traité
+  }
+  // Vérifier par le libellé
+  else if (typeof this.incident?.statutIncident === 'string') {
+    estNonTraite = this.incident.statutIncident === 'NonTraite' ||
+                   this.incident.statutIncident === '0';
+  }
+  // Vérifier par le libellé d'affichage
+  else if (this.incident?.statutIncidentLibelle) {
+    estNonTraite = this.incident.statutIncidentLibelle === 'Non traité';
+  }
+  
+  // Si pas de statut du tout, considérer comme modifiable
+  if (this.incident?.statutIncident === undefined || 
+      this.incident?.statutIncident === null) {
+    estNonTraite = true;
+  }
+  
+  return estNonTraite && !this.isIncidentLieATicket;
+}
   fermerModalTpe() {
     this.showDeleteTpeModal = false;
     this.tpeToDelete = null;
@@ -582,7 +644,7 @@ fermerModalPiece() {
   this.showDeletePieceModal = false;
   this.pieceToDelete = null;
 }  // ========== SAUVEGARDE ==========
- async save() {
+async save() {
   if (!this.incident) return;
   
   this.loading = true;
@@ -635,7 +697,10 @@ fermerModalPiece() {
       },
       error: (err: any) => {
         console.error('❌ Erreur:', err);
-        this.error = err.error?.message || 'Erreur lors de la mise à jour.';
+        // ✅ Passer le resultCode à showErrorDialog
+        const resultCode = err.error?.resultCode;
+        const errorMessage = err.error?.message || 'Erreur lors de la mise à jour.';
+        this.showErrorDialog(errorMessage, resultCode);
         this.loading = false;
       }
     });

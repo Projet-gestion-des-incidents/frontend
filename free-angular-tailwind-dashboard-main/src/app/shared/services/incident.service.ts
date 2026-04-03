@@ -251,6 +251,40 @@ searchIncidents(params: any) {
     })
   );
 }
+// Dans incident.service.ts - Vérifiez que searchMyIncidents envoie bien StatutIncident
+searchMyIncidents(params: any): Observable<any> {
+  let httpParams = new HttpParams()
+    .set('Page', params.Page?.toString() || '1')
+    .set('PageSize', params.PageSize?.toString() || '10')
+    .set('SortBy', params.SortBy || 'DateDetection')
+    .set('SortDescending', params.SortDescending?.toString() || 'true');
+  
+  if (params.SearchTerm) {
+    httpParams = httpParams.set('SearchTerm', params.SearchTerm);
+  }
+  
+  // ✅ IMPORTANT: StatutIncident doit être une string
+  if (params.StatutIncident) {
+    httpParams = httpParams.set('StatutIncident', params.StatutIncident);
+  }
+  
+  if (params.YearDetection) {
+    httpParams = httpParams.set('YearDetection', params.YearDetection.toString());
+  }
+  
+  console.log('📤 Service - Params envoyés:', httpParams.toString());
+  
+  return this.http.get<ApiResponse<any>>(
+    `${this.apiUrl}/my-incidents`, 
+    { headers: this.getAuthHeaders().headers, params: httpParams }
+  ).pipe(
+    map(response => {
+      console.log('📥 Service - Réponse brute:', response);
+      return response.data || response;
+    })
+  );
+}
+
  lierPlusieursTpes(incidentId: string, tpeIds: string[]): Observable<ApiResponse<IncidentTPEDTO[]>> {
     console.log('➕ Liaison de plusieurs TPEs - Incident:', incidentId, 'TPEs:', tpeIds);
     

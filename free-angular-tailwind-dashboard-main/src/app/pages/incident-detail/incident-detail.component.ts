@@ -147,21 +147,52 @@ export class IncidentDetailComponent implements OnInit {
   }
 
   // ========== GESTION DE LA SÉVÉRITÉ ==========
-  getSeveriteLibelle(severite: any, severiteLibelle: string): string {
-    if (!severite) {
-      return 'Non définie';
-    }
-    
-    if (typeof severite === 'string') {
-      return severite;
-    }
-    
-    if (typeof severite === 'number') {
-      return severiteLibelle || this.getSeveriteLabelFromValue(severite);
-    }
-    
+getSeveriteLibelle(severite: any, severiteLibelle?: string): string {
+  // Si le libellé est déjà fourni et n'est pas null/undefined
+  if (severiteLibelle) {
+    return severiteLibelle;
+  }
+  
+  // Si sévérité est null ou undefined
+  if (severite === undefined || severite === null) {
     return 'Non définie';
   }
+  
+  // Si c'est une string
+  if (typeof severite === 'string') {
+    switch(severite) {
+      case 'NonDefinie':
+      case 'Non définie':
+        return 'Non définie';
+      case 'Faible':
+        return 'Faible';
+      case 'Moyenne':
+        return 'Moyenne';
+      case 'Forte':
+        return 'Forte';
+      default:
+        return severite;
+    }
+  }
+  
+  // Si c'est un nombre
+  if (typeof severite === 'number') {
+    switch(severite) {
+      case 0:
+        return 'Non définie';
+      case SeveriteIncident.Faible:
+        return 'Faible';
+      case SeveriteIncident.Moyenne:
+        return 'Moyenne';
+      case SeveriteIncident.Forte:
+        return 'Forte';
+      default:
+        return 'Non définie';
+    }
+  }
+  
+  return 'Non définie';
+}
 
   private getSeveriteLabelFromValue(severite: number): string {
     switch(severite) {
@@ -172,31 +203,48 @@ export class IncidentDetailComponent implements OnInit {
     }
   }
 
-  getSeveriteBadgeColor(severite: any): 'success' | 'warning' | 'error' {
-    if (!severite) {
-      return 'warning';
-    }
-    
-    if (typeof severite === 'string') {
-      switch(severite) {
-        case 'Faible': return 'success';
-        case 'Moyenne': return 'warning';
-        case 'Forte': return 'error';
-        default: return 'warning';
-      }
-    }
-    
-    if (typeof severite === 'number') {
-      switch(severite) {
-        case 1: return 'success';
-        case 2: return 'warning';
-        case 3: return 'error';
-        default: return 'warning';
-      }
-    }
-    
-    return 'warning';
+ getSeveriteBadgeColor(severite: any): 'success' | 'warning' | 'error' | 'info' {
+  // Si sévérité est null ou undefined
+  if (severite === undefined || severite === null) {
+    return 'info';  // Bleu/gris pour "Non définie"
   }
+  
+  // Si c'est une string
+  if (typeof severite === 'string') {
+    switch(severite) {
+      case 'NonDefinie':
+      case 'Non définie':
+        return 'info';
+      case 'Faible':
+        return 'success';
+      case 'Moyenne':
+        return 'warning';
+      case 'Forte':
+        return 'error';
+      default:
+        return 'info';
+    }
+  }
+  
+  // Si c'est un nombre
+  if (typeof severite === 'number') {
+    switch(severite) {
+      case 0:
+        return 'info';
+      case SeveriteIncident.Faible:
+        return 'success';
+      case SeveriteIncident.Moyenne:
+        return 'warning';
+      case SeveriteIncident.Forte:
+        return 'error';
+      default:
+        return 'info';
+    }
+  }
+  
+  return 'info';
+}
+
 
   // ========== GESTION DU TYPE DE PROBLÈME ==========
   getTypeProblemeLibelle(typeProbleme: any): string {
