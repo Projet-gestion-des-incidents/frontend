@@ -251,8 +251,10 @@ searchIncidents(params: any) {
     })
   );
 }
-// Dans incident.service.ts - Vérifiez que searchMyIncidents envoie bien StatutIncident
+// Dans incident.service.ts - Corrigez searchMyIncidents
 searchMyIncidents(params: any): Observable<any> {
+  console.log('📤 SERVICE - Paramètres reçus:', params);
+  
   let httpParams = new HttpParams()
     .set('Page', params.Page?.toString() || '1')
     .set('PageSize', params.PageSize?.toString() || '10')
@@ -263,23 +265,35 @@ searchMyIncidents(params: any): Observable<any> {
     httpParams = httpParams.set('SearchTerm', params.SearchTerm);
   }
   
-  // ✅ IMPORTANT: StatutIncident doit être une string
+  // ✅ CORRECTION: Ajouter StatutIncident (string)
   if (params.StatutIncident) {
     httpParams = httpParams.set('StatutIncident', params.StatutIncident);
+  }
+  
+  // ✅ CORRECTION: Ajouter DateDetection
+  if (params.DateDetection) {
+    httpParams = httpParams.set('DateDetection', params.DateDetection);
+    console.log('📤 SERVICE - Ajout DateDetection:', params.DateDetection);
+  }
+  
+  // ✅ CORRECTION: Ajouter DateResolution
+  if (params.DateResolution) {
+    httpParams = httpParams.set('DateResolution', params.DateResolution);
+    console.log('📤 SERVICE - Ajout DateResolution:', params.DateResolution);
   }
   
   if (params.YearDetection) {
     httpParams = httpParams.set('YearDetection', params.YearDetection.toString());
   }
   
-  console.log('📤 Service - Params envoyés:', httpParams.toString());
+  console.log('📤 SERVICE - Params finaux:', httpParams.toString());
   
   return this.http.get<ApiResponse<any>>(
     `${this.apiUrl}/my-incidents`, 
     { headers: this.getAuthHeaders().headers, params: httpParams }
   ).pipe(
     map(response => {
-      console.log('📥 Service - Réponse brute:', response);
+      console.log('📥 SERVICE - Réponse brute:', response);
       return response.data || response;
     })
   );

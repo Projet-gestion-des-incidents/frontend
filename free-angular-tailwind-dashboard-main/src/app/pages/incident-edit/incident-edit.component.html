@@ -560,8 +560,8 @@
     </div>
   </div>
 
-  <!-- Message d'avertissement si incident lié à un ticket (pour les commerçants uniquement) -->
-  <div *ngIf="!isAdmin && isIncidentLieATicket" 
+  <!-- Message d'avertissement si incident lié à un ticket -->
+  <div *ngIf="isIncidentLieATicket" 
        class="mx-6 mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
     <div class="flex items-start gap-2">
       <svg class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -596,8 +596,8 @@
             </div>
           </div>
           
-          <!-- ✅ Bouton suppression - Règle : visible pour isAdmin TOUJOURS, sinon visible seulement si incident NON lié -->
-          <button *ngIf="isAdmin || (!isAdmin && !isIncidentLieATicket)" 
+          <!-- ✅ Bouton suppression - Visible seulement si canDeleteFiles() est vrai -->
+          <button *ngIf="canDeleteFiles()" 
                   (click)="supprimerPieceJointe(piece.id, i)" 
                   class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all" 
                   title="Supprimer">
@@ -606,8 +606,8 @@
             </svg>
           </button>
           
-          <!-- ✅ Afficher une icône de cadenas si commerçant ET incident lié -->
-          <div *ngIf="!isAdmin && isIncidentLieATicket" class="p-1.5 text-gray-300" title="Suppression impossible - incident lié à un ticket">
+          <!-- ✅ Afficher une icône de cadenas si suppression impossible -->
+          <div *ngIf="!canDeleteFiles()" class="p-1.5 text-gray-300" title="Suppression impossible - modification désactivée">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
             </svg>
@@ -616,9 +616,9 @@
       </div>
     </div>
 
-    <!-- ✅ Zone d'upload - Règle : visible pour !isAdmin && !isIncidentLieATicket seulement -->
-    <!-- L'admin n'a JAMAIS la zone d'upload -->
-    <div class="relative" *ngIf="!isAdmin && !isIncidentLieATicket">
+    <!-- ✅ Zone d'upload - Visible seulement si canAddFiles() est vrai -->
+    <!-- Selon le tableau: Admin ne peut JAMAIS ajouter, Commerçant peut ajouter seulement si incident non lié -->
+    <div class="relative" *ngIf="canAddFiles()">
       <input #fileInput type="file" multiple (change)="onFileSelected($event)" class="hidden" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" />
       <div (click)="fileInput.click()" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)"
            class="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200"
@@ -636,7 +636,7 @@
     </div>
 
     <!-- Message si incident lié à un ticket (pour commerçant) -->
-    <div *ngIf="!isAdmin && isIncidentLieATicket && piecesJointesExistantes.length === 0" 
+    <div *ngIf="isIncidentLieATicket && piecesJointesExistantes.length === 0" 
          class="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl">
       <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -645,8 +645,8 @@
       <p class="text-xs text-amber-600 mt-1">Impossible d'ajouter des fichiers car cet incident est déjà lié à un ticket</p>
     </div>
 
-    <!-- Message pour admin (pas de zone d'upload, donc message explicatif si besoin) -->
-    <div *ngIf="isAdmin && piecesJointesExistantes.length === 0" 
+    <!-- Message pour admin (pas de zone d'upload) -->
+    <div *ngIf="isAdmin && piecesJointesExistantes.length === 0 && !isIncidentLieATicket" 
          class="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl">
       <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -656,7 +656,7 @@
     </div>
 
     <!-- Nouveaux fichiers sélectionnés (uniquement pour commerçant avec incident non lié) -->
-    <div *ngIf="selectedFiles.length > 0 && !isAdmin && !isIncidentLieATicket" class="mt-4">
+    <div *ngIf="selectedFiles.length > 0 && canAddFiles()" class="mt-4">
       <div class="flex items-center justify-between mb-3">
         <span class="text-xs font-medium text-gray-500">{{ selectedFiles.length }} nouveau(x) fichier(s)</span>
         <button (click)="clearAllFiles()" class="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">

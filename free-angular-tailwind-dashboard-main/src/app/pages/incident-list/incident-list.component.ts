@@ -10,13 +10,14 @@ import { IncidentService } from '../../shared/services/incident.service';
 import { AlertComponent } from '../../shared/components/ui/alert/alert.component';
 import { ButtonComponent } from '../../shared/components/ui/button/button.component';
 import { UserService } from '../../shared/services/user.service';
+import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
 
 @Component({
   selector: 'app-incident-list',
   standalone: true,
   imports: [
     CommonModule, AlertComponent,
-    RouterModule, FormsModule,
+    RouterModule, FormsModule,DatePickerComponent,
     BadgeComponent, AvatarTextComponent,
     CheckboxComponent, ButtonComponent
   ],
@@ -187,29 +188,46 @@ loadIncidents(): void {
   this.loading = true;
   this.error = null;
 
-  // Construction des paramètres de recherche
   const searchParams: any = {
-  Page: this.currentPage,
-  PageSize: this.pageSize,
-  SearchTerm: this.searchTerm || '',
-  SortBy: 'DateDetection',
-  SortDescending: true
-};
+    Page: this.currentPage,
+    PageSize: this.pageSize,
+    SearchTerm: this.searchTerm || '',
+    SortBy: 'DateDetection',
+    SortDescending: true
+  };
 
-
-  // Ajouter les filtres seulement s'ils sont définis
   if (this.selectedSeverite != null) {
-  searchParams.SeveriteIncident = this.selectedSeverite;
-}
+    searchParams.SeveriteIncident = this.selectedSeverite;
+  }
 
-if (this.selectedStatut != null) {
-  searchParams.StatutIncident = this.selectedStatut;
-}
+ if (this.selectedStatut != null) {
+    let statutLibelle = '';
+    switch(this.selectedStatut) {
+      case StatutIncident.NonTraite:
+        statutLibelle = 'Non traité';
+        break;
+      case StatutIncident.EnCours:
+        statutLibelle = 'En cours';
+        break;
+      case StatutIncident.Ferme:
+        statutLibelle = 'Fermé';
+        break;
+      default:
+        statutLibelle = '';
+    }
+    if (statutLibelle) {
+      searchParams.StatutLibelle = statutLibelle;
+    }
+  }
 
-if (this.selectedYear) {
-  searchParams.YearDetection = Number(this.selectedYear);
-}
+  // ✅ Ajout des filtres par date
+  if (this.selectedDateDetection) {
+    searchParams.DateDetection = this.selectedDateDetection;
+  }
 
+  if (this.selectedDateResolution) {
+    searchParams.DateResolution = this.selectedDateResolution;
+  }
 
 
   console.log('🔍 Envoi requête avec params:', searchParams);
@@ -269,7 +287,8 @@ if (this.selectedYear) {
     }
   });
 }
-
+// Ajoutez cette propriété dans la classe
+today: string = new Date().toISOString().split('T')[0];
 
 onSearch(): void {
   if (this.searchTimeout) clearTimeout(this.searchTimeout);
@@ -312,7 +331,7 @@ getTypeProblemeLibelle(typeProbleme: any): string {
   
   return '';
 }
-loadMyIncidentsWithFilters(): void {
+ loadMyIncidentsWithFilters(): void {
   this.loading = true;
   this.error = null;
   
@@ -325,93 +344,128 @@ loadMyIncidentsWithFilters(): void {
     SortDescending: true
   };
   
-  // ✅ CORRECTION CRUCIALE: Convertir le statut en STRING pour l'API
-  if (this.selectedStatut !== undefined && this.selectedStatut !== null) {
+  // ✅ LOG pour déboguer - Afficher les valeurs avant l'envoi
+  console.log('🔍 DEBUG - selectedStatut:', this.selectedStatut);
+  console.log('🔍 DEBUG - selectedDateDetection:', this.selectedDateDetection);
+  console.log('🔍 DEBUG - selectedDateResolution:', this.selectedDateResolution);
+  console.log('🔍 DEBUG - selectedYear:', this.selectedYear);
+  
+  // Convertir le statut en string pour l'API
+  if (this.selectedStatut != null) {
     let statutString = '';
     switch(this.selectedStatut) {
-      case 0: // StatutIncident.NonTraite
+      case StatutIncident.NonTraite:
         statutString = 'NonTraite';
         break;
-      case 1: // StatutIncident.EnCours
+      case StatutIncident.EnCours:
         statutString = 'EnCours';
         break;
-      case 2: // StatutIncident.Ferme
+      case StatutIncident.Ferme:
         statutString = 'Ferme';
         break;
-      default:
-        statutString = '';
     }
     if (statutString) {
       searchParams.StatutIncident = statutString;
+      console.log('🔍 DEBUG - Statut converti:', statutString);
     }
   }
   
-  // Ajouter le filtre par année
+  // ✅ Vérifier que les dates sont bien ajoutées
+  if (this.selectedDateDetection && this.selectedDateDetection.trim() !== '') {
+    searchParams.DateDetection = this.selectedDateDetection;
+    console.log('🔍 DEBUG - DateDetection ajoutée:', this.selectedDateDetection);
+  } else {
+    console.log('🔍 DEBUG - Aucune DateDetection à envoyer');
+  }
+  
+  if (this.selectedDateResolution && this.selectedDateResolution.trim() !== '') {
+    searchParams.DateResolution = this.selectedDateResolution;
+    console.log('🔍 DEBUG - DateResolution ajoutée:', this.selectedDateResolution);
+  } else {
+    console.log('🔍 DEBUG - Aucune DateResolution à envoyer');
+  }
+  
   if (this.selectedYear) {
     searchParams.YearDetection = Number(this.selectedYear);
+    console.log('🔍 DEBUG - YearDetection ajoutée:', this.selectedYear);
   }
   
-  console.log('🔍 Envoi requête my-incidents avec params:', searchParams);
-  
-  this.incidentService.searchMyIncidents(searchParams).subscribe({
-    next: (response: any) => {
-      console.log('📦 Réponse my-incidents filtrée:', response);
-      
-      let incidentsList: Incident[] = [];
-      let total = 0;
-      
-      if (response?.items && Array.isArray(response.items)) {
-        incidentsList = response.items;
-        total = response.totalCount || incidentsList.length;
+  console.log('🔍 Envoi requête my-incidents avec params FINAUX:', searchParams);
+    this.incidentService.searchMyIncidents(searchParams).subscribe({
+      next: (response: any) => {
+        let incidentsList: Incident[] = [];
+        let total = 0;
+        
+        if (response?.items && Array.isArray(response.items)) {
+          incidentsList = response.items;
+          total = response.totalCount || incidentsList.length;
+        } else if (response?.data?.items && Array.isArray(response.data.items)) {
+          incidentsList = response.data.items;
+          total = response.data.totalCount || incidentsList.length;
+        } else if (Array.isArray(response)) {
+          incidentsList = response;
+          total = incidentsList.length;
+        }
+        
+        this.incidents = incidentsList;
+        this.filteredIncidents = [...incidentsList];
+        this.totalCount = total;
+        this.totalPages = Math.ceil(total / this.pageSize);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error('❌ Erreur:', err);
+        this.error = 'Impossible de charger vos incidents';
+        this.loading = false;
+        this.incidents = [];
+        this.filteredIncidents = [];
+        this.totalCount = 0;
+        this.totalPages = 1;
       }
-      else if (response?.data?.items && Array.isArray(response.data.items)) {
-        incidentsList = response.data.items;
-        total = response.data.totalCount || incidentsList.length;
-      }
-      else if (Array.isArray(response)) {
-        incidentsList = response;
-        total = incidentsList.length;
-      }
-      
-      this.incidents = incidentsList;
-      this.filteredIncidents = [...incidentsList];
-      this.totalCount = total;
-      this.totalPages = Math.ceil(total / this.pageSize);
-      
-      this.loading = false;
-    },
-    error: (err) => {
-      console.error('❌ Erreur:', err);
-      this.error = 'Impossible de charger vos incidents';
-      this.loading = false;
-      this.incidents = [];
-      this.filteredIncidents = [];
-      this.totalCount = 0;
-      this.totalPages = 1;
+    });
+  }
+ applyFilters(): void {
+    console.log('🎯 Filtres appliqués - Sévérité:', this.tempFilters.severite, 'Statut:', this.tempFilters.statut);
+    
+    this.selectedSeverite = this.tempFilters.severite;
+    this.selectedStatut = this.tempFilters.statut;
+    this.selectedDateDetection = this.tempFilters.dateDetection;
+    this.selectedDateResolution = this.tempFilters.dateResolution;
+    
+    // ✅ Mettre à jour les objets Date pour le DatePicker
+    if (this.selectedDateDetection) {
+      const parts = this.selectedDateDetection.split('-');
+      this.selectedDetectionDateObj = new Date(
+        parseInt(parts[0]),
+        parseInt(parts[1]) - 1,
+        parseInt(parts[2])
+      );
+    } else {
+      this.selectedDetectionDateObj = null;
     }
-  });
-}
-applyFilters(): void {
-  console.log('🎯 Filtres appliqués - Sévérité:', this.tempFilters.severite, 'Statut:', this.tempFilters.statut);
-  
-  // ✅ Convertir la valeur du statut pour l'affichage et l'utilisation
-  let statutPourAffichage = this.tempFilters.statut;
-  
-  // Mettre à jour les filtres sélectionnés
-  this.selectedSeverite = this.tempFilters.severite;
-  this.selectedStatut = this.tempFilters.statut;
-  
-  this.currentPage = 1;
-  
-  if (this.userRole === 'Admin') {
-    this.loadIncidents();
-  } else {
-    // ✅ Recharger avec les nouveaux filtres
-    this.loadMyIncidentsWithFilters();
+    
+    if (this.selectedDateResolution) {
+      const parts = this.selectedDateResolution.split('-');
+      this.selectedResolutionDateObj = new Date(
+        parseInt(parts[0]),
+        parseInt(parts[1]) - 1,
+        parseInt(parts[2])
+      );
+    } else {
+      this.selectedResolutionDateObj = null;
+    }
+    
+    this.currentPage = 1;
+    
+    if (this.userRole === 'Admin') {
+      this.loadIncidents();
+    } else {
+      this.loadMyIncidentsWithFilters();
+    }
+    
+    this.showFilters = false;
   }
-  
-  this.showFilters = false;
-}
+
 
 
 
@@ -681,62 +735,123 @@ getStatutLibelle(statut: number | string): string {
     return new Date(date).getFullYear().toString();
   }
 
-  // Ajoutez ces propriétés dans la classe
 showFilters = false;
 tempFilters = {
   severite: undefined as number | undefined,
   statut: undefined as number | undefined,
-  dateDebut: '',
-  dateFin: ''
+  dateDetection: '' as string,  // ✅ Ajouté
+  dateResolution: '' as string  // ✅ Ajouté
 };
 
-// Ajoutez ces méthodes
-toggleFilters(): void {
-  this.showFilters = !this.showFilters;
-  if (this.showFilters) {
-    // Initialiser les filtres temporaires avec les valeurs actuelles
+  toggleFilters(): void {
+    this.showFilters = !this.showFilters;
+    if (this.showFilters) {
+      // Convertir les strings en Date pour le DatePicker
+      if (this.selectedDateDetection) {
+        const parts = this.selectedDateDetection.split('-');
+        this.selectedDetectionDateObj = new Date(
+          parseInt(parts[0]),
+          parseInt(parts[1]) - 1,
+          parseInt(parts[2])
+        );
+      } else {
+        this.selectedDetectionDateObj = null;
+      }
+      
+      if (this.selectedDateResolution) {
+        const parts = this.selectedDateResolution.split('-');
+        this.selectedResolutionDateObj = new Date(
+          parseInt(parts[0]),
+          parseInt(parts[1]) - 1,
+          parseInt(parts[2])
+        );
+      } else {
+        this.selectedResolutionDateObj = null;
+      }
+      
+      this.tempFilters = {
+        severite: this.selectedSeverite,
+        statut: this.selectedStatut,
+        dateDetection: this.selectedDateDetection || '',
+        dateResolution: this.selectedDateResolution || ''
+      };
+    }
+  }
+
+  cancelFilters(): void {
+    this.showFilters = false;
     this.tempFilters = {
       severite: this.selectedSeverite,
       statut: this.selectedStatut,
-      dateDebut: '',
-      dateFin: ''
+      dateDetection: this.selectedDateDetection || '',
+      dateResolution: this.selectedDateResolution || ''
     };
   }
-}
 
-
-
-cancelFilters(): void {
-  this.showFilters = false;
-  this.tempFilters = {
-    severite: this.selectedSeverite,
-    statut: this.selectedStatut,
-    dateDebut: '',
-    dateFin: ''
-  };
-}
-
-clearFilters(): void {
-  this.tempFilters = {
-    severite: undefined,
-    statut: undefined,
-    dateDebut: '',
-    dateFin: ''
-  };
-  this.selectedSeverite = undefined;
-  this.selectedStatut = undefined;
-  this.selectedYear = '';
-  this.searchTerm = '';
-  this.currentPage = 1;
-  
-  if (this.userRole === 'Admin') {
-    this.loadIncidents();
-  } else {
-    // ✅ Appeler loadMyIncidentsWithFilters avec les paramètres par défaut
-    this.loadMyIncidentsWithFilters();
+ clearFilters(): void {
+    this.tempFilters = {
+      severite: undefined,
+      statut: undefined,
+      dateDetection: '',
+      dateResolution: ''
+    };
+    this.selectedSeverite = undefined;
+    this.selectedStatut = undefined;
+    this.selectedDateDetection = '';
+    this.selectedDateResolution = '';
+    this.selectedDetectionDateObj = null;
+    this.selectedResolutionDateObj = null;
+    this.searchTerm = '';
+    this.currentPage = 1;
+    
+    if (this.userRole === 'Admin') {
+      this.loadIncidents();
+    } else {
+      this.loadMyIncidentsWithFilters();
+    }
+    this.showFilters = false;
   }
-  this.showFilters = false;
-}
+
+
+// Ajoutez ces propriétés pour stocker les dates sélectionnées
+selectedDetectionDate: Date | null = null;
+selectedResolutionDate: Date | null = null;
+todayDate: Date = new Date();
+
+
+
+ onDateDetectionChange(event: Date | null) {
+    this.selectedDetectionDateObj = event;
+    if (event) {
+      const year = event.getFullYear();
+      const month = (event.getMonth() + 1).toString().padStart(2, '0');
+      const day = event.getDate().toString().padStart(2, '0');
+      this.selectedDateDetection = `${year}-${month}-${day}`;
+      this.tempFilters.dateDetection = this.selectedDateDetection;
+    } else {
+      this.selectedDateDetection = '';
+      this.tempFilters.dateDetection = '';
+    }
+  }
+
+  onDateResolutionChange(event: Date | null) {
+    this.selectedResolutionDateObj = event;
+    if (event) {
+      const year = event.getFullYear();
+      const month = (event.getMonth() + 1).toString().padStart(2, '0');
+      const day = event.getDate().toString().padStart(2, '0');
+      this.selectedDateResolution = `${year}-${month}-${day}`;
+      this.tempFilters.dateResolution = this.selectedDateResolution;
+    } else {
+      this.selectedDateResolution = '';
+      this.tempFilters.dateResolution = '';
+    }
+  }
+selectedDateDetection: string = '';
+selectedDateResolution: string = '';
+selectedDetectionDateObj: Date | null = null;
+selectedResolutionDateObj: Date | null = null;
+
 deleting = false;
 
 }

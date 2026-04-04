@@ -600,22 +600,80 @@ loadIncident(id: string) {
 showDeletePieceModal: boolean = false;
 pieceToDelete: { id: string; index: number; nom: string } | null = null;
 // Votre méthode est correcte
+// ========== GESTION DES FICHIERS ==========
+
+// Méthode pour supprimer une pièce jointe
 supprimerPieceJointe(pieceId: string, index: number) {
-  if (!this.isAdmin) {
-    this.error = 'Seul l\'administrateur peut supprimer des fichiers';
+  // ✅ Règle 1: Si incident lié à un ticket → suppression impossible pour tous
+  if (this.isIncidentLieATicket) {
+    this.error = 'Impossible de supprimer des fichiers : cet incident est déjà lié à un ticket.';
     return;
   }
-
-  // Préparer les données pour la modale
-  const piece = this.piecesJointesExistantes[index];
-  const nomFichier = piece?.nomFichier || 'ce fichier';
   
-  this.pieceToDelete = {
-    id: pieceId,
-    index: index,
-    nom: nomFichier
-  };
-  this.showDeletePieceModal = true;
+  // ✅ Règle 2: Admin peut supprimer (incident non lié)
+  if (this.isAdmin) {
+    const piece = this.piecesJointesExistantes[index];
+    const nomFichier = piece?.nomFichier || 'ce fichier';
+    
+    this.pieceToDelete = {
+      id: pieceId,
+      index: index,
+      nom: nomFichier
+    };
+    this.showDeletePieceModal = true;
+    return;
+  }
+  
+  // ✅ Règle 3: Commerçant peut supprimer (incident non lié)
+  if (this.isCommercant && !this.isIncidentLieATicket) {
+    const piece = this.piecesJointesExistantes[index];
+    const nomFichier = piece?.nomFichier || 'ce fichier';
+    
+    this.pieceToDelete = {
+      id: pieceId,
+      index: index,
+      nom: nomFichier
+    };
+    this.showDeletePieceModal = true;
+    return;
+  }
+  
+  this.error = 'Vous n\'avez pas les droits pour supprimer ce fichier.';
+}
+
+// Méthode pour vérifier si l'utilisateur peut ajouter des fichiers
+canAddFiles(): boolean {
+  // ✅ Admin: ne peut JAMAIS ajouter de fichiers
+  if (this.isAdmin) {
+    return false;
+  }
+  
+  // ✅ Commerçant: peut ajouter SEULEMENT si incident non lié
+  if (this.isCommercant) {
+    return !this.isIncidentLieATicket;
+  }
+  
+  return false;
+}
+
+// Méthode pour vérifier si l'utilisateur peut supprimer des fichiers
+canDeleteFiles(): boolean {
+  // ✅ Si incident lié à un ticket → personne ne peut supprimer
+  if (this.isIncidentLieATicket) {
+    return false;
+  }
+  
+  // ✅ Admin peut supprimer (incident non lié)
+  if (this.isAdmin) {
+    return true;
+  }
+  
+  // ✅ Commerçant peut supprimer (incident non lié)
+  if (this.isCommercant) {
+    return true;
+  }
+  
+  return false;
 }
 confirmerSuppressionPiece() {
   if (!this.pieceToDelete) return;

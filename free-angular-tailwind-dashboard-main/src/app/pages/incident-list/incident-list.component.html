@@ -161,21 +161,22 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
         </svg>
         Filtrer
-        <span *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedYear" 
-              class="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-brand-500 rounded-full">
-          {{ (selectedSeverite !== undefined ? 1 : 0) + (selectedStatut !== undefined ? 1 : 0) + (selectedYear ? 1 : 0) }}
-        </span>
+ <span *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedDateDetection || selectedDateResolution"               class="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-brand-500 rounded-full">
+  {{ (selectedSeverite !== undefined ? 1 : 0) + 
+       (selectedStatut !== undefined ? 1 : 0) + 
+       (selectedDateDetection ? 1 : 0) + 
+       (selectedDateResolution ? 1 : 0) }}        </span>
       </button>
 
       <!-- Indicateur de filtres actifs -->
-      <div *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedYear" 
-           class="flex items-center gap-2 px-3 py-1.5 bg-brand-50 dark:bg-brand-900/20 rounded-lg">
+<div *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedDateDetection || selectedDateResolution"            class="flex items-center gap-2 px-3 py-1.5 bg-brand-50 dark:bg-brand-900/20 rounded-lg">
         <span class="text-xs text-brand-600 dark:text-brand-400">Filtres actifs</span>
         <button (click)="clearFilters()" class="text-brand-600 hover:text-brand-700 dark:text-brand-400">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
+        
       </div>
     </div>
 
@@ -238,21 +239,31 @@
       </select>
     </div>
 
-    <!-- Filtre par année -->
+    
+     <!-- ✅ Filtre par date -->
     <div>
+  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+    Date de détection
+  </label>
+  <app-date-picker
+    [value]="selectedDetectionDateObj"
+    placeholder="JJ/MM/AAAA"
+    (dateChange)="onDateDetectionChange($event)"
+    [maxDate]="todayDate"
+    class="w-full"
+  />
+</div>
+   <!-- <div>
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-        Année de création
+        Date de résolution
       </label>
-      <select
-        [(ngModel)]="selectedYear"
+      <input
+        type="date"
+        [(ngModel)]="tempFilters.dateResolution"
         class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors"
-      >
-        <option value="">Toutes années</option>
-        <option *ngFor="let year of yearOptions" [value]="year">
-          {{ year }}
-        </option>
-      </select>
-    </div>
+        [max]="today"
+      />
+    </div>-->
   </div>
 
   <!-- Boutons d'action du panneau -->
