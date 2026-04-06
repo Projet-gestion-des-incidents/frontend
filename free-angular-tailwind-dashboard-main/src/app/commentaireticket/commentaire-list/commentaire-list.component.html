@@ -1,0 +1,808 @@
+<div class="max-w-5xl mx-auto px-4 sm:px-6 py-6">
+  
+  <!-- En-tête avec bouton retour -->
+  <div class="mb-6">
+    <button 
+      (click)="goBack()" 
+      class="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 dark:text-gray-400 dark:hover:text-gray-200 transition-all duration-200 group">
+      <svg class="w-5 h-5 transition-transform group-hover:-translate-x-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+      </svg>
+      Retour aux tickets
+    </button>
+  </div>
+  
+  <!-- Titre du ticket -->
+  <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 mb-6 shadow-sm">
+    <div class="flex items-center justify-between flex-wrap gap-4">
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white/90">Commentaires</h1>
+        <p class="text-sm text-gray-500 dark:text-gray-400 mt-1">
+          Ticket #{{ ticketReference || ticketId }} - {{ ticketTitre }}
+        </p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="px-3 py-1 text-sm font-medium rounded-full bg-brand-50 text-brand-600">
+          {{ commentaires.length }} commentaire(s)
+        </span>
+      </div>
+    </div>
+    <br>
+      <!-- Message d'information -->
+  <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-100 dark:border-blue-800">
+    <div class="flex items-start gap-2">
+      <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <span class="text-sm text-gray-600 dark:text-gray-300">
+        Historique des échanges et pièces jointes
+      
+      </span>
+    </div>
+  </div>
+  </div>
+  
+
+  
+  <!-- Message d'erreur -->
+  <div *ngIf="error" class="mb-4 p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-800 flex items-center justify-between animate-shake">
+    <span>{{ error }}</span>
+    <button (click)="error = null" class="text-red-400 hover:text-red-600">✕</button>
+  </div>
+  
+  <!-- Loading -->
+  <div *ngIf="loading" class="flex justify-center py-12">
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+  </div>
+  
+  <div *ngIf="!loading" class="space-y-4">
+    
+  <!-- Bouton Ajouter - visible seulement si ticket NON résolu -->
+<div class="flex justify-center my-6">
+  <button 
+    *ngIf="!isTicketResolu"
+    (click)="openAddCommentModal()"
+    class="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-brand-600 transition-all hover:shadow-md"
+  >
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+    </svg>
+    Ajouter un commentaire
+  </button>
+</div>
+
+<!-- Message si ticket résolu -->
+<div *ngIf="isTicketResolu" class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+  <div class="flex items-center gap-3">
+    <svg class="w-5 h-5 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+    </svg>
+    <div>
+      <p class="text-sm font-medium text-amber-800 dark:text-amber-200">
+        Ticket résolu
+      </p>
+      <p class="text-xs text-amber-700 dark:text-amber-300">
+        Ce ticket est marqué comme résolu. Vous ne pouvez plus ajouter, modifier ou supprimer des commentaires.
+      </p>
+    </div>
+  </div>
+</div>
+    
+    <!-- Formulaire d'ajout -->
+    <div *ngIf="showAddForm" class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm">
+      <textarea
+        [(ngModel)]="newMessage"
+        rows="3"
+        class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm focus:border-brand-300 focus:outline-none focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 dark:text-white"
+        placeholder="Votre commentaire..."></textarea>
+      
+      <!-- Zone de drop/upload -->
+        <div class="relative">
+        <input
+          #fileInput
+          type="file"
+          multiple
+          (change)="onFileSelected($event)"
+          class="hidden"
+          accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+        />
+        
+             <div 
+          (click)="fileInput.click()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave($event)"
+          (drop)="onDrop($event)"
+          class="border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-all duration-200"
+          [class.border-brand-300]="isDragActive"
+          [class.bg-brand-50]="isDragActive"
+          [class.border-gray-300]="!isDragActive"
+          [class.hover:border-brand-400]="!isDragActive"
+          [class.hover:bg-gray-50]="!isDragActive"
+          [class.hover:shadow-md]="!isDragActive"
+        >
+          <svg class="w-12 h-12 mx-auto text-gray-400 mb-3 transition-transform duration-200"
+               [class.scale-110]="isDragActive"
+               fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+          </svg>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            <span class="font-medium text-brand-600">{{ isDragActive ? 'Déposez vos fichiers' : 'Cliquez pour uploader' }}</span>
+            {{ !isDragActive ? 'ou glissez-déposez' : '' }}
+          </p>
+          <p class="text-xs text-gray-500 mt-1">
+            Images, PDF, documents (max 10MB par fichier)
+          </p>
+        </div>
+      </div>
+
+      <!-- Liste des fichiers sélectionnés -->
+       <div *ngIf="selectedFiles.length > 0" class="mt-4">
+        <div class="flex items-center justify-between mb-3">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">
+              {{ selectedFiles.length }} fichier(s) sélectionné(s)
+            </span>
+     
+          </div>
+          <button 
+            type="button"
+            (click)="clearAllFiles()"
+            class="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"></path>
+            </svg>
+            Tout effacer
+          </button>
+        </div>
+        
+        <div class="space-y-2 max-h-48 overflow-y-auto">
+          <div *ngFor="let file of selectedFiles; let i = index" 
+               class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/30 rounded-lg group">
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+              <div class="flex-shrink-0">
+                <svg *ngIf="file.type.startsWith('image/')" class="w-6 h-6 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <svg *ngIf="file.type === 'application/pdf'" class="w-6 h-6 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+                <svg *ngIf="file.type.includes('word')" class="w-6 h-6 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <svg *ngIf="file.type.includes('excel')" class="w-6 h-6 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{{ file.name }}</p>
+                <p class="text-xs text-gray-500">{{ formatFileSize(file.size) }}</p>
+              </div>
+            </div>
+            <button 
+              type="button"
+              (click)="removeNewFile(i)"
+              class="p-1 text-gray-400 hover:text-red-500 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex items-center justify-between mt-4 pt-3 border-t border-gray-100 dark:border-gray-700">
+        <label class="flex items-center gap-2 cursor-pointer">
+          <input type="checkbox" [(ngModel)]="newEstInterne" class="rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+          <span class="text-sm text-gray-600 dark:text-gray-400">Interne (visible seulement par les admins/techniciens)</span>
+        </label>
+        
+        <div class="flex gap-2">
+          <button (click)="toggleAddForm()" class="px-3 py-1.5 text-sm text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors">Annuler</button>
+          <button (click)="submitCommentaire()" class="px-3 py-1.5 text-sm text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors">Publier</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Aucun commentaire -->
+    <div *ngIf="commentaires.length === 0 && !showAddForm" class="text-center py-12 text-gray-500 bg-gray-50 dark:bg-gray-800/30 rounded-xl border border-dashed border-gray-300 dark:border-gray-600">
+      <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"></path>
+      </svg>
+      <p>Aucun commentaire pour le moment</p>
+      <p class="text-sm mt-1">Cliquez sur "Ajouter un commentaire" pour commencer</p>
+    </div>
+    
+ <!-- Liste des commentaires -->
+<div *ngFor="let comment of commentaires">
+  <!-- Filtrer les commentaires selon les droits de l'utilisateur -->
+  <div *ngIf="shouldDisplayComment(comment)" 
+       class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 shadow-sm hover:shadow-md transition-all"
+       [class.opacity-75]="comment.estInterne && comment.auteurId === userId && isTechnicien">
+    
+    <!-- En-tête -->
+    <div class="flex items-center justify-between mb-3">
+      <div class="flex items-center gap-3">
+        <app-avatar-text [name]="comment.auteurNom" class="w-10 h-10"></app-avatar-text>
+        <div>
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-medium text-gray-900 dark:text-white">
+              {{ comment.auteurNom }}
+              <span *ngIf="comment.auteurId === userId" class="text-xs text-brand-500 ml-1">(Vous)</span>
+            </span>
+            <span *ngIf="comment.estInterne" class="px-2 py-0.5 bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-400 text-xs rounded-full font-medium">
+              Interne
+            </span>
+            <!-- Badge pour indiquer que c'est un commentaire personnel du technicien -->
+            <span *ngIf="comment.estInterne && comment.auteurId === userId && isTechnicien" 
+                  class="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs rounded-full font-medium">
+              Personnel
+            </span>
+          </div>
+          <span class="text-xs text-gray-500">{{ formatDate(comment.dateCreation) }}</span>
+        </div>
+      </div>
+      
+<!-- Dans l'en-tête du commentaire -->
+<div class="flex items-center gap-1" *ngIf="canEditComment(comment) || canDeleteComment(comment) ">
+  <!-- Bouton Modifier - ouvre la modale -->
+  <button *ngIf="canEditComment(comment)"  
+          (click)="openEditModal(comment)" 
+          class="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-lg transition-colors" 
+          title="Modifier">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+    </svg>
+  </button>
+  
+  <!-- Bouton Supprimer - ouvre la modale -->
+  <button *ngIf="canDeleteComment(comment)"   
+
+          (click)="openDeleteModal(comment)" 
+          class="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors" 
+          title="Supprimer">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"></path>
+    </svg>
+  </button>
+</div>
+
+    </div>
+    
+    
+    <!-- Mode édition -->
+    <div *ngIf="editingCommentaire?.id === comment.id">
+      <textarea [(ngModel)]="editMessage" rows="3" 
+                class="w-full rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 px-3 py-2 text-sm focus:border-brand-300 focus:outline-none focus:ring-1 focus:ring-brand-300"></textarea>
+      
+      <!-- Gestion des pièces jointes en édition -->
+      <div *ngIf="comment.piecesJointes && comment.piecesJointes.length > 0" class="mt-3">
+        <p class="text-xs font-medium text-gray-500 mb-2">Pièces jointes existantes :</p>
+        <div class="flex flex-wrap gap-2">
+          <div *ngFor="let piece of comment.piecesJointes" 
+               class="flex items-center gap-2 p-2 rounded-lg border"
+               [class.bg-red-50]="isPieceMarkedForDelete(piece.id)"
+               [class.border-red-300]="isPieceMarkedForDelete(piece.id)"
+               [class.border-gray-200]="!isPieceMarkedForDelete(piece.id)">
+            <a [href]="getImageUrl(piece.id)" target="_blank" class="text-sm text-brand-600 hover:underline">{{ piece.nomFichier }}</a>
+            <button *ngIf="!isPieceMarkedForDelete(piece.id)" 
+                    (click)="markPieceToDelete(piece.id)"
+                    class="text-xs text-red-500 hover:text-red-700">Supprimer</button>
+            <button *ngIf="isPieceMarkedForDelete(piece.id)" 
+                    (click)="unmarkPieceToDelete(piece.id)"
+                    class="text-xs text-green-500 hover:text-green-700">Annuler</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Ajout de nouveaux fichiers -->
+      <div class="mt-3">
+        <div class="border-2 border-dashed border-gray-300 rounded-lg p-3 text-center cursor-pointer hover:border-brand-400 transition-colors"
+             (click)="fileInputEdit.click()"
+             (dragover)="onEditDragOver($event)"
+             (dragleave)="onEditDragLeave($event)"
+             (drop)="onEditDrop($event)">
+          <input #fileInputEdit type="file" multiple (change)="onEditFileSelected($event)" class="hidden" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx">
+          <svg class="w-6 h-6 mx-auto text-gray-400 mb-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+          </svg>
+          <p class="text-xs text-gray-500">Ajouter des fichiers</p>
+        </div>
+        <div *ngIf="editFilesToAdd.length > 0" class="mt-2">
+          <p class="text-xs text-gray-500">Nouveaux fichiers :</p>
+          <div *ngFor="let file of editFilesToAdd; let i = index" class="flex items-center justify-between text-sm">
+            <span>{{ file.name }}</span>
+            <button (click)="removeEditFile(i)" class="text-red-500">✕</button>
+          </div>
+        </div>
+      </div>
+      
+      <div class="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+        <label class="flex items-center gap-2">
+          <input type="checkbox" [(ngModel)]="editEstInterne" class="rounded">
+          <span class="text-sm">Interne</span>
+        </label>
+        <div class="flex gap-2">
+          <button (click)="cancelEdit()" class="px-3 py-1 text-sm text-gray-600 hover:bg-gray-100 rounded-lg">Annuler</button>
+          <button (click)="saveEdit()" class="px-3 py-1 text-sm text-white bg-brand-500 rounded-lg hover:bg-brand-600">Enregistrer</button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Mode consultation -->
+    <div *ngIf="editingCommentaire?.id !== comment.id">
+      <div *ngIf="comment.message && comment.message.trim()" 
+           class="mb-4 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600">
+        <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+          {{ comment.message }}
+        </p>
+      </div>
+      
+      <!-- Pièces jointes avec prévisualisation -->
+      <div *ngIf="comment.piecesJointes?.length" class="mt-3">
+        <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider flex items-center gap-1 mb-3">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+          </svg>
+          Pièces jointes ({{ comment.piecesJointes.length }})
+        </span>
+        
+        <div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+          <ng-container *ngFor="let piece of comment.piecesJointes">
+            <!-- Aperçu des images -->
+            <div *ngIf="isImage(piece.contentType)" 
+                 class="relative group cursor-pointer rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 aspect-square shadow-sm hover:shadow-md transition-all"
+                 (click)="openImageModal(piece.id, piece.nomFichier)">
+              <img [src]="getImageUrl(piece.id)" 
+                   [alt]="piece.nomFichier"
+                   class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110">
+              <div class="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 7v6m4-3h-6"></path>
+                </svg>
+              </div>
+            </div>
+            
+            <!-- Documents -->
+            <a *ngIf="!isImage(piece.contentType)"
+               [href]="getImageUrl(piece.id)" 
+               target="_blank"
+               class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-200 dark:border-gray-600 hover:border-brand-300 transition-all group hover:shadow-md">
+              <div class="flex-shrink-0">
+                <svg *ngIf="piece.contentType === 'application/pdf'" class="w-8 h-8 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+                <svg *ngIf="piece.nomFichier?.match(/\.(doc|docx)$/i)" class="w-8 h-8 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <svg *ngIf="piece.nomFichier?.match(/\.(xls|xlsx)$/i)" class="w-8 h-8 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <svg *ngIf="!piece.nomFichier?.match(/\.(pdf|doc|docx|xls|xlsx)$/i) && !isImage(piece.contentType)" 
+                     class="w-8 h-8 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate group-hover:text-brand-600 transition-colors">
+                  {{ piece.nomFichier }}
+                </p>
+              </div>
+              <svg class="w-4 h-4 text-gray-400 group-hover:text-brand-500 transition-colors flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+              </svg>
+            </a>
+          </ng-container>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+  </div>
+  
+<!-- MODALE D'ÉDITION DE COMMENTAIRE AMÉLIORÉE -->
+<div *ngIf="showEditModal" 
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 transition-all duration-300"
+     (click)="closeEditModal()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
+       (click)="$event.stopPropagation()">
+    
+    <!-- En-tête avec dégradé -->
+    <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 px-6 py-4 border-b border-blue-200 dark:border-blue-800">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center shadow-inner">
+          <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Modifier le commentaire</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Modifiez votre message et ses pièces jointes</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Corps du modal -->
+    <div class="p-6">
+      <!-- Message -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Message <span class="text-red-500">*</span>
+        </label>
+        <textarea
+          [(ngModel)]="editMessage"
+          rows="4"
+          class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all resize-none"
+          placeholder="Modifiez votre commentaire..."></textarea>
+      </div>
+      
+      <!-- Option interne -->
+      <label class="flex items-center gap-2 mb-4 cursor-pointer">
+        <input type="checkbox" [(ngModel)]="editEstInterne" 
+               class="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+        <span class="text-sm text-gray-700 dark:text-gray-300">
+          Interne <span class="text-xs text-gray-500">(visible seulement par les admins/techniciens)</span>
+        </span>
+      </label>
+      
+      <!-- Pièces jointes existantes -->
+      <div *ngIf="editCommentData?.piecesJointes?.length > 0" class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Pièces jointes actuelles
+        </label>
+        <div class="space-y-2">
+          <div *ngFor="let piece of editCommentData.piecesJointes" 
+               class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+            <div class="flex items-center gap-2">
+              <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+              </svg>
+              <span class="text-sm text-gray-600 dark:text-gray-300">{{ piece.nomFichier }}</span>
+            </div>
+            <button *ngIf="!isPieceMarkedForDelete(piece.id)" 
+                    (click)="markPieceToDelete(piece.id)"
+                    class="text-xs text-red-500 hover:text-red-700 px-2 py-1 rounded hover:bg-red-50 transition-colors">
+              Supprimer
+            </button>
+            <button *ngIf="isPieceMarkedForDelete(piece.id)" 
+                    (click)="unmarkPieceToDelete(piece.id)"
+                    class="text-xs text-green-500 hover:text-green-700 px-2 py-1 rounded hover:bg-green-50 transition-colors">
+              Annuler
+            </button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Ajout de nouveaux fichiers -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Ajouter des fichiers
+        </label>
+        <div class="border-2 border-dashed border-gray-300 rounded-xl p-4 text-center cursor-pointer hover:border-brand-400 transition-all hover:bg-gray-50 dark:hover:bg-gray-700/30"
+             (click)="fileInputEdit.click()"
+             (dragover)="onEditDragOver($event)"
+             (dragleave)="onEditDragLeave($event)"
+             (drop)="onEditDrop($event)">
+          <input #fileInputEdit type="file" multiple (change)="onEditFileSelected($event)" class="hidden" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx">
+          <svg class="w-10 h-10 mx-auto text-gray-400 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+          </svg>
+          <p class="text-sm text-gray-600 dark:text-gray-400">
+            Cliquez ou glissez-déposez des fichiers
+          </p>
+          <p class="text-xs text-gray-500 mt-1">Images, PDF, documents (max 10MB)</p>
+        </div>
+        
+        <div *ngIf="editFilesToAdd.length > 0" class="mt-3">
+          <p class="text-xs font-medium text-gray-500 mb-2">Nouveaux fichiers ({{ editFilesToAdd.length }}) :</p>
+          <div class="space-y-2">
+            <div *ngFor="let file of editFilesToAdd; let i = index" 
+                 class="flex items-center justify-between p-2 bg-green-50 dark:bg-green-900/20 rounded-lg border border-green-200 dark:border-green-800">
+              <div class="flex items-center gap-2">
+                <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                </svg>
+                <span class="text-sm text-gray-700 dark:text-gray-300">{{ file.name }}</span>
+                <span class="text-xs text-gray-500">({{ formatFileSize(file.size) }})</span>
+              </div>
+              <button (click)="removeEditFile(i)" 
+                      class="text-red-500 hover:text-red-700 p-1 rounded hover:bg-red-50 transition-colors">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+      <button (click)="closeEditModal()" 
+              type="button"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+        Annuler
+      </button>
+      <button (click)="confirmEditSave()" 
+              type="button"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-brand-600 rounded-xl hover:bg-brand-700 transition-all duration-200 shadow-sm hover:shadow-md">
+        <span class="flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          Enregistrer les modifications
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- MODALE D'AJOUT DE COMMENTAIRE -->
+<div *ngIf="showAddCommentModal" 
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 transition-all duration-300"
+     (click)="closeAddCommentModal()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-2xl w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
+       (click)="$event.stopPropagation()">
+    
+    <!-- En-tête avec dégradé -->
+    <div class="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/30 dark:to-green-800/20 px-6 py-4 border-b border-green-200 dark:border-green-800">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-green-100 dark:bg-green-900/50 flex items-center justify-center shadow-inner">
+          <svg class="w-6 h-6 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Ajouter un commentaire</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Partagez votre message et vos fichiers</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Corps du modal -->
+    <div class="p-6">
+      <!-- Message -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Message <span class="text-gray-400 text-xs">(optionnel si fichier)</span>
+        </label>
+        <textarea
+          [(ngModel)]="newCommentData.message"
+          rows="4"
+          class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all resize-none"
+          placeholder="Votre commentaire..."></textarea>
+      </div>
+      
+      <!-- Option interne -->
+      <label class="flex items-center gap-2 mb-4 cursor-pointer">
+        <input type="checkbox" [(ngModel)]="newCommentData.estInterne" 
+               class="w-4 h-4 rounded border-gray-300 text-brand-600 focus:ring-brand-500">
+        <span class="text-sm text-gray-700 dark:text-gray-300">
+          Interne <span class="text-xs text-gray-500">(visible seulement par les admins/techniciens)</span>
+        </span>
+      </label>
+      
+      <!-- Zone de drop/upload -->
+      <div class="mb-4">
+        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          Pièces jointes <span class="text-gray-400 text-xs">(optionnel)</span>
+        </label>
+        <div class="relative">
+          <input
+            #addFileInput
+            type="file"
+            multiple
+            (change)="onAddFileSelected($event)"
+            class="hidden"
+            accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt"
+          />
+          
+          <div 
+            (click)="addFileInput.click()"
+            (dragover)="onAddDragOver($event)"
+            (dragleave)="onAddDragLeave($event)"
+            (drop)="onAddDrop($event)"
+            class="border-2 border-dashed rounded-xl p-6 text-center cursor-pointer transition-all duration-200"
+            [class.border-green-300]="addDragActive"
+            [class.bg-green-50]="addDragActive"
+            [class.border-gray-300]="!addDragActive"
+            [class.hover:border-brand-400]="!addDragActive"
+            [class.hover:bg-gray-50]="!addDragActive"
+          >
+            <svg class="w-12 h-12 mx-auto text-gray-400 mb-3 transition-transform duration-200"
+                 [class.scale-110]="addDragActive"
+                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path>
+            </svg>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              <span class="font-medium text-brand-600">{{ addDragActive ? 'Déposez vos fichiers' : 'Cliquez pour uploader' }}</span>
+              {{ !addDragActive ? 'ou glissez-déposez' : '' }}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">
+              Images, PDF, documents (max 10MB par fichier)
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Liste des fichiers sélectionnés -->
+      <div *ngIf="newCommentFiles.length > 0" class="mt-2">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-medium text-gray-500">
+            {{ newCommentFiles.length }} fichier(s) sélectionné(s)
+          </span>
+          <button 
+            type="button"
+            (click)="clearAddAllFiles()"
+            class="text-xs text-red-500 hover:text-red-700 flex items-center gap-1">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"></path>
+            </svg>
+            Tout effacer
+          </button>
+        </div>
+        
+        <div class="space-y-2 max-h-40 overflow-y-auto">
+          <div *ngFor="let file of newCommentFiles; let i = index" 
+               class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/30 rounded-lg">
+            <div class="flex items-center gap-2 flex-1 min-w-0">
+              <div class="flex-shrink-0">
+                <svg *ngIf="file.type.startsWith('image/')" class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <svg *ngIf="file.type === 'application/pdf'" class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+                <svg *ngIf="file.type.includes('word')" class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <svg *ngIf="file.type.includes('excel')" class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+              </div>
+              <div class="flex-1 min-w-0">
+                <p class="text-sm text-gray-700 dark:text-gray-300 truncate">{{ file.name }}</p>
+                <p class="text-xs text-gray-500">{{ formatFileSize(file.size) }}</p>
+              </div>
+            </div>
+            <button 
+              type="button"
+              (click)="removeAddFile(i)"
+              class="p-1 text-gray-400 hover:text-red-500 rounded-lg">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+      <button (click)="closeAddCommentModal()" 
+              type="button"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+        Annuler
+      </button>
+      <button (click)="submitNewComment()" 
+              type="button"
+              [disabled]="isAddingComment"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-green-600 rounded-xl hover:bg-green-700 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+        <span *ngIf="isAddingComment" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+        <span class="flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          {{ isAddingComment ? 'Publication...' : 'Publier le commentaire' }}
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- MODALE DE SUPPRESSION DE COMMENTAIRE AMÉLIORÉE -->
+<div *ngIf="showDeleteCommentModal" 
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 transition-all duration-300"
+     (click)="closeDeleteModal()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
+       (click)="$event.stopPropagation()">
+    
+    <!-- En-tête avec dégradé rouge -->
+    <div class="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/20 px-6 py-4 border-b border-red-200 dark:border-red-800">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center shadow-inner">
+          <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Confirmer la suppression</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Cette action est irréversible</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Corps -->
+    <div class="p-6">
+      <p class="text-gray-600 dark:text-gray-300 text-center">
+        Êtes-vous sûr de vouloir supprimer ce commentaire ?
+      </p>
+      
+      <!-- Aperçu du commentaire -->
+      <div class="mt-4 p-4 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600">
+        <div class="flex items-center gap-2 mb-2">
+          <app-avatar-text [name]="commentToDelete?.auteurNom"               class="w-8 h-8"
+></app-avatar-text>
+          <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            {{ commentToDelete?.auteurNom }}
+          </span>
+          <span *ngIf="commentToDelete?.estInterne" 
+                class="px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full">
+            Interne
+          </span>
+        </div>
+        <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+          {{ commentToDelete?.message }}
+        </p>
+      </div>
+      
+      <!-- Message d'avertissement -->
+      <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mt-4">
+        <div class="flex gap-2">
+          <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-amber-800 dark:text-amber-200">
+              Action irréversible
+            </p>
+            <p class="text-xs text-amber-700 dark:text-amber-300">
+              Ce commentaire et ses pièces jointes seront définitivement supprimés.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Actions -->
+    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+      <button (click)="closeDeleteModal()" 
+              type="button"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+        Annuler
+      </button>
+      <button (click)="confirmDeleteComment()" 
+              type="button"
+              [disabled]="isDeleting"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+        <span *ngIf="isDeleting" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+        <span>{{ isDeleting ? 'Suppression...' : 'Supprimer définitivement' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+  <!-- Modale d'aperçu image -->
+  <div *ngIf="showImageModal" class="fixed inset-0 bg-black/80 flex items-center justify-center z-50 p-4" (click)="closeImageModal()">
+    <div class="relative max-w-4xl w-full" (click)="$event.stopPropagation()">
+      <button (click)="closeImageModal()" 
+              class="absolute -top-12 right-0 p-2 text-white hover:text-gray-300 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+      <img [src]="currentImageUrl" [alt]="currentImageName" class="w-full h-auto rounded-lg shadow-2xl">
+      <p class="text-center text-white text-sm mt-3">{{ currentImageName }}</p>
+    </div>
+  </div>
+</div>
+
+<!-- Animation CSS -->
+<style>
+  @keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
+  }
+  .animate-shake {
+    animation: shake 0.5s ease-in-out;
+  }
+</style>

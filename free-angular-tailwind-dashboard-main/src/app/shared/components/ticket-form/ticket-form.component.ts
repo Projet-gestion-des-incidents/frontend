@@ -37,11 +37,7 @@ export class TicketFormComponent implements OnInit {
   ticketForm!: FormGroup;
   loading = false;
   
-  // ========== PROPRIÉTÉS POUR LES FICHIERS ==========
-  files: File[] = [];
-  isDragActive = false;
-  maxFileSize = 10 * 1024 * 1024; // 10MB
-  maxFiles = 10;
+
 
   // Pour les techniciens
   techniciens: { id: string; nom: string; prenom: string }[] = [];
@@ -191,69 +187,7 @@ getIncidentDetails(incidentId: string): any {
     console.warn(message);
   }
 
-  // ========== GESTION DES FICHIERS ==========
-  
-  onFileSelected(event: any) {
-    if (event.target.files && event.target.files.length > 0) {
-      this.addFiles(Array.from(event.target.files));
-    }
-  }
-
-  onDragOver(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragActive = true;
-  }
-
-  onDragLeave(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragActive = false;
-  }
-
-  onDrop(event: DragEvent): void {
-    event.preventDefault();
-    event.stopPropagation();
-    this.isDragActive = false;
-    
-    const files = event.dataTransfer?.files;
-    if (files) {
-      this.addFiles(Array.from(files));
-    }
-  }
-
-  private addFiles(newFiles: File[]): void {
-    const validFiles = newFiles.filter(file => {
-      if (file.size > this.maxFileSize) {
-        console.warn(`Fichier ${file.name} trop volumineux (max ${this.maxFileSize / 1024 / 1024}MB)`);
-        return false;
-      }
-      return true;
-    });
-
-    if (this.files.length + validFiles.length > this.maxFiles) {
-      this.showError(`Vous ne pouvez pas ajouter plus de ${this.maxFiles} fichiers`);
-      return;
-    }
-
-    this.files = [...this.files, ...validFiles];
-  }
-
-  removeFile(index: number): void {
-    this.files.splice(index, 1);
-  }
-
-  clearAllFiles(): void {
-    this.files = [];
-  }
-
-  formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 Bytes';
-    const k = 1024;
-    const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-  }
+ 
 
   // ========== SOUMISSION AVEC FORKJOIN ==========
 
@@ -295,36 +229,19 @@ getIncidentDetails(incidentId: string): any {
       ticketFormData.append('DateLimite', new Date(this.ticketForm.value.dateLimite).toISOString());
     }
 
-    // Créer le ticket
-    this.ticketService.createTicket(ticketFormData).pipe(
+      this.ticketService.createTicket(ticketFormData).pipe(
       switchMap(ticketResponse => {
         const ticketId = ticketResponse.data.id;
         console.log('✅ Ticket créé avec ID:', ticketId);
         
-        // 2. Ajouter le commentaire si nécessaire
-        if (this.ticketForm.value.commentaireInitial || this.files?.length) {
-          return this.handleCommentaire(ticketId).pipe(
-            map(result => ({
-              ticketId,
-              commentaireResult: result
-            }))
-          );
-        }
-        
-        return of({ ticketId, commentaireResult: null });
-      }),
-      switchMap(result => {
-        // 3. Lier les incidents sélectionnés
+        // Lier les incidents
         if (this.selectedIncidentIds && this.selectedIncidentIds.length > 0) {
           console.log('🔗 Liaison de', this.selectedIncidentIds.length, 'incident(s)...');
-          return this.ticketService.lierIncidents(result.ticketId, this.selectedIncidentIds).pipe(
-            map(incidentResult => ({
-              ...result,
-              incidentResult
-            }))
+          return this.ticketService.lierIncidents(ticketId, this.selectedIncidentIds).pipe(
+            map(incidentResult => ({ ticketId, incidentResult }))
           );
         }
-        return of(result);
+        return of({ ticketId });
       }),
       catchError(error => {
         console.error('❌ Erreur:', error);
@@ -335,7 +252,7 @@ getIncidentDetails(incidentId: string): any {
       })
     ).subscribe({
       next: (result) => {
-        console.log('✅ Opérations terminées:', result);
+        console.log('✅ Ticket créé avec succès:', result);
         this.router.navigate(['/tickets', result.ticketId]);
       },
       error: (error) => {
@@ -345,33 +262,8 @@ getIncidentDetails(incidentId: string): any {
       }
     });
   }
-// Dans ticket-form.component.ts
 
-private handleCommentaire(ticketId: string): Observable<any> {
-  const commentaireFormData = new FormData();
-  commentaireFormData.append('Message', this.ticketForm.value.commentaireInitial || '');
-  commentaireFormData.append('EstInterne', String(this.ticketForm.value.commentaireInterne));
 
-  // ✅ CORRECTION : Utiliser "fichiers" comme nom de champ (pluriel)
-  if (this.files?.length) {
-    this.files.forEach(file => {
-      commentaireFormData.append('fichiers', file, file.name); // ← "fichiers" au lieu de "piecesJointes"
-    });
-  }
-
-  // Ajouter un petit délai pour s'assurer que le ticket est bien en base
-  return timer(500).pipe(
-    switchMap(() => this.ticketService.addCommentaire(ticketId, commentaireFormData)),
-    tap(response => {
-      console.log('✅ Commentaire ajouté:', response);
-    }),
-    catchError(error => {
-      console.error('❌ Erreur ajout commentaire:', error);
-      this.showWarning('Le ticket a été créé mais le commentaire n\'a pas pu être ajouté');
-      return of(null); // Continuer même si le commentaire échoue
-    })
-  );
-}
 error: string | null = null;  
 
 cancel(): void {

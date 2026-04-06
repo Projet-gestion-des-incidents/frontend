@@ -39,6 +39,7 @@ import { TicketEditComponent } from './pages/ticket-edit/ticket-edit.component';
 import { TpeListComponent } from './pages/tpe/tpe-list/tpe-list.component';
 import { AjoutTPEComponent } from './pages/tpe/ajout-tpe/ajout-tpe.component';
 import { ModifierTpeComponent } from './pages/tpe/modifier-tpe/modifier-tpe.component';
+import { CommentaireListComponent } from './commentaireticket/commentaire-list/commentaire-list.component';
 
 export const routes: Routes = [
   {
@@ -161,7 +162,11 @@ export const routes: Routes = [
             component: TicketDetailComponent,
             canActivate: [AuthGuard],
             data: { roles: ['Admin', 'Technicien'] } 
-          }
+          },
+              { path: ':id/commentaires', 
+                component: CommentaireListComponent, 
+                canActivate: [AuthGuard],
+                 data: { roles: ['Admin', 'Technicien'] } }
         ]
       }
 
