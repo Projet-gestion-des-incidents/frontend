@@ -49,7 +49,6 @@ export interface Incident {
   createdById?: string;
   createdByName?: string;
   typeProbleme?: TypeProbleme;  // ← Changé de string à TypeProbleme
-  emplacement?: string;
   nombreTickets: number;
   nombreEntitesImpactees: number;
 }
@@ -103,7 +102,6 @@ export interface UpdateIncidentDTO {
 export interface CreateIncidentDTO {
   descriptionIncident?: string;
   typeProbleme?: TypeProbleme;
-  emplacement: string;
   TPEIds: string[];
   PiecesJointes?: File[];
 }

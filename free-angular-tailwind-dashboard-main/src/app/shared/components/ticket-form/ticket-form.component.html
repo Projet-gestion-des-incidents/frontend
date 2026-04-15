@@ -186,6 +186,8 @@
       </div>
     </div>
 
+
+
 <!-- SECTION 3: Incidents liés -->
 <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
   <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-800">
@@ -197,8 +199,8 @@
           </svg>
         </div>
         <div>
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Incidents liés</h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Incidents associés à ce ticket</p>
+          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Incidents disponibles</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Sélectionnez les incidents à lier</p>
         </div>
       </div>
       <span class="px-3 py-1 text-xs font-medium rounded-full bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400">
@@ -214,91 +216,115 @@
         <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
-        <span class="text-xs text-blue-700 dark:text-blue-300">Cliquez sur un incident pour le sélectionner/désélectionner (plusieurs incidents peuvent être liés)</span>
+        <span class="text-xs text-blue-700 dark:text-blue-300">Sélectionnez un commerçant puis cliquez sur les incidents</span>
       </div>
     </div>
 
-    <!-- Liste des incidents sous forme de badges cliquables -->
-    <div *ngIf="incidents.length > 0" class="flex flex-wrap gap-2">
-      <div *ngFor="let incident of incidents" 
-           (click)="toggleIncidentSelection(incident.id)"
-           class="inline-flex items-center gap-2 px-3 py-2 rounded-full text-sm font-medium cursor-pointer transition-all duration-200"
-           [class]="isIncidentSelected(incident.id) 
-             ? 'bg-brand-500 text-white shadow-md scale-105 hover:bg-brand-600' 
-             : 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600'">
+    <!-- Filtre par commerçant -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Filtrer par commerçant
+      </label>
+      <select
+        [(ngModel)]="selectedCommercantId"
+        (change)="onCommercantChange()"
+        [ngModelOptions]="{standalone: true}"
+        class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+      >
+        <option [ngValue]="null">-- Choisissez un commerçant --</option>
+        <option *ngFor="let commercant of commercants" [ngValue]="commercant.id">
+          {{ commercant.nomMagasin }}
+        </option>
+      </select>
+    </div>
+
+
+    <!-- Liste des incidents groupés par commerçant -->
+    <div *ngIf="showIncidentsList && groupedIncidents.length > 0" class="space-y-4">
+      <div *ngFor="let group of groupedIncidents" class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden">
+        <!-- En-tête du groupe (commerçant) -->
+        <div class="px-4 py-2 bg-gray-50 dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+          <div class="flex items-center gap-2">
+            <app-avatar-text [name]="group.commercantName" class="w-10 h-10" />
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              {{ group.commercantName }}
+            </span>
+            <span class="text-xs text-gray-400 ml-auto">
+              {{ group.incidents.length }} incident(s)
+            </span>
+          </div>
+        </div>
         
-        <!-- Code de l'incident -->
-        <span>{{ incident.codeIncident }} -- {{incident.typeProbleme}}</span>
-        
-        <!-- Indicateur de sélection -->
-        <svg *ngIf="isIncidentSelected(incident.id)" 
-             class="w-4 h-4" 
-             fill="none" 
-             stroke="currentColor" 
-             viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-        
-        <!-- Badge de statut -->
-        
+        <!-- Incidents du commerçant -->
+        <div class="divide-y divide-gray-100 dark:divide-gray-800">
+          <div *ngFor="let incident of group.incidents" 
+               (click)="toggleIncidentSelection(incident.id)"
+               class="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-all duration-200"
+               [class.bg-brand-50]="isIncidentSelected(incident.id)">
+            
+            <div class="flex items-center gap-3 flex-1 min-w-0">
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-mono text-sm font-medium text-gray-900 dark:text-white">
+                    {{ incident.codeIncident }}
+                  </span>
+            
+                </div>
+                <p class="text-sm text-gray-600 dark:text-gray-400 mt-1 line-clamp-1">
+                  {{ incident.typeProbleme }} - {{ incident.descriptionIncident | slice:0:80 }}{{ incident.descriptionIncident.length > 80 ? '...' : '' }}
+                </p>
+                <div class="flex items-center gap-3 mt-1 text-xs text-gray-400">
+                  <span class="flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    {{ incident.dateDetection | date:'dd/MM/yyyy HH:mm' }}
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Indicateur de sélection -->
+            <div class="flex-shrink-0 ml-3">
+              <div class="w-5 h-5 rounded-full border-2 flex items-center justify-center"
+                   [ngClass]="isIncidentSelected(incident.id) 
+                     ? 'bg-brand-500 border-brand-500' 
+                     : 'border-gray-300 dark:border-gray-600'">
+                <svg *ngIf="isIncidentSelected(incident.id)" class="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
     <!-- Actions rapides -->
-    <div *ngIf="incidents.length > 0" class="flex items-center justify-between pt-2">
-      <div class="flex gap-2">
-     
-      </div>
-      <span class="text-xs text-gray-400">
-        {{ selectedIncidentIds.length }} / {{ incidents.length }} sélectionné(s)
-      </span>
+    <div *ngIf="showIncidentsList && filteredIncidents.length > 0" class="flex justify-between items-center pt-3">
+      <button type="button" (click)="selectAllIncidents()" class="text-xs text-brand-600 hover:text-brand-700">
+        Tout sélectionner
+      </button>
+      <span class="text-xs text-gray-400">{{ selectedIncidentIds.length }} sélectionné(s)</span>
     </div>
 
-    <!-- Message d'erreur -->
-    <div *ngIf="showIncidentError && selectedIncidentIds.length === 0" 
-         class="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1 animate-shake">
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-      </svg>
-      Veuillez sélectionner au moins un incident
-    </div>
-
-    <!-- Aperçu détaillé des incidents sélectionnés -->
+    <!-- ✅ SECTION : Incidents sélectionnés (badges) -->
     <div *ngIf="selectedIncidentIds.length > 0" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-      <div class="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3 flex items-center gap-1">
-        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        Incident(s) sélectionné(s) ({{ selectedIncidentIds.length }}) :
+      <div class="flex items-center justify-between mb-2">
+        <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
+          ✓ {{ selectedIncidentIds.length }} incident(s) sélectionné(s) :
+        </span>
+        <button type="button" (click)="deselectAllIncidents()" class="text-xs text-red-500 hover:text-red-600">
+          Tout désélectionner
+        </button>
       </div>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+      <div class="flex flex-wrap gap-2">
         <div *ngFor="let incidentId of selectedIncidentIds" 
-             class="flex items-start gap-3 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 group">
-          <div class="w-8 h-8 rounded-lg bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center flex-shrink-0">
-            <svg class="w-4 h-4 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
-            </svg>
-          </div>
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2 flex-wrap">
-              <span class="font-medium text-gray-900 dark:text-white text-sm">{{ getIncidentCode(incidentId) }}</span>
-              <span class="text-xs px-2 py-0.5 rounded-full bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400">
-                {{ getIncidentDetails(incidentId)?.statutIncidentLibelle || 'Non traité' }}
-              </span>
-            </div>
-            <p class="text-xs text-gray-500 dark:text-gray-400 mt-1 line-clamp-2">
-              {{ getIncidentDetails(incidentId)?.descriptionIncident }}
-            </p>
-            <div class="flex items-center gap-2 mt-1 text-xs text-gray-400">
-              <span *ngIf="getIncidentDetails(incidentId)?.typeProbleme">Type: {{ getIncidentDetails(incidentId)?.typeProbleme }}</span>
-            </div>
-          </div>
-          <button 
-            type="button"
-            (click)="toggleIncidentSelection(incidentId); $event.stopPropagation()"
-            class="p-1 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all"
-            title="Retirer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+             class="inline-flex items-center gap-1 px-2 py-1 bg-blue-100 dark:bg-blue-900/30 rounded-full text-sm">
+          <span class="font-medium text-blue-800 dark:text-blue-200">{{ getIncidentCode(incidentId) }}</span>
+          <button (click)="toggleIncidentSelection(incidentId); $event.stopPropagation()" 
+                  class="text-blue-600 hover:text-red-500 ml-1">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
@@ -306,7 +332,26 @@
       </div>
     </div>
 
-    <!-- Message si aucun incident disponible -->
+    <!-- Message d'erreur -->
+    <div *ngIf="showIncidentError && selectedIncidentIds.length === 0 && showIncidentsList" 
+         class="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-1 animate-shake">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      Veuillez sélectionner au moins un incident
+    </div>
+
+    <!-- ✅ Message si aucun incident pour ce commerçant (AFFICHÉ SEULEMENT SI UN COMMERÇANT EST SÉLECTIONNÉ) -->
+    <div *ngIf="selectedCommercantId && showIncidentsList && filteredIncidents.length === 0 && incidents.length > 0" class="mt-4 p-6 text-center bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+      <svg class="w-12 h-12 mx-auto text-amber-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+      </svg>
+      <p class="text-sm text-amber-600 dark:text-amber-400">
+        Aucun incident pour ce commerçant.
+      </p>
+    </div>
+
+    <!-- Message si aucun incident du tout -->
     <div *ngIf="incidents.length === 0" class="mt-4 p-6 text-center bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
       <svg class="w-12 h-12 mx-auto text-amber-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
@@ -314,14 +359,10 @@
       <p class="text-sm text-amber-600 dark:text-amber-400">
         Aucun incident disponible. Seuls les incidents sans tickets associés peuvent être liés.
       </p>
-   
     </div>
   </div>
 </div>
 
- 
-
-    <!-- SECTION 6: Boutons d'action -->
     <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
       <button
         type="button"

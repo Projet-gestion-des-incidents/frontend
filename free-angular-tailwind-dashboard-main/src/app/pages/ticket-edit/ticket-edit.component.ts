@@ -351,56 +351,82 @@ loadTechniciens(): void {
   }
 incidentsDisponibles: any[] = []; // Incidents qui peuvent être liés (non traités)
 
-  loadData(): void {
-    this.loading = true;
-    this.loadingIncidents = true;
+loadData(): void {
+  this.loading = true;
+  this.loadingIncidents = true;
 
-    forkJoin({
-      ticketDetails: this.ticketService.getTicketDetails(this.ticketId),
-      incidentsDisponibles: this.incidentService.getIncidentsSansTicket().pipe(
-        catchError(err => {
-          console.error('Erreur chargement incidents disponibles:', err);
-          return of([]);
-        })
-      ),
-      incidentsLies: this.ticketService.getIncidentsByTicket(this.ticketId).pipe(
-        catchError(err => {
-          console.error('Erreur chargement incidents liés:', err);
-          return of([]);
-        })
-      )
-    }).pipe(
-      finalize(() => {
-        this.loading = false;
-        this.loadingIncidents = false;
+  forkJoin({
+    ticketDetails: this.ticketService.getTicketDetails(this.ticketId),
+    incidentsDisponibles: this.incidentService.getIncidentsSansTicket().pipe(
+      catchError(err => {
+        console.error('Erreur chargement incidents disponibles:', err);
+        return of([]);
       })
-    ).subscribe({
-      next: (results) => {
-        if (results.ticketDetails.isSuccess && results.ticketDetails.data) {
-          this.ticket = results.ticketDetails.data;
-          this.originalStatut = this.ticket.statutTicket;
-          this.originalAssigneeId = this.ticket.assigneeId;
+    ),
+    incidentsLies: this.ticketService.getIncidentsByTicket(this.ticketId).pipe(
+      catchError(err => {
+        console.error('Erreur chargement incidents liés:', err);
+        return of([]);
+      })
+    )
+  }).pipe(
+    finalize(() => {
+      this.loading = false;
+      this.loadingIncidents = false;
+    })
+  ).subscribe({
+    next: (results) => {
+      if (results.ticketDetails.isSuccess && results.ticketDetails.data) {
+        this.ticket = results.ticketDetails.data;
+        this.originalStatut = this.ticket.statutTicket;
+        this.originalAssigneeId = this.ticket.assigneeId;
+        
+        // ✅ Initialisation de showAssignmentSection
+        // La section est visible SEULEMENT si le ticket n'est PAS assigné
+        this.showAssignmentSection = !this.ticket.assigneeId;
+        
+        // ✅ Initialiser la variable temporaire
+        this.tempAssigneeId = this.ticket.assigneeId;
 
-          this.incidentsLies = results.incidentsLies;
-          this.incidentsSelectionnes = this.incidentsLies.map((i: any) => i.id);
+        this.incidentsLies = results.incidentsLies;
+        this.incidentsSelectionnes = this.incidentsLies.map((i: any) => i.id);
 
-          this.incidentsDisponibles = results.incidentsDisponibles || [];
-          this.incidentsDisponibles = this.incidentsDisponibles.filter((incident: any) => {
-            const estDejaLie = this.incidentsLies.some((lie: any) => lie.id === incident.id);
-            return !estDejaLie;
-          });
-          
-          this.incidents = this.incidentsDisponibles;
-        } else {
-          this.error = 'Ticket introuvable';
-        }
-      },
-      error: (err) => {
-        console.error('Erreur:', err);
-        this.error = 'Erreur lors du chargement des données';
+        this.incidentsDisponibles = results.incidentsDisponibles || [];
+        this.incidentsDisponibles = this.incidentsDisponibles.filter((incident: any) => {
+          const estDejaLie = this.incidentsLies.some((lie: any) => lie.id === incident.id);
+          return !estDejaLie;
+        });
+        
+        this.incidents = this.incidentsDisponibles;
+      } else {
+        this.error = 'Ticket introuvable';
       }
-    });
+    },
+    error: (err) => {
+      console.error('Erreur:', err);
+      this.error = 'Erreur lors du chargement des données';
+    }
+  });
+}
+// Dans ticket-edit.component.ts, ajoutez ces propriétés avec les autres
+showAssignmentSection: boolean = false;  // ✅ Pour contrôler l'affichage de la section assignation
+tempAssigneeId: string | null = null;    // ✅ Pour stocker temporairement l'ID du technicien sélectionné
+// ✅ Méthode pour confirmer l'assignation du technicien
+confirmerAssignation(): void {
+  if (this.tempAssigneeId) {
+    // Mettre à jour le ticket avec le technicien sélectionné
+    this.ticket.assigneeId = this.tempAssigneeId;
+    // Masquer la section d'assignation
+    this.showAssignmentSection = false;
+    this.showSuccess('Technicien sélectionné. N\'oubliez pas d\'enregistrer les modifications.');
   }
+}
+
+// ✅ Méthode pour annuler l'assignation
+annulerAssignation(): void {
+  this.tempAssigneeId = null;
+  this.showAssignmentSection = false;
+}
 reloadIncidentsDisponibles(): void {
   this.incidentService.getIncidentsSansTicket().subscribe({
     next: (incidents) => {
@@ -608,10 +634,25 @@ getStatutLibelle(statut: string): string {
 // Dans ticket-edit.component.ts
 
 private saveAsAdmin(): void {
+    if (!this.ticket.descriptionTicket || this.ticket.descriptionTicket.length < 10) {
+    this.error = 'La description doit contenir au moins 10 caractères';
+    this.loading = false;
+    // Scroll vers le haut pour voir l'erreur
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  
+  // ✅ Validation du titre (optionnel mais recommandé)
+  if (!this.ticket.titreTicket || this.ticket.titreTicket.trim() === '') {
+    this.error = 'Le titre est requis';
+    this.loading = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
   const ticketFormData = new FormData();
   ticketFormData.append('TitreTicket', this.ticket.titreTicket);
   ticketFormData.append('DescriptionTicket', this.ticket.descriptionTicket);
-  
+ 
   if (this.ticket.statutTicket && this.ticket.statutTicket !== 'null' && this.ticket.statutTicket.trim() !== '') {
     ticketFormData.append('StatutTicket', this.ticket.statutTicket);
   }
@@ -645,7 +686,7 @@ private saveAsAdmin(): void {
         
         // Rediriger après un court délai
         setTimeout(() => {
-          this.router.navigate(['/tickets', this.ticketId]);
+          this.router.navigate(['/tickets']);
         }, 1500);
         
       } else {
@@ -702,7 +743,7 @@ private saveAsTechnicien(): void {
   // S'il n'y a aucune modification du ticket
   if (!hasStatusChange && !hasAssigneeChange) {
     this.loading = false;  // ✅ AJOUTER CETTE LIGNE
-    this.router.navigate(['/tickets', this.ticketId]);
+    this.router.navigate(['/tickets']);
     return;
   }
   
@@ -727,7 +768,7 @@ private saveAsTechnicien(): void {
         
         // Rediriger après un court délai pour voir le message
         setTimeout(() => {
-          this.router.navigate(['/tickets', this.ticketId]);
+          this.router.navigate(['/tickets']);
         }, 1500);
         
       } else {
@@ -791,7 +832,7 @@ delierIncident(incidentId: string): void {
 private updateIncidents(): void {
   if (!this.isAdmin) {
     this.loading = false;
-    this.router.navigate(['/tickets', this.ticketId]);
+    this.router.navigate(['/tickets']);
     return;
   }
   
@@ -801,7 +842,7 @@ private updateIncidents(): void {
   // Vérifier s'il y a des changements
   if (JSON.stringify(incidentsActuels) === JSON.stringify(nouvellesSelections)) {
     this.loading = false;
-    this.router.navigate(['/tickets', this.ticketId]);
+    this.router.navigate(['/tickets']);
     return;
   }
 
@@ -817,7 +858,7 @@ private updateIncidents(): void {
   // S'il n'y a rien à faire
   if (aSupprimer.length === 0 && aAjouter.length === 0) {
     this.loading = false;
-    this.router.navigate(['/tickets', this.ticketId]);
+    this.router.navigate(['/tickets']);
     return;
   }
 
@@ -839,7 +880,7 @@ private updateIncidents(): void {
         this.ticketService.lierIncidents(this.ticketId, aAjouter).subscribe({
           next: () => {
             this.loading = false;
-            this.router.navigate(['/tickets', this.ticketId]);
+            this.router.navigate(['/tickets']);
           },
           error: (err) => {
             console.error('Erreur ajout incidents:', err);
@@ -849,7 +890,7 @@ private updateIncidents(): void {
         });
       } else {
         this.loading = false;
-        this.router.navigate(['/tickets', this.ticketId]);
+        this.router.navigate(['/tickets']);
       }
     })
   ).subscribe();

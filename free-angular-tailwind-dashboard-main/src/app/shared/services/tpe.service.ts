@@ -25,12 +25,31 @@ getAllTPEs(): Observable<any[]> {
 deleteTPE(id: string): Observable<any> {
   return this.http.delete(`${this.apiUrl}/${id}`, this.getAuthHeaders());
 }
-  createTPE(tpeData: { numSerie: string; modele: string; commercantId: string }): Observable<any> {
-    return this.http.post(this.apiUrl, tpeData, this.getAuthHeaders());
+ createTPE(tpeData: { numSerie?: string; modele: number; commercantId: string }): Observable<any> {
+    const payload: any = {
+      commercantId: tpeData.commercantId,
+      modele: tpeData.modele
+    };
+    
+    // Si un numéro de série est fourni, l'envoyer (optionnel)
+    if (tpeData.numSerie) {
+      payload.numSerie = tpeData.numSerie;
+    }
+    
+    return this.http.post(this.apiUrl, payload, this.getAuthHeaders());
   }
-updateTPE(id: string, tpeData: { numSerie: string; modele: string; commercantId: string }): Observable<any> {
-  return this.http.put(`${this.apiUrl}/${id}`, tpeData, this.getAuthHeaders());
-}
+  updateTPE(id: string, tpeData: { modele: number; commercantId: string | null }): Observable<any> {
+    const payload: any = {
+      modele: tpeData.modele
+    };
+    
+    // Envoyer commercantId seulement s'il a une valeur (peut être null pour désassigner)
+    if (tpeData.commercantId !== undefined) {
+      payload.commercantId = tpeData.commercantId;
+    }
+    
+    return this.http.put(`${this.apiUrl}/${id}`, payload, this.getAuthHeaders());
+  }
  /** récupère seulement les utilisateurs ayant le rôle "Commercant" */
 private userApi = 'https://localhost:7063/api/users/roles';
 getTPEById(id: string): Observable<any> {
@@ -52,13 +71,8 @@ getMyTpes(): Observable<any[]> {
     map(res => res.data || [])  // <-- IMPORTANT : récupérer seulement le tableau
   );
 }
-getAllCommercants(): Observable<User[]> {
-  return this.http.get<any>(this.userApi, this.getAuthHeaders())
-    .pipe(
-      map(res => res.data.filter((u: any) => u.role === 'Commercant'))
-    );
-}
-// Dans tpe.service.ts, modifiez l'URL de la méthode getPagedTPEs
+
+// Dans tpe.service.ts, modifier getPagedTPEs
 getPagedTPEs(params: {
   page: number;
   pageSize: number;
@@ -80,19 +94,30 @@ getPagedTPEs(params: {
     httpParams = httpParams.set('CommercantId', params.commercantId);
   }
 
-  // CORRECTION: Changer '/paged' par '/withFilters'
   return this.http.get<any>(`${this.apiUrl}/withFilters`, {
     params: httpParams,
     ...this.getAuthHeaders()
   }).pipe(
     map(response => {
-      // Adapter selon la structure de réponse du backend
-      // Votre backend retourne ApiResponse<PagedResult<TPEDto>>
-      // La structure est: { data: { items, page, pageSize, totalCount }, ... }
       const pagedResult = response.data;
       
+      // ✅ Mapper les items avec les champs d'audit
+      const items = (pagedResult?.items || []).map((item: any) => ({
+        id: item.id,
+        numSerie: item.numSerie,
+        numSerieComplet: item.numSerieComplet,
+        modele: item.modele,
+        commercantId: item.commercantId,
+        commercantNom: item.commercantNom,
+        // ✅ Ajouter les champs d'audit
+        createdAt: item.createdAt,
+        createdByNom: item.createdByNom,
+        updatedAt: item.updatedAt,
+        updatedByNom: item.updatedByNom
+      }));
+      
       return {
-        data: pagedResult?.items || [],
+        data: items,
         pagination: {
           page: pagedResult?.page || 1,
           pageSize: pagedResult?.pageSize || params.pageSize,

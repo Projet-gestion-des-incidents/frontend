@@ -8,6 +8,7 @@ import { ButtonComponent } from '../../../shared/components/ui/button/button.com
 import { InputFieldComponent } from '../../../shared/components/form/input/input-field.component';
 import { SelectComponent } from '../../../shared/components/form/select/select.component';
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
+import { UserService } from '../../../shared/services/user.service';
 
 @Component({
   selector: 'app-modifier-tpe',
@@ -33,7 +34,7 @@ export class ModifierTpeComponent implements OnInit {
 
   alert = { show: false, variant: 'error' as 'error' | 'success', title: '', message: '' };
 
-  commercants: { id: string; nom: string; prenom: string }[] = [];
+  commercants: { id: string; nomMagasin: string }[] = [];
   commercantOptions: { value: string; label: string }[] = [];
 
   modeleOptions = [
@@ -42,9 +43,13 @@ export class ModifierTpeComponent implements OnInit {
     { value: 3, label: 'PAX' }
   ];
 
+  // ✅ Option pour "Non assigné" (désassigner le TPE)
+  nonAssigneOption = { value: '', label: 'Non assigné' };
+
   constructor(
     private fb: FormBuilder,
     private tpeService: TPEService,
+    private userService: UserService,
     private route: ActivatedRoute,
     private router: Router
   ) {}
@@ -52,10 +57,10 @@ export class ModifierTpeComponent implements OnInit {
   ngOnInit(): void {
     this.tpeId = this.route.snapshot.paramMap.get('id')!;
 
+    // ✅ Formulaire sans numSerie (généré automatiquement par le backend)
     this.form = this.fb.group({
-      numSerie: ['', [Validators.required, Validators.pattern(/^[0-9]{6}$/)]],
       modele: ['', Validators.required],
-      commercantId: ['', Validators.required]
+      commercantId: ['']  // Peut être null (désassigner)
     });
 
     this.loadCommercants();
@@ -63,45 +68,52 @@ export class ModifierTpeComponent implements OnInit {
   }
 
   loadCommercants() {
-    this.tpeService.getAllCommercants().subscribe({
+    this.userService.getCommercants().subscribe({
       next: (users) => {
         this.commercants = users.map(u => ({
           id: u.id,
-          nom: u.nom,
-          prenom: u.prenom
-        }));
+          nomMagasin: u.nomMagasin        }));
 
-        this.commercantOptions = this.commercants.map(c => ({
-          value: c.id,
-          label: `${c.nom} ${c.prenom}`
-        }));
+        // ✅ Ajouter l'option "Non assigné" en premier
+        this.commercantOptions = [
+          this.nonAssigneOption,
+          ...this.commercants.map(c => ({
+            value: c.id,
+            label: `${c.nomMagasin}`
+          }))
+        ];
       },
       error: () => this.showError('Impossible de charger les commerçants')
     });
   }
 
-  loadTPE() {
-    this.tpeService.getTPEById(this.tpeId).subscribe({
-      next: (res: any) => {
-        const tpe = res.data;
-        const modeleMap: any = {
-          'Ingenico': 1,
-          'Verifone': 2,
-          'PAX': 3
-        };
-        this.form.patchValue({
-          numSerie: tpe.numSerie,
-          modele: modeleMap[tpe.modele],
-          commercantId: tpe.commercantId
-        });
-      },
-      error: () => this.showError('Impossible de charger le TPE')
-    });
-  }
+// Ajouter cette propriété
+tpeToDisplay: any = null;
+
+// Modifier loadTPE
+loadTPE() {
+  this.tpeService.getTPEById(this.tpeId).subscribe({
+    next: (res: any) => {
+      const tpe = res.data;
+      this.tpeToDisplay = tpe; // ✅ Stocker pour afficher le numéro de série
+      
+      const modeleMap: any = {
+        'Ingenico': 1,
+        'Verifone': 2,
+        'PAX': 3
+      };
+      
+      this.form.patchValue({
+        modele: modeleMap[tpe.modele],
+        commercantId: tpe.commercantId || ''
+      });
+    },
+    error: () => this.showError('Impossible de charger le TPE')
+  });
+}
 
   submit() {
     if (this.form.invalid) {
-      // Marquer tous les champs comme touchés pour afficher les erreurs
       Object.keys(this.form.controls).forEach(key => {
         const control = this.form.get(key);
         control?.markAsTouched();
@@ -112,13 +124,21 @@ export class ModifierTpeComponent implements OnInit {
     this.loading = true;
     this.clearAlert();
 
-        this.tpeService.updateTPE(this.tpeId, {
-      ...this.form.value,
-      modele: Number(this.form.value.modele)
-    }).subscribe({
-      next: () => {
+    const formValue = this.form.value;
+    
+    // ✅ Construction du payload
+    const payload: any = {
+      modele: Number(formValue.modele)
+    };
+    
+    // ✅ Si commercantId est une chaîne vide, envoyer null (désassigner)
+    payload.commercantId = formValue.commercantId === '' ? null : formValue.commercantId;
+
+    this.tpeService.updateTPE(this.tpeId, payload).subscribe({
+      next: (response) => {
         this.loading = false;
-        this.showSuccess('TPE modifié avec succès');
+        const message = response.data?.message || 'TPE modifié avec succès';
+        this.showSuccess(message);
         setTimeout(() => {
           this.router.navigate(['/tpes']);
         }, 1500);

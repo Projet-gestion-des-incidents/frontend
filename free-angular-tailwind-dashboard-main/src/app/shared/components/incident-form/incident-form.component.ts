@@ -33,7 +33,6 @@ interface MultiOption {
 export class IncidentFormComponent implements OnInit {
   incident: CreateIncidentDTO = {
     descriptionIncident: '',
-    emplacement: '',
     TPEIds: [],
     PiecesJointes: []
   };
@@ -86,11 +85,7 @@ export class IncidentFormComponent implements OnInit {
     console.log('TPEs sélectionnés:', this.incident.TPEIds);
   }
 
-  onLocationSelected(location: any) {
-    this.incident.emplacement = location.address;
-    console.log('Latitude:', location.lat);
-    console.log('Longitude:', location.lng);
-  }
+
 
   // ========== GESTION DES FICHIERS AMÉLIORÉE ==========
 
@@ -178,11 +173,14 @@ onSubmit(): void {
   this.showTpeError = false;
   this.error = null;
 
-  if (!this.incident.descriptionIncident || !this.incident.emplacement) {
+  if (!this.incident.descriptionIncident ) {
     this.error = 'Veuillez remplir les champs obligatoires';
     return;
   }
-
+  if (this.incident.descriptionIncident.length < 10) {
+    this.error = 'La description doit contenir au moins 10 caractères';
+    return;
+  }
   if (this.incident.typeProbleme === undefined) {
     this.error = 'Veuillez sélectionner un type de problème';
     return;
@@ -200,7 +198,7 @@ onSubmit(): void {
     const formData = new FormData();
     formData.append('descriptionIncident', this.incident.descriptionIncident .replace(/[^a-z0-9.]/g, ''));
     formData.append('typeProbleme', this.incident.typeProbleme.toString());
-    formData.append('emplacement', this.incident.emplacement);
+  formData.append('emplacement', 'Adresse non spécifiée');
 
     this.incident.TPEIds?.forEach((id: string) => {
       formData.append('TPEIds', id);
@@ -213,7 +211,7 @@ onSubmit(): void {
     this.incidentService.createIncident(formData).subscribe({
       next: (createdIncident) => {
         this.loading = false;
-        this.router.navigate(['/incidents', createdIncident.id]);
+        this.router.navigate(['/incidents']);
       },
       error: (err) => {
         console.error('Erreur création incident', err);

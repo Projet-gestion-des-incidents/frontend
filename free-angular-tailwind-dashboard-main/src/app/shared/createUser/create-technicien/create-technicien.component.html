@@ -1,0 +1,221 @@
+<div class="space-y-6">
+  
+  <!-- Alerte -->
+  <div *ngIf="alert.show" 
+       class="rounded-xl border p-4 flex items-center justify-between animate-slide-down"
+       [ngClass]="{
+         'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20': alert.variant === 'error',
+         'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20': alert.variant === 'success'
+       }">
+    <div class="flex items-center gap-3">
+      <div class="flex-shrink-0">
+        <div class="w-8 h-8 rounded-full flex items-center justify-center"
+             [ngClass]="{
+               'bg-red-100 text-red-600 dark:bg-red-800/50 dark:text-red-400': alert.variant === 'error',
+               'bg-green-100 text-green-600 dark:bg-green-800/50 dark:text-green-400': alert.variant === 'success'
+             }">
+          <svg *ngIf="alert.variant === 'error'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <svg *ngIf="alert.variant === 'success'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+      </div>
+      <div>
+        <p class="text-sm font-medium"
+           [ngClass]="{
+             'text-red-800 dark:text-red-200': alert.variant === 'error',
+             'text-green-800 dark:text-green-200': alert.variant === 'success'
+           }">
+          {{ alert.title }}
+        </p>
+        <p class="text-sm"
+           [ngClass]="{
+             'text-red-700 dark:text-red-300': alert.variant === 'error',
+             'text-green-700 dark:text-green-300': alert.variant === 'success'
+           }">
+          {{ alert.message }}
+        </p>
+      </div>
+    </div>
+    <button (click)="clearAlert()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+      </svg>
+    </button>
+  </div>
+
+  <!-- En-tête -->
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+    <div class="flex items-center gap-4">
+      <button (click)="cancel()" 
+              class="p-2 rounded-lg text-gray-500 hover:text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:text-gray-200 dark:hover:bg-gray-800 transition-colors">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path>
+        </svg>
+      </button>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800 dark:text-white/90">Créer un technicien</h1>
+        <div class="flex items-center gap-2 mt-1">
+          <span class="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            Tous les champs marqués d'un <span class="text-red-500 font-semibold">*</span> sont obligatoires
+          </span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <form (ngSubmit)="onSubmit()" [formGroup]="technicienForm" class="space-y-6">
+    
+    <!-- Section Informations personnelles -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Informations personnelles</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Identité du technicien</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Prénom -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Prénom <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+              </div>
+              <input type="text" formControlName="prenom" placeholder="Jean"
+                class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+                [class.border-red-500]="technicienForm.get('prenom')?.invalid && technicienForm.get('prenom')?.touched" />
+            </div>
+            <div *ngIf="technicienForm.get('prenom')?.touched && technicienForm.get('prenom')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span *ngIf="technicienForm.get('prenom')?.errors?.['required']">Le prénom est requis</span>
+              <span *ngIf="technicienForm.get('prenom')?.errors?.['minlength']">Minimum 4 caractères</span>
+            </div>
+          </div>
+
+          <!-- Nom -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Nom <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+              </div>
+              <input type="text" formControlName="nom" placeholder="Dupont"
+                class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+                [class.border-red-500]="technicienForm.get('nom')?.invalid && technicienForm.get('nom')?.touched" />
+            </div>
+            <div *ngIf="technicienForm.get('nom')?.touched && technicienForm.get('nom')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span *ngIf="technicienForm.get('nom')?.errors?.['required']">Le nom est requis</span>
+              <span *ngIf="technicienForm.get('nom')?.errors?.['minlength']">Minimum 4 caractères</span>
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Email <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+              <input type="email" formControlName="email" placeholder="jean.dupont@example.com"
+                class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+                [class.border-red-500]="technicienForm.get('email')?.invalid && technicienForm.get('email')?.touched" />
+            </div>
+            <div *ngIf="technicienForm.get('email')?.touched && technicienForm.get('email')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span *ngIf="technicienForm.get('email')?.errors?.['required']">L'email est requis</span>
+              <span *ngIf="technicienForm.get('email')?.errors?.['email']">Format d'email invalide</span>
+            </div>
+          </div>
+
+          <!-- Nom d'utilisateur -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Nom d'utilisateur <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+                </svg>
+              </div>
+              <input type="text" formControlName="userName" placeholder="jean.dupont"
+                class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+                [class.border-red-500]="technicienForm.get('userName')?.invalid && technicienForm.get('userName')?.touched" />
+            </div>
+            <div *ngIf="technicienForm.get('userName')?.touched && technicienForm.get('userName')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span *ngIf="technicienForm.get('userName')?.errors?.['required']">Le nom d'utilisateur est requis</span>
+              <span *ngIf="technicienForm.get('userName')?.errors?.['minlength']">Minimum 4 caractères</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+
+    <!-- Boutons d'action -->
+    <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <button type="button" (click)="cancel()" 
+              class="order-2 sm:order-1 px-6 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+        Annuler
+      </button>
+      <button type="submit" [disabled]="technicienForm.invalid || loading"
+              class="order-1 sm:order-2 inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-md hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg">
+        <svg *ngIf="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <svg *ngIf="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        {{ loading ? 'Création en cours...' : 'Créer le technicien' }}
+      </button>
+    </div>
+  </form>
+</div>
+
+<style>
+  @keyframes shrink { from { width: 100%; } to { width: 0%; } }
+  .animate-progress { animation: shrink 4s linear forwards; }
+  .animate-slide-in { animation: slideIn 0.3s ease-out; }
+  .animate-slide-down { animation: slideDown 0.3s ease-out; }
+  @keyframes slideIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+</style>

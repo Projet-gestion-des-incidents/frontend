@@ -77,28 +77,29 @@
   <form [formGroup]="form" (ngSubmit)="submit()" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
     
     <!-- En-tête du formulaire -->
-    <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50/30 dark:bg-gray-800/50">
-      <div class="flex items-center gap-3">
-        <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
-          <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
-          </svg>
-        </div>
-        <div>
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
+     <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
             Informations du TPE
           </h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Modifiez les détails du terminal de paiement</p>
         </div>
       </div>
     </div>
 
     <div class="p-6">
       <div class="space-y-6">
-        <!-- Numéro de série -->
+        
+        <!-- ✅ AFFICHAGE DU NUMÉRO DE SÉRIE (lecture seule) -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Numéro de série <span class="text-red-500">*</span>
+            Numéro de série
           </label>
           <div class="relative">
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
@@ -106,23 +107,16 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
               </svg>
             </div>
-            <input
-              type="text"
-              formControlName="numSerie"
-              maxlength="6"
-              placeholder="123456"
-              class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-300 bg-white text-sm focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
-              [class.border-red-500]="form.get('numSerie')?.invalid && form.get('numSerie')?.touched"
-            />
+            <div class="w-full pl-10 pr-4 py-3 rounded-lg border border-gray-200 bg-gray-50 text-sm text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400">
+              {{ (tpeToDisplay?.numSerieComplet || 'Chargement...') }}
+            </div>
           </div>
-          <div *ngIf="form.get('numSerie')?.invalid && form.get('numSerie')?.touched" 
-               class="mt-2 text-xs text-red-500 flex items-center gap-1">
+          <p class="mt-2 text-xs text-gray-400 flex items-center gap-1">
             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            <span *ngIf="form.get('numSerie')?.errors?.['required']">Le numéro de série est requis</span>
-            <span *ngIf="form.get('numSerie')?.errors?.['pattern']">Le numéro de série doit contenir exactement 6 chiffres</span>
-          </div>
+            Le numéro de série est généré automatiquement par le système
+          </p>
         </div>
 
         <!-- Modèle -->
@@ -152,16 +146,14 @@
           </div>
         </div>
 
-        <!-- Commerçant -->
+        <!-- Commerçant (avec option "Non assigné") -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Commerçant <span class="text-red-500">*</span>
+            Commerçant
           </label>
           <div class="relative">
             <select formControlName="commercantId" 
-                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm appearance-none focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
-                    [class.border-red-500]="form.get('commercantId')?.invalid && form.get('commercantId')?.touched">
-              <option value="" disabled selected>-- Sélectionner un commerçant --</option>
+                    class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm appearance-none focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all">
               <option *ngFor="let c of commercantOptions" [value]="c.value">{{ c.label }}</option>
             </select>
             <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
@@ -170,13 +162,12 @@
               </svg>
             </div>
           </div>
-          <div *ngIf="form.get('commercantId')?.invalid && form.get('commercantId')?.touched" 
-               class="mt-2 text-xs text-red-500 flex items-center gap-1">
+          <p class="mt-2 text-xs text-gray-400 flex items-center gap-1">
             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
-            Le commerçant est requis
-          </div>
+            Sélectionnez "Non assigné" pour retirer l'affectation du TPE
+          </p>
         </div>
       </div>
 
@@ -204,6 +195,6 @@
           {{ loading ? 'Enregistrement...' : 'Enregistrer les modifications' }}
         </button>
       </div>
-    </div>
+    </div></div>
   </form>
 </div>

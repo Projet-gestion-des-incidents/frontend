@@ -71,14 +71,74 @@ export class TpeListComponent implements OnInit {
       }
     });
   }
+// Dans TpeListComponent, ajoutez :
 
+// Variables pour les filtres temporaires
+tempFilters = {
+  modele: '',
+  commercantId: ''
+};
+
+showFilters = false;
+
+// Méthodes pour les filtres
+toggleFilters(): void {
+  this.showFilters = !this.showFilters;
+  if (this.showFilters) {
+    // Initialiser les filtres temporaires avec les valeurs actuelles
+    this.tempFilters = {
+      modele: this.selectedModele,
+      commercantId: this.selectedCommercantId
+    };
+  }
+}
+
+cancelFilters(): void {
+  this.showFilters = false;
+  // Restaurer les valeurs depuis les filtres temporaires (inchangés)
+  this.tempFilters = {
+    modele: this.selectedModele,
+    commercantId: this.selectedCommercantId
+  };
+}
+
+applyFilters(): void {
+  // Appliquer les filtres temporaires aux filtres actifs
+  this.selectedModele = this.tempFilters.modele;
+  this.selectedCommercantId = this.tempFilters.commercantId;
+  this.currentPage = 1;
+  this.loadTPEs();
+  this.showFilters = false;
+}
+
+clearFilters(): void {
+  // Réinitialiser tous les filtres
+  this.tempFilters = {
+    modele: '',
+    commercantId: ''
+  };
+  this.selectedModele = '';
+  this.selectedCommercantId = '';
+  this.searchTerm = '';
+  this.currentPage = 1;
+  this.loadTPEs();
+  this.showFilters = false;
+}
+
+// Modifier resetFilters pour utiliser clearFilters
+resetFilters(): void {
+  this.clearFilters();
+}
   loadCommercants(): void {
-    this.tpeService.getAllCommercants().subscribe({
+    this.loading = true;
+    this.userService.getCommercants().subscribe({
       next: (commercants) => {
         this.commercants = commercants;
+        this.loading = false;
       },
       error: (err) => {
         console.error('Erreur chargement commerçants:', err);
+        this.loading = false;
       }
     });
   }
@@ -142,18 +202,6 @@ export class TpeListComponent implements OnInit {
     }, 400);
   }
 
-  applyFilters(): void {
-    this.currentPage = 1;
-    this.loadTPEs();
-  }
-
-  resetFilters(): void {
-    this.searchTerm = '';
-    this.selectedModele = '';
-    this.selectedCommercantId = '';
-    this.currentPage = 1;
-    this.loadTPEs();
-  }
 
   getPageNumbers(): number[] {
     if (this.totalPages <= 0) return [1];
@@ -260,11 +308,5 @@ cancelDelete() {
     }
     return 'Vous';
   }
-  // Dans TpeListComponent, ajoutez cette propriété
-showFilters = false;
 
-// Ajoutez la méthode toggleFilters
-toggleFilters(): void {
-  this.showFilters = !this.showFilters;
-}
 }

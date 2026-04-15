@@ -304,7 +304,7 @@ piecesJointesExistantes: any[] = [];
     
     console.log('➕ Ajout TPE:', tpeId);
       if (this.isIncidentLieATicket) {
-    this.showErrorDialog(' Impossible de modifier les TPEs : cet incident est déjà lié à un ticket.');
+    this.showErrorDialog(' Impossible de modifier les TPEs : cet incident est déjà lié à un support.');
     return;
   }
     const tpeAjoute = this.tpEsDisponibles.find(t => t.id === tpeId);
@@ -362,7 +362,7 @@ supprimerTpe(tpeId: string, index: number) {
     return;
   }
   if (this.isIncidentLieATicket) {
-    this.showErrorDialog(' Impossible de modifier les TPEs : cet incident est déjà lié à un ticket.');
+    this.showErrorDialog(' Impossible de modifier les TPEs : cet incident est déjà lié à un support.');
     return;
   }
   // ✅ Vérifier si c'est le dernier TPE
@@ -606,7 +606,9 @@ pieceToDelete: { id: string; index: number; nom: string } | null = null;
 supprimerPieceJointe(pieceId: string, index: number) {
   // ✅ Règle 1: Si incident lié à un ticket → suppression impossible pour tous
   if (this.isIncidentLieATicket) {
-    this.error = 'Impossible de supprimer des fichiers : cet incident est déjà lié à un ticket.';
+    this.error = this.isCommercant 
+      ? 'Impossible de supprimer des fichiers : cet incident est déjà lié à un support.'
+      : 'Impossible de supprimer des fichiers : cet incident est déjà lié à un ticket.';
     return;
   }
   
@@ -705,6 +707,14 @@ fermerModalPiece() {
 async save() {
   if (!this.incident) return;
   
+  // ✅ VALIDATION AU DÉBUT - Avant toute action
+  if (!this.incident.descriptionIncident || this.incident.descriptionIncident.length < 10) {
+    this.error = 'La description doit contenir au moins 10 caractères';
+    // Scroll vers le haut pour voir l'erreur
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
+  
   this.loading = true;
   this.error = null;
 
@@ -723,16 +733,13 @@ async save() {
       return;
     }
 
-    // 3. Ensuite mettre à jour l'incident
+    // 3. Préparer les données de mise à jour
     const updateDto: any = {};
 
     if (this.incident.descriptionIncident !== undefined) {
       updateDto.descriptionIncident = this.incident.descriptionIncident;
     }
-    if (this.incident.emplacement !== undefined) {
-      updateDto.emplacement = this.incident.emplacement;
-    }
-    
+
     if (this.typeProblemeString) {
       updateDto.typeProbleme = this.typeProblemeStringToEnum[this.typeProblemeString] || 
                                 (typeof this.incident.typeProbleme === 'string' ? 
@@ -747,15 +754,15 @@ async save() {
 
     console.log('📦 Mise à jour incident:', updateDto);
 
+    // 4. Mettre à jour l'incident
     this.incidentService.updateIncident(this.incident.id, updateDto).subscribe({
       next: (updated) => {
         console.log('✅ Incident mis à jour:', updated);
         this.loading = false;
-        this.router.navigate(['/incidents', this.incident.id]);
+        this.router.navigate(['/incidents']);
       },
       error: (err: any) => {
         console.error('❌ Erreur:', err);
-        // ✅ Passer le resultCode à showErrorDialog
         const resultCode = err.error?.resultCode;
         const errorMessage = err.error?.message || 'Erreur lors de la mise à jour.';
         this.showErrorDialog(errorMessage, resultCode);
@@ -855,14 +862,10 @@ async save() {
   }
 
   cancel() {
-    this.router.navigate(['/incidents', this.incident?.id]);
+    this.router.navigate(['/incidents']);
   }
 
-  onLocationSelected(location: any) {
-    this.incident.emplacement = location.address;
-    console.log('Latitude:', location.lat);
-    console.log('Longitude:', location.lng);
-  }
+
 
   // ========== GESTION DES FICHIERS AMÉLIORÉE ==========
 

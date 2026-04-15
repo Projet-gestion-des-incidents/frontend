@@ -82,7 +82,32 @@ statutOptions = [
 
     private router: Router
   ) {}
-
+ loadDashboardStats(): void {
+    this.loadingDashboard = true;
+    
+    this.incidentService.getIncidentDashboard().subscribe({
+      next: (response) => {
+        if (response) {
+          this.dashboardStats = response;
+          console.log('Dashboard stats chargées:', this.dashboardStats);
+        }
+        this.loadingDashboard = false;
+      },
+      error: (err) => {
+        console.error('Erreur chargement dashboard stats:', err);
+        this.loadingDashboard = false;
+      }
+    });
+  }
+  openCalendar(): void {
+  const dateInput = document.getElementById('incidentDate') as HTMLInputElement;
+  if (dateInput) {
+    dateInput.showPicker(); // Fonctionne dans les navigateurs modernes
+  }
+}
+  get incidentDate(): Date | null {
+    return this.tempFilters.dateDetection ? new Date(this.tempFilters.dateDetection) : null;
+  }
 ngOnInit(): void {
   this.generateYearOptions();
 
@@ -93,6 +118,7 @@ ngOnInit(): void {
       
       if (user.role === 'Admin') {
         this.loadIncidents();
+             this.loadDashboardStats(); 
       } else {
         // ✅ Charger avec les filtres dès le départ
         this.loadMyIncidentsWithFilters();
@@ -305,7 +331,61 @@ onSearch(): void {
   }, 400);
 }
 
+// Dans incident-list.component.ts, ajoutez cette méthode
 
+// Dans incident-list.component.ts, ajoutez cette méthode
+
+// Mapping pour les types d'entité impactée
+getEntiteImpacteeLabel(incident: any): string {
+  // Si l'incident a la propriété entiteImpactee directement
+  if (incident.entiteImpactee) {
+    return incident.entiteImpactee;
+  }
+  
+  // Si l'incident a la propriété typeEntiteImpactee (depuis le backend)
+  if (incident.typeEntiteImpactee) {
+    return this.formatEntiteImpactee(incident.typeEntiteImpactee);
+  }
+  
+  // Si l'incident a la liste des entités impactées
+  if (incident.entitesImpactees && incident.entitesImpactees.length > 0) {
+    const types = incident.entitesImpactees.map((e: any) => 
+      this.formatEntiteImpactee(e.typeEntiteImpactee)
+    ).join(', ');
+    return types;
+  }
+  
+  // Valeur par défaut
+  return 'Non spécifiée';
+}
+dashboardStats = {
+    overview: {
+      totalIncidents: 0,
+      incidentsNonTraite: 0,
+      incidentsEnCours: 0,
+      incidentsFerme: 0,
+      tauxNonTraite: 0,
+      tauxEnCours: 0,
+      tauxFerme: 0
+    },
+    statsParStatut: [] as { statut: string; count: number; color: string; pourcentage: number }[],
+    statsParJour: [] as any[],
+    statsParSemaine: [] as any[],
+    statsParMois: [] as any[]
+  };
+  
+  loadingDashboard = false;
+// Formater le libellé de l'entité impactée
+private formatEntiteImpactee(type: string): string {
+  const mapping: { [key: string]: string } = {
+    'MachineTPE': 'Machine TPE',
+    'FluxTransactionnel': 'Flux transactionnel',
+    'Reseau': 'Réseau',
+    'ServiceApplicatif': 'Service applicatif'
+  };
+  
+  return mapping[type] || type;
+}
 getTypeProblemeLibelle(typeProbleme: any): string {
   if (typeProbleme === undefined || typeProbleme === null) return '';
   
@@ -819,34 +899,51 @@ selectedResolutionDate: Date | null = null;
 todayDate: Date = new Date();
 
 
-
- onDateDetectionChange(event: Date | null) {
-    this.selectedDetectionDateObj = event;
-    if (event) {
-      const year = event.getFullYear();
-      const month = (event.getMonth() + 1).toString().padStart(2, '0');
-      const day = event.getDate().toString().padStart(2, '0');
-      this.selectedDateDetection = `${year}-${month}-${day}`;
-      this.tempFilters.dateDetection = this.selectedDateDetection;
+// Remplacer la méthode existante par celle-ci
+onDateDetectionChange(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const dateValue = input.value;
+  
+  if (dateValue) {
+    const date = new Date(dateValue);
+    if (!isNaN(date.getTime())) {
+      this.selectedDetectionDateObj = date;
+      this.selectedDateDetection = dateValue;
+      this.tempFilters.dateDetection = dateValue;
     } else {
+      this.selectedDetectionDateObj = null;
       this.selectedDateDetection = '';
       this.tempFilters.dateDetection = '';
     }
+  } else {
+    this.selectedDetectionDateObj = null;
+    this.selectedDateDetection = '';
+    this.tempFilters.dateDetection = '';
   }
+}
 
-  onDateResolutionChange(event: Date | null) {
-    this.selectedResolutionDateObj = event;
-    if (event) {
-      const year = event.getFullYear();
-      const month = (event.getMonth() + 1).toString().padStart(2, '0');
-      const day = event.getDate().toString().padStart(2, '0');
-      this.selectedDateResolution = `${year}-${month}-${day}`;
-      this.tempFilters.dateResolution = this.selectedDateResolution;
+// Corriger aussi la méthode onDateResolutionChange si elle existe
+onDateResolutionChange(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const dateValue = input.value;
+  
+  if (dateValue) {
+    const date = new Date(dateValue);
+    if (!isNaN(date.getTime())) {
+      this.selectedResolutionDateObj = date;
+      this.selectedDateResolution = dateValue;
+      this.tempFilters.dateResolution = dateValue;
     } else {
+      this.selectedResolutionDateObj = null;
       this.selectedDateResolution = '';
       this.tempFilters.dateResolution = '';
     }
+  } else {
+    this.selectedResolutionDateObj = null;
+    this.selectedDateResolution = '';
+    this.tempFilters.dateResolution = '';
   }
+}
 selectedDateDetection: string = '';
 selectedDateResolution: string = '';
 selectedDetectionDateObj: Date | null = null;

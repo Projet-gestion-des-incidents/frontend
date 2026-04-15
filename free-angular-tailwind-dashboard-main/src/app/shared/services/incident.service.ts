@@ -53,7 +53,21 @@ export class IncidentService {
       map(response => response.data)
     );
   }
-
+/**
+ * Récupère les statistiques du dashboard incidents
+ */
+getIncidentDashboard(): Observable<any> {
+  return this.http.get<ApiResponse<any>>(
+    `${this.apiUrl}/dashboard`,
+    this.getAuthHeaders()
+  ).pipe(
+    map(response => response.data),
+    catchError(error => {
+      console.error('Erreur chargement dashboard incidents:', error);
+      return of(null);
+    })
+  );
+}
   /**
    * Récupère les détails d'un incident par ID
    */

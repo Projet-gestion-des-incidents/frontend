@@ -71,10 +71,10 @@
 
     <!-- Sélection du commerçant -->
     <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50/30 dark:bg-gray-800/50">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800">
         <div class="flex items-center gap-3">
-          <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
-            <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
             </svg>
           </div>
@@ -93,8 +93,9 @@
           <select formControlName="commercantId"
                   class="w-full rounded-lg border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 transition-all appearance-none">
             <option value="" disabled selected>-- Sélectionner un commerçant --</option>
-            <option *ngFor="let c of commercantOptions" [value]="c.value">{{ c.label }}</option>
-          </select>
+   <option *ngFor="let c of commercants" [value]="c.id">
+              {{ c.nomMagasin}}
+            </option>          </select>
           <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
             <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
@@ -113,127 +114,50 @@
 
     <!-- Liste des TPE -->
     <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50/30 dark:bg-gray-800/50">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center gap-3">
-            <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
-              <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
-              </svg>
-            </div>
-            <div>
-              <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-                Terminaux de paiement
-              </h3>
-              <p class="text-xs text-gray-500 dark:text-gray-400">Ajoutez un ou plusieurs TPE</p>
-            </div>
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
+            </svg>
           </div>
-          <span class="px-3 py-1 text-xs font-medium rounded-full bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300">
-            {{ tpes.length }} TPE
-          </span>
+          <div>
+            <h3 class="text-lg font-semibold text-gray-800">Configuration des TPE</h3>
+            <p class="text-xs text-gray-500">Choisissez le modèle et le nombre de TPE</p>
+          </div>
         </div>
       </div>
 
       <div class="p-6">
-        <div formArrayName="tpes" class="space-y-4">
-          <div *ngFor="let tpe of tpes.controls; let i = index" 
-               [formGroupName]="i"
-               class="bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 p-5 relative group hover:shadow-md transition-all">
-            
-            <div class="absolute -top-3 -right-3 z-10">
-              <button type="button"
-                      (click)="removeTPE(i)"
-                      class="bg-red-500 text-white rounded-full w-8 h-8 text-sm opacity-0 group-hover:opacity-100 transition-all duration-200 hover:bg-red-600 shadow-lg flex items-center justify-center"
-                      title="Supprimer ce TPE">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                </svg>
-              </button>
-            </div>
-            
-            <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-600">
-              <div class="flex items-center justify-center w-8 h-8 rounded-full bg-brand-100 dark:bg-brand-900/30 text-brand-600 dark:text-brand-400 text-sm font-medium">
-                {{ i + 1 }}
-              </div>
-              <span class="text-sm font-medium text-gray-500 dark:text-gray-400">TPE #{{ i + 1 }}</span>
-            </div>
-
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
-              <!-- Numéro de série -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Numéro de série <span class="text-red-500">*</span>
-                </label>
-                <div class="relative">
-                  <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
-                    </svg>
-                  </div>
-                  <input type="text"
-                         formControlName="numSerie"
-                         maxlength="6"
-                         placeholder="123456"
-                         class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all" />
-                </div>
-                <div *ngIf="tpe.get('numSerie')?.invalid && tpe.get('numSerie')?.touched"
-                     class="mt-2 text-xs text-red-500 flex items-center gap-1">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  <span *ngIf="tpe.get('numSerie')?.errors?.['required']">Le numéro de série est requis</span>
-                  <span *ngIf="tpe.get('numSerie')?.errors?.['pattern']">6 chiffres requis</span>
-                </div>
-              </div>
-
-              <!-- Modèle -->
-              <div>
-                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                  Modèle <span class="text-red-500">*</span>
-                </label>
-                <div class="relative">
-                  <select formControlName="modele" 
-                          class="w-full rounded-lg border border-gray-300 bg-white px-4 py-2.5 text-sm appearance-none focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all">
-                    <option value="" disabled selected>-- Choisir un modèle --</option>
-                    <option *ngFor="let m of modeleOptions" [value]="m.value">{{ m.label }}</option>
-                  </select>
-                  <div class="absolute inset-y-0 right-0 flex items-center px-3 pointer-events-none">
-                    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-                    </svg>
-                  </div>
-                </div>
-                <div *ngIf="tpe.get('modele')?.invalid && tpe.get('modele')?.touched"
-                     class="mt-2 text-xs text-red-500 flex items-center gap-1">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-                  </svg>
-                  Le modèle est requis
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- Message si aucun TPE -->
-          <div *ngIf="tpes.length === 0" 
-               class="text-center py-12 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl">
-            <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
-            </svg>
-            <p class="text-gray-500 dark:text-gray-400 font-medium">Aucun TPE ajouté</p>
-            <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Cliquez sur le bouton ci-dessous pour ajouter un TPE</p>
-          </div>
+        <!-- Sélecteur de modèle -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Modèle de TPE <span class="text-red-500">*</span></label>
+          <select (change)="onModeleChange($event)" class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20">
+            <option *ngFor="let m of modeleOptions" [value]="m.value">{{ m.label }}</option>
+          </select>
+          <p class="mt-1 text-xs text-gray-500">Le numéro de série sera généré automatiquement par le système</p>
         </div>
 
-        <!-- Bouton Ajouter un TPE -->
-        <button type="button" 
-                (click)="addTPE()"
-                class="mt-6 w-full inline-flex items-center justify-center gap-2 px-4 py-3 text-sm font-medium text-brand-600 bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/20 dark:hover:bg-brand-900/30 rounded-xl transition-all duration-200 group">
-          <svg class="w-5 h-5 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-          Ajouter un TPE
-        </button>
+        <!-- Sélecteur du nombre de TPE -->
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Nombre de TPE <span class="text-red-500">*</span></label>
+          <input type="number" min="1" max="20" [value]="nbTPE" (change)="onNbTPEChange($event)"
+            class="w-full rounded-lg border border-gray-300 px-4 py-2.5 text-sm focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20" />
+          <p class="mt-1 text-xs text-gray-500">Chaque TPE aura un numéro de série unique généré automatiquement</p>
+        </div>
+
+        <!-- Récapitulatif des TPEs à créer -->
+        <div class="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-4">
+          <div class="flex items-center gap-2 mb-2">
+            <svg class="w-5 h-5 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <span class="text-sm font-medium text-blue-800">Récapitulatif des TPEs</span>
+          </div>
+          <p class="text-sm text-blue-700">
+            Vous allez créer <strong>{{ nbTPE }}</strong> TPE(s) de modèle <strong>{{ modeleOptions[selectedModele-1]?.label }}</strong>.
+          </p>
+        </div>
       </div>
     </div>
 

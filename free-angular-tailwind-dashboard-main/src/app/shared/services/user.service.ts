@@ -71,27 +71,51 @@ desactivateUser(id: string) {
       map((res: any) => res.data || [])
     );
   }
-  getAllUsers(): Observable<any[]> {
-    return this.http.get<any[]>(this.apiUrl, this.getAuthHeaders());
-  }
+
  
-getAllUsersWithRoles(): Observable<User[]> {
-  return this.http.get<any[]>(`${this.apiUrl}/roles`, this.getAuthHeaders())
+
+// Dans user.service.ts, ajoutez cette méthode
+
+getCommercants(): Observable<any[]> {
+  console.log('🔍 Récupération des commerçants...');
+  
+  return this.http.get<any>(`${this.apiUrl}/commercants`, this.getAuthHeaders())
     .pipe(
       tap(response => {
-              console.log('Réponse API /roles:', response);
-        console.log('Premier utilisateur:', response[0]);
+        console.log('📦 Réponse API commerçants:', response);
       }),
-      map((response: any[]) => response.map(user => ({
-        ...user,
-        birthDate: user.birthdate ? new Date(user.birthdate) : undefined, // <-- convertit en Date
-
-        // Compléter l'URL de l'image si elle est relative
-      image: this.getFullImageUrl(user.image)
-      })))
+      map(response => {
+        // Le backend renvoie ApiResponse avec data
+        if (response?.data && Array.isArray(response.data)) {
+          return response.data.map((commercant: any) => ({
+            id: commercant.id,
+            nomMagasin: commercant.nomMagasin || commercant.userName,
+            email: commercant.email,
+            phoneNumber: commercant.phoneNumber,
+            adresse: commercant.adresse,
+            statut: commercant.statut,
+            role: 'Commercant'
+          }));
+        }
+        if (Array.isArray(response)) {
+          return response.map((commercant: any) => ({
+            id: commercant.id,
+            nomMagasin: commercant.nomMagasin || commercant.userName,
+            email: commercant.email,
+            phoneNumber: commercant.phoneNumber,
+            adresse: commercant.adresse,
+            statut: commercant.statut,
+            role: 'Commercant'
+          }));
+        }
+        return [];
+      }),
+      catchError(error => {
+        console.error('❌ Erreur récupération commerçants:', error);
+        return of([]);
+      })
     );
 }
-
 searchUsers(request: any): Observable<PagedResponse<User>> {
   let params = new HttpParams()
     .set('Page', request.page.toString())
@@ -267,6 +291,7 @@ private determineStatut(user: any): 'Actif' | 'Inactif' {
     map(user => ({
       ...user,
        phoneNumber: user.phoneNumber, 
+         adresse: user.adresse,
       image: this.getFullImageUrl(user.image)
     }))
   );
@@ -287,6 +312,8 @@ getTechniciens(): Observable<User[]> {
           return response.data.map((user: any) => ({
             id: user.id,
             nom: user.nom,
+                        userName: user.userName,
+   phoneNumber: user.phoneNumber,
             prenom: user.prenom,
             email: user.email,
             role: user.role,
@@ -299,7 +326,8 @@ getTechniciens(): Observable<User[]> {
             id: user.id,
             nom: user.nom,
             prenom: user.prenom,
-            email: user.email,
+            email: user.email,            phoneNumber: user.phoneNumber,  // ✅ Ajouté - c'est ce qui manquait !
+
             role: user.role,
             image: this.getFullImageUrl(user.image)
           }));
@@ -312,6 +340,9 @@ getTechniciens(): Observable<User[]> {
       })
     );
 }
+// user.service.ts - Ajouter les nouvelles méthodes
+
+// ✅ Pour l'admin (et utilisateurs standards) - méthode générique
 updateMyProfile(data: any): Observable<User> {
   return this.http.put<User>(
     `${this.apiUrl}/me`,
@@ -321,7 +352,36 @@ updateMyProfile(data: any): Observable<User> {
     map(user => ({
       ...user,
       phoneNumber: user.phoneNumber,
-      // birthDate:user.birthDate,
+      image: this.getFullImageUrl(user.image)
+    }))
+  );
+}
+
+// ✅ Pour le technicien uniquement - méthode spécifique
+updateTechnicienProfile(data: any): Observable<User> {
+  return this.http.put<User>(
+    `${this.apiUrl}/me/technicien`,
+    data,                 
+    this.getAuthHeaders()  
+  ).pipe(
+    map(user => ({
+      ...user,
+      phoneNumber: user.phoneNumber,
+      image: this.getFullImageUrl(user.image)
+    }))
+  );
+}
+
+// ✅ Pour le commerçant uniquement - méthode spécifique
+updateCommercantProfile(data: any): Observable<User> {
+  return this.http.put<User>(
+    `${this.apiUrl}/me/commercant`,
+    data,                 
+    this.getAuthHeaders()  
+  ).pipe(
+    map(user => ({
+      ...user,
+      phoneNumber: user.phoneNumber,
       image: this.getFullImageUrl(user.image)
     }))
   );
@@ -347,24 +407,66 @@ private getFullImageUrl(imagePath: string | null | undefined): string {
   // Par défaut
   return imagePath;
 }
-  getUserById(id: string): Observable<any> {
-    return this.http.get<any>(`${this.apiUrl}/${id}`, this.getAuthHeaders());
-  }
+
 
   deleteUser(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`, this.getAuthHeaders());
   }
 
-  createUser(userData: CreateUserDto): Observable<any> {
-    return this.http.post(this.apiUrl, userData, this.getAuthHeaders());
-  }
-
-  updateUser(id: string, userData: Partial<CreateUserDto>): Observable<any> {
-    return this.http.put(`${this.apiUrl}/${id}`, userData, this.getAuthHeaders());
-  }
+ 
 
   activateUser(id: string) {
   return this.http.put(`${this.apiUrl}/${id}/activate`, {}, this.getAuthHeaders());
 }
+// Dans user.service.ts, ajoutez ces méthodes :
 
+createTechnicien(data: { prenom: string; nom: string; email: string; userName: string }): Observable<any> {
+  return this.http.post(`${this.apiUrl}/technicien`, data, this.getAuthHeaders());
+}
+
+createCommercant(data: { nomMagasin: string; adresse: string; email: string; phoneNumber: string }): Observable<any> {
+  return this.http.post(`${this.apiUrl}/commercant`, data, this.getAuthHeaders());
+}
+// Dans user.service.ts - Méthode pour l'admin qui met à jour un commerçant
+adminUpdateCommercant(id: string, data: { 
+  nomMagasin?: string; 
+  email?: string; 
+  phoneNumber?: string; 
+  adresse?: string;
+  image?: string;
+}): Observable<any> {
+  return this.http.put(
+    `${this.apiUrl}/commercant/${id}`,
+    data,
+    this.getAuthHeaders()
+  ).pipe(
+    map((response: any) => response.data || response),
+    catchError(error => {
+      console.error('Erreur adminUpdateCommercant:', error);
+      throw error;
+    })
+  );
+}
+// Dans user.service.ts - Méthode pour l'admin qui met à jour un technicien
+adminUpdateTechnicien(id: string, data: { 
+  userName?: string; 
+  email?: string; 
+  nom?: string; 
+  prenom?: string; 
+  phoneNumber?: string; 
+  birthDate?: string;
+  image?: string;
+}): Observable<any> {
+  return this.http.put(
+    `${this.apiUrl}/technicien/${id}`,
+    data,
+    this.getAuthHeaders()
+  ).pipe(
+    map((response: any) => response.data || response),
+    catchError(error => {
+      console.error('Erreur adminUpdateTechnicien:', error);
+      throw error;
+    })
+  );
+}
 }

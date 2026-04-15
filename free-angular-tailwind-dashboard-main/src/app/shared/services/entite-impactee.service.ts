@@ -41,54 +41,6 @@ export class EntiteImpacteeService {
     };
   }
 
-  // Récupérer toutes les entités impactées
-  getAll(): Observable<EntiteImpactee[]> {
-    return this.http.get<ApiResponse<EntiteImpactee[]>>(this.apiUrl, this.getAuthHeaders()).pipe(
-      map(response => response.data)
-    );
-  }
-
-  // Récupérer une entité par ID
-  getById(id: string): Observable<EntiteImpactee> {
-    return this.http.get<ApiResponse<EntiteImpactee>>(`${this.apiUrl}/${id}`, this.getAuthHeaders()).pipe(
-      map(response => response.data)
-    );
-  }
-
-  // Récupérer les entités par type
-  getByType(type: TypeEntiteImpactee): Observable<EntiteImpactee[]> {
-    return this.http.get<ApiResponse<EntiteImpactee[]>>(`${this.apiUrl}/by-type/${type}`, this.getAuthHeaders()).pipe(
-      map(response => response.data)
-    );
-  }
-
-  // Récupérer les entités par incident
-  getByIncidentId(incidentId: string): Observable<EntiteImpactee[]> {
-    return this.http.get<ApiResponse<EntiteImpactee[]>>(`${this.apiUrl}/by-incident/${incidentId}`, this.getAuthHeaders()).pipe(
-      map(response => response.data)
-    );
-  }
-
-  // Créer une nouvelle entité impactée
-  create(dto: CreateEntiteImpacteeDTO): Observable<EntiteImpactee> {
-    return this.http.post<ApiResponse<EntiteImpactee>>(this.apiUrl, dto, this.getAuthHeaders()).pipe(
-      map(response => response.data)
-    );
-  }
-
-  // Mettre à jour une entité existante
-  update(id: string, dto: UpdateEntiteImpacteeDTO): Observable<EntiteImpactee> {
-    return this.http.put<ApiResponse<EntiteImpactee>>(`${this.apiUrl}/${id}`, dto, this.getAuthHeaders()).pipe(
-      map(response => response.data)
-    );
-  }
-
-  // Supprimer une entité
-  delete(id: string): Observable<boolean> {
-    return this.http.delete<ApiResponse<boolean>>(`${this.apiUrl}/${id}`, this.getAuthHeaders()).pipe(
-      map(response => response.data)
-    );
-  }
 
   // AJOUTER une entité impactée à un incident
   addToIncident(incidentId: string, typeEntiteImpactee: TypeEntiteImpactee): Observable<ApiResponse<EntiteImpactee>> {

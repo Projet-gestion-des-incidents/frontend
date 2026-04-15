@@ -27,7 +27,6 @@ import { AdminDashboardComponent } from './pages/dashboard/admin-dashboard/admin
 import { TechnicienDashboardComponent } from './pages/dashboard/technicien-dashboard/technicien-dashboard.component';
 import { CommercantDashboardComponent } from './pages/dashboard/commercant-dashboard/commercant-dashboard.component';
 import { AuthGuard } from './shared/guards/auth.guard';
-import { CreateUserAdminComponent } from './shared/components/form/create-user-form/create-user-form.component';
 import { IncidentListComponent } from './pages/incident-list/incident-list.component';
 import { IncidentFormComponent } from './shared/components/incident-form/incident-form.component';
 import { IncidentDetailComponent } from './pages/incident-detail/incident-detail.component';
@@ -40,6 +39,13 @@ import { TpeListComponent } from './pages/tpe/tpe-list/tpe-list.component';
 import { AjoutTPEComponent } from './pages/tpe/ajout-tpe/ajout-tpe.component';
 import { ModifierTpeComponent } from './pages/tpe/modifier-tpe/modifier-tpe.component';
 import { CommentaireListComponent } from './commentaireticket/commentaire-list/commentaire-list.component';
+import { CreateTechnicienComponent } from './shared/createUser/create-technicien/create-technicien.component';
+import { CreateCommercantComponent } from './shared/createUser/create-commercant/create-commercant.component';
+import { TechniciensListComponent } from './shared/listeUtilisateurs/techniciens-list/techniciens-list.component';
+import { CommercantsListComponent } from './shared/listeUtilisateurs/commercants-list/commercants-list.component';
+import { UpdateCommercantComponent } from './shared/components/updateUser/update-commercant/update-commercant.component';
+import { UpdateTechnicienComponent } from './shared/components/updateUser/update-technicien/update-technicien.component';
+import { EmailSentComponent } from './shared/components/auth/email-sent/email-sent.component';
 
 export const routes: Routes = [
   {
@@ -58,20 +64,53 @@ export const routes: Routes = [
   component: AdminDashboardComponent,
   canActivate: [AuthGuard],
   data: { roles: ['Admin'] }
-},
-{ 
-  path: 'admin/create-user', 
-  canActivate: [AuthGuard],
-
- component: CreateUserAdminComponent,
- data: { roles: ['Admin'] }  },
+}, { 
+        path: 'techniciens', 
+        component: TechniciensListComponent,
+        canActivate: [AuthGuard],
+        data: { roles: ['Admin'] },
+        title: 'Liste des techniciens'
+      },
+      { 
+        path: 'commercants', 
+        component: CommercantsListComponent,
+        canActivate: [AuthGuard],
+        data: { roles: ['Admin'] },
+        title: 'Liste des commerçants'
+      },
+  { 
+        path: 'create-technicien', 
+        component: CreateTechnicienComponent,
+        canActivate: [AuthGuard],
+        data: { roles: ['Admin'] },
+        title: 'Créer un technicien'
+      },
+      { 
+        path: 'create-commercant', 
+        component: CreateCommercantComponent,
+        canActivate: [AuthGuard],
+        data: { roles: ['Admin'] },
+        title: 'Créer un commerçant'
+      },
 {
   path: 'technicien-dashboard',
   component: TechnicienDashboardComponent,
   canActivate: [AuthGuard],
   data: { roles: ['Technicien'] }
-},
-{
+},{
+  path: 'update-commercant/:id',
+  component: UpdateCommercantComponent,
+  canActivate: [AuthGuard],
+  data: { roles: ['Admin'] },
+  title: 'Modifier un commerçant'
+},{
+  path: 'update-technicien/:id',
+  component: UpdateTechnicienComponent,
+  canActivate: [AuthGuard],
+  data: { roles: ['Admin'] },
+  title: 'Modifier un technicien'
+}
+,{
   path: 'commercant-dashboard',
   component: CommercantDashboardComponent,
   canActivate: [AuthGuard],
@@ -248,8 +287,12 @@ export const routes: Routes = [
   {
     path: 'forgot-password', 
     component: ForgotPasswordPageComponent 
-  },
-  { 
+  },{
+  path: 'email-sent',
+  component: EmailSentComponent,
+  title: 'Email envoyé'
+}
+ , { 
     path: 'reset-password', 
     component: ResetPasswordComponent 
   },

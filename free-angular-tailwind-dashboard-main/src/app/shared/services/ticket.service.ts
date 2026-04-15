@@ -222,6 +222,22 @@ getMesTicketsAssignes(request: any): Observable<ApiResponse<PagedResult<TicketDT
     { params, headers: this.getAuthHeaders().headers }
   );
 }
+// Dans ticket.service.ts
 
+/**
+ * Récupère les statistiques du dashboard tickets
+ */
+getTicketDashboard(): Observable<any> {
+  return this.http.get<ApiResponse<any>>(
+    `${this.baseUrl}/dashboard`,
+    this.getAuthHeaders()
+  ).pipe(
+    map(response => response.data),
+    catchError(error => {
+      console.error('Erreur chargement dashboard tickets:', error);
+      return of(null);
+    })
+  );
+}
 
 }

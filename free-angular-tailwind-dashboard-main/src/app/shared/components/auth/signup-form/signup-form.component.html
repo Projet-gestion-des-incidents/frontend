@@ -1,216 +1,311 @@
-<div class="w-full max-w-md mx-auto mb-5 sm:pt-10">
-  <a routerLink="/"
-    class="inline-flex items-center text-sm text-gray-500 transition-colors hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300">
-    <svg xmlns="http://www.w3.org/2000/svg" width="1em" height="1em" viewBox="0 0 20 20" fill="none" class="size-5">
-      <path d="M12.7083 5L7.5 10.2083L12.7083 15.4167" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-        stroke-linejoin="round"></path>
-    </svg>
-    Back to dashboard
-  </a>
-</div>
-
 <div class="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
   <div>
-    <div class="mb-5 sm:mb-8">
+    <div class="mb-6 sm:mb-8 text-center sm:text-left">
       <h1 class="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
-        Sign Up
+        Créer un compte <span class="text-brand-600">Technicien</span>
       </h1>
       <p class="text-sm text-gray-500 dark:text-gray-400">
-        Enter your email and password to sign up!
+        Rejoignez notre équipe technique
       </p>
     </div>
     
-    <app-alert
+ <app-alert
       *ngIf="alert.show"
       [variant]="alert.variant"
       [title]="alert.title"
       [message]="alert.message"
       [showLink]="false"
       (click)="clearAlert()"
+      class="mb-4"
     ></app-alert>
     
-    <br>
+    <!-- ✅ Alerte pour les erreurs serveur -->
+    <app-alert
+      *ngIf="serverError.show"
+      [variant]="'error'"
+      [message]="serverError.message"
+      [showLink]="false"
+      (click)="clearServerError()"
+      class="mb-4"
+    ></app-alert>
     
-    <form [formGroup]="registerForm" (ngSubmit)="onSubmit($event)" novalidate id="signup-form">
-      <div class="space-y-5">
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-
-          <!-- First Name -->
-          <div class="sm:col-span-1">
-            <app-label>
-              First Name<span class="text-error-500">*</span>
+    <form [formGroup]="registerForm" (ngSubmit)="onSubmit($event)" novalidate id="signup-form" class="mt-6">
+      
+      <!-- Identité -->
+      <div class="mb-6">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+          <!-- Prénom -->
+          <div>
+            <app-label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Prénom <span class="text-red-500">*</span>
             </app-label>
-            <app-input-field type="text" [value]="firstName?.value" (valueChange)="firstName?.setValue($event)"
-              id="firstName" name="firstName" placeholder="Enter your first name" />
-            @if (firstName?.invalid && (firstName?.dirty || firstName?.touched)) {
-              <p class="mt-1 text-sm text-red-500">
-                @if (firstName?.errors?.['required']) {First name is required}
-                @if (firstName?.errors?.['minlength']) {Minimum 2 characters}
+            <app-input-field 
+              type="text" 
+              [value]="firstName?.value" 
+              (valueChange)="firstName?.setValue($event)"
+              (blur)="firstName?.markAsTouched()"
+              id="firstName" 
+              name="firstName" 
+              placeholder="Jean"
+              [class.border-red-500]="firstName?.invalid && firstName?.touched"
+              class="mt-1" />
+            @if (firstName?.invalid && firstName?.touched) {
+              <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                @if (firstName?.errors?.['required']) {Le prénom est requis}
+                @if (firstName?.errors?.['minlength']) {Minimum 4 caractères}
               </p>
             }
           </div>
           
-          <!-- Last Name -->
-          <div class="sm:col-span-1">
-            <app-label>
-              Last Name<span class="text-error-500">*</span>
+          <!-- Nom -->
+          <div>
+            <app-label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Nom <span class="text-red-500">*</span>
             </app-label>
-            <app-input-field type="text" [value]="lastName?.value" (valueChange)="lastName?.setValue($event)"
-              id="lastName" name="lastName" placeholder="Enter your last name" />
-            @if (lastName?.invalid && (lastName?.dirty || lastName?.touched)) {
-              <p class="mt-1 text-sm text-red-500">
-                @if (lastName?.errors?.['required']) {Last name is required}
-                @if (lastName?.errors?.['minlength']) {Minimum 2 characters}
+            <app-input-field 
+              type="text" 
+              [value]="lastName?.value" 
+              (valueChange)="lastName?.setValue($event)"
+              (blur)="lastName?.markAsTouched()"
+              id="lastName" 
+              name="lastName" 
+              placeholder="Dupont"
+              [class.border-red-500]="lastName?.invalid && lastName?.touched"
+              class="mt-1" />
+            @if (lastName?.invalid && lastName?.touched) {
+              <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                @if (lastName?.errors?.['required']) {Le nom est requis}
+                @if (lastName?.errors?.['minlength']) {Minimum 4 caractères}
               </p>
             }
           </div>
         </div>
+      </div>
 
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-
+      <!-- Contact -->
+      <div class="mb-6">
+        <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <!-- Email -->
-          <div class="sm:col-span-1">
-            <app-label>
-              Email <span class="text-error-500">*</span>
+          <div>
+            <app-label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Email <span class="text-red-500">*</span>
             </app-label>
-            <app-input-field type="email" [value]="email?.value" (valueChange)="email?.setValue($event)" id="email"
-              name="email" placeholder="Enter your email" />
-            @if (email?.invalid && (email?.dirty || email?.touched)) {
-              <p class="mt-1 text-sm text-red-500">
-                @if (email?.errors?.['required']) {Email is required}
-                @if (email?.errors?.['email']) {Please enter a valid email}
+            <app-input-field 
+              type="email" 
+              [value]="email?.value" 
+              (valueChange)="email?.setValue($event)"
+              (blur)="email?.markAsTouched()"
+              id="email"
+              name="email" 
+              placeholder="jean.dupont@email.com"
+              [class.border-red-500]="email?.invalid && email?.touched"
+              class="mt-1" />
+            @if (email?.invalid && email?.touched) {
+              <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                @if (email?.errors?.['required']) {L'email est requis}
+                @if (email?.errors?.['email']) {Email invalide (ex: nom@domaine.com)}
               </p>
             }
           </div>
 
-          <!-- Phone -->
-          <div class="sm:col-span-1">
-            <app-label>
-              Phone Number<span class="text-error-500">*</span>
+          <!-- Téléphone -->
+          <div>
+            <app-label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Téléphone <span class="text-red-500">*</span>
             </app-label>
             <app-input-field 
               type="tel" 
               [value]="phoneNumber?.value" 
-              (valueChange)="phoneNumber?.setValue($event)" 
+              (valueChange)="phoneNumber?.setValue($event)"
+              (blur)="phoneNumber?.markAsTouched()"
               id="phoneNumber" 
               name="phoneNumber" 
-              placeholder="+33 1 23 45 67 89" />
-              @if (phoneNumber?.errors?.['required']){}
-
-            @if (phoneNumber?.invalid && (phoneNumber?.dirty || phoneNumber?.touched)) {
-              <p class="mt-1 text-sm text-red-500">
-                @if (phoneNumber?.errors?.['pattern']) {Please enter a valid phone number}
-              </p>
-            }
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-
-          <!-- Birth Date -->
-          <div class="sm:col-span-1">
-            <app-label for="birthDate">Date de naissance<span class="text-error-500">*</span></app-label>
-            <app-date-picker
-              id="birthDate"
-              placeholder="JJ/MM/AAAA"
-              (dateChange)="registerForm.get('birthDate')?.setValue($event)"
-            />
-            @if (birthDate?.touched && birthDate?.errors?.['underAge']) {
-  <p class="mt-1 text-sm text-red-500">
-    Vous devez avoir au moins 18 ans
-  </p>
-}
-
-          </div>
-          
-          <!-- Role -->
-          <div class="sm:col-span-1">
-            <app-label>Role <span class="text-error-500">*</span></app-label>
-            <app-select
-              [options]="roleOptions"
-              [placeholder]="'Select a role'"
-              [value]="registerForm.get('roleId')?.value"
-              (valueChange)="registerForm.get('roleId')?.setValue($event)"
-              className="form-input w-full"
-            ></app-select>
-            <p class="mt-1 text-sm text-red-500" 
-               *ngIf="registerForm.get('roleId')?.invalid && (registerForm.get('roleId')?.touched || registerForm.get('roleId')?.dirty)">
-              Please select a role
-            </p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          
-          <!-- Password -->
-          <div class="sm:col-span-1">
-            <app-label>Password <span class="text-error-500">*</span></app-label>
-            <div class="relative">
-              <app-input-field [type]="showPassword ? 'text' : 'password'" placeholder="Enter your password"
-                [value]="password?.value" (valueChange)="password?.setValue($event)" id="password" name="password" 
-                class="form-input" required />
-              <span (click)="togglePasswordVisibility()"
-                class="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2">
-                @if (showPassword) {
-                <svg width="1em" height="1em" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"
-                  class="fill-gray-500 dark:fill-gray-400 size-5">
-                  <path fill-rule="evenodd" clip-rule="evenodd"
-                    d="M10.0002 13.8619C7.23361 13.8619 4.86803 12.1372 3.92328 9.70241C4.86804 7.26761 7.23361 5.54297 10.0002 5.54297C12.7667 5.54297 15.1323 7.26762 16.0771 9.70243C15.1323 12.1372 12.7667 13.8619 10.0002 13.8619ZM10.0002 4.04297C6.48191 4.04297 3.49489 6.30917 2.4155 9.4593C2.3615 9.61687 2.3615 9.78794 2.41549 9.94552C3.49488 13.0957 6.48191 15.3619 10.0002 15.3619C13.5184 15.3619 16.5055 13.0957 17.5849 9.94555C17.6389 9.78797 17.6389 9.6169 17.5849 9.45932C16.5055 6.30919 13.5184 4.04297 10.0002 4.04297ZM9.99151 7.84413C8.96527 7.84413 8.13333 8.67606 8.13333 9.70231C8.13333 10.7286 8.96527 11.5605 9.99151 11.5605H10.0064C11.0326 11.5605 11.8646 10.7286 11.8646 9.70231C11.8646 8.67606 11.0326 7.84413 10.0064 7.84413H9.99151Z">
-                  </path>
+              placeholder="12345678"
+              [class.border-red-500]="phoneNumber?.invalid && phoneNumber?.touched"
+              class="mt-1" />
+            @if (phoneNumber?.invalid && phoneNumber?.touched) {
+              <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+                <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
-                } @else {
-                <svg width="1em" height="1em" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg"
-                  class="fill-gray-500 dark:fill-gray-400 size-5">
-                  <path fill-rule="evenodd" clip-rule="evenodd"
-                    d="M4.63803 3.57709C4.34513 3.2842 3.87026 3.2842 3.57737 3.57709C3.28447 3.86999 3.28447 4.34486 3.57737 4.63775L4.85323 5.91362C3.74609 6.84199 2.89363 8.06395 2.4155 9.45936C2.3615 9.61694 2.3615 9.78801 2.41549 9.94558C3.49488 13.0957 6.48191 15.3619 10.0002 15.3619C11.255 15.3619 12.4422 15.0737 13.4994 14.5598L15.3625 16.4229C15.6554 16.7158 16.1302 16.7158 16.4231 16.4229C16.716 16.13 16.716 15.6551 16.4231 15.3622L4.63803 3.57709ZM12.3608 13.4212L10.4475 11.5079C10.3061 11.5423 10.1584 11.5606 10.0064 11.5606H9.99151C8.96527 11.5606 8.13333 10.7286 8.13333 9.70237C8.13333 9.5461 8.15262 9.39434 8.18895 9.24933L5.91885 6.97923C5.03505 7.69015 4.34057 8.62704 3.92328 9.70247C4.86803 12.1373 7.23361 13.8619 10.0002 13.8619C10.8326 13.8619 11.6287 13.7058 12.3608 13.4212ZM16.0771 9.70249C15.7843 10.4569 15.3552 11.1432 14.8199 11.7311L15.8813 12.7925C16.6329 11.9813 17.2187 11.0143 17.5849 9.94561C17.6389 9.78803 17.6389 9.61696 17.5849 9.45938C16.5055 6.30925 13.5184 4.04303 10.0002 4.04303C9.13525 4.04303 8.30244 4.17999 7.52218 4.43338L8.75139 5.66259C9.1556 5.58413 9.57311 5.54303 10.0002 5.54303C12.7667 5.54303 15.1323 7.26768 16.0771 9.70249Z">
-                  </path>
-                </svg>
-                }
-              </span>
-            </div>
-            @if (password?.invalid && (password?.dirty || password?.touched)) {
-              <p class="mt-1 text-sm text-red-500">
-                @if (password?.errors?.['required']) {Password is required}
-                @if (password?.errors?.['minlength']) {Minimum 6 characters}
-              </p>
-            }
-          </div>
-
-          <!-- Confirm Password -->
-          <div class="sm:col-span-1">
-            <app-label>
-              Confirm Password <span class="text-error-500">*</span>
-            </app-label>
-            <app-input-field type="password" placeholder="Confirm your password" [value]="confirmPassword?.value"
-              (valueChange)="confirmPassword?.setValue($event)" id="confirmPassword" name="confirmPassword" />
-            @if (confirmPassword?.invalid && (confirmPassword?.dirty || confirmPassword?.touched)) {
-              <p class="mt-1 text-sm text-red-500">
-                @if (confirmPassword?.errors?.['required']) {Please confirm your password}
-                @if (confirmPassword?.errors?.['passwordMismatch']) {Passwords do not match}
+                @if (phoneNumber?.errors?.['required']) {Le téléphone est requis}
+                @if (phoneNumber?.errors?.['pattern']) {8 chiffres requis (ex: 12345678)}
               </p>
             }
           </div>
         </div>
+      </div>
 
-        <!-- Button -->
+      <!-- Date de naissance -->
+      <div class="mb-6">
         <div>
-          <button type="submit" [disabled]="isLoading || registerForm.invalid"
-            class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition rounded-lg bg-brand-500 shadow-theme-xs hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed">
-            @if (isLoading) {
-            <span>Inscription...</span>
-            } @else {
-            <span>Sign Up</span>
-            }
-          </button>
+          <app-label for="birthDate" class="text-sm font-medium text-gray-700 dark:text-gray-300">
+            Date de naissance <span class="text-red-500">*</span>
+          </app-label>
+          <app-date-picker
+            id="birthDate"
+            placeholder="JJ/MM/AAAA"
+            class="mt-1"
+            [class.border-red-500]="birthDate?.invalid && birthDate?.touched"
+            (dateChange)="registerForm.get('birthDate')?.setValue($event); birthDate?.markAsTouched()"
+          />
+          @if (birthDate?.invalid && birthDate?.touched) {
+            <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              @if (birthDate?.errors?.['required']) {La date de naissance est requise}
+              @if (birthDate?.errors?.['underAge']) {Vous devez avoir au moins 18 ans}
+            </p>
+          }
         </div>
+      </div>
+
+      <!-- Sécurité -->
+    <div class="mb-6">
+  <div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <!-- Mot de passe -->
+    <div>
+      <app-label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+        Mot de passe <span class="text-red-500">*</span>
+      </app-label>
+      <div class="relative mt-1">
+        <app-input-field 
+          [type]="showPassword ? 'text' : 'password'" 
+          placeholder="Votre mot de passe"
+          [value]="password?.value" 
+          (valueChange)="password?.setValue($event)"
+          (blur)="password?.markAsTouched()"
+          id="password" 
+          name="password" 
+          [class.border-red-500]="password?.invalid && password?.touched"
+          class="form-input w-full !pr-10" />
+        <button type="button" (click)="togglePasswordVisibility()"
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none z-10">
+          @if (showPassword) {
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+          } @else {
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+            </svg>
+          }
+        </button>
+      </div>
+      
+      <!-- Indicateur de force -->
+      @if (password?.value && password?.value.length > 0) {
+        <div class="mt-2">
+          <div class="flex gap-1 h-1.5 mb-2">
+            <div class="flex-1 rounded-full" [class.bg-red-500]="passwordStrength === 'weak'" [class.bg-gray-200]="passwordStrength !== 'weak'"></div>
+            <div class="flex-1 rounded-full" [class.bg-yellow-500]="passwordStrength === 'medium'" [class.bg-gray-200]="passwordStrength !== 'medium'"></div>
+            <div class="flex-1 rounded-full" [class.bg-green-500]="passwordStrength === 'strong'" [class.bg-gray-200]="passwordStrength !== 'strong'"></div>
+          </div>
+          <p class="text-xs" [class.text-red-500]="passwordStrength === 'weak'" [class.text-yellow-500]="passwordStrength === 'medium'" [class.text-green-500]="passwordStrength === 'strong'">
+            @if (passwordStrength === 'weak') {Mot de passe faible}
+            @if (passwordStrength === 'medium') {Mot de passe moyen}
+            @if (passwordStrength === 'strong') {Mot de passe fort}
+          </p>
+        </div>
+      }
+      
+      @if (password?.invalid && password?.touched && !password?.value) {
+        <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          Le mot de passe est requis
+        </p>
+      }
+    </div>
+
+    <!-- Confirmer le mot de passe -->
+    <div>
+      <app-label class="text-sm font-medium text-gray-700 dark:text-gray-300">
+        Confirmer le mot de passe <span class="text-red-500">*</span>
+      </app-label>
+      <div class="relative mt-1">
+        <app-input-field 
+          [type]="showConfirmPassword ? 'text' : 'password'" 
+          placeholder="Confirmez votre mot de passe" 
+          [value]="confirmPassword?.value"
+          (valueChange)="confirmPassword?.setValue($event)"
+          (blur)="confirmPassword?.markAsTouched()"
+          id="confirmPassword" 
+          name="confirmPassword"
+          [class.border-red-500]="confirmPassword?.invalid && confirmPassword?.touched"
+          class="form-input w-full !pr-10" />
+        <button type="button" (click)="toggleConfirmPasswordVisibility()"
+          class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 focus:outline-none z-10">
+          @if (showConfirmPassword) {
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+          } @else {
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
+            </svg>
+          }
+        </button>
+      </div>
+      @if (confirmPassword?.invalid && confirmPassword?.touched) {
+        <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          @if (confirmPassword?.errors?.['required']) {Veuillez confirmer votre mot de passe}
+          @if (confirmPassword?.errors?.['passwordMismatch']) {Les mots de passe ne correspondent pas}
+        </p>
+      }
+      @if (confirmPassword?.value && password?.value === confirmPassword?.value && password?.value && confirmPassword?.touched && !confirmPassword?.errors?.['passwordMismatch']) {
+        <p class="mt-1 text-xs text-green-500 flex items-center gap-1">
+          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          Les mots de passe correspondent
+        </p>
+      }
+    </div>
+  </div>
+</div>
+
+      <!-- Bouton -->
+      <div class="mt-8">
+        <button type="submit" [disabled]="isLoading"
+          class="flex items-center justify-center w-full px-4 py-3 text-sm font-medium text-white transition-all duration-200 rounded-lg bg-gradient-to-r from-brand-500 to-brand-600 shadow-md hover:from-brand-600 hover:to-brand-700 hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed">
+          @if (isLoading) {
+            <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>Inscription en cours...</span>
+          } @else {
+            <span>Créer mon compte</span>
+            <svg class="w-4 h-4 ml-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7l5 5m0 0l-5 5m5-5H6"></path>
+            </svg>
+          }
+        </button>
       </div>
     </form>
 
-    <div class="mt-5">
-      <p class="text-sm font-normal text-center text-gray-700 dark:text-gray-400 sm:text-start">
-        Already have an account?
-        <a routerLink="/signin" class="text-brand-500 hover:text-brand-600 dark:text-brand-400">
-          Sign In
+    <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <p class="text-sm text-center text-gray-600 dark:text-gray-400">
+        Vous avez déjà un compte ?
+        <a routerLink="/signin" class="font-medium text-brand-600 hover:text-brand-500 dark:text-brand-400 dark:hover:text-brand-300 transition-colors">
+          Se connecter
         </a>
       </p>
     </div>

@@ -105,6 +105,7 @@ export class TicketsComponent implements OnInit {
         
         // Charger les tickets selon le rôle
         this.loadTickets();
+        this.loadDashboardStats();
       },
       error: (err) => {
         console.error('❌ Erreur récupération rôle:', err);
@@ -120,23 +121,81 @@ export class TicketsComponent implements OnInit {
       this.yearOptions.push((currentYear - i).toString());
     }
   }
+// Dans tickets.component.ts - Ajouter ces propriétés
 
+dashboardStats = {
+  overview: {
+    totalTickets: 0,
+    ticketsNonAssigne: 0,
+    ticketsAssignes: 0,
+    ticketsEnCours: 0,
+    ticketsResolus: 0,
+    tauxNonAssigne: 0,
+    tauxAssignes: 0,
+    tauxEnCours: 0,
+    tauxResolus: 0,
+    tauxResolutionGlobal: 0
+  },
+  statsParStatut: [] as { statut: string; count: number; color: string; pourcentage: number }[],
+  statsParJour: [] as any[],
+  statsParSemaine: [] as any[],
+  statsParMois: [] as any[]
+};
+
+loadingDashboard = false;
+
+// Ajouter dans ngOnInit après le chargement du rôle
+loadDashboardStats(): void {
+  if (!this.isAdmin) return;
+  
+  this.loadingDashboard = true;
+  
+  this.ticketService.getTicketDashboard().subscribe({
+    next: (response) => {
+      if (response) {
+        this.dashboardStats = response;
+        console.log('Dashboard tickets stats chargées:', this.dashboardStats);
+      }
+      this.loadingDashboard = false;
+    },
+    error: (err) => {
+      console.error('Erreur chargement dashboard tickets:', err);
+      this.loadingDashboard = false;
+    }
+  });
+}
+openCalendar(): void {
+  const dateInput = document.getElementById('ticketDate') as HTMLInputElement;
+  if (dateInput) {
+    dateInput.showPicker(); // Fonctionne dans les navigateurs modernes
+  }
+}
+// Appeler dans ngOnInit après loadTickets()
+// Ajouter : this.loadDashboardStats();
   // Valeur du picker
   get ticketDate(): Date | null {
     return this.tempFilters.dateDebut ? new Date(this.tempFilters.dateDebut) : null;
   }
 
-  onTicketDateChange(event: Date | null) {
-    this.selectedDate = event;
-    if (!event) {
+ // Remplacer la méthode existante par celle-ci
+onTicketDateChange(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const dateValue = input.value;
+  
+  if (dateValue) {
+    const date = new Date(dateValue);
+    if (!isNaN(date.getTime())) {
+      this.selectedDate = date;
+      this.tempFilters.dateDebut = dateValue;
+    } else {
+      this.selectedDate = null;
       this.tempFilters.dateDebut = '';
-      return;
     }
-    const year = event.getFullYear();
-    const month = (event.getMonth() + 1).toString().padStart(2, '0');
-    const day = event.getDate().toString().padStart(2, '0');
-    this.tempFilters.dateDebut = `${year}-${month}-${day}`;
+  } else {
+    this.selectedDate = null;
+    this.tempFilters.dateDebut = '';
   }
+}
 
   toggleFilters(): void {
     this.showFilters = !this.showFilters;

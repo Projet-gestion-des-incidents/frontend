@@ -50,7 +50,7 @@ export class OtpComponent implements OnInit {
         this.email = params['email'];
         // Si email fourni, passer directement à l'écran OTP
         this.isEmailScreen = false;
-        this.sendOtp(); // Envoyer automatiquement l'OTP
+       // this.sendOtp(); // Envoyer automatiquement l'OTP
       }
     });
 

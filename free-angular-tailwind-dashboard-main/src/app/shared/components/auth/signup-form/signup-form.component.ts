@@ -11,7 +11,6 @@ import { AlertComponent } from '../../ui/alert/alert.component';
 import { SelectComponent } from '../../form/select/select.component';
 import { DatePickerComponent } from '../../form/date-picker/date-picker.component';
 
-
 @Component({
   selector: 'app-signup-form',
   standalone: true,
@@ -26,36 +25,67 @@ import { DatePickerComponent } from '../../form/date-picker/date-picker.componen
     AlertComponent,
     DatePickerComponent 
   ],
-  templateUrl: './signup-form.component.html',
-  styleUrls: [] 
+  styles: [`
+    .relative {
+      position: relative;
+    }
+    
+    .relative input,
+    .relative .form-input,
+    .relative app-input-field input {
+      padding-right: 2.5rem !important;
+    }
+    
+    .relative button {
+      position: absolute;
+      right: 0.75rem;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      margin: 0;
+      z-index: 10;
+    }
+    
+    .relative button svg {
+      width: 1.25rem;
+      height: 1.25rem;
+    }
+  `],
+  templateUrl: './signup-form.component.html'
 })
-
 export class SignupFormComponent {
-  roles: {id: string, name: string}[] = [];
-  selectedRoleId: string = '';
   registerForm!: FormGroup;
+  
   isLoading = false;
   showPassword = false;
   isChecked = false;
+  
+  // ✅ Alertes pour les erreurs de formulaire
   alert = {
-  show: false,
-  variant: 'error' as 'error' | 'warning' | 'success' | 'info',
-  title: '',
-  message: ''
-};
-
-showError(message: string, title = 'Erreur') {
-  this.alert = {
-    show: true,
-    variant: 'error',
-    title,
-    message
+    show: false,
+    variant: 'error' as 'error' | 'warning' | 'success' | 'info',
+    title: '',
+    message: ''
   };
-}
 
-clearAlert() {
-  this.alert.show = false;
-}
+  showError(message: string, title = 'Erreur') {
+    this.alert = {
+      show: true,
+      variant: 'error',
+      title,
+      message
+    };
+  }
+
+  clearAlert() {
+    this.alert.show = false;
+  }
 
   constructor(
     private fb: FormBuilder,
@@ -65,57 +95,55 @@ clearAlert() {
     this.initForm();
   }
   
-private adultValidator(control: AbstractControl) {
-  const value = control.value;
-  if (!value) return null;
+  private adultValidator(control: AbstractControl) {
+    const value = control.value;
+    if (!value) return null;
 
-  let date: Date;
+    let date: Date;
 
-  if (value instanceof Date) {
-    date = value;
-  } else if (value?.dateObj instanceof Date) {
-    date = value.dateObj;
-  } else if (value?.selectedDates?.[0]) {
-    date = value.selectedDates[0];
-  } else {
-    date = new Date(value);
+    if (value instanceof Date) {
+      date = value;
+    } else if (value?.dateObj instanceof Date) {
+      date = value.dateObj;
+    } else if (value?.selectedDates?.[0]) {
+      date = value.selectedDates[0];
+    } else {
+      date = new Date(value);
+    }
+
+    const today = new Date();
+    const minDate = new Date(
+      today.getFullYear() - 18,
+      today.getMonth(),
+      today.getDate()
+    );
+
+    return date <= minDate ? null : { underAge: true };
   }
-
-  const today = new Date();
-  const minDate = new Date(
-    today.getFullYear() - 18,
-    today.getMonth(),
-    today.getDate()
-  );
-
-  return date <= minDate ? null : { underAge: true };
-}
 
   private initForm(): void {
     this.registerForm = this.fb.group({
-      firstName: ['', [Validators.required, Validators.minLength(2)]],
-      lastName: ['', [Validators.required, Validators.minLength(2)]],
+      firstName: ['', [Validators.required, Validators.minLength(4)]],
+      lastName: ['', [Validators.required, Validators.minLength(4)]],
       email: ['', [Validators.required, Validators.email]],
       phoneNumber: [
-  '',
-  [
-    Validators.required,
-    Validators.pattern(/^[0-9+\-\s()]{8,15}$/)
-  ]
-],
-      birthDate: ['', [this.adultValidator]],
-      password: ['', [Validators.required, Validators.minLength(6)]],      
-      confirmPassword: ['', [Validators.required]] ,
-      roleId: ['', Validators.required] 
-
- 
+        '',
+        [
+          Validators.required,
+          Validators.pattern(/^[0-9]{8}$/)
+        ]
+      ],
+      birthDate: ['', [Validators.required, this.adultValidator]],
+      password: ['', [
+        Validators.required, 
+        Validators.minLength(6),
+        Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/)
+      ]],      
+      confirmPassword: ['', [Validators.required]]
     }, {
       validators: this.passwordMatchValidator
     });
   }
-  get roleOptions(): { value: string; label: string }[] {
-  return this.roles.map(r => ({ value: r.id, label: r.name }));
-}
 
   private passwordMatchValidator(control: AbstractControl): { [key: string]: boolean } | null {
     const password = control.get('password');
@@ -136,124 +164,165 @@ private adultValidator(control: AbstractControl) {
     return this.registerForm.controls;
   }
 
-ngOnInit(): void {
-  this.loadRoles();
-}
-
-private loadRoles(): void {
-  this.authService.getRolesForRegister().subscribe({
-    next: (roles) => {
-      // Filtrer uniquement Technicien et Commerçant
-      this.roles = roles.filter(r => r.name.toLowerCase() === 'technicien' || r.name.toLowerCase() === 'commercant');
-    },
-    error: (err) => {
-      console.error('Erreur lors du chargement des rôles:', err);
-      this.showError('Impossible de charger les rôles disponibles.');
-    }
-  });
-}
-
-onSubmit(event?: Event): void {
-  console.log("here")
-  if (event) {
-    event.preventDefault();
+  ngOnInit(): void {
+    // ✅ Plus besoin de charger les rôles
   }
 
-  if (this.registerForm.invalid) {
-    this.registerForm.markAllAsTouched();
-    return;
+  showConfirmPassword = false;
+  isSubmitting = false;
+
+  get passwordStrength(): 'weak' | 'medium' | 'strong' {
+    const password = this.password?.value;
+    if (!password) return 'weak';
+    
+    let strength = 0;
+    if (password.length >= 6) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    
+    if (strength <= 2) return 'weak';
+    if (strength === 3) return 'medium';
+    return 'strong';
   }
 
-  // DEBUG: Voir ce que contient birthDate
-  const birthDateRawValue = this.registerForm.get('birthDate')?.value;
-
-  // Extraire la date correctement
-  let birthDateValue: string | undefined;
-  
-  if (birthDateRawValue) {
-    // Méthode 1: Si c'est un objet Flatpickr
-    if (birthDateRawValue.selectedDates && birthDateRawValue.selectedDates[0]) {
-      const date = birthDateRawValue.selectedDates[0];
-      birthDateValue = date.toISOString().split('T')[0]; // Format YYYY-MM-DD
-    }
-    // Méthode 2: Si c'est un objet avec dateObj
-    else if (birthDateRawValue.dateObj && birthDateRawValue.dateObj instanceof Date) {
-      birthDateValue = birthDateRawValue.dateObj.toISOString().split('T')[0];
-    }
-    // Méthode 3: Si c'est directement un Date
-    else if (birthDateRawValue instanceof Date) {
-      birthDateValue = birthDateRawValue.toISOString().split('T')[0];
-    }
-    // Méthode 4: Si c'est déjà une string
-    else if (typeof birthDateRawValue === 'string') {
-      birthDateValue = birthDateRawValue;
-    }
-    // Méthode 5: Voir la structure complète
-    else {
-      console.log('Full birthDate object:', JSON.stringify(birthDateRawValue, null, 2));
-      // Essayer de trouver une propriété de date
-      for (const key in birthDateRawValue) {
-        console.log(`Key ${key}:`, birthDateRawValue[key]);
-        if (birthDateRawValue[key] instanceof Date) {
-          birthDateValue = birthDateRawValue[key].toISOString().split('T')[0];
-          break;
-        }
-      }
-    }
+  toggleConfirmPasswordVisibility(): void {
+    this.showConfirmPassword = !this.showConfirmPassword;
   }
 
-  // Si on n'a pas pu extraire la date, utiliser null
-  if (!birthDateValue) {
-    birthDateValue = undefined;
-    console.log('No valid date found, using undefined');
-  }  
-
-  console.log("form", this.registerForm.value)
-
-  const dto: RegisterDTO = {
-    userName: this.registerForm.get('firstName')?.value.toLowerCase() + 
-              this.registerForm.get('lastName')?.value.toLowerCase(),
-    email: this.registerForm.get('email')?.value,
-    password: this.registerForm.get('password')?.value,
-    prenom: this.registerForm.get('firstName')?.value,
-    nom: this.registerForm.get('lastName')?.value,
-  
-    roleId: this.registerForm.get('roleId')?.value,
-    phoneNumber: this.registerForm.get('phoneNumber')?.value,
-    birthDate: birthDateValue // Peut être undefined
+  serverError = {
+    show: false,
+    message: ''
   };
 
-  console.log('DTO à envoyer:', JSON.stringify(dto, null, 2));
+  clearServerError() {
+    this.serverError.show = false;
+  }
 
-  this.isLoading = true;
-
-  this.authService.register(dto).subscribe({
-    next: (res) => {
-      this.isLoading = false;
-
-      if (res.resultCode == 0) {
-        // Stocker temporairement l'email pour la page OTP
-        localStorage.setItem('pending_email', dto.email);
-        console.log('Navigating to OTP...');
-        // Rediriger vers OTP avec l'email en paramètre
-        this.router.navigate(['/otp'], { 
-          queryParams: { email: dto.email } 
-        });
-      } else {
-        this.showError(res.message || 'Erreur lors de l\'inscription');
-      }
-    },
-    error: (err) => {
-      this.isLoading = false;
-      console.error('Erreur détaillée:', err);
-      this.showError(err?.error?.message || err.message || 'Erreur serveur'); 
+  onSubmit(event?: Event): void {
+    if (event) {
+      event.preventDefault();
     }
-  });
-}
 
-  // AJOUTEZ CES GETTERS pour faciliter l'accès :
+    // ✅ Empêcher la double soumission
+    if (this.isSubmitting) {
+      console.log('Soumission déjà en cours, ignorée');
+      return;
+    }
+
+    // ✅ Marquer tous les champs comme touchés pour afficher les erreurs sous les champs
+    this.registerForm.markAllAsTouched();
+    
+    // ✅ Si le formulaire est invalide, on s'arrête
+    if (this.registerForm.invalid) {
+      const firstInvalid = document.querySelector('.ng-invalid');
+      if (firstInvalid) {
+        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
+    // ✅ Récupérer les valeurs
+    const firstName = this.firstName?.value;
+    const lastName = this.lastName?.value;
+    const email = this.email?.value;
+    const rawPhoneNumber = this.phoneNumber?.value;
+    const birthDate = this.birthDate?.value;
+    const password = this.password?.value;
+
+    // Nettoyer le téléphone
+    const cleanedPhoneNumber = rawPhoneNumber?.replace(/[\s\-\.]/g, '');
+
+    // ✅ Extraire la date de naissance
+    let birthDateValue: string | undefined;
+    
+    if (birthDate) {
+      let date: Date | null = null;
+      
+      if (birthDate.selectedDates && birthDate.selectedDates[0]) {
+        date = birthDate.selectedDates[0];
+      } else if (birthDate.dateObj && birthDate.dateObj instanceof Date) {
+        date = birthDate.dateObj;
+      } else if (birthDate instanceof Date) {
+        date = birthDate;
+      } else if (typeof birthDate === 'string') {
+        date = new Date(birthDate);
+      }
+      
+      if (date && !isNaN(date.getTime())) {
+        birthDateValue = date.toISOString().split('T')[0];
+      }
+    }
+
+    // ✅ Construction du DTO
+    const userName = (firstName + lastName).toLowerCase();
+
+    const registerDto: RegisterDTO = {
+      userName: userName,
+      email: email,
+      password: password,
+      prenom: firstName,
+      nom: lastName,
+      roleId: '',
+      phoneNumber: cleanedPhoneNumber,
+      birthDate: birthDateValue
+    };
+
+    // ✅ Envoi de la requête
+    this.isSubmitting = true;
+    this.isLoading = true;
+    this.serverError.show = false;
+    this.alert.show = false; // Effacer les alertes précédentes
+
+    this.authService.register(registerDto).subscribe({
+      next: (res) => {
+        this.isLoading = false;
+        this.isSubmitting = false;
+
+        if (res.resultCode === 0) {
+          // ✅ Stocker l'email pour la vérification OTP
+          localStorage.setItem('pending_verification_email', registerDto.email);
+          
+          // ✅ Afficher un message de succès avec l'info email
+          this.alert = {
+            show: true,
+            variant: 'success',
+            title: 'Inscription réussie !',
+            message: res.message || 'Un code de vérification a été envoyé à votre adresse email.'
+          };
+          
+          // ✅ Rediriger vers la page OTP après 2 secondes
+          setTimeout(() => {
+            this.router.navigate(['/otp'], { 
+              queryParams: { email: registerDto.email } 
+            });
+          }, 2000);
+        } else {
+          // Erreur métier (email déjà utilisé, etc.)
+          this.serverError = {
+            show: true,
+            message: res.message || 'Erreur lors de l\'inscription'
+          };
+        }
+      },
+      error: (err) => {
+        this.isLoading = false;
+        this.isSubmitting = false;
+        console.error('Erreur détaillée:', err);
+        
+        // ✅ Afficher l'erreur dans l'alerte
+        this.alert = {
+          show: true,
+          variant: 'error',
+          title: 'Erreur',
+          message: err?.error?.message || err?.message || 'Erreur serveur. Veuillez réessayer plus tard.'
+        };
+      }
+    });
+  }
+
+  // Getters
   get firstName() { return this.registerForm.get('firstName'); }
-  get roleId(){ return this.registerForm.get('roleId') ;}
   get lastName() { return this.registerForm.get('lastName'); }
   get email() { return this.registerForm.get('email'); }
   get password() { return this.registerForm.get('password'); }
