@@ -40,3 +40,13 @@ export interface ResetPasswordDTO {
   newPassword: string;
   confirmPassword: string;
 }
+
+export interface ConfirmEmailChangeDto {
+  newEmail: string;
+  otpCode: string;
+}
+
+export interface ConfirmPasswordChangeDto {
+  newPassword: string;
+  otpCode: string;
+}

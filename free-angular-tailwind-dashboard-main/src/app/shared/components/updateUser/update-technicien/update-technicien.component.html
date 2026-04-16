@@ -210,30 +210,47 @@
             </div>
           </div>
 
-          <!-- Date de naissance -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Date de naissance <span class="text-red-500">*</span>
-            </label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-              </div>
-              <input type="date" formControlName="birthDate"
-                class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
-                [class.border-red-500]="technicienForm.get('birthDate')?.invalid && technicienForm.get('birthDate')?.touched" />
-            </div>
-            <div *ngIf="technicienForm.get('birthDate')?.touched && technicienForm.get('birthDate')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span *ngIf="technicienForm.get('birthDate')?.errors?.['required']">La date de naissance est requise</span>
-              <span *ngIf="technicienForm.get('birthDate')?.errors?.['futureDate']">La date ne peut pas être dans le futur</span>
-              <span *ngIf="technicienForm.get('birthDate')?.errors?.['underAge']">Vous devez avoir au moins 18 ans</span>
-            </div>
-          </div>
+        <!-- Date de naissance -->
+<div>
+  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+    Date de naissance 
+  </label>
+  
+  <div class="relative">
+    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
+      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+      </svg>
+    </div>
+    <input 
+      type="date" 
+      id="birthDate"
+      formControlName="birthDate"
+      [max]="maxBirthDateISO"
+      class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+      [class.border-red-500]="technicienForm.get('birthDate')?.invalid && technicienForm.get('birthDate')?.touched"
+    />
+    <!-- Bouton calendrier personnalisé -->
+    <button 
+      type="button"
+      (click)="openCalendar()"
+      class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      title="Ouvrir le calendrier"
+    >
+      <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+      </svg>
+    </button>
+  </div>
+  
+  <div *ngIf="technicienForm.get('birthDate')?.touched && technicienForm.get('birthDate')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    <span *ngIf="technicienForm.get('birthDate')?.errors?.['futureDate']">La date ne peut pas être dans le futur</span>
+    <span *ngIf="technicienForm.get('birthDate')?.errors?.['underAge']">Vous devez avoir au moins 18 ans</span>
+  </div>
+</div>
 
           
         </div>

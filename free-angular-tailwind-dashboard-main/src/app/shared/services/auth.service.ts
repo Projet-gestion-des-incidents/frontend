@@ -64,12 +64,6 @@ this.loadUserFromStorage();
       );
   }
 
-getRolesForRegister(): Observable<{id: string, name: string}[]> {
-  return this.http.get<{id: string, name: string}[]>(`${this.apiUrl}/roles/register`)
-    .pipe(
-      map((res: any) => res.data || [])
-    );
-}
 
   // ========== LOGIN ==========
   login(dto: LoginDTO): Observable<ApiResponse<AuthResponseDTO>> {

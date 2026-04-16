@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, LOCALE_ID, OnInit } from '@angular/core';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -13,10 +13,26 @@ import { LabelComponent } from '../../shared/components/form/label/label.compone
 import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
 import { FileInputExampleComponent } from '../../shared/components/form/form-elements/file-input-example/file-input-example.component';
 import { MapComponent } from '../../google-maps-wrapper/map.component';
+import { OtpService } from '../../shared/services/otp.service';
+import { Observable } from 'rxjs';
+import localeFr from '@angular/common/locales/fr';
+import { registerLocaleData } from '@angular/common';
+
+interface ApiResponse<T> {
+  data: T;
+  message: string;
+  resultCode: number;
+  errors?: string[];
+  isSuccess?: boolean;
+}
+registerLocaleData(localeFr);
 
 @Component({
   selector: 'app-profile',
   standalone: true,
+    providers: [
+    { provide: LOCALE_ID, useValue: 'fr' }  // Définir la locale par défaut
+  ],
   imports: [
     CommonModule,
     RouterModule,
@@ -37,6 +53,7 @@ import { MapComponent } from '../../google-maps-wrapper/map.component';
     @media (min-width: 768px) { :host { padding: 1.5rem; } }
   `]
 })
+
 export class ProfileComponent implements OnInit {
   user!: User;
   loading = true;
@@ -79,7 +96,8 @@ export class ProfileComponent implements OnInit {
 
   constructor(
     private fb: FormBuilder,
-    private userService: UserService
+    private userService: UserService,
+        private otpService: OtpService
   ) {}
 
   ngOnInit(): void {
@@ -112,7 +130,20 @@ export class ProfileComponent implements OnInit {
     
     return null;
   }
-
+  get passwordStrength(): 'weak' | 'medium' | 'strong' {
+    const password = this.passwordForm.get('newPassword')?.value;
+    if (!password) return 'weak';
+    
+    let strength = 0;
+    if (password.length >= 6) strength++;
+    if (/[A-Z]/.test(password)) strength++;
+    if (/[a-z]/.test(password)) strength++;
+    if (/[0-9]/.test(password)) strength++;
+    
+    if (strength <= 2) return 'weak';
+    if (strength === 3) return 'medium';
+    return 'strong';
+  }
   loadProfile(): void {
     this.loading = true;
     this.userService.getMyProfile().subscribe({
@@ -253,165 +284,417 @@ onLocationSelectedInModal(location: any): void {
     }
   }
 
-  saveInfo(): void {
-    if (this.editForm.invalid) {
-      const errors = [];
-      if (this.editForm.get('nom')?.errors) errors.push('Nom invalide');
-      if (this.editForm.get('prenom')?.errors) errors.push('Prénom invalide');
-      if (this.editForm.get('email')?.errors) errors.push('Email invalide');
-      if (this.editForm.get('phoneNumber')?.errors) errors.push('Téléphone invalide (8 chiffres)');
-      if (this.editForm.get('birthDate')?.errors) errors.push('Date de naissance invalide (18 ans minimum)');
-      
-      this.showAlert('error', 'Formulaire invalide', errors.join(', '));
-      return;
-    }
+// Dans profile.component.ts, modifiez les méthodes saveInfo et changePassword
 
-    this.saving = true;
-    const formValue = this.editForm.value;
+saveInfo(): void {
+  console.log('========== DÉBUT SAVE INFO ==========');
+  console.log('Rôle utilisateur:', this.user.role);
+  console.log('Valeurs du formulaire:', this.editForm.value);
+  
+  if (this.editForm.invalid) {
+    const errors = [];
+    if (this.editForm.get('nom')?.errors) errors.push('Nom invalide');
+    if (this.editForm.get('prenom')?.errors) errors.push('Prénom invalide');
+    if (this.editForm.get('email')?.errors) errors.push('Email invalide');
+    if (this.editForm.get('phoneNumber')?.errors) errors.push('Téléphone invalide (8 chiffres)');
+    if (this.editForm.get('birthDate')?.errors) errors.push('Date de naissance invalide (18 ans minimum)');
     
-    if (this.user.role === 'Technicien') {
-      const birthDateControl = this.editForm.get('birthDate');
-      if (birthDateControl?.errors) {
-        if (birthDateControl.errors['futureDate']) {
-          this.showAlert('error', 'Date invalide', 'La date de naissance ne peut pas être dans le futur');
-          this.saving = false;
-          return;
+    console.error('❌ Formulaire invalide:', errors);
+    this.showAlert('error', 'Formulaire invalide', errors.join(', '));
+    return;
+  }
+
+  this.saving = true;
+  const formValue = this.editForm.value;
+  console.log('📤 Envoi des données de mise à jour...');
+  
+  // Construire le payload selon le rôle
+  let payload: any = {};
+  let serviceCall: Observable<ApiResponse<User>>;
+  
+  if (this.user.role === 'Technicien') {
+    payload = {
+      nom: formValue.nom,
+      prenom: formValue.prenom,
+      phoneNumber: formValue.phoneNumber,
+      birthDate: formValue.birthDate,
+      email: formValue.email
+    };
+    if (this.imageBase64) payload.image = this.imageBase64;
+    console.log('📦 Payload Technicien:', { ...payload, image: payload.image ? 'present' : 'absent' });
+    serviceCall = this.userService.updateTechnicienProfile(payload);
+    
+  } else if (this.user.role === 'Commercant') {
+    payload = {
+      nomMagasin: formValue.nomMagasin || formValue.nom,
+      phoneNumber: formValue.phoneNumber,
+      adresse: formValue.adresse,
+      email: formValue.email
+    };
+    if (this.imageBase64) payload.image = this.imageBase64;
+    console.log('📦 Payload Commercant:', { ...payload, image: payload.image ? 'present' : 'absent' });
+    serviceCall = this.userService.updateCommercantProfile(payload);
+    
+  } else {
+    payload = {
+      userName: formValue.nom,
+      nom: formValue.nom,
+      prenom: formValue.prenom,
+      phoneNumber: formValue.phoneNumber,
+      email: formValue.email
+    };
+    if (formValue.birthDate) payload.birthDate = formValue.birthDate;
+    if (formValue.adresse) payload.adresse = formValue.adresse;
+    if (this.imageBase64) payload.image = this.imageBase64;
+    console.log('📦 Payload Admin:', { ...payload, image: payload.image ? 'present' : 'absent' });
+    serviceCall = this.userService.updateMyProfile(payload);
+  }
+  
+  console.log('🔄 Appel API en cours...');
+  serviceCall.subscribe({
+    next: (response: ApiResponse<User>) => {
+      console.log('✅ Réponse API reçue:', {
+        resultCode: response.resultCode,
+        message: response.message,
+        hasData: !!response.data,
+        isSuccess: response.isSuccess
+      });
+      
+      this.saving = false;
+      
+      if (response.resultCode === 42) {
+        console.log('📧 Cas: Changement d\'email - OTP envoyé vers:', formValue.email);
+        this.pendingEmailChange = formValue.email;
+        this.otpPurpose = 'email';
+        this.showOtpModal = true;
+        this.closeInfoModal();
+        this.showAlert('info', 'Vérification requise', response.message || `Un code OTP a été envoyé à ${formValue.email}`);
+      } 
+      else if (response.resultCode === 43) {
+        console.log('🔐 Cas: Changement de mot de passe - OTP envoyé vers:', this.user.email);
+        this.otpPurpose = 'password';
+        this.showOtpModal = true;
+        this.closeInfoModal();
+        this.showAlert('info', 'Vérification requise', response.message || `Un code OTP a été envoyé à ${this.user.email}`);
+      }
+      else if (response.resultCode === 0) {
+        console.log('✅ Cas: Mise à jour réussie sans OTP');
+        this.showAlert('success', 'Succès', response.message || 'Profil mis à jour avec succès');
+        if (response.data) {
+          this.user = { ...this.user, ...response.data };
         }
-        if (birthDateControl.errors['underAge']) {
-          this.showAlert('error', 'Âge insuffisant', 'Vous devez avoir au moins 18 ans');
-          this.saving = false;
-          return;
+        this.loadProfile();
+        this.closeInfoModal();
+      }
+      else {
+        console.error('❌ Cas: Erreur serveur - Code:', response.resultCode);
+        this.showAlert('error', 'Erreur', response.message || 'Erreur lors de la mise à jour');
+      }
+      console.log('========== FIN SAVE INFO ==========');
+    },
+    error: (err: any) => {
+      console.error('❌ ERREUR HTTP:', {
+        status: err.status,
+        statusText: err.statusText,
+        message: err.message,
+        error: err.error
+      });
+      
+      this.saving = false;
+      let errorMessage = 'Erreur lors de la mise à jour';
+      
+      if (err.error?.message) {
+        errorMessage = err.error.message;
+        console.log('Message d\'erreur serveur:', errorMessage);
+        if (errorMessage.includes('email déjà utilisé')) {
+          errorMessage = 'Cet email est déjà utilisé par un autre compte';
+        } else if (errorMessage.includes('téléphone déjà utilisé')) {
+          errorMessage = 'Ce numéro de téléphone est déjà utilisé';
         }
       }
+      
+      this.showAlert('error', 'Erreur de mise à jour', errorMessage);
+      console.log('========== FIN SAVE INFO (ERREUR) ==========');
     }
+  });
+}
+changePassword(): void {
+  console.log('========== DÉBUT CHANGE PASSWORD ==========');
+  console.log('Rôle utilisateur:', this.user.role);
+  console.log('Email utilisateur:', this.user.email);
+  
+  if (this.passwordForm.invalid) {
+    const errors = [];
+    if (this.passwordForm.get('currentPassword')?.errors) errors.push('Mot de passe actuel requis');
+    if (this.passwordForm.get('newPassword')?.errors) errors.push('Nouveau mot de passe invalide');
+    if (this.passwordForm.get('confirmPassword')?.errors) errors.push('Confirmation requise');
+    if (this.passwordForm.hasError('mismatch')) errors.push('Les mots de passe ne correspondent pas');
     
-    let payload: any = {};
-    let serviceCall: any;
-    let successMessage = '';
+    console.error('❌ Formulaire invalide:', errors);
     
-    if (this.user.role === 'Technicien') {
-      payload = {
-        nom: formValue.nom,
-        prenom: formValue.prenom,
-        email: formValue.email,
-        phoneNumber: formValue.phoneNumber,
-        birthDate: formValue.birthDate
-      };
-      if (this.imageBase64) payload.image = this.imageBase64;
-      serviceCall = this.userService.updateTechnicienProfile(payload);
-      successMessage = 'Profil technicien mis à jour avec succès';
-      
-    } else if (this.user.role === 'Commercant') {
-      payload = {
-        nomMagasin: formValue.nomMagasin || formValue.nom,
-        email: formValue.email,
-        phoneNumber: formValue.phoneNumber,
-        adresse: formValue.adresse
-      };
-      if (this.imageBase64) payload.image = this.imageBase64;
-      serviceCall = this.userService.updateCommercantProfile(payload);
-      successMessage = 'Profil commerçant mis à jour avec succès';
-      
+    if (this.passwordForm.get('currentPassword')?.errors) {
+      this.showAlert('error', 'Champ requis', 'Le mot de passe actuel est requis');
+    } else if (this.passwordForm.get('newPassword')?.errors) {
+      this.showAlert('error', 'Mot de passe faible', 'Le nouveau mot de passe doit contenir au moins 6 caractères');
+    } else if (this.passwordForm.hasError('mismatch')) {
+      this.showAlert('error', 'Non concordant', 'Les mots de passe ne correspondent pas');
     } else {
-      payload = {
-        userName: formValue.nom,
-        nom: formValue.nom,
-        prenom: formValue.prenom,
-        email: formValue.email,
-        phoneNumber: formValue.phoneNumber
-      };
-      if (formValue.birthDate) payload.birthDate = formValue.birthDate;
-      if (formValue.adresse) payload.adresse = formValue.adresse;
-      if (this.imageBase64) payload.image = this.imageBase64;
-      serviceCall = this.userService.updateMyProfile(payload);
-      successMessage = 'Profil administrateur mis à jour avec succès';
+      this.showAlert('error', 'Formulaire invalide', 'Veuillez remplir tous les champs correctement');
     }
-    
-    serviceCall.subscribe({
-      next: (updatedUser: User) => {
-        
-        this.user = { ...this.user, ...updatedUser };
-        if (this.user.role === 'Commercant' && updatedUser.nom) {
-          this.user.nom = updatedUser.nom;
-        }
-            this.loadProfile();
+    return;
+  }
 
-        this.closeInfoModal();
-        this.showAlert('success', 'Succès', successMessage);
-        this.saving = false;
-      },
-      error: (err: any) => {
-        this.saving = false;
-        let errorMessage = 'Erreur lors de la mise à jour';
-        
-        if (err.error?.message) {
-          errorMessage = err.error.message;
-          if (errorMessage.includes('email déjà utilisé')) {
-            errorMessage = 'Cet email est déjà utilisé par un autre compte';
-          } else if (errorMessage.includes('téléphone déjà utilisé')) {
-            errorMessage = 'Ce numéro de téléphone est déjà utilisé';
-          } else if (errorMessage.includes('nom d\'utilisateur déjà pris')) {
-            errorMessage = 'Ce nom d\'utilisateur est déjà pris';
-          }
-        } else if (err.message) {
-          errorMessage = err.message;
+  this.changingPassword = true;
+  
+  // ✅ Fonction utilitaire pour formater la date
+  const formatBirthDate = (birthDate: string | Date | undefined): string | null => {
+    if (!birthDate) return null;
+    try {
+      let date: Date;
+      if (typeof birthDate === 'string') {
+        date = new Date(birthDate);
+      } else {
+        date = birthDate;
+      }
+      if (isNaN(date.getTime())) return null;
+      return date.toISOString().split('T')[0];
+    } catch (e) {
+      console.warn('Erreur formatage date:', e);
+      return null;
+    }
+  };
+  
+  // ✅ Construire le payload COMPLET selon le rôle
+  let payload: any = {};
+  
+  if (this.user.role === 'Technicien') {
+    payload = {
+      // Champs obligatoires pour Technicien
+      nom: this.user.nom,
+      prenom: this.user.prenom,
+      email: this.user.email,
+      phoneNumber: this.user.phoneNumber || '',
+      birthDate: formatBirthDate(this.user.birthDate),
+      // Champs pour changement de mot de passe
+      currentPassword: this.passwordForm.value.currentPassword,
+      newPassword: this.passwordForm.value.newPassword,
+      confirmPassword: this.passwordForm.value.confirmPassword
+    };
+    console.log('📦 Payload Technicien avec changement mot de passe');
+    
+  } else if (this.user.role === 'Commercant') {
+    payload = {
+      // Champs obligatoires pour Commercant
+      nomMagasin: this.user.nom,
+      email: this.user.email,
+      phoneNumber: this.user.phoneNumber || '',
+      adresse: this.user.adresse || '',
+      // Champs pour changement de mot de passe
+      currentPassword: this.passwordForm.value.currentPassword,
+      newPassword: this.passwordForm.value.newPassword,
+      confirmPassword: this.passwordForm.value.confirmPassword
+    };
+    console.log('📦 Payload Commercant avec changement mot de passe:', {
+      nomMagasin: payload.nomMagasin,
+      email: payload.email,
+      phoneNumber: payload.phoneNumber,
+      adresse: payload.adresse ? 'present' : 'absent'
+    });
+    
+  } else {
+    payload = {
+      // Champs obligatoires pour Admin
+      userName: this.user.nom,
+      nom: this.user.nom,
+      prenom: this.user.prenom,
+      email: this.user.email,
+      phoneNumber: this.user.phoneNumber || '',
+      birthDate: formatBirthDate(this.user.birthDate),
+      // Champs pour changement de mot de passe
+      currentPassword: this.passwordForm.value.currentPassword,
+      newPassword: this.passwordForm.value.newPassword,
+      confirmPassword: this.passwordForm.value.confirmPassword
+    };
+    console.log('📦 Payload Admin avec changement mot de passe');
+  }
+  
+  console.log('📤 Payload complet:', {
+    ...payload,
+    currentPassword: '***',
+    newPassword: '***',
+    confirmPassword: '***'
+  });
+
+  let serviceCall;
+  if (this.user.role === 'Technicien') {
+    serviceCall = this.userService.updateTechnicienProfile(payload);
+  } else if (this.user.role === 'Commercant') {
+    serviceCall = this.userService.updateCommercantProfile(payload);
+  } else {
+    serviceCall = this.userService.updateMyProfile(payload);
+  }
+
+  console.log('🔄 Appel API en cours...');
+  serviceCall.subscribe({
+    next: (response: ApiResponse<User>) => {
+      console.log('✅ Réponse API reçue:', {
+        resultCode: response.resultCode,
+        message: response.message,
+        hasData: !!response.data
+      });
+      
+      this.changingPassword = false;
+      
+      if (response.resultCode === 43) {
+        console.log('🔐 Cas: OTP envoyé pour confirmation vers:', this.user.email);
+        this.pendingPasswordChange = this.passwordForm.value.newPassword;
+        this.otpPurpose = 'password';
+        this.showOtpModal = true;
+        this.closePasswordModal();
+        this.showAlert('info', 'Vérification requise', response.message || `Un code OTP a été envoyé à ${this.user.email}`);
+      } 
+      else if (response.resultCode === 0) {
+        console.log('✅ Cas: Mot de passe changé avec succès');
+        this.closePasswordModal();
+        this.showAlert('success', 'Mot de passe modifié', response.message || 'Votre mot de passe a été changé avec succès');
+        this.loadProfile();
+      }
+      else {
+        console.error('❌ Cas: Erreur serveur - Code:', response.resultCode);
+        this.showAlert('error', 'Erreur', response.message || 'Erreur lors du changement de mot de passe');
+      }
+      console.log('========== FIN CHANGE PASSWORD ==========');
+    },
+    error: (err) => {
+      console.error('❌ ERREUR HTTP:', {
+        status: err.status,
+        statusText: err.statusText,
+        message: err.message,
+        error: err.error
+      });
+      
+      this.changingPassword = false;
+      let errorMessage = 'Erreur lors du changement de mot de passe';
+      
+      if (err.error?.errors) {
+        // Afficher les erreurs de validation
+        const validationErrors = Object.values(err.error.errors).flat();
+        errorMessage = validationErrors.join(', ');
+        console.log('Erreurs de validation:', validationErrors);
+      } else if (err.error?.message) {
+        errorMessage = err.error.message;
+        console.log('Message d\'erreur serveur:', errorMessage);
+        if (errorMessage.includes('incorrect')) {
+          errorMessage = 'Le mot de passe actuel est incorrect';
         }
+      }
+      
+      this.showAlert('error', 'Erreur', errorMessage);
+      console.log('========== FIN CHANGE PASSWORD (ERREUR) ==========');
+    }
+  });
+}
+confirmWithOtp(): void {
+  console.log('========== DÉBUT CONFIRM OTP ==========');
+  console.log('Purpose:', this.otpPurpose);
+  console.log('OTP Code saisi:', this.otpCode);
+  console.log('Pending Email:', this.pendingEmailChange);
+  console.log('Pending Password:', this.pendingPasswordChange ? '***' : 'null');
+  
+  if (!this.otpCode || this.otpCode.length !== 6) {
+    console.error('❌ Code OTP invalide - Longueur:', this.otpCode?.length);
+    this.showAlert('error', 'Code invalide', 'Veuillez entrer un code OTP valide (6 chiffres)');
+    return;
+  }
+
+  this.otpLoading = true;
+
+  if (this.otpPurpose === 'email') {
+    console.log('📧 Confirmation changement d\'email vers:', this.pendingEmailChange);
+    console.log('🔄 Appel API confirmEmailChange...');
+    
+    this.otpService.confirmEmailChange(this.pendingEmailChange, this.otpCode).subscribe({
+      next: (response) => {
+        console.log('✅ Réponse confirmEmailChange:', {
+          resultCode: response.resultCode,
+          message: response.message,
+          hasData: !!response.data
+        });
         
-        this.showAlert('error', 'Erreur de mise à jour', errorMessage);
+        this.otpLoading = false;
+        if (response.resultCode === 0) {
+          console.log('✅ Email changé avec succès');
+          this.showOtpModal = false;
+          this.showAlert('success', 'Email modifié', response.message);
+          this.user.email = this.pendingEmailChange;
+          this.loadProfile();
+        } else {
+          console.error('❌ Erreur confirmation email - Code:', response.resultCode);
+          this.showAlert('error', 'Erreur', response.message || 'Code OTP invalide');
+        }
+        console.log('========== FIN CONFIRM OTP (EMAIL) ==========');
+      },
+      error: (err) => {
+        console.error('❌ ERREUR HTTP confirmEmailChange:', {
+          status: err.status,
+          statusText: err.statusText,
+          message: err.message,
+          error: err.error
+        });
+        
+        this.otpLoading = false;
+        this.showAlert('error', 'Erreur', err.error?.message || 'Erreur lors de la confirmation');
+        console.log('========== FIN CONFIRM OTP (EMAIL ERREUR) ==========');
+      }
+    });
+  } else {
+    console.log('🔐 Confirmation changement mot de passe');
+    console.log('🔄 Appel API confirmPasswordChange...');
+    
+    this.otpService.confirmPasswordChange(this.pendingPasswordChange, this.otpCode).subscribe({
+      next: (response) => {
+        console.log('✅ Réponse confirmPasswordChange:', {
+          resultCode: response.resultCode,
+          message: response.message,
+          hasData: !!response.data
+        });
+        
+        this.otpLoading = false;
+        if (response.resultCode === 0) {
+          console.log('✅ Mot de passe changé avec succès');
+          this.showOtpModal = false;
+          this.showAlert('success', 'Mot de passe modifié', response.message);
+          this.passwordForm.reset();
+          this.loadProfile();
+        } else {
+          console.error('❌ Erreur confirmation mot de passe - Code:', response.resultCode);
+          this.showAlert('error', 'Erreur', response.message || 'Code OTP invalide');
+        }
+        console.log('========== FIN CONFIRM OTP (PASSWORD) ==========');
+      },
+      error: (err) => {
+        console.error('❌ ERREUR HTTP confirmPasswordChange:', {
+          status: err.status,
+          statusText: err.statusText,
+          message: err.message,
+          error: err.error
+        });
+        
+        this.otpLoading = false;
+        this.showAlert('error', 'Erreur', err.error?.message || 'Erreur lors de la confirmation');
+        console.log('========== FIN CONFIRM OTP (PASSWORD ERREUR) ==========');
       }
     });
   }
+}
+
 closeInfoModal(): void {
   this.isInfoModalOpen = false;
   this.mapReady = false;  // ✅ Réinitialiser quand on ferme
   this.clearAlert();
 }
-  changePassword(): void {
-    if (this.passwordForm.invalid) {
-      if (this.passwordForm.get('currentPassword')?.errors) {
-        this.showAlert('error', 'Champ requis', 'Le mot de passe actuel est requis');
-      } else if (this.passwordForm.get('newPassword')?.errors) {
-        this.showAlert('error', 'Mot de passe faible', 'Le nouveau mot de passe doit contenir au moins 6 caractères');
-      } else if (this.passwordForm.hasError('mismatch')) {
-        this.showAlert('error', 'Non concordant', 'Les mots de passe ne correspondent pas');
-      } else {
-        this.showAlert('error', 'Formulaire invalide', 'Veuillez remplir tous les champs correctement');
-      }
-      return;
-    }
 
-    this.changingPassword = true;
-    
-    const payload = {
-      currentPassword: this.passwordForm.value.currentPassword,
-      newPassword: this.passwordForm.value.newPassword,
-      confirmPassword: this.passwordForm.value.confirmPassword
-    };
 
-    this.userService.updateMyProfile(payload).subscribe({
-      next: () => {
-        this.closePasswordModal();
-        this.showAlert('success', 'Mot de passe modifié', 'Votre mot de passe a été changé avec succès');
-        this.changingPassword = false;
-              this.loadProfile();
-
-      },
-      error: (err) => {
-        this.changingPassword = false;
-        let errorMessage = 'Erreur lors du changement de mot de passe';
-        
-        if (err.error?.message) {
-          errorMessage = err.error.message;
-          if (errorMessage.includes('incorrect')) {
-            errorMessage = 'Le mot de passe actuel est incorrect';
-          }
-        }
-        
-        this.showAlert('error', 'Erreur', errorMessage);
-      }
-    });
-  }
-// Ajouter dans ProfileComponent
 
 removeSelectedImage(): void {
   this.selectedImage = null;
@@ -550,4 +833,11 @@ formatFileSize(bytes: number): string {
   toggleConfirmPassword(): void {
     this.showConfirmPassword = !this.showConfirmPassword;
   }
+
+  showOtpModal = false;
+otpPurpose: 'email' | 'password' = 'email';
+pendingEmailChange: string = '';
+pendingPasswordChange: string = '';
+otpCode: string = '';
+otpLoading = false;
 }

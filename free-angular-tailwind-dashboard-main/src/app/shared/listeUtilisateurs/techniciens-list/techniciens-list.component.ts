@@ -84,28 +84,53 @@ onEdit(technicien: any): void {
     return this.filteredTechniciens.slice(start, end);
   }
 
-  loadTechniciens(): void {
-    this.loading = true;
-    const request: any = {
-      page: 1,
-      pageSize: 1000,
-      sortBy: 'nom',
-      sortDescending: false
-    };
+loadTechniciens(): void {
+  this.loading = true;
+  const request = {
+    page: this.currentPage,
+    pageSize: 100,
+    sortBy: 'nom',
+    sortDescending: false,
+    role: 'Technicien'
+  };
 
-    this.userService.searchUsers(request).subscribe({
-      next: (res) => {
-        this.techniciens = (res.data || []).filter(user => user.role === 'Technicien');
-        this.loading = false;
-        this.updateTotalPages();
-      },
-      error: (err) => {
-        console.error('Erreur chargement techniciens:', err);
-        this.error = 'Impossible de charger les techniciens';
-        this.loading = false;
+  this.userService.getTechniciens(request).subscribe({
+    next: (response) => {
+      console.log('📦 Réponse reçue:', response);
+      
+      if (response && response.data) {
+        // ✅ Log pour voir les valeurs de emailConfirmed
+        console.log('📧 emailConfirmed des techniciens:', response.data.map((t: any) => ({
+          nom: t.nom,
+          emailConfirmed: t.emailConfirmed
+        })));
+        
+        // ✅ Filtrer les techniciens avec email confirmé
+        this.techniciens = response.data.filter((t: any) => t.emailConfirmed === true);
+        
+        console.log('✅ Techniciens après filtrage (email confirmé):', this.techniciens.length);
+        
+        if (response.pagination) {
+          this.totalPages = response.pagination.totalPages || 1;
+          this.currentPage = response.pagination.page || 1;
+        } else {
+          this.updateTotalPages();
+        }
+      } else {
+        this.techniciens = [];
       }
-    });
-  }
+      
+      this.loading = false;
+      this.updateTotalPages();
+    },
+    error: (err) => {
+      console.error('Erreur chargement techniciens:', err);
+      this.error = 'Impossible de charger les techniciens';
+      this.loading = false;
+    }
+  });
+}
+
 
   updateTotalPages(): void {
     this.totalPages = Math.ceil(this.filteredTechniciens.length / this.pageSize) || 1;

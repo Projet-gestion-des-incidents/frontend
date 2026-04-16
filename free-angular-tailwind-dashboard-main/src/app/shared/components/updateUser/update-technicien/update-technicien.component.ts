@@ -23,8 +23,8 @@ export class UpdateTechnicienComponent implements OnInit {
   loading = false;
   isAdmin = false;
   technicienId: string | null = null;
-  private isUpdatingUserName = false; // Pour éviter les boucles infinies
-  
+    maxBirthDateISO: string = '';
+
   // Alert
   alert: Alert = {
     show: false,
@@ -45,18 +45,7 @@ export class UpdateTechnicienComponent implements OnInit {
       nom: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(30)]],
       prenom: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(30)]],
       phoneNumber: ['', [Validators.pattern('^[0-9]{8}$')]],
-      birthDate: ['', [Validators.required, this.validateAge.bind(this)]]    });
-
-  
-  }
-
-
-
-  // Stocker le userName original pour référence
-  getOriginalUserName(): string {
-    // Cette valeur sera définie lors du chargement des données
-    
-    return (this.technicienForm.get('userName') as any).originalValue || '';
+  birthDate: ['', [this.validateAge.bind(this)]]     });
   }
 
   ngOnInit(): void {
@@ -76,42 +65,46 @@ export class UpdateTechnicienComponent implements OnInit {
     }
   }
 
-  // Validation personnalisée pour l'âge (18 ans minimum)
-  validateAge(control: any): { [key: string]: boolean } | null {
-    if (!control.value) {
-      return { required: true };
-    }
-    
-    const birthDate = new Date(control.value);
-    const today = new Date();
-    
-    // Vérifier si la date est dans le futur
-    if (birthDate > today) {
-      return { futureDate: true };
-    }
-    
-    let age = today.getFullYear() - birthDate.getFullYear();
-    const monthDiff = today.getMonth() - birthDate.getMonth();
-    
-    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
-      age--;
-    }
-    
-    if (age < 18) {
-      return { underAge: true };
-    }
-    
-    return null;
+ // Validation personnalisée pour l'âge (18 ans minimum) - Optionnel
+validateAge(control: any): { [key: string]: boolean } | null {
+  // ✅ Si la valeur est vide, pas d'erreur (champ optionnel)
+  if (!control.value) {
+    return null;  // Pas d'erreur, champ optionnel
   }
-
+  
+  const birthDate = new Date(control.value);
+  const today = new Date();
+  
+  if (birthDate > today) {
+    return { futureDate: true };
+  }
+  
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  
+  if (age < 18) {
+    return { underAge: true };
+  }
+  
+  return null;
+}
+ openCalendar(): void {
+    const dateInput = document.getElementById('birthDate') as HTMLInputElement;
+    if (dateInput) {
+      dateInput.showPicker(); // Fonctionne dans les navigateurs modernes
+    }
+  }
   loadTechnicienData(): void {
     this.loading = true;
     console.log('🔄 Chargement du technicien ID:', this.technicienId);
     
-    this.userService.getTechniciens().subscribe({
-      next: (techniciens) => {
-        console.log('📦 Liste des techniciens reçue:', techniciens);
-        const technicien = techniciens.find(t => t.id === this.technicienId);
+    // ✅ Utiliser getTechnicienById au lieu de getTechniciens
+    this.userService.getTechnicienById(this.technicienId!).subscribe({
+      next: (technicien) => {
         console.log('🎯 Technicien trouvé:', technicien);
         
         if (technicien) {
@@ -122,22 +115,14 @@ export class UpdateTechnicienComponent implements OnInit {
             birthDateValue = date.toISOString().split('T')[0];
           }
           
-          // Récupérer le userName existant ou en générer un
-          let userNameValue = (technicien as any).userName || '';
-          if (!userNameValue && technicien.prenom && technicien.nom) {
-            userNameValue = `${technicien.prenom.toLowerCase()} ${technicien.nom.toLowerCase()}`;
-          }
-          
-          // Stocker la valeur originale
-          (this.technicienForm.get('userName') as any).originalValue = userNameValue;
-          
           this.technicienForm.patchValue({
-            userName: userNameValue,
+            userName: technicien.userName || '',
             email: technicien.email || '',
             nom: technicien.nom || '',
             prenom: technicien.prenom || '',
             phoneNumber: technicien.phoneNumber || '',
-            birthDate: birthDateValue          });
+            birthDate: birthDateValue
+          });
           
           console.log('✅ Formulaire après patch:', this.technicienForm.value);
         } else {
@@ -147,7 +132,8 @@ export class UpdateTechnicienComponent implements OnInit {
       },
       error: (error) => {
         console.error('❌ Erreur chargement:', error);
-        this.showAlert('error', 'Erreur', 'Impossible de charger les données du technicien');
+        const errorMessage = error.error?.message || error.message || 'Impossible de charger les données du technicien';
+        this.showAlert('error', 'Erreur', errorMessage);
         this.loading = false;
       }
     });
@@ -166,7 +152,7 @@ export class UpdateTechnicienComponent implements OnInit {
     
     const formValue = this.technicienForm.value;
     const updateData: any = {
-      userName: formValue.userName, // Utiliser la valeur saisie par l'utilisateur
+      userName: formValue.userName,
       email: formValue.email,
       nom: formValue.nom,
       prenom: formValue.prenom,
@@ -209,7 +195,6 @@ export class UpdateTechnicienComponent implements OnInit {
       variant
     };
     
-    // Auto-hide after 5 seconds
     setTimeout(() => {
       if (this.alert.show) {
         this.clearAlert();

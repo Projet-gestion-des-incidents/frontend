@@ -38,10 +38,10 @@ export class CreateTechnicienComponent {
     private router: Router
   ) {
     this.technicienForm = this.fb.group({
-      prenom: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(30)]],
-      nom: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(30)]],
+      prenom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
+      nom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
       email: ['', [Validators.required, Validators.email]],
-      userName: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(30)]]
+      userName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]]
     });
   }
 

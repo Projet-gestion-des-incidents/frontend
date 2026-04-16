@@ -110,7 +110,7 @@ export class TicketFormComponent implements OnInit {
   loadTechniciens(): void {
     this.userService.getTechniciens().subscribe({
       next: (users) => {
-        this.techniciens = users.map(u => ({
+        this.techniciens = users.map((u: any)  => ({
           id: u.id,
           nom: u.nom,
           prenom: u.prenom

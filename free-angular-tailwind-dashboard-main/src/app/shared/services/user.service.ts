@@ -63,14 +63,7 @@ desactivateUser(id: string) {
   );
 }
 
-  getAvailableRoles(): Observable<RoleOption[]> {
-    return this.http.get<RoleOption[]>(
-      `${this.apiUrl}/roles/register`, 
-      this.getAuthHeaders()
-    ).pipe(
-      map((res: any) => res.data || [])
-    );
-  }
+
 
  
 
@@ -298,92 +291,191 @@ private determineStatut(user: any): 'Actif' | 'Inactif' {
 }
 // Dans user.service.ts
 
-getTechniciens(): Observable<User[]> {
-  console.log('🔍 Récupération des techniciens...');
-  
-  return this.http.get<any>(`${this.apiUrl}/techniciens`, this.getAuthHeaders())
-    .pipe(
-      tap(response => {
-        console.log('📦 Réponse API techniciens:', response);
-      }),
-      map(response => {
-        // Le backend renvoie ApiResponse avec data
-        if (response?.data && Array.isArray(response.data)) {
-          return response.data.map((user: any) => ({
-            id: user.id,
-            nom: user.nom,
-                        userName: user.userName,
-   phoneNumber: user.phoneNumber,
-            prenom: user.prenom,
-            email: user.email,
-            role: user.role,
-            image: this.getFullImageUrl(user.image)
-          }));
-        }
-        // Si c'est un tableau direct
-        if (Array.isArray(response)) {
-          return response.map((user: any) => ({
-            id: user.id,
-            nom: user.nom,
-            prenom: user.prenom,
-            email: user.email,            phoneNumber: user.phoneNumber,  // ✅ Ajouté - c'est ce qui manquait !
+// Dans user.service.ts - Modifiez la méthode getTechniciens pour accepter les paramètres de pagination
 
-            role: user.role,
-            image: this.getFullImageUrl(user.image)
-          }));
-        }
-        return [];
-      }),
-      catchError(error => {
-        console.error('❌ Erreur récupération techniciens:', error);
-        return of([]);
-      })
-    );
+getTechniciens(request?: any): Observable<any> {
+  console.log('🔍 Récupération des techniciens...', request);
+  
+  let params = new HttpParams();
+  if (request) {
+    if (request.page) params = params.set('Page', request.page.toString());
+    if (request.pageSize) params = params.set('PageSize', request.pageSize.toString());
+    if (request.sortBy) params = params.set('SortBy', request.sortBy);
+    if (request.sortDescending) params = params.set('SortDescending', request.sortDescending.toString());
+    if (request.searchTerm) params = params.set('SearchTerm', request.searchTerm);
+    if (request.role) params = params.set('Role', request.role);
+    if (request.statut) params = params.set('Statut', request.statut);
+  }
+  
+  return this.http.get<any>(`${this.apiUrl}/techniciens`, {
+    params,
+    headers: this.getAuthHeaders().headers
+  }).pipe(
+    tap(response => {
+      console.log('📦 Réponse API techniciens:', response);
+    }),
+    map(response => {
+      // Extraire les données de la réponse ApiResponse
+      let items = [];
+      let pagination = null;
+      
+      if (response?.data && Array.isArray(response.data)) {
+        items = response.data;
+      } else if (response?.data?.items && Array.isArray(response.data.items)) {
+        items = response.data.items;
+        pagination = {
+          page: response.data.page,
+          pageSize: response.data.pageSize,
+          totalCount: response.data.totalCount,
+          totalPages: response.data.totalPages
+        };
+      } else if (response?.items && Array.isArray(response.items)) {
+        items = response.items;
+        pagination = {
+          page: response.page,
+          pageSize: response.pageSize,
+          totalCount: response.totalCount,
+          totalPages: response.totalPages
+        };
+      } else if (Array.isArray(response)) {
+        items = response;
+      }
+      
+      const mappedItems = items.map((user: any) => ({
+        id: user.id,
+        nom: user.nom,
+        userName: user.userName,
+        phoneNumber: user.phoneNumber,
+        prenom: user.prenom,
+        email: user.email,
+        role: user.role,
+        statut: user.statut,
+        birthDate: user.birthDate,
+          emailConfirmed: user.emailConfirmed, 
+        image: this.getFullImageUrl(user.image)
+      }));
+      
+      return {
+        data: mappedItems,
+        pagination: pagination
+      };
+    }),
+    catchError(error => {
+      console.error('❌ Erreur récupération techniciens:', error);
+      return of({ data: [], pagination: null });
+    })
+  );
+}
+// Dans user.service.ts - Ajoutez ces méthodes
+
+// Récupérer un technicien par son ID
+getTechnicienById(id: string): Observable<any> {
+  console.log('🔍 Récupération du technicien par ID:', id);
+  
+  return this.http.get<any>(
+    `${this.apiUrl}/technicien/${id}`,
+    this.getAuthHeaders()
+  ).pipe(
+    tap(response => {
+      console.log('📦 Réponse API getTechnicienById:', response);
+    }),
+    map(response => {
+      // Extraire les données de la réponse ApiResponse
+      const data = response?.data || response;
+      return {
+        id: data.id,
+        userName: data.userName,
+        nom: data.nom,
+        prenom: data.prenom,
+        email: data.email,
+        phoneNumber: data.phoneNumber,
+        birthDate: data.birthDate,
+        statut: data.statut,
+        role: 'Technicien',
+        image: this.getFullImageUrl(data.image)
+      };
+    }),
+    catchError(error => {
+      console.error('❌ Erreur getTechnicienById:', error);
+      throw error;
+    })
+  );
+}
+
+// Récupérer un commerçant par son ID
+getCommercantById(id: string): Observable<any> {
+  console.log('🔍 Récupération du commerçant par ID:', id);
+  
+  return this.http.get<any>(
+    `${this.apiUrl}/commercant/${id}`,
+    this.getAuthHeaders()
+  ).pipe(
+    tap(response => {
+      console.log('📦 Réponse API getCommercantById:', response);
+    }),
+    map(response => {
+      // Extraire les données de la réponse ApiResponse
+      const data = response?.data || response;
+      return {
+        id: data.id,
+        nomMagasin: data.nomMagasin,
+        email: data.email,
+        phoneNumber: data.phoneNumber,
+        adresse: data.adresse,
+        statut: data.statut,
+        role: 'Commercant',
+        image: this.getFullImageUrl(data.image)
+      };
+    }),
+    catchError(error => {
+      console.error('❌ Erreur getCommercantById:', error);
+      throw error;
+    })
+  );
 }
 // user.service.ts - Ajouter les nouvelles méthodes
 
-// ✅ Pour l'admin (et utilisateurs standards) - méthode générique
-updateMyProfile(data: any): Observable<User> {
-  return this.http.put<User>(
+updateMyProfile(data: any): Observable<any> {
+  return this.http.put<any>(
     `${this.apiUrl}/me`,
     data,                 
     this.getAuthHeaders()  
   ).pipe(
-    map(user => ({
-      ...user,
-      phoneNumber: user.phoneNumber,
-      image: this.getFullImageUrl(user.image)
-    }))
+    map(response => response),  // Retourner la réponse complète ApiResponse
+    catchError(error => {
+      console.error('Erreur updateMyProfile:', error);
+      throw error;
+    })
   );
 }
 
 // ✅ Pour le technicien uniquement - méthode spécifique
-updateTechnicienProfile(data: any): Observable<User> {
-  return this.http.put<User>(
+updateTechnicienProfile(data: any): Observable<any> {
+  return this.http.put<any>(
     `${this.apiUrl}/me/technicien`,
     data,                 
     this.getAuthHeaders()  
   ).pipe(
-    map(user => ({
-      ...user,
-      phoneNumber: user.phoneNumber,
-      image: this.getFullImageUrl(user.image)
-    }))
+    map(response => response),  // Retourner la réponse complète ApiResponse
+    catchError(error => {
+      console.error('Erreur updateTechnicienProfile:', error);
+      throw error;
+    })
   );
 }
 
 // ✅ Pour le commerçant uniquement - méthode spécifique
-updateCommercantProfile(data: any): Observable<User> {
-  return this.http.put<User>(
+updateCommercantProfile(data: any): Observable<any> {
+  return this.http.put<any>(
     `${this.apiUrl}/me/commercant`,
     data,                 
     this.getAuthHeaders()  
   ).pipe(
-    map(user => ({
-      ...user,
-      phoneNumber: user.phoneNumber,
-      image: this.getFullImageUrl(user.image)
-    }))
+    map(response => response),  // Retourner la réponse complète ApiResponse
+    catchError(error => {
+      console.error('Erreur updateCommercantProfile:', error);
+      throw error;
+    })
   );
 }
 

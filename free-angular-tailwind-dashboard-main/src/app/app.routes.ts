@@ -45,7 +45,6 @@ import { TechniciensListComponent } from './shared/listeUtilisateurs/techniciens
 import { CommercantsListComponent } from './shared/listeUtilisateurs/commercants-list/commercants-list.component';
 import { UpdateCommercantComponent } from './shared/components/updateUser/update-commercant/update-commercant.component';
 import { UpdateTechnicienComponent } from './shared/components/updateUser/update-technicien/update-technicien.component';
-import { EmailSentComponent } from './shared/components/auth/email-sent/email-sent.component';
 
 export const routes: Routes = [
   {
@@ -287,11 +286,7 @@ export const routes: Routes = [
   {
     path: 'forgot-password', 
     component: ForgotPasswordPageComponent 
-  },{
-  path: 'email-sent',
-  component: EmailSentComponent,
-  title: 'Email envoyé'
-}
+  }
  , { 
     path: 'reset-password', 
     component: ResetPasswordComponent 

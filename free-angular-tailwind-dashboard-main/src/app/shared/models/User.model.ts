@@ -10,4 +10,5 @@ export interface User {
   birthDate?: Date | string;
   statut: 'Actif' | 'Inactif';
   adresse?: string;  // ✅ AJOUTER CETTE LIGNE
+  emailConfirmed?: boolean;
 }

@@ -109,7 +109,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <span *ngIf="technicienForm.get('prenom')?.errors?.['required']">Le prénom est requis</span>
-              <span *ngIf="technicienForm.get('prenom')?.errors?.['minlength']">Minimum 4 caractères</span>
+              <span *ngIf="technicienForm.get('prenom')?.errors?.['minlength']">Minimum 3 caractères</span>
             </div>
           </div>
 
@@ -133,7 +133,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <span *ngIf="technicienForm.get('nom')?.errors?.['required']">Le nom est requis</span>
-              <span *ngIf="technicienForm.get('nom')?.errors?.['minlength']">Minimum 4 caractères</span>
+              <span *ngIf="technicienForm.get('nom')?.errors?.['minlength']">Minimum 3 caractères</span>
             </div>
           </div>
 
@@ -181,7 +181,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <span *ngIf="technicienForm.get('userName')?.errors?.['required']">Le nom d'utilisateur est requis</span>
-              <span *ngIf="technicienForm.get('userName')?.errors?.['minlength']">Minimum 4 caractères</span>
+              <span *ngIf="technicienForm.get('userName')?.errors?.['minlength']">Minimum 3 caractères</span>
             </div>
           </div>
         </div>

@@ -74,10 +74,13 @@ export class UpdateCommercantComponent implements OnInit {
 
   loadCommercantData(): void {
     this.loading = true;
-    // Récupérer les commerçants et trouver celui avec l'ID correspondant
-    this.userService.getCommercants().subscribe({
-      next: (commercants) => {
-        const commercant = commercants.find(c => c.id === this.commercantId);
+    console.log('🔄 Chargement du commerçant ID:', this.commercantId);
+    
+    // ✅ Utiliser getCommercantById au lieu de getCommercants
+    this.userService.getCommercantById(this.commercantId!).subscribe({
+      next: (commercant) => {
+        console.log('🎯 Commerçant trouvé:', commercant);
+        
         if (commercant) {
           this.commercantForm.patchValue({
             nomMagasin: commercant.nomMagasin || '',
@@ -86,14 +89,16 @@ export class UpdateCommercantComponent implements OnInit {
             phoneNumber: commercant.phoneNumber || '',
             statut: commercant.statut || 'Actif'
           });
+          console.log('✅ Formulaire après patch:', this.commercantForm.value);
         } else {
           this.showAlert('error', 'Erreur', 'Commerçant non trouvé');
         }
         this.loading = false;
       },
       error: (error) => {
-        console.error('Erreur chargement:', error);
-        this.showAlert('error', 'Erreur', 'Impossible de charger les données du commerçant');
+        console.error('❌ Erreur chargement:', error);
+        const errorMessage = error.error?.message || error.message || 'Impossible de charger les données du commerçant';
+        this.showAlert('error', 'Erreur', errorMessage);
         this.loading = false;
       }
     });
@@ -117,7 +122,6 @@ export class UpdateCommercantComponent implements OnInit {
       phoneNumber: this.commercantForm.get('phoneNumber')?.value
     };
 
-    // Appel à l'API admin pour mettre à jour le commerçant
     this.userService.adminUpdateCommercant(this.commercantId!, updateData).subscribe({
       next: (response) => {
         this.showAlert('success', 'Succès', 'Commerçant mis à jour avec succès');
@@ -150,7 +154,6 @@ export class UpdateCommercantComponent implements OnInit {
       variant
     };
     
-    // Auto-hide after 5 seconds
     setTimeout(() => {
       if (this.alert.show) {
         this.clearAlert();
@@ -170,7 +173,6 @@ export class UpdateCommercantComponent implements OnInit {
   }
 
   onLocationSelectedInModal(location: any): void {
-    // Format the address from the location object
     if (location && location.address) {
       this.tempSelectedAddress = location.address;
     } else if (location && location.lat && location.lng) {
