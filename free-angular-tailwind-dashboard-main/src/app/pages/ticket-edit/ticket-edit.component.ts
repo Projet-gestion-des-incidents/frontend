@@ -296,46 +296,64 @@ incidentToResolve: { id: string; code: string; description: string } | null = nu
 
 // Dans ticket-edit.component.ts
 
-loadTechniciens(): void {
-  console.log('🔍 Chargement des techniciens...');
+ loadTechniciens(): void {
+  console.log('🔍 Récupération des techniciens...');
   
   this.userService.getTechniciens().subscribe({
-    next: (users) => {
-      console.log('✅ Techniciens reçus:', users);
+    next: (response) => {
+      console.log('📦 Réponse reçue:', response);
       
-      if (users && users.length > 0) {
-        this.techniciens = users.map((u: any)  => ({
-          id: u.id,
-          nom: u.nom,
-          prenom: u.prenom
-        }));
-        
-        this.technicienOptions = this.techniciens.map(t => ({
-          value: t.id,
-          label: `${t.nom} ${t.prenom}`
-        }));
-        
-        console.log('📋 Techniciens chargés:', this.techniciens.length);
-        console.log('📋 Options:', this.technicienOptions);
-      } else {
-        console.warn('⚠️ Aucun technicien trouvé');
-        this.technicienOptions = [];
-        
-        // Message d'information pour l'utilisateur
-        if (this.isAdmin) {
-          this.showError('Aucun technicien disponible. Veuillez en créer un d\'abord.');
-        }
+      // ✅ Extraire les données correctement
+      let techniciensData = [];
+      if (response?.data && Array.isArray(response.data)) {
+        techniciensData = response.data;
+      } else if (Array.isArray(response)) {
+        techniciensData = response;
+      } else if (response?.items) {
+        techniciensData = response.items;
       }
+      
+      // ✅ Mapper les techniciens
+      this.techniciens = techniciensData.map((u: any) => ({
+        id: u.id,
+        nom: u.nom,
+        prenom: u.prenom,
+        email: u.email,
+        userName: u.userName,
+        phoneNumber: u.phoneNumber,
+        statut: u.statut,
+        birthDate: u.birthDate,
+        image: u.image
+      }));
+      
+      // ✅ Créer les options pour le select
+      this.technicienOptions = this.techniciens.map(t => ({
+        value: t.id,
+        label: `${t.prenom} ${t.nom}`  // Prénom puis Nom pour meilleure lisibilité
+      }));
+      
+      console.log('✅ Techniciens chargés:', this.techniciens.length);
+      console.log('📋 Options:', this.technicienOptions);
     },
     error: (err) => {
       console.error('❌ Erreur chargement techniciens:', err);
-      this.technicienOptions = [];
-      this.showError('Impossible de charger la liste des techniciens');
+      this.showError('Impossible de charger les techniciens');
     }
   });
 }
 
-
+getIncidentStatutClasses(statut: number): string {
+  switch(statut) {
+     case 0: // Non traité
+      return 'bg-[#C5C6FF] text-[#0C144E]';   // Digital Blue 48%
+    case 1: // En cours
+      return 'bg-[#8788FF] text-white';        // Digital Purple
+    case 2: // Fermé
+      return 'bg-[#D4B8FF] text-[#0C144E]';   // Digital Blue 64%
+    default:
+      return 'bg-[#D4B8FF] text-[#0C144E]';
+  }
+}
 
   // Gestion des incidents
   desactiverIncident(incidentId: string): void {

@@ -62,8 +62,8 @@
     </button>
   </div>
 
-  <!-- En-tête avec bannière - Couleur uniforme (bleu) -->
-  <div class="relative rounded-2xl overflow-hidden bg-gradient-to-r from-blue-500 to-blue-600 shadow-lg">
+  <!-- En-tête avec bannière - Couleur Digital Purple -->
+  <div class="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#8788FF] to-[#787AEA] shadow-lg">
     <div class="absolute inset-0 bg-black/10"></div>
     <div class="relative px-6 py-10 sm:px-8 sm:py-12">
       <div class="flex flex-col items-center sm:flex-row sm:items-start gap-6">
@@ -117,20 +117,20 @@
 
   <!-- Loading -->
   <div *ngIf="loading" class="flex justify-center items-center py-16">
-    <div class="animate-spin rounded-full h-10 w-10 border-4 border-brand-200 border-t-brand-600"></div>
+    <div class="animate-spin rounded-full h-10 w-10 border-4 border-[#C5C6FF] border-t-[#8788FF]"></div>
   </div>
 
   <!-- Informations personnelles -->
   <div *ngIf="!loading" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-    <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-800/50">
+    <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
       <div class="flex items-center gap-3">
-        <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-          <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+          <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
           </svg>
         </div>
         <div>
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Informations personnelles</h3>
+          <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Informations personnelles</h3>
           <p class="text-xs text-gray-500 dark:text-gray-400">Vos informations personnelles et coordonnées</p>
         </div>
       </div>
@@ -144,7 +144,7 @@
           <!-- Nom complet / Nom du magasin -->
           <div class="flex items-start gap-3">
             <div class="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
               </svg>
             </div>
@@ -162,7 +162,7 @@
           <!-- Email -->
           <div class="flex items-start gap-3">
             <div class="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
               </svg>
             </div>
@@ -178,7 +178,7 @@
           <!-- Téléphone -->
           <div class="flex items-start gap-3">
             <div class="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
               </svg>
             </div>
@@ -191,7 +191,7 @@
           <!-- Date de naissance - UNIQUEMENT pour technicien et admin -->
           <div class="flex items-start gap-3" *ngIf="user.role !== 'Commercant'">
             <div class="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
               </svg>
             </div>
@@ -204,7 +204,7 @@
           <!-- Adresse - UNIQUEMENT pour commerçant -->
           <div class="flex items-start gap-3" *ngIf="user.role === 'Commercant'">
             <div class="p-2 bg-gray-100 dark:bg-gray-700 rounded-lg">
-              <svg class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
               </svg>
@@ -223,15 +223,15 @@
 
   <!-- Sécurité -->
   <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden hover:shadow-md transition-shadow">
-    <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gray-50 dark:bg-gray-800/50">
+    <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
       <div class="flex items-center gap-3">
-        <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-          <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+          <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
           </svg>
         </div>
         <div>
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Sécurité</h3>
+          <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Sécurité</h3>
           <p class="text-xs text-gray-500 dark:text-gray-400">Gérez la sécurité de votre compte</p>
         </div>
       </div>
@@ -244,7 +244,7 @@
           <p class="text-sm text-gray-500 dark:text-gray-400">Changez votre mot de passe régulièrement pour plus de sécurité</p>
         </div>
         <button (click)="openPasswordModal()"
-                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30">
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all text-[#8788FF] bg-[#ECECFF] hover:bg-[#C5C6FF] dark:bg-[#0C144E]/20 dark:text-[#B2B3FF] dark:hover:bg-[#0C144E]/30">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
           </svg>
@@ -260,16 +260,16 @@
   <div class="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-3xl bg-white p-0 dark:bg-gray-900 shadow-2xl">
     
     <!-- En-tête fixe -->
-    <div class="sticky top-0 z-20 border-b border-gray-200 dark:border-gray-700 px-6 py-5 bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20">
+    <div class="sticky top-0 z-20 border-b border-gray-200 dark:border-gray-700 px-6 py-5 bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
-            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-10 h-10 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/50 flex items-center justify-center">
+            <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"></path>
             </svg>
           </div>
           <div>
-            <h3 class="text-xl font-bold text-gray-800 dark:text-white/90">Modifier mes informations</h3>
+            <h3 class="text-xl font-bold text-[#0C144E] dark:text-white/90">Modifier mes informations</h3>
             <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Mettez à jour vos informations personnelles</p>
           </div>
         </div>
@@ -283,13 +283,13 @@
 
     <div class="p-6">
       <app-alert *ngIf="alert.show" [variant]="alert.variant" [title]="alert.title" [message]="alert.message" (click)="clearAlert()" class="mb-6"></app-alert>
-    <br>
+      <br>
       <form [formGroup]="editForm" (ngSubmit)="saveInfo()" class="space-y-6">
         
         <!-- Photo de profil -->
-        <div class="flex items-center gap-5 p-4 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+        <div class="flex items-center gap-5 p-4 bg-[#ECECFF] dark:bg-[#0C144E]/20 rounded-xl border border-[#C5C6FF] dark:border-[#8788FF]/30">
           <div class="relative group">
-            <div class="w-20 h-20 rounded-full overflow-hidden border-3 border-blue-300 dark:border-blue-700 shadow-md bg-white">
+            <div class="w-20 h-20 rounded-full overflow-hidden border-3 border-[#8788FF] dark:border-[#B2B3FF] shadow-md bg-white">
               <img [src]="imagePreview || user.image || '/assets/default-avatar.png'" class="w-full h-full object-cover" />
             </div>
             <div class="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
@@ -299,52 +299,50 @@
               </svg>
             </div>
           </div>
-    <div class="flex-1">
-  <app-label class="text-sm font-medium text-gray-700 dark:text-gray-300">Photo de profil</app-label>
-  
-  <!-- Input file personnalisé -->
-  <div class="relative mt-2">
-    <input 
-      type="file" 
-      id="profileImage" 
-      #fileInput
-      (change)="onImageSelected($event)"
-      accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
-      class="hidden"
-    />
-    <button 
-      type="button"
-      (click)="fileInput.click()"
-      class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all text-blue-600 bg-blue-50 hover:bg-blue-100 dark:bg-blue-900/20 dark:text-blue-400 dark:hover:bg-blue-900/30"
-    >
-      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-      </svg>
-      Choisir une image
-    </button>
-    <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
-      JPG, PNG, GIF ou WebP. Max 5MB.
-    </p>
-  </div>
-  
-  <!-- Aperçu du fichier sélectionné -->
-  <div *ngIf="selectedImage" class="mt-3">
-    <div class="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-      <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-        <img [src]="imagePreview" class="w-full h-full object-cover" />
-      </div>
-      <div class="flex-1">
-        <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{{ selectedImage.name }}</p>
-        <p class="text-xs text-gray-500 dark:text-gray-400">{{ formatFileSize(selectedImage.size) }}</p>
-      </div>
-      <button type="button" (click)="removeSelectedImage()" class="p-1 text-gray-400 hover:text-red-500 transition-colors">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
-    </div>
-  </div>
-</div>
+          <div class="flex-1">
+            <app-label class="text-sm font-medium text-gray-700 dark:text-gray-300">Photo de profil</app-label>
+            
+            <div class="relative mt-2">
+              <input 
+                type="file" 
+                id="profileImage" 
+                #fileInput
+                (change)="onImageSelected($event)"
+                accept="image/jpeg,image/jpg,image/png,image/gif,image/webp"
+                class="hidden"
+              />
+              <button 
+                type="button"
+                (click)="fileInput.click()"
+                class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all text-[#8788FF] bg-[#ECECFF] hover:bg-[#C5C6FF] dark:bg-[#0C144E]/20 dark:text-[#B2B3FF] dark:hover:bg-[#0C144E]/30"
+              >
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                Choisir une image
+              </button>
+              <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">
+                JPG, PNG, GIF ou WebP. Max 5MB.
+              </p>
+            </div>
+            
+            <div *ngIf="selectedImage" class="mt-3">
+              <div class="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+                <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
+                  <img [src]="imagePreview" class="w-full h-full object-cover" />
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{{ selectedImage.name }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ formatFileSize(selectedImage.size) }}</p>
+                </div>
+                <button type="button" (click)="removeSelectedImage()" class="p-1 text-gray-400 hover:text-red-500 transition-colors">
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
 
         <!-- Champs du formulaire en grille -->
@@ -357,14 +355,14 @@
             </app-label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                 </svg>
               </div>
               <input type="text" 
                      [value]="editForm.get('prenom')?.value" 
                      (input)="editForm.get('prenom')?.setValue($any($event.target).value)"
-                     class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
+                     class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
             </div>
             <div *ngIf="editForm.get('prenom')?.touched && editForm.get('prenom')?.invalid" class="mt-1 text-xs text-red-500">
               <span *ngIf="editForm.get('prenom')?.errors?.['required']">Le prénom est requis</span>
@@ -379,14 +377,14 @@
             </app-label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
                 </svg>
               </div>
               <input type="text" 
                      [value]="editForm.get('nom')?.value" 
                      (input)="editForm.get('nom')?.setValue($any($event.target).value)"
-                     class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
+                     class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
             </div>
             <div *ngIf="editForm.get('nom')?.touched && editForm.get('nom')?.invalid" class="mt-1 text-xs text-red-500">
               <span *ngIf="editForm.get('nom')?.errors?.['required']">Le nom est requis</span>
@@ -401,7 +399,7 @@
             </app-label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                 </svg>
               </div>
@@ -409,7 +407,7 @@
                      [value]="editForm.get('nomMagasin')?.value" 
                      (input)="editForm.get('nomMagasin')?.setValue($any($event.target).value)"
                      placeholder="Nom de votre boutique" 
-                     class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
+                     class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
             </div>
             <div *ngIf="editForm.get('nomMagasin')?.touched && editForm.get('nomMagasin')?.invalid" class="mt-1 text-xs text-red-500">
               <span *ngIf="editForm.get('nomMagasin')?.errors?.['required']">Le nom du magasin est requis</span>
@@ -424,14 +422,14 @@
             </app-label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
                 </svg>
               </div>
               <input type="email" 
                      [value]="editForm.get('email')?.value" 
                      (input)="editForm.get('email')?.setValue($any($event.target).value)"
-                     class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
+                     class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
             </div>
             <div *ngIf="editForm.get('email')?.touched && editForm.get('email')?.invalid" class="mt-1 text-xs text-red-500">
               <span *ngIf="editForm.get('email')?.errors?.['required']">L'email est requis</span>
@@ -446,7 +444,7 @@
             </app-label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
                 </svg>
               </div>
@@ -454,54 +452,53 @@
                      [value]="editForm.get('phoneNumber')?.value" 
                      (input)="editForm.get('phoneNumber')?.setValue($any($event.target).value)"
                      placeholder="12345678"
-                     class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
+                     class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
             </div>
             <div *ngIf="editForm.get('phoneNumber')?.touched && editForm.get('phoneNumber')?.invalid" class="mt-1 text-xs text-red-500">
               <span *ngIf="editForm.get('phoneNumber')?.errors?.['pattern']">8 chiffres requis</span>
             </div>
           </div>
           
-  <div *ngIf="user.role !== 'Commercant'">
-  <app-label for="birthDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-    Date de naissance
-  </app-label>
-  
-  <div class="relative">
-    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-      </svg>
-    </div>
-    <input 
-      type="date" 
-      id="birthDate"
-      [value]="editForm.get('birthDate')?.value || ''"
-      (change)="onBirthDateInputChange($event)"
-      [max]="maxBirthDateISO"
-      class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
-    />
-    <!-- Bouton calendrier personnalisé -->
-    <button 
-      type="button"
-      (click)="openCalendar()"
-      class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-      title="Ouvrir le calendrier"
-    >
-      <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-      </svg>
-    </button>
-  </div>
-  
-  <div *ngIf="editForm.get('birthDate')?.touched && editForm.get('birthDate')?.errors" class="mt-1 text-xs text-red-500">
-    <div *ngIf="editForm.get('birthDate')?.errors?.['futureDate']">
-      La date de naissance ne peut pas être dans le futur.
-    </div>
-    <div *ngIf="editForm.get('birthDate')?.errors?.['underAge']">
-      Vous devez avoir au moins 18 ans.
-    </div>
-  </div>
-</div>
+          <div *ngIf="user.role !== 'Commercant'">
+            <app-label for="birthDate" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Date de naissance
+            </app-label>
+            
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
+                <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+              <input 
+                type="date" 
+                id="birthDate"
+                [value]="editForm.get('birthDate')?.value || ''"
+                (change)="onBirthDateInputChange($event)"
+                [max]="maxBirthDateISO"
+                class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+              />
+              <button 
+                type="button"
+                (click)="openCalendar()"
+                class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                title="Ouvrir le calendrier"
+              >
+                <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+              </button>
+            </div>
+            
+            <div *ngIf="editForm.get('birthDate')?.touched && editForm.get('birthDate')?.errors" class="mt-1 text-xs text-red-500">
+              <div *ngIf="editForm.get('birthDate')?.errors?.['futureDate']">
+                La date de naissance ne peut pas être dans le futur.
+              </div>
+              <div *ngIf="editForm.get('birthDate')?.errors?.['underAge']">
+                Vous devez avoir au moins 18 ans.
+              </div>
+            </div>
+          </div>
           
           <!-- Adresse pour commerçant -->
           <div *ngIf="user.role === 'Commercant'" class="sm:col-span-2">
@@ -509,7 +506,7 @@
             
             <div class="relative mb-3">
               <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
                 </svg>
@@ -518,23 +515,23 @@
                      [value]="editForm.get('adresse')?.value" 
                      (input)="editForm.get('adresse')?.setValue($any($event.target).value)" 
                      placeholder="Adresse du magasin" 
-                     class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
+                     class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
             </div>
             
             <!-- Carte intégrée -->
             <div *ngIf="isInfoModalOpen && user.role === 'Commercant' && mapReady" 
-                 class="mt-2 rounded-xl overflow-hidden border border-blue-200 dark:border-blue-800" 
+                 class="mt-2 rounded-xl overflow-hidden border border-[#C5C6FF] dark:border-[#8788FF]/30" 
                  style="height: 300px;">
               <app-map (locationSelected)="onLocationSelectedInModal($event)"></app-map>
             </div>
             
-            <div class="mt-3 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-xl border border-blue-200 dark:border-blue-800">
+            <div class="mt-3 p-2 bg-[#ECECFF] dark:bg-[#0C144E]/20 rounded-xl border border-[#C5C6FF] dark:border-[#8788FF]/30">
               <div class="flex items-start gap-2">
-                <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-[#8788FF] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                 </svg>
                 <div>
-                  <p class="text-xs text-blue-800 dark:text-blue-200">
+                  <p class="text-xs text-[#0C144E] dark:text-[#B2B3FF]">
                     <strong>Comment sélectionner une adresse :</strong> Déplacez la carte et cliquez sur un point.
                   </p>
                 </div>
@@ -550,7 +547,7 @@
             Annuler
           </button>
           <button type="submit" [disabled]="saving"
-                  class="px-6 py-2.5 text-sm font-medium text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700">
+                  class="px-6 py-2.5 text-sm font-medium text-white rounded-xl shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-[#8788FF] to-[#787AEA] hover:from-[#787AEA] hover:to-[#0C144E]">
             <span class="flex items-center gap-2">
               <svg *ngIf="!saving" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -574,13 +571,13 @@
     
     <!-- En-tête -->
     <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
-      <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="w-10 h-10 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/30 flex items-center justify-center">
+        <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
         </svg>
       </div>
       <div>
-        <h3 class="text-xl font-semibold text-gray-800 dark:text-white">Changer le mot de passe</h3>
+        <h3 class="text-xl font-semibold text-[#0C144E] dark:text-white">Changer le mot de passe</h3>
         <p class="text-xs text-gray-500 dark:text-gray-400">Sécurisez votre compte avec un nouveau mot de passe</p>
       </div>
     </div>
@@ -595,7 +592,7 @@
           <app-label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mot de passe actuel</app-label>
           <div class="relative">
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
               </svg>
             </div>
@@ -603,7 +600,7 @@
                    [value]="passwordForm.get('currentPassword')?.value" 
                    (input)="passwordForm.get('currentPassword')?.setValue($any($event.target).value)"
                    placeholder="Entrez votre mot de passe actuel" 
-                   class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
+                   class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
             <button type="button" (click)="toggleCurrentPassword()" 
                     class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
               <svg *ngIf="!showCurrentPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -622,7 +619,7 @@
           <app-label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nouveau mot de passe</app-label>
           <div class="relative">
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
               </svg>
             </div>
@@ -630,7 +627,7 @@
                    [value]="passwordForm.get('newPassword')?.value" 
                    (input)="passwordForm.get('newPassword')?.setValue($any($event.target).value)"
                    placeholder="Entrez votre nouveau mot de passe" 
-                   class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
+                   class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
             <button type="button" (click)="toggleNewPassword()" 
                     class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
               <svg *ngIf="!showNewPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -643,19 +640,19 @@
             </button>
           </div>
           @if (passwordForm.get('newPassword')?.value && passwordForm.get('newPassword')?.value.length > 0) {
-        <div class="mt-2">
-          <div class="flex gap-1 h-1.5 mb-2">
-            <div class="flex-1 rounded-full" [class.bg-red-500]="passwordStrength === 'weak'" [class.bg-gray-200]="passwordStrength !== 'weak'"></div>
-            <div class="flex-1 rounded-full" [class.bg-yellow-500]="passwordStrength === 'medium'" [class.bg-gray-200]="passwordStrength !== 'medium'"></div>
-            <div class="flex-1 rounded-full" [class.bg-green-500]="passwordStrength === 'strong'" [class.bg-gray-200]="passwordStrength !== 'strong'"></div>
-          </div>
-          <p class="text-xs" [class.text-red-500]="passwordStrength === 'weak'" [class.text-yellow-500]="passwordStrength === 'medium'" [class.text-green-500]="passwordStrength === 'strong'">
-            @if (passwordStrength === 'weak') {Mot de passe faible}
-            @if (passwordStrength === 'medium') {Mot de passe moyen}
-            @if (passwordStrength === 'strong') {Mot de passe fort}
-          </p>
-        </div>
-      }
+            <div class="mt-2">
+              <div class="flex gap-1 h-1.5 mb-2">
+                <div class="flex-1 rounded-full" [class.bg-red-500]="passwordStrength === 'weak'" [class.bg-gray-200]="passwordStrength !== 'weak'"></div>
+                <div class="flex-1 rounded-full" [class.bg-yellow-500]="passwordStrength === 'medium'" [class.bg-gray-200]="passwordStrength !== 'medium'"></div>
+                <div class="flex-1 rounded-full" [class.bg-green-500]="passwordStrength === 'strong'" [class.bg-gray-200]="passwordStrength !== 'strong'"></div>
+              </div>
+              <p class="text-xs" [class.text-red-500]="passwordStrength === 'weak'" [class.text-yellow-500]="passwordStrength === 'medium'" [class.text-green-500]="passwordStrength === 'strong'">
+                @if (passwordStrength === 'weak') {Mot de passe faible}
+                @if (passwordStrength === 'medium') {Mot de passe moyen}
+                @if (passwordStrength === 'strong') {Mot de passe fort}
+              </p>
+            </div>
+          }
         </div>
         
         <!-- Confirmer le mot de passe -->
@@ -663,7 +660,7 @@
           <app-label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirmer le mot de passe</app-label>
           <div class="relative">
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
               </svg>
             </div>
@@ -671,7 +668,7 @@
                    [value]="passwordForm.get('confirmPassword')?.value" 
                    (input)="passwordForm.get('confirmPassword')?.setValue($any($event.target).value)"
                    placeholder="Confirmez votre nouveau mot de passe" 
-                   class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
+                   class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
             <button type="button" (click)="toggleConfirmPassword()" 
                     class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
               <svg *ngIf="!showConfirmPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -683,23 +680,23 @@
               </svg>
             </button>
           </div>
-      @if (passwordForm.get('confirmPassword')?.invalid && passwordForm.get('confirmPassword')?.touched) {
-        <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          @if (passwordForm.get('confirmPassword')?.errors?.['required']) {Veuillez confirmer votre mot de passe}
-          @if (passwordForm.get('confirmPassword')?.errors?.['passwordMismatch']) {Les mots de passe ne correspondent pas}
-        </p>
-      }
-      @if (passwordForm.get('confirmPassword')?.value && passwordForm.get('newPassword')?.value === passwordForm.get('confirmPassword')?.value && passwordForm.get('newPassword')?.value && passwordForm.get('confirmPassword')?.touched && !passwordForm.get('confirmPassword')?.errors?.['passwordMismatch']) {
-        <p class="mt-1 text-xs text-green-500 flex items-center gap-1">
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-          Les mots de passe correspondent
-        </p>
-      }
+          @if (passwordForm.get('confirmPassword')?.invalid && passwordForm.get('confirmPassword')?.touched) {
+            <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              @if (passwordForm.get('confirmPassword')?.errors?.['required']) {Veuillez confirmer votre mot de passe}
+              @if (passwordForm.get('confirmPassword')?.errors?.['passwordMismatch']) {Les mots de passe ne correspondent pas}
+            </p>
+          }
+          @if (passwordForm.get('confirmPassword')?.value && passwordForm.get('newPassword')?.value === passwordForm.get('confirmPassword')?.value && passwordForm.get('newPassword')?.value && passwordForm.get('confirmPassword')?.touched && !passwordForm.get('confirmPassword')?.errors?.['passwordMismatch']) {
+            <p class="mt-1 text-xs text-green-500 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              Les mots de passe correspondent
+            </p>
+          }
         </div>
       </div>
       
@@ -710,7 +707,7 @@
           Annuler
         </button>
         <button type="submit" [disabled]="passwordForm.invalid || changingPassword" 
-                class="px-4 py-2 text-sm font-medium text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700">
+                class="px-4 py-2 text-sm font-medium text-white rounded-lg shadow-md hover:shadow-lg transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed bg-gradient-to-r from-[#8788FF] to-[#787AEA] hover:from-[#787AEA] hover:to-[#0C144E]">
           <span class="flex items-center gap-2">
             <svg *ngIf="!changingPassword" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -726,17 +723,18 @@
     </form>
   </div>
 </app-modal>
+
 <!-- Modal OTP pour confirmation -->
 <app-modal [isOpen]="showOtpModal" (close)="showOtpModal = false; otpCode = ''" className="max-w-md m-4">
   <div class="bg-white dark:bg-gray-800 rounded-2xl p-6">
     <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
-      <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/30 flex items-center justify-center">
-        <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <div class="w-10 h-10 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/30 flex items-center justify-center">
+        <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
         </svg>
       </div>
       <div>
-        <h3 class="text-xl font-semibold text-gray-800 dark:text-white">
+        <h3 class="text-xl font-semibold text-[#0C144E] dark:text-white">
           {{ otpPurpose === 'email' ? 'Confirmation changement email' : 'Confirmation changement mot de passe' }}
         </h3>
         <p class="text-xs text-gray-500 dark:text-gray-400">
@@ -774,7 +772,7 @@
           type="button"
           (click)="confirmWithOtp()"
           [disabled]="otpLoading || otpCode.length !== 6"
-          class="flex-1 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 transition-all">
+          class="flex-1 px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-lg hover:from-[#787AEA] hover:to-[#0C144E] disabled:opacity-50 transition-all">
           {{ otpLoading ? 'Vérification...' : 'Confirmer' }}
         </button>
       </div>

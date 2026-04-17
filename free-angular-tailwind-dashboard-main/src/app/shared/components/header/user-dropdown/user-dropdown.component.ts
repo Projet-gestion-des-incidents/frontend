@@ -18,8 +18,7 @@ import { User } from '../../../models/User.model';
 })
 export class UserDropdownComponent {
   isOpen = false;
-  @Input() user!: User;
-  loading = true;
+ @Input() user: User | null = null;   loading = true;
 
     constructor(
       public modal: ModalService,

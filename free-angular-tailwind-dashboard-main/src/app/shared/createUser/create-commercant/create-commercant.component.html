@@ -56,7 +56,7 @@
         </svg>
       </button>
       <div>
-        <h1 class="text-2xl font-bold text-gray-800 dark:text-white/90">Créer un commerçant</h1>
+        <h1 class="text-2xl font-bold text-[#0C144E] dark:text-white/90">Créer un commerçant</h1>
         <div class="flex items-center gap-2 mt-1">
           <span class="inline-flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
             <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,15 +73,15 @@
     
     <!-- Section Informations de la boutique -->
     <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-shadow">
-      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-blue-50 to-white dark:from-blue-900/20 dark:to-gray-800">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
         <div class="flex items-center gap-3">
-          <div class="p-2 rounded-lg bg-blue-100 dark:bg-blue-900/30">
-            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+            <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
             </svg>
           </div>
           <div>
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Informations de la boutique</h3>
+            <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Informations de la boutique</h3>
             <p class="text-xs text-gray-500 dark:text-gray-400">Identité du magasin ou de l'enseigne</p>
           </div>
         </div>
@@ -96,12 +96,12 @@
             </label>
             <div class="relative">
               <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg class="w-4 h-4 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path>
                 </svg>
               </div>
               <input type="text" formControlName="nomMagasin" placeholder="Ma Boutique"
-                class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+                class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
                 [class.border-red-500]="commercantForm.get('nomMagasin')?.invalid && commercantForm.get('nomMagasin')?.touched" />
             </div>
             <div *ngIf="commercantForm.get('nomMagasin')?.touched && commercantForm.get('nomMagasin')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
@@ -112,44 +112,112 @@
               <span *ngIf="commercantForm.get('nomMagasin')?.errors?.['minlength']">Minimum 3 caractères</span>
             </div>
           </div>
-  <!-- Adresse -->
 
-        <div>
-  <label class="block text-sm font-medium text-gray-700 mb-2">Adresse <span class="text-red-500">*</span></label>
-  
-  <!-- Bouton pour ouvrir la modale -->
-  <button type="button" (click)="openMapModal()"
-    class="w-full inline-flex items-center justify-between px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm text-gray-700 hover:border-brand-300 hover:bg-gray-50 transition-all">
-    <span class="flex items-center gap-2">
-      <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
-      </svg>
-      <span *ngIf="!commercantForm.get('adresse')?.value">Sélectionner une adresse sur la carte</span>
-      <span *ngIf="commercantForm.get('adresse')?.value" class="text-blue-600">Adresse sélectionnée</span>
-    </span>
-    <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-    </svg>
-  </button>
-  
-  <!-- Champ adresse caché -->
-  <input type="hidden" formControlName="adresse" />
-  
-  <!-- Aperçu de l'adresse sélectionnée -->
-  <div *ngIf="commercantForm.get('adresse')?.value" class="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-    <div class="flex items-start gap-2">
-      <svg class="w-4 h-4 text-blue-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-      </svg>
-      <span class="text-sm text-gray-700 dark:text-gray-300">{{ commercantForm.get('adresse')?.value }}</span>
+          <!-- Adresse -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Adresse <span class="text-red-500">*</span></label>
+            
+            <button type="button" (click)="openMapModal()"
+              class="w-full inline-flex items-center justify-between px-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm text-gray-700 hover:border-[#8788FF] hover:bg-[#ECECFF] transition-all">
+              <span class="flex items-center gap-2">
+                <svg class="w-5 h-5 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
+                </svg>
+                <span *ngIf="!commercantForm.get('adresse')?.value">Sélectionner une adresse sur la carte</span>
+                <span *ngIf="commercantForm.get('adresse')?.value" class="text-[#8788FF]">Adresse sélectionnée</span>
+              </span>
+              <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+              </svg>
+            </button>
+            
+            <input type="hidden" formControlName="adresse" />
+            
+            <div *ngIf="commercantForm.get('adresse')?.value" class="mt-3 p-3 bg-[#ECECFF] dark:bg-[#0C144E]/20 rounded-lg border border-[#C5C6FF] dark:border-[#8788FF]/30">
+              <div class="flex items-start gap-2">
+                <svg class="w-4 h-4 text-[#8788FF] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                </svg>
+                <span class="text-sm text-gray-700 dark:text-gray-300">{{ commercantForm.get('adresse')?.value }}</span>
+              </div>
+            </div>
+            
+            <div *ngIf="commercantForm.get('adresse')?.touched && !commercantForm.get('adresse')?.value" class="mt-2 text-xs text-red-500">
+              Veuillez sélectionner une adresse sur la carte
+            </div>
+          </div>
+
+          <!-- Email -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Email professionnel <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+                </svg>
+              </div>
+              <input type="email" formControlName="email" placeholder="contact@maboutique.com"
+                class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+                [class.border-red-500]="commercantForm.get('email')?.invalid && commercantForm.get('email')?.touched" />
+            </div>
+            <div *ngIf="commercantForm.get('email')?.touched && commercantForm.get('email')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span *ngIf="commercantForm.get('email')?.errors?.['required']">L'email est requis</span>
+              <span *ngIf="commercantForm.get('email')?.errors?.['email']">Format d'email invalide</span>
+            </div>
+          </div>
+
+          <!-- Téléphone -->
+          <div>
+            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+              Téléphone <span class="text-red-500">*</span>
+            </label>
+            <div class="relative">
+              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
+                </svg>
+              </div>
+              <input type="tel" formControlName="phoneNumber" placeholder="12345678"
+                class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+                [class.border-red-500]="commercantForm.get('phoneNumber')?.invalid && commercantForm.get('phoneNumber')?.touched" />
+            </div>
+            <div *ngIf="commercantForm.get('phoneNumber')?.touched && commercantForm.get('phoneNumber')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span *ngIf="commercantForm.get('phoneNumber')?.errors?.['required']">Le numéro est requis</span>
+              <span *ngIf="commercantForm.get('phoneNumber')?.errors?.['pattern']">8 chiffres requis</span>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
-  </div>
-  
-  <!-- Message d'avertissement si pas d'adresse -->
-  <div *ngIf="commercantForm.get('adresse')?.touched && !commercantForm.get('adresse')?.value" class="mt-2 text-xs text-red-500">
-    Veuillez sélectionner une adresse sur la carte
-  </div>
+
+    <!-- Boutons d'action -->
+    <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+      <button type="button" (click)="cancel()" 
+              class="order-2 sm:order-1 px-6 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
+        Annuler
+      </button>
+      <button type="submit" [disabled]="commercantForm.invalid || loading"
+              class="order-1 sm:order-2 inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-[#8788FF] to-[#787AEA] px-6 py-2.5 text-sm font-medium text-white shadow-md hover:from-[#787AEA] hover:to-[#0C144E] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg">
+        <svg *ngIf="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <svg *ngIf="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        {{ loading ? 'Création en cours...' : 'Créer le commerçant' }}
+      </button>
+    </div>
+  </form>
 </div>
 
 <!-- MODALE DE LA CARTE -->
@@ -160,16 +228,16 @@
        (click)="$event.stopPropagation()">
     
     <!-- En-tête de la modale -->
-    <div class="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/30 dark:to-blue-800/20 px-6 py-4 border-b border-blue-200 dark:border-blue-800">
+    <div class="bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 px-6 py-4 border-b border-[#C5C6FF] dark:border-[#8788FF]/30">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-full bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
-            <svg class="w-5 h-5 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="w-10 h-10 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/50 flex items-center justify-center">
+            <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path>
             </svg>
           </div>
           <div>
-            <h3 class="text-lg font-bold text-gray-900 dark:text-white">Sélectionner une adresse</h3>
+            <h3 class="text-lg font-bold text-[#0C144E] dark:text-white">Sélectionner une adresse</h3>
             <p class="text-xs text-gray-500 dark:text-gray-400">Cliquez sur la carte pour choisir l'emplacement de votre boutique</p>
           </div>
         </div>
@@ -184,22 +252,20 @@
     
     <!-- Corps de la modale avec la carte -->
     <div class="p-6">
-      <!-- Carte -->
       <div class="mb-4" style="height: 500px;">
         <app-map (locationSelected)="onLocationSelectedInModal($event)"></app-map>
       </div>
       
-      <!-- Instructions -->
-      <div class="bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
+      <div class="bg-[#ECECFF] dark:bg-[#0C144E]/20 rounded-lg p-3">
         <div class="flex items-start gap-2">
-          <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <svg class="w-4 h-4 text-[#8788FF] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
           </svg>
           <div>
-            <p class="text-sm text-blue-800 dark:text-blue-200">
+            <p class="text-sm text-[#0C144E] dark:text-[#B2B3FF]">
               <strong>Comment sélectionner une adresse :</strong>
             </p>
-            <ul class="text-xs text-blue-700 dark:text-blue-300 mt-1 space-y-1">
+            <ul class="text-xs text-gray-600 dark:text-gray-400 mt-1 space-y-1">
               <li>• Déplacez la carte pour trouver votre emplacement</li>
               <li>• Cliquez sur un point pour sélectionner l'adresse</li>
               <li>• L'adresse sera automatiquement remplie dans le formulaire</li>
@@ -219,7 +285,7 @@
       <button (click)="confirmAddress()" 
               type="button"
               [disabled]="!tempSelectedAddress"
-              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-md hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg">
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-xl hover:from-[#787AEA] hover:to-[#0C144E] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 shadow-md hover:shadow-lg">
         <span class="flex items-center justify-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -231,81 +297,6 @@
   </div>
 </div>
 
-
-          <!-- Email -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Email professionnel <span class="text-red-500">*</span>
-            </label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
-                </svg>
-              </div>
-              <input type="email" formControlName="email" placeholder="contact@maboutique.com"
-                class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
-                [class.border-red-500]="commercantForm.get('email')?.invalid && commercantForm.get('email')?.touched" />
-            </div>
-            <div *ngIf="commercantForm.get('email')?.touched && commercantForm.get('email')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span *ngIf="commercantForm.get('email')?.errors?.['required']">L'email est requis</span>
-              <span *ngIf="commercantForm.get('email')?.errors?.['email']">Format d'email invalide</span>
-            </div>
-          </div>
-
-          <!-- Téléphone -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Téléphone <span class="text-red-500">*</span>
-            </label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg class="w-4 h-4 text-gray-400 dark:text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path>
-                </svg>
-              </div>
-              <input type="tel" formControlName="phoneNumber" placeholder="12345678"
-                class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
-                [class.border-red-500]="commercantForm.get('phoneNumber')?.invalid && commercantForm.get('phoneNumber')?.touched" />
-            </div>
-            <div *ngIf="commercantForm.get('phoneNumber')?.touched && commercantForm.get('phoneNumber')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span *ngIf="commercantForm.get('phoneNumber')?.errors?.['required']">Le numéro est requis</span>
-              <span *ngIf="commercantForm.get('phoneNumber')?.errors?.['pattern']">8 chiffres requis</span>
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-
-
-    <!-- Boutons d'action -->
-    <div class="flex flex-col sm:flex-row justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-      <button type="button" (click)="cancel()" 
-              class="order-2 sm:order-1 px-6 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors">
-        Annuler
-      </button>
-      <button type="submit" [disabled]="commercantForm.invalid || loading"
-              class="order-1 sm:order-2 inline-flex items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 px-6 py-2.5 text-sm font-medium text-white shadow-md hover:from-blue-600 hover:to-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg">
-        <svg *ngIf="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-        <svg *ngIf="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        {{ loading ? 'Création en cours...' : 'Créer le commerçant' }}
-      </button>
-    </div>
-  </form>
-</div>
-
 <style>
   @keyframes shrink { from { width: 100%; } to { width: 0%; } }
   .animate-progress { animation: shrink 4s linear forwards; }
@@ -314,7 +305,3 @@
   @keyframes slideIn { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
   @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
-
-
-
- 

@@ -147,507 +147,475 @@
     </button>
   </div>
 
-  <!-- SECTION 1: Informations générales -->
-  <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
-    <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-800">
-      <div class="flex items-center gap-3">
-        <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
-          <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
-        </div>
-        <div>
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Informations générales</h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Détails de l'incident</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="p-6 space-y-5">
-      <!-- Description -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Description <span class="text-red-500">*</span>
-        </label>
-        <textarea
-          [(ngModel)]="incident.descriptionIncident"
-          rows="4"
-          [disabled]="isAdmin"
-          class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all resize-none disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-700"
-          placeholder="Décrivez l'incident en détail..."
-        ></textarea>
-        <div class="flex justify-between items-center mt-2">
-          <p class="text-xs text-gray-500">Minimum 10 caractères</p>
-          <p class="text-xs text-gray-500">{{ incident.descriptionIncident?.length || 0 }} / 500</p>
-        </div>
-      </div>
-
-    <!-- Type de problème - modifiable seulement par le commerçant -->
-<div>
-  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-    Type de problème <span class="text-red-500">*</span>
-  </label>
-  <select
-    [(ngModel)]="typeProblemeString"
-    (ngModelChange)="onTypeProblemeChange()"
-    [disabled]="isAdmin"
-    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm appearance-none focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-700 cursor-pointer"
-  >
-    <option *ngFor="let option of typeProblemeOptions" [ngValue]="option.value">{{ option.label }}</option>
-  </select>
-</div>
-
-      <!-- Sévérité (Admin seulement) -->
-      <div *ngIf="isAdmin">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-          Sévérité <span class="text-red-500">*</span>
-        </label>
-        <select
-          [(ngModel)]="severiteString"
-          class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm appearance-none focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all cursor-pointer"
-        >
-          <option *ngFor="let option of severiteOptions" [ngValue]="option.value">{{ option.label }}</option>
-        </select>
-      </div>
-    </div>
-  </div>
-
-
-  <!-- SECTION 3: Entités impactées (Admin seulement) -->
-  <div *ngIf="isAdmin" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
-    <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-800">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
-            <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Entités impactées</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Éléments affectés par l'incident</p>
-          </div>
-        </div>
-        <span class="px-3 py-1 text-xs font-medium rounded-full bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400">
-          {{ incident.entitesImpactees?.length || 0 }}
-        </span>
-      </div>
-    </div>
-
-    <div class="p-6">
-      <!-- Liste des entités -->
-      <div *ngIf="incident.entitesImpactees && incident.entitesImpactees.length > 0" class="space-y-2 mb-6">
-        <div *ngFor="let entite of incident.entitesImpactees; let i = index" 
-             class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl group hover:shadow-sm transition-all">
-          <div class="flex items-center gap-3">
-            <div class="w-8 h-8 rounded-lg bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
-              <svg class="w-4 h-4 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
-              </svg>
-            </div>
-            <span class="text-sm font-medium text-gray-900 dark:text-white">{{ getTypeEntiteLabel(entite.typeEntiteImpactee) }}</span>
-          </div>
-          <button (click)="supprimerEntite(entite.id, i)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all" title="Supprimer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      <!-- Message aucun entité -->
-      <div *ngIf="!incident.entitesImpactees || incident.entitesImpactees.length === 0" 
-           class="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl mb-6">
-        <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        <p class="text-sm text-gray-500 dark:text-gray-400">Aucune entité impactée</p>
-      </div>
-
- <!-- Formulaire d'ajout d'entité amélioré -->
-<div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
-  <div class="flex items-center gap-2 mb-4">
-    <div class="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-500/10">
-      <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-      </svg>
-    </div>
-    <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
-      Nouvelle entité impactée
-    </h4>
-  </div>
-  
-  <div class="flex flex-col sm:flex-row gap-3">
-    <div class="flex-1 relative">
-      <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-        </svg>
-      </div>
-      <select 
-        [(ngModel)]="newEntite.typeEntiteImpactee" 
-        class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 bg-white text-sm focus:border-brand-300 focus:ring-2 focus:ring-brand-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all appearance-none cursor-pointer">
-        <option *ngFor="let option of typeEntiteOptions" [ngValue]="option.value">{{ option.label }}</option>
-      </select>
-      <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
-        </svg>
-      </div>
-    </div>
+ <form *ngIf="!loading && incident" (ngSubmit)="save()" class="space-y-6">
     
-    <button 
-      (click)="ajouterEntite()" 
-      class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-brand-500 hover:bg-brand-600 text-white rounded-xl transition-all duration-200 hover:shadow-md group">
-      <svg class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-      </svg>
-      <span>Ajouter l'entité</span>
-    </button>
-  </div>
-  
-  <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">
-    L'entité sera immédiatement associée à cet incident
-  </p>
-</div>
-    </div>
-  </div>
-
-  
-
-<!-- SECTION 4: TPEs associés -->
-<div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
-  <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-800">
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-3">
-        <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
-          <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
-          </svg>
-        </div>
-        <div>
-          <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">TPEs associés</h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Terminaux de paiement concernés</p>
-        </div>
-      </div>
-      <div class="flex items-center gap-3">
-        <span class="px-3 py-1 text-xs font-medium rounded-full bg-brand-50 text-brand-600 dark:bg-brand-900/30 dark:text-brand-400">
-          {{ incident.tpEs?.length || 0 }}
-        </span>
-        <!-- ✅ Bouton "Ajouter des TPEs" - Caché si incident lié à un ticket -->
-        <button *ngIf="isCommercant && !isIncidentLieATicket" 
-                (click)="toggleTpeSelector()" 
-                class="px-3 py-1.5 text-sm font-medium text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 dark:bg-brand-900/20 dark:hover:bg-brand-900/30 rounded-lg transition-all">
-          <span class="flex items-center gap-1">
-            <svg *ngIf="!showTpeSelector" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
-            </svg>
-            <svg *ngIf="showTpeSelector" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
-            </svg>
-            {{ showTpeSelector ? 'Fermer' : 'Ajouter des TPEs' }}
-          </span>
-        </button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Message d'avertissement si incident lié à un ticket -->
-  <div *ngIf="isIncidentLieATicket" 
-       class="mx-6 mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-    <div class="flex items-start gap-2">
-      <svg class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-      </svg>
-      <div>
-        <p class="text-sm font-medium text-amber-800 dark:text-amber-300">Modification des TPEs désactivée</p>
-   
-      </div>
-    </div>
-  </div>
-
-  <div class="p-6">
-    <!-- Liste des TPEs existants -->
-    <div *ngIf="incident.tpEs && incident.tpEs.length > 0" class="space-y-3 mb-6">
-      <div *ngFor="let tpe of incident.tpEs; let i = index" 
-           class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl group hover:shadow-sm transition-all">
+    <!-- SECTION 1: Informations générales -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
         <div class="flex items-center gap-3">
-          <div class="w-10 h-10 rounded-lg bg-brand-100 dark:bg-brand-900/30 flex items-center justify-center">
-            <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
+          <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+            <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
           </div>
           <div>
-            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ tpe.numSerieComplet }}</p>
-            <p class="text-xs text-gray-500 dark:text-gray-400">{{ tpe.modeleNom || tpe.modele }}</p>
+            <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Informations générales</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Détails de l'incident</p>
           </div>
         </div>
-        <!-- ✅ Bouton supprimer - Désactivé si incident lié à un ticket -->
-        <button *ngIf="isCommercant && !isIncidentLieATicket" 
-                (click)="supprimerTpe(tpe.tpeId, i)" 
-                class="p-2 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all" 
-                title="Retirer ce TPE">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-        <!-- ✅ Afficher une icône de cadenas si modification bloquée -->
-        <div *ngIf="isIncidentLieATicket" class="p-2 text-gray-300" title="Modification impossible - incident lié à un ticket">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-          </svg>
+      </div>
+
+      <div class="p-6 space-y-5">
+        <!-- Description -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Description <span class="text-red-500">*</span>
+          </label>
+          <textarea
+            [(ngModel)]="incident.descriptionIncident"
+            name="description"
+            rows="4"
+            [disabled]="isAdmin"
+            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all resize-none disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-700"
+            placeholder="Décrivez l'incident en détail..."
+          ></textarea>
+          <div class="flex justify-between items-center mt-2">
+            <p class="text-xs text-gray-500">Minimum 10 caractères</p>
+            <p class="text-xs text-gray-500">{{ incident.descriptionIncident?.length || 0 }} / 500</p>
+          </div>
+        </div>
+
+        <!-- Type de problème -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Type de problème <span class="text-red-500">*</span>
+          </label>
+          <select
+            [(ngModel)]="typeProblemeString"
+            (ngModelChange)="onTypeProblemeChange()"
+            [disabled]="isAdmin"
+            name="typeProbleme"
+            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm appearance-none focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-700 cursor-pointer"
+          >
+            <option *ngFor="let option of typeProblemeOptions" [ngValue]="option.value">{{ option.label }}</option>
+          </select>
+        </div>
+
+        <!-- Sévérité (Admin seulement) -->
+        <div *ngIf="isAdmin">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Sévérité <span class="text-red-500">*</span>
+          </label>
+          <select
+            [(ngModel)]="severiteString"
+            name="severite"
+            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm appearance-none focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all cursor-pointer"
+          >
+            <option *ngFor="let option of severiteOptions" [ngValue]="option.value">{{ option.label }}</option>
+          </select>
         </div>
       </div>
     </div>
 
-    <!-- Message aucun TPE -->
-    <div *ngIf="(!incident.tpEs || incident.tpEs.length === 0) && !showTpeSelector" 
-         class="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl">
-      <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-      </svg>
-      <p class="text-sm text-gray-500 dark:text-gray-400">Aucun TPE associé</p>
-      <p *ngIf="isCommercant && !isIncidentLieATicket" class="text-xs text-gray-400 mt-1">Cliquez sur "Ajouter des TPEs" pour en ajouter</p>
-      <p *ngIf="isIncidentLieATicket" class="text-xs text-amber-600 mt-1">Impossible d'ajouter des TPEs car cet incident est déjà lié à un ticket</p>
-    </div>
-
-    <!-- Message si incident lié à un ticket (empêche l'ajout) -->
-    <div *ngIf="incident.tpEs && incident.tpEs.length === 1 && isCommercant && !isIncidentLieATicket" 
-         class="mt-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-      <div class="flex items-start gap-2">
-        <svg class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-        </svg>
-        <span class="text-sm text-amber-700 dark:text-amber-300">
-          Un incident doit avoir au moins un TPE associé. Vous ne pouvez pas retirer le dernier TPE.
-        </span>
-      </div>
-    </div>
-
-    <!-- Sélecteur de TPEs amélioré (sans multi-select) -->
-    <div *ngIf="showTpeSelector && isCommercant" class="mt-6 space-y-4">
-      <!-- Message info -->
-      <div class="p-3 rounded-lg bg-blue-50 dark:bg-blue-900/20 border border-blue-100 dark:border-blue-800">
-        <div class="flex items-start gap-2">
-          <svg class="w-4 h-4 text-blue-500 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <span class="text-xs text-blue-700 dark:text-blue-300">Sélectionnez les TPEs à associer à cet incident</span>
+    <!-- SECTION 2: Entités impactées (Admin seulement) -->
+    <div *ngIf="isAdmin" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+              <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Entités impactées</h3>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Éléments affectés par l'incident</p>
+            </div>
+          </div>
+          <span class="px-3 py-1 text-xs font-medium rounded-full bg-[#ECECFF] text-[#8788FF] dark:bg-[#0C144E]/30 dark:text-[#B2B3FF]">
+            {{ incident.entitesImpactees?.length || 0 }}
+          </span>
         </div>
       </div>
 
-      <!-- Message si aucun TPE disponible -->
-      <div *ngIf="tpEsDisponiblesFiltres.length === 0" class="p-6 text-center bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
-        <svg class="w-12 h-12 mx-auto text-amber-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-        </svg>
-        <p class="text-sm text-amber-600 dark:text-amber-400">Aucun TPE disponible dans votre liste.</p>
-        <button routerLink="/tpes/new" class="mt-3 inline-flex items-center gap-1 text-sm text-brand-600 hover:text-brand-700 font-medium">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-          </svg>
-          Ajouter un TPE
-        </button>
-      </div>
+      <div class="p-6">
+        <!-- Liste des entités -->
+        <div *ngIf="incident.entitesImpactees && incident.entitesImpactees.length > 0" class="space-y-2 mb-6">
+          <div *ngFor="let entite of incident.entitesImpactees; let i = index" 
+               class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl group hover:shadow-sm transition-all">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30 flex items-center justify-center">
+                <svg class="w-4 h-4 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
+                </svg>
+              </div>
+              <span class="text-sm font-medium text-gray-900 dark:text-white">{{ getTypeEntiteLabel(entite.typeEntiteImpactee) }}</span>
+            </div>
+            <button (click)="supprimerEntite(entite.id, i)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all" title="Supprimer">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
 
-      <!-- Liste des TPEs disponibles sous forme de grille -->
-      <div *ngIf="tpEsDisponiblesFiltres.length > 0" class="space-y-3 max-h-96 overflow-y-auto pr-2">
-        <div *ngFor="let tpe of tpEsDisponiblesFiltres" 
-             class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all group cursor-pointer"
-             (click)="ajouterTpe(tpe.id)">
-          <div class="flex items-center gap-3 flex-1">
-            <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-              <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <!-- Message aucun entité -->
+        <div *ngIf="!incident.entitesImpactees || incident.entitesImpactees.length === 0" 
+             class="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl mb-6">
+          <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Aucune entité impactée</p>
+        </div>
+
+        <!-- Formulaire d'ajout d'entité -->
+        <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div class="flex items-center gap-2 mb-4">
+            <div class="p-1.5 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+              <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+            </div>
+            <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">
+              Nouvelle entité impactée
+            </h4>
+          </div>
+          
+          <div class="flex flex-col sm:flex-row gap-3">
+            <div class="flex-1 relative">
+              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                </svg>
+              </div>
+              <select 
+                [(ngModel)]="newEntite.typeEntiteImpactee" 
+                name="newEntiteType"
+                class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 bg-white text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all appearance-none cursor-pointer">
+                <option *ngFor="let option of typeEntiteOptions" [ngValue]="option.value">{{ option.label }}</option>
+              </select>
+              <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path>
+                </svg>
+              </div>
+            </div>
+            
+            <button 
+              (click)="ajouterEntite()" 
+              class="inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-[#8788FF] to-[#787AEA] hover:from-[#787AEA] hover:to-[#0C144E] text-white rounded-xl transition-all duration-200 hover:shadow-md group">
+              <svg class="w-4 h-4 group-hover:scale-110 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              <span>Ajouter l'entité</span>
+            </button>
+          </div>
+          
+          <p class="text-xs text-gray-500 dark:text-gray-400 mt-3">
+            L'entité sera immédiatement associée à cet incident
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: TPEs associés -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+              <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
               </svg>
             </div>
-            <div class="flex-1">
-              <p class="text-sm font-medium text-gray-900 dark:text-white">{{ tpe.numSerieComplet }}</p>
-              <p class="text-xs text-gray-500 dark:text-gray-400">{{ tpe.modele }}</p>
+            <div>
+              <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">TPEs associés</h3>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Terminaux de paiement concernés</p>
             </div>
           </div>
-          <button class="p-2 text-brand-600 hover:text-brand-700 bg-brand-50 hover:bg-brand-100 rounded-lg transition-all group-hover:scale-110" title="Ajouter ce TPE">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-            </svg>
-          </button>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<!-- SECTION 5: Pièces jointes -->
-<div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
-  <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-gray-50 to-white dark:from-gray-800/50 dark:to-gray-800">
-    <div class="flex items-center gap-3">
-      <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-900/30">
-        <svg class="w-5 h-5 text-brand-600 dark:text-brand-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
-        </svg>
-      </div>
-      <div>
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">Pièces jointes</h3>
-        <p class="text-xs text-gray-500 dark:text-gray-400">Documents et captures d'écran</p>
-      </div>
-      <span class="ml-auto px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
-        {{ piecesJointesExistantes.length + selectedFiles.length }}
-      </span>
-    </div>
-  </div>
-
-  <!-- Message d'avertissement si incident lié à un ticket -->
-  <div *ngIf="isIncidentLieATicket" 
-       class="mx-6 mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
-    <div class="flex items-start gap-2">
-      <svg class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-      </svg>
-      <div>
-        <p class="text-sm font-medium text-amber-800 dark:text-amber-300">Modification des pièces jointes désactivée</p>
-     
-      </div>
-    </div>
-  </div>
-
-  <div class="p-6">
-    <!-- Fichiers existants -->
-    <div *ngIf="piecesJointesExistantes && piecesJointesExistantes.length > 0" class="mb-6">
-      <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Fichiers existants</h4>
-      <div class="space-y-2">
-        <div *ngFor="let piece of piecesJointesExistantes; let i = index" 
-             class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl group hover:shadow-sm transition-all">
-          <div class="flex items-center gap-3 flex-1 min-w-0">
-            <svg *ngIf="isImage(piece.contentType)" class="w-6 h-6 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            <svg *ngIf="!isImage(piece.contentType)" class="w-6 h-6 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            <div class="flex-1 min-w-0">
-              <a [href]="piece.url" target="_blank" class="text-sm font-medium text-brand-600 hover:text-brand-700 dark:text-brand-400 truncate block">{{ piece.nomFichier }}</a>
-              <p class="text-xs text-gray-500">Ajouté le {{ piece.dateAjout | date:'dd/MM/yyyy HH:mm' }}</p>
-            </div>
-          </div>
-          
-          <!-- ✅ Bouton suppression - Visible seulement si canDeleteFiles() est vrai -->
-          <button *ngIf="canDeleteFiles()" 
-                  (click)="supprimerPieceJointe(piece.id, i)" 
-                  class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all" 
-                  title="Supprimer">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
-          
-          <!-- ✅ Afficher une icône de cadenas si suppression impossible -->
-          <div *ngIf="!canDeleteFiles()" class="p-1.5 text-gray-300" title="Suppression impossible - modification désactivée">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
-            </svg>
+          <div class="flex items-center gap-3">
+            <span class="px-3 py-1 text-xs font-medium rounded-full bg-[#ECECFF] text-[#8788FF] dark:bg-[#0C144E]/30 dark:text-[#B2B3FF]">
+              {{ incident.tpEs?.length || 0 }}
+            </span>
+            <button *ngIf="isCommercant && !isIncidentLieATicket" 
+                    (click)="toggleTpeSelector()" 
+                    class="px-3 py-1.5 text-sm font-medium text-[#8788FF] hover:text-[#787AEA] bg-[#ECECFF] hover:bg-[#C5C6FF] dark:bg-[#0C144E]/20 dark:hover:bg-[#0C144E]/30 rounded-lg transition-all">
+              <span class="flex items-center gap-1">
+                <svg *ngIf="!showTpeSelector" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+                </svg>
+                <svg *ngIf="showTpeSelector" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+                {{ showTpeSelector ? 'Fermer' : 'Ajouter des TPEs' }}
+              </span>
+            </button>
           </div>
         </div>
       </div>
-    </div>
 
-    <!-- ✅ Zone d'upload - Visible seulement si canAddFiles() est vrai -->
-    <!-- Selon le tableau: Admin ne peut JAMAIS ajouter, Commerçant peut ajouter seulement si incident non lié -->
-    <div class="relative" *ngIf="canAddFiles()">
-      <input #fileInput type="file" multiple (change)="onFileSelected($event)" class="hidden" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" />
-      <div (click)="fileInput.click()" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)"
-           class="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200"
-           [class.border-brand-400]="isDragActive" [class.bg-brand-50]="isDragActive"
-           [class.border-gray-300]="!isDragActive" [class.hover:border-brand-400]="!isDragActive" [class.hover:bg-gray-50]="!isDragActive">
-        <svg class="w-12 h-12 mx-auto text-gray-400 mb-3 transition-transform duration-200" [class.scale-110]="isDragActive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
-        </svg>
-        <p class="text-sm text-gray-600 dark:text-gray-400">
-          <span class="font-medium text-brand-600">{{ isDragActive ? 'Déposez vos fichiers' : 'Cliquez pour uploader' }}</span>
-          {{ !isDragActive ? 'ou glissez-déposez' : '' }}
-        </p>
-        <p class="text-xs text-gray-500 mt-1">Images, PDF, documents (max 10MB par fichier)</p>
-      </div>
-    </div>
-
-    <!-- Message si incident lié à un ticket (pour commerçant) -->
-    <div *ngIf="isIncidentLieATicket && piecesJointesExistantes.length === 0" 
-         class="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl">
-      <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-      </svg>
-      <p class="text-sm text-gray-500 dark:text-gray-400">Aucune pièce jointe</p>
-      <p class="text-xs text-amber-600 mt-1">Impossible d'ajouter des fichiers car cet incident est déjà lié à un ticket</p>
-    </div>
-
-    <!-- Message pour admin (pas de zone d'upload) -->
-    <div *ngIf="isAdmin && piecesJointesExistantes.length === 0 && !isIncidentLieATicket" 
-         class="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl">
-      <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-      </svg>
-      <p class="text-sm text-gray-500 dark:text-gray-400">Aucune pièce jointe</p>
-      <p class="text-xs text-gray-400 mt-1">Seuls les commerçants peuvent ajouter des fichiers</p>
-    </div>
-
-    <!-- Nouveaux fichiers sélectionnés (uniquement pour commerçant avec incident non lié) -->
-    <div *ngIf="selectedFiles.length > 0 && canAddFiles()" class="mt-4">
-      <div class="flex items-center justify-between mb-3">
-        <span class="text-xs font-medium text-gray-500">{{ selectedFiles.length }} nouveau(x) fichier(s)</span>
-        <button (click)="clearAllFiles()" class="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
-          <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+      <!-- Message d'avertissement si incident lié à un ticket -->
+      <div *ngIf="isIncidentLieATicket" 
+           class="mx-6 mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+        <div class="flex items-start gap-2">
+          <svg class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
           </svg>
-          Tout effacer
-        </button>
+          <p class="text-sm font-medium text-amber-800 dark:text-amber-300">Modification des TPEs désactivée</p>
+        </div>
       </div>
-      <div class="space-y-2 max-h-60 overflow-y-auto">
-        <div *ngFor="let file of selectedFiles; let i = index" class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
-          <div class="flex items-center gap-3 flex-1 min-w-0">
-            <svg *ngIf="file.type.startsWith('image/')" class="w-6 h-6 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            <svg *ngIf="file.type === 'application/pdf'" class="w-6 h-6 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
-            </svg>
-            <svg *ngIf="!file.type.startsWith('image/') && file.type !== 'application/pdf'" class="w-6 h-6 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-            <div class="flex-1 min-w-0">
-              <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{{ file.name }}</p>
-              <p class="text-xs text-gray-500">{{ formatFileSize(file.size) }}</p>
+
+      <div class="p-6">
+        <!-- Liste des TPEs existants -->
+        <div *ngIf="incident.tpEs && incident.tpEs.length > 0" class="space-y-3 mb-6">
+          <div *ngFor="let tpe of incident.tpEs; let i = index" 
+               class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl group hover:shadow-sm transition-all">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30 flex items-center justify-center">
+                <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
+                </svg>
+              </div>
+              <div>
+                <p class="text-sm font-medium text-gray-900 dark:text-white">{{ tpe.numSerieComplet }}</p>
+                <p class="text-xs text-gray-500 dark:text-gray-400">{{ tpe.modeleNom || tpe.modele }}</p>
+              </div>
+            </div>
+            <button *ngIf="isCommercant && !isIncidentLieATicket" 
+                    (click)="supprimerTpe(tpe.tpeId, i)" 
+                    class="p-2 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all" 
+                    title="Retirer ce TPE">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+            <div *ngIf="isIncidentLieATicket" class="p-2 text-gray-300" title="Modification impossible - incident lié à un ticket">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+              </svg>
             </div>
           </div>
-          <button (click)="removeFile(i)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg transition-all">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </div>
+
+        <!-- Message aucun TPE -->
+        <div *ngIf="(!incident.tpEs || incident.tpEs.length === 0) && !showTpeSelector" 
+             class="text-center py-8 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl">
+          <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <p class="text-sm text-gray-500 dark:text-gray-400">Aucun TPE associé</p>
+          <p *ngIf="isCommercant && !isIncidentLieATicket" class="text-xs text-gray-400 mt-1">Cliquez sur "Ajouter des TPEs" pour en ajouter</p>
+        </div>
+
+        <!-- Sélecteur de TPEs -->
+        <div *ngIf="showTpeSelector && isCommercant" class="mt-6 space-y-4">
+          <div class="p-3 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/20 border border-[#C5C6FF] dark:border-[#8788FF]/30">
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-[#8788FF] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span class="text-xs text-[#0C144E] dark:text-[#B2B3FF]">Sélectionnez les TPEs à associer à cet incident</span>
+            </div>
+          </div>
+
+          <div *ngIf="tpEsDisponiblesFiltres.length === 0" class="p-6 text-center bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+            <svg class="w-12 h-12 mx-auto text-amber-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
             </svg>
-          </button>
+            <p class="text-sm text-amber-600 dark:text-amber-400">Aucun TPE disponible dans votre liste.</p>
+            <button routerLink="/tpes/new" class="mt-3 inline-flex items-center gap-1 text-sm text-[#8788FF] hover:text-[#787AEA] font-medium">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+              </svg>
+              Ajouter un TPE
+            </button>
+          </div>
+
+          <div *ngIf="tpEsDisponiblesFiltres.length > 0" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+            <div *ngFor="let tpe of tpEsDisponiblesFiltres" 
+                 class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all group cursor-pointer"
+                 (click)="ajouterTpe(tpe.id)">
+              <div class="flex items-center gap-3 flex-1">
+                <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
+                  <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
+                  </svg>
+                </div>
+                <div class="flex-1">
+                  <p class="text-sm font-medium text-gray-900 dark:text-white">{{ tpe.numSerieComplet }}</p>
+                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ tpe.modele }}</p>
+                </div>
+              </div>
+              <button class="p-2 text-[#8788FF] hover:text-[#787AEA] bg-[#ECECFF] hover:bg-[#C5C6FF] rounded-lg transition-all group-hover:scale-110" title="Ajouter ce TPE">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Upload en cours -->
-    <div *ngIf="uploadingFiles" class="mt-4 flex items-center justify-center gap-2 text-sm text-brand-600">
-      <div class="animate-spin rounded-full h-4 w-4 border-2 border-brand-500 border-t-transparent"></div>
-      <span>Upload en cours...</span>
+    <!-- SECTION 4: Pièces jointes -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+            <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Pièces jointes</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Documents et captures d'écran</p>
+          </div>
+          <span class="ml-auto px-3 py-1 text-xs font-medium rounded-full bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+            {{ piecesJointesExistantes.length + selectedFiles.length }}
+          </span>
+        </div>
+      </div>
+
+      <!-- Message d'avertissement si incident lié à un ticket -->
+      <div *ngIf="isIncidentLieATicket" 
+           class="mx-6 mt-4 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
+        <div class="flex items-start gap-2">
+          <svg class="w-4 h-4 text-amber-600 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+          <p class="text-sm font-medium text-amber-800 dark:text-amber-300">Modification des pièces jointes désactivée</p>
+        </div>
+      </div>
+
+      <div class="p-6">
+        <!-- Fichiers existants -->
+        <div *ngIf="piecesJointesExistantes && piecesJointesExistantes.length > 0" class="mb-6">
+          <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Fichiers existants</h4>
+          <div class="space-y-2">
+            <div *ngFor="let piece of piecesJointesExistantes; let i = index" 
+                 class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl group hover:shadow-sm transition-all">
+              <div class="flex items-center gap-3 flex-1 min-w-0">
+                <svg *ngIf="isImage(piece.contentType)" class="w-6 h-6 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <svg *ngIf="!isImage(piece.contentType)" class="w-6 h-6 text-blue-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <div class="flex-1 min-w-0">
+                  <a [href]="piece.url" target="_blank" class="text-sm font-medium text-[#8788FF] hover:text-[#787AEA] dark:text-[#B2B3FF] truncate block">{{ piece.nomFichier }}</a>
+                  <p class="text-xs text-gray-500">Ajouté le {{ piece.dateAjout | date:'dd/MM/yyyy HH:mm' }}</p>
+                </div>
+              </div>
+              
+              <button *ngIf="canDeleteFiles()" 
+                      (click)="supprimerPieceJointe(piece.id, i)" 
+                      class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all" 
+                      title="Supprimer">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+              
+              <div *ngIf="!canDeleteFiles()" class="p-1.5 text-gray-300" title="Suppression impossible - modification désactivée">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+                </svg>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Zone d'upload -->
+        <div class="relative" *ngIf="canAddFiles()">
+          <input #fileInput type="file" multiple (change)="onFileSelected($event)" class="hidden" accept="image/*,.pdf,.doc,.docx,.xls,.xlsx,.txt" />
+          <div (click)="fileInput.click()" (dragover)="onDragOver($event)" (dragleave)="onDragLeave($event)" (drop)="onDrop($event)"
+               class="border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all duration-200"
+               [class.border-[#8788FF]]="isDragActive" [class.bg-[#ECECFF]]="isDragActive"
+               [class.border-gray-300]="!isDragActive" [class.hover:border-[#8788FF]]="!isDragActive" [class.hover:bg-gray-50]="!isDragActive">
+            <svg class="w-12 h-12 mx-auto text-gray-400 mb-3 transition-transform duration-200" [class.scale-110]="isDragActive" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12" />
+            </svg>
+            <p class="text-sm text-gray-600 dark:text-gray-400">
+              <span class="font-medium text-[#8788FF]">{{ isDragActive ? 'Déposez vos fichiers' : 'Cliquez pour uploader' }}</span>
+              {{ !isDragActive ? 'ou glissez-déposez' : '' }}
+            </p>
+            <p class="text-xs text-gray-500 mt-1">Images, PDF, documents (max 10MB par fichier)</p>
+          </div>
+        </div>
+
+        <!-- Nouveaux fichiers sélectionnés -->
+        <div *ngIf="selectedFiles.length > 0 && canAddFiles()" class="mt-4">
+          <div class="flex items-center justify-between mb-3">
+            <span class="text-xs font-medium text-gray-500">{{ selectedFiles.length }} nouveau(x) fichier(s)</span>
+            <button (click)="clearAllFiles()" class="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+              </svg>
+              Tout effacer
+            </button>
+          </div>
+          <div class="space-y-2 max-h-60 overflow-y-auto">
+            <div *ngFor="let file of selectedFiles; let i = index" class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
+              <div class="flex items-center gap-3 flex-1 min-w-0">
+                <svg *ngIf="file.type.startsWith('image/')" class="w-6 h-6 text-green-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                </svg>
+                <svg *ngIf="file.type === 'application/pdf'" class="w-6 h-6 text-red-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 21h10a2 2 0 002-2V9.414a1 1 0 00-.293-.707l-5.414-5.414A1 1 0 0012.586 3H7a2 2 0 00-2 2v14a2 2 0 002 2z"></path>
+                </svg>
+                <svg *ngIf="!file.type.startsWith('image/') && file.type !== 'application/pdf'" class="w-6 h-6 text-gray-500 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+                </svg>
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{{ file.name }}</p>
+                  <p class="text-xs text-gray-500">{{ formatFileSize(file.size) }}</p>
+                </div>
+              </div>
+              <button (click)="removeFile(i)" class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg transition-all">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Upload en cours -->
+        <div *ngIf="uploadingFiles" class="mt-4 flex items-center justify-center gap-2 text-sm text-[#8788FF]">
+          <div class="animate-spin rounded-full h-4 w-4 border-2 border-[#8788FF] border-t-transparent"></div>
+          <span>Upload en cours...</span>
+        </div>
+      </div>
     </div>
-  </div>
+
+    <!-- Boutons d'action -->
+    <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
+      <button
+        type="button"
+        (click)="cancel()"
+        class="order-2 sm:order-1 px-6 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all duration-200"
+      >
+        Annuler
+      </button>
+      <button
+        type="submit"
+        [disabled]="loading"
+        class="order-1 sm:order-2 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#8788FF] to-[#787AEA] px-6 py-2.5 text-sm font-medium text-white shadow-md hover:from-[#787AEA] hover:to-[#0C144E] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg"
+      >
+        <svg *ngIf="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+        <svg *ngIf="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        {{ loading ? 'Enregistrement...' : 'Enregistrer les modifications' }}
+      </button>
+    </div>
+  </form>
 </div>
 
-  <!-- Boutons d'action -->
-  <div class="flex flex-col sm:flex-row justify-end gap-3 pt-6 border-t border-gray-200 dark:border-gray-700">
-    <button (click)="cancel()" class="order-2 sm:order-1 px-6 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all">
-      Annuler
-    </button>
-    <button (click)="save()" [disabled]="loading" class="order-1 sm:order-2 inline-flex items-center justify-center gap-2 rounded-xl bg-brand-500 px-6 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-brand-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-md">
-      <svg *ngIf="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-      </svg>
-      <svg *ngIf="loading" class="animate-spin w-5 h-5" fill="none" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-      {{ loading ? 'Enregistrement...' : 'Enregistrer les modifications' }}
-    </button>
-  </div>
-</div>
+<style>
+  @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+  .animate-slide-down { animation: slideDown 0.3s ease-out; }
+</style>

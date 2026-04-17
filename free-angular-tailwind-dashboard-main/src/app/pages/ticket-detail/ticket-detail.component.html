@@ -15,7 +15,7 @@
 
   <!-- Loading -->
   <div *ngIf="loading" class="flex justify-center items-center py-12">
-    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
+    <div class="animate-spin rounded-full h-8 w-8 border-4 border-[#C5C6FF] border-t-[#8788FF]"></div>
   </div>
 
   <!-- Error -->
@@ -32,237 +32,242 @@
   <div *ngIf="!loading && !errorMessage && ticket" class="space-y-6">
 
     <!-- SECTION 1: En-tête avec titre et référence -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div class="flex items-center gap-2 mb-4">
-        <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-500/10">
-          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+            <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Informations générales</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Détails du ticket</p>
+          </div>
         </div>
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-          Informations générales
-        </h3>
       </div>
 
-      <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-4 pl-2">
-        {{ ticket.titreTicket }}
-      </h1>
+      <div class="p-6">
+        <h1 class="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+          {{ ticket.titreTicket }}
+        </h1>
 
-      <!-- Référence avec style -->
-      <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600 inline-block">
-        <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Référence :</span>
-        <span class="ml-2 text-sm font-mono text-gray-900 dark:text-white font-semibold">
-          {{ ticket.referenceTicket }}
-        </span>
-      </div>
+        <!-- Référence -->
+        <div class="mb-4 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600 inline-block">
+          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Référence :</span>
+          <span class="ml-2 text-sm font-mono text-gray-900 dark:text-white font-semibold">
+            {{ ticket.referenceTicket }}
+          </span>
+        </div>
 
-      <!-- Statut et autres infos -->
-      <div class="flex flex-wrap items-center gap-4 mt-3">
-        <div class="flex items-center gap-2">
-          <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Statut :</span>
-          <app-badge
-            size="sm"
-            [color]="getBadgeColor(ticket.statutTicketLibelle)"
-          >
-            {{ ticket.statutTicketLibelle }}
-          </app-badge>
+        <!-- Statut -->
+        <div class="flex flex-wrap items-center gap-4 mt-3">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Statut :</span>
+            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                  [ngClass]="getStatutBadgeClasses(ticket.statutTicketLibelle)">
+              {{ ticket.statutTicketLibelle }}
+            </span>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- SECTION 2: Description -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div class="flex items-center gap-2 mb-4">
-        <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-500/10">
-          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-          </svg>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+            <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Description</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Détails du problème</p>
+          </div>
         </div>
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-          Description
-        </h3>
       </div>
 
-    
-
-      <div class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600">
-        <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
-          {{ ticket.descriptionTicket }}
-        </p>
+      <div class="p-6">
+        <div class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600">
+          <p class="text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
+            {{ ticket.descriptionTicket }}
+          </p>
+        </div>
       </div>
     </div>
 
     <!-- SECTION 3: Informations détaillées -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div class="flex items-center gap-2 mb-4">
-        <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-500/10">
-          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+            <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Informations détaillées</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Dates et métadonnées</p>
+          </div>
         </div>
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-          Informations détaillées
-        </h3>
       </div>
 
-     
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <!-- Date création -->
-        <div class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600">
-          <div class="flex items-center gap-2 mb-2">
-            <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Date création
-            </span>
-          </div>
-          <p class="text-gray-900 dark:text-white font-medium pl-6">
-            {{ ticket.dateCreation | date:'dd/MM/yyyy HH:mm' }}
-          </p>
-        </div>
-
-        <!-- Date clôture (si existante) -->
-        <div *ngIf="ticket.dateCloture" class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600">
-          <div class="flex items-center gap-2 mb-2">
-            <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Date clôture
-            </span>
-          </div>
-          <p class="text-gray-900 dark:text-white font-medium pl-6">
-            {{ ticket.dateCloture | date:'dd/MM/yyyy HH:mm' }}
-          </p>
-        </div>
-
-        <!-- Date limite (si existante) -->
-        <div *ngIf="ticket.dateLimite" class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600 md:col-span-2">
-          <div class="flex items-center gap-2 mb-2">
-            <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-            </svg>
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Date limite
-            </span>
-          </div>
-          <p class="text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 pl-6">
-            {{ ticket.dateLimite | date:'dd/MM/yyyy HH:mm' }}
-          </p>
-        </div>
-
-        <!-- Assigné à (si présent) -->
-        <div *ngIf="isAdmin && ticket.assigneeNom" class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600 md:col-span-2">
-          <div class="flex items-center gap-2 mb-2">
-            <svg class="w-4 h-4 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-            </svg>
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Assigné à
-            </span>
-          </div>
-          <div class="flex items-center gap-3 pl-6">
-            <app-avatar-text 
-              [name]="ticket.assigneeNom" 
-              class="w-8 h-8"
-            />
-            <p class="text-gray-900 dark:text-white font-medium">
-              {{ ticket.assigneeNom }}
+      <div class="p-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <!-- Date création -->
+          <div class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600">
+            <div class="flex items-center gap-2 mb-2">
+              <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Date création
+              </span>
+            </div>
+            <p class="text-gray-900 dark:text-white font-medium pl-6">
+              {{ ticket.dateCreation | date:'dd/MM/yyyy HH:mm' }}
             </p>
           </div>
-        </div>
 
-      
+          <!-- Date clôture (si existante) -->
+          <div *ngIf="ticket.dateCloture" class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600">
+            <div class="flex items-center gap-2 mb-2">
+              <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Date clôture
+              </span>
+            </div>
+            <p class="text-gray-900 dark:text-white font-medium pl-6">
+              {{ ticket.dateCloture | date:'dd/MM/yyyy HH:mm' }}
+            </p>
+          </div>
+
+          <!-- Date limite (si existante) -->
+          <div *ngIf="ticket.dateLimite" class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600 md:col-span-2">
+            <div class="flex items-center gap-2 mb-2">
+              <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Date limite
+              </span>
+            </div>
+            <p class="text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1 pl-6">
+              {{ ticket.dateLimite | date:'dd/MM/yyyy HH:mm' }}
+            </p>
+          </div>
+
+          <!-- Assigné à (si présent) -->
+          <div *ngIf="isAdmin && ticket.assigneeNom" class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600 md:col-span-2">
+            <div class="flex items-center gap-2 mb-2">
+              <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                Assigné à
+              </span>
+            </div>
+            <div class="flex items-center gap-3 pl-6">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-r from-[#8788FF] to-[#B2B3FF] flex items-center justify-center shadow-sm">
+                <span class="text-sm font-medium text-white">
+                  {{ ticket.assigneeNom.charAt(0) }}
+                </span>
+              </div>
+              <p class="text-gray-900 dark:text-white font-medium">
+                {{ ticket.assigneeNom }}
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
 
-
-
-    <!-- SECTION 5: Incidents liés -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-sm hover:shadow-md transition-shadow">
-      <div class="flex items-center gap-2 mb-4">
-        <div class="p-2 rounded-lg bg-brand-50 dark:bg-brand-500/10">
-          <svg class="w-5 h-5 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-          </svg>
+    <!-- SECTION 4: Incidents liés -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-3">
+            <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+              <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+              </svg>
+            </div>
+            <div>
+              <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Incidents liés</h3>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Incidents associés à ce ticket</p>
+            </div>
+          </div>
+          <span class="px-3 py-1 text-xs font-medium rounded-full bg-[#ECECFF] text-[#8788FF] dark:bg-[#0C144E]/30 dark:text-[#B2B3FF]">
+            {{ incidents?.length || 0 }}
+          </span>
         </div>
-        <h3 class="text-lg font-semibold text-gray-800 dark:text-white/90">
-          Incidents liés
-        </h3>
-        <span class="ml-auto text-sm font-normal text-gray-500 dark:text-gray-400 bg-gray-100 dark:bg-gray-700 px-3 py-1 rounded-full">
-          {{ incidents?.length || 0 }}
-        </span>
       </div>
 
-   
-      <!-- Loading incidents -->
-      <div *ngIf="loadingIncidents" class="flex justify-center py-8">
-        <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-brand-500"></div>
-      </div>
-      
-      <!-- Message si aucun incident -->
-      <div *ngIf="!loadingIncidents && (!incidents || incidents.length === 0)" 
-           class="text-center py-12 text-gray-500 dark:text-gray-400 text-sm bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
-        <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-        </svg>
-        <p class="text-gray-500 dark:text-gray-400">Aucun incident lié à ce ticket</p>
-      </div>
-      
-      <!-- Liste des incidents -->
-      <div *ngIf="!loadingIncidents && incidents?.length" class="space-y-3">
-        <div *ngFor="let incident of incidents" 
-             class="p-5 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all hover:border-brand-300 hover:bg-white dark:hover:bg-gray-700/50">
-          
-          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div class="space-y-2 flex-1">
-              <!-- En-tête avec code -->
-              <div class="flex items-center gap-2 flex-wrap">
-                <span class="font-semibold text-gray-900 dark:text-white text-lg">
-                  {{ incident.codeIncident }}
-                </span>
-                <app-badge
-                  variant="light"
-                  [color]="getIncidentStatutBadgeColor(incident.statutIncident)"
-                  size="sm"
-                >
-                  {{ incident.statutIncidentLibelle || 'Non défini' }}
-                </app-badge>
-                <app-badge
-                  variant="light"
-                  [color]="getIncidentSeveriteBadgeColor(incident.severiteIncident)"
-                  size="sm"
-                >
-        {{ getSeveriteLibelle(incident.severiteIncident, incident.severiteIncidentLibelle) }}
-                </app-badge>
-              </div>
-              
-              <!-- Type de problème -->
-              <div class="flex items-center gap-2 text-sm">
-                <span class="font-medium text-gray-600 dark:text-gray-400">Entité impactée:</span>
-<span class="text-gray-700 dark:text-gray-300">
-  {{ getEntitesImpactees(incident) }}
-</span>              </div>
-              
-              <!-- Description -->
-              <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-                {{ incident.descriptionIncident }}
-              </p>
-              
-              <!-- Emplacement et date -->
-              <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-500">
-              
-                <div class="flex items-center gap-1">
-                  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                  </svg>
-                  <span>{{ incident.dateDetection | date:'dd/MM/yyyy' }}</span>
+      <div class="p-6">
+        <!-- Loading incidents -->
+        <div *ngIf="loadingIncidents" class="flex justify-center py-8">
+          <div class="animate-spin rounded-full h-8 w-8 border-4 border-[#C5C6FF] border-t-[#8788FF]"></div>
+        </div>
+        
+        <!-- Message si aucun incident -->
+        <div *ngIf="!loadingIncidents && (!incidents || incidents.length === 0)" 
+             class="text-center py-12 text-gray-500 dark:text-gray-400 text-sm bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-dashed border-gray-300 dark:border-gray-600">
+          <svg class="w-12 h-12 mx-auto text-gray-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+          </svg>
+          <p class="text-gray-500 dark:text-gray-400">Aucun incident lié à ce ticket</p>
+        </div>
+        
+        <!-- Liste des incidents -->
+        <div *ngIf="!loadingIncidents && incidents?.length" class="space-y-3">
+          <div *ngFor="let incident of incidents" 
+               class="p-5 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-200 dark:border-gray-600 hover:shadow-md transition-all hover:border-[#8788FF] hover:bg-white dark:hover:bg-gray-700/50">
+            
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div class="space-y-2 flex-1">
+                <!-- En-tête avec code -->
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span class="font-semibold text-gray-900 dark:text-white text-lg">
+                    {{ incident.codeIncident }}
+                  </span>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                        [ngClass]="getIncidentStatutBadgeClasses(incident.statutIncident)">
+                    {{ incident.statutIncidentLibelle || 'Non défini' }}
+                  </span>
+                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+                        [ngClass]="getIncidentSeveriteBadgeClasses(incident.severiteIncident)">
+                    {{ getSeveriteLibelle(incident.severiteIncident, incident.severiteIncidentLibelle) }}
+                  </span>
+                </div>
+                
+                <!-- Type de problème -->
+                <div class="flex items-center gap-2 text-sm">
+                  <span class="font-medium text-gray-600 dark:text-gray-400">Entité impactée :</span>
+                  <span class="text-gray-700 dark:text-gray-300">
+                    {{ getEntitesImpactees(incident) }}
+                  </span>
+                </div>
+                
+                <!-- Description -->
+                <p class="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
+                  {{ incident.descriptionIncident }}
+                </p>
+                
+                <!-- Date -->
+                <div class="flex flex-wrap items-center gap-3 text-xs text-gray-500 dark:text-gray-500">
+                  <div class="flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+                    </svg>
+                    <span>{{ incident.dateDetection | date:'dd/MM/yyyy' }}</span>
+                  </div>
                 </div>
               </div>
             </div>
-            
-          
           </div>
         </div>
       </div>

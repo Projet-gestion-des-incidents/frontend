@@ -107,28 +107,51 @@ export class TicketFormComponent implements OnInit {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
-  loadTechniciens(): void {
-    this.userService.getTechniciens().subscribe({
-      next: (users) => {
-        this.techniciens = users.map((u: any)  => ({
-          id: u.id,
-          nom: u.nom,
-          prenom: u.prenom
-        }));
-        
-        this.technicienOptions = this.techniciens.map(t => ({
-          value: t.id,
-          label: `${t.nom} ${t.prenom}`
-        }));
-        
-        console.log('Techniciens chargés:', this.techniciens);
-      },
-      error: (err) => {
-        console.error('Erreur chargement techniciens:', err);
-        this.showError('Impossible de charger les techniciens');
+ loadTechniciens(): void {
+  console.log('🔍 Récupération des techniciens...');
+  
+  this.userService.getTechniciens().subscribe({
+    next: (response) => {
+      console.log('📦 Réponse reçue:', response);
+      
+      // ✅ Extraire les données correctement
+      let techniciensData = [];
+      if (response?.data && Array.isArray(response.data)) {
+        techniciensData = response.data;
+      } else if (Array.isArray(response)) {
+        techniciensData = response;
+      } else if (response?.items) {
+        techniciensData = response.items;
       }
-    });
-  }
+      
+      // ✅ Mapper les techniciens
+      this.techniciens = techniciensData.map((u: any) => ({
+        id: u.id,
+        nom: u.nom,
+        prenom: u.prenom,
+        email: u.email,
+        userName: u.userName,
+        phoneNumber: u.phoneNumber,
+        statut: u.statut,
+        birthDate: u.birthDate,
+        image: u.image
+      }));
+      
+      // ✅ Créer les options pour le select
+      this.technicienOptions = this.techniciens.map(t => ({
+        value: t.id,
+        label: `${t.prenom} ${t.nom}`  // Prénom puis Nom pour meilleure lisibilité
+      }));
+      
+      console.log('✅ Techniciens chargés:', this.techniciens.length);
+      console.log('📋 Options:', this.technicienOptions);
+    },
+    error: (err) => {
+      console.error('❌ Erreur chargement techniciens:', err);
+      this.showError('Impossible de charger les techniciens');
+    }
+  });
+}
 
   // ✅ NOUVELLE MÉTHODE : Charger la liste des commerçants
   loadCommercants(): void {

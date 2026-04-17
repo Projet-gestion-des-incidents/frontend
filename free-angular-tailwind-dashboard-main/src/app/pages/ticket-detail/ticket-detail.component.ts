@@ -99,16 +99,102 @@ getIncidentStatutBadgeColor(statut: number): 'success' | 'warning' | 'error' | '
     default: return 'info';
   }
 }
-
-getIncidentSeveriteBadgeColor(severite: number): 'success' | 'warning' | 'error' {
-  if (!severite || severite === 0) return 'warning';
-  switch(severite) {
-    case 1: return 'success'; // Faible
-    case 2: return 'warning'; // Moyenne
-    case 3: return 'error';   // Forte
-    default: return 'warning';
+// Badge pour le statut du ticket
+getStatutBadgeClasses(statut: any): string {
+  // Convertir en nombre si c'est une string
+  let statutValue: number;
+  
+  if (typeof statut === 'string') {
+    const statutClean = statut.trim().toLowerCase();
+    switch(statutClean) {
+      case 'non traité':
+      case 'nontraite':
+      case 'non_traite':
+        statutValue = 0;
+        break;
+      case 'en cours':
+      case 'encours':
+        statutValue = 1;
+        break;
+      case 'fermé':
+      case 'ferme':
+      case 'résolu':
+      case 'resolu':
+        statutValue = 2;
+        break;
+      default:
+        statutValue = 0;
+    }
+  } else {
+    statutValue = statut;
+  }
+  
+  switch(statutValue) {
+    case 0: // Non traité
+      return 'bg-[#C5C6FF] text-[#0C144E]';   // Digital Blue 48%
+    case 1: // En cours
+      return 'bg-[#8788FF] text-white';        // Digital Purple
+    case 2: // Fermé
+      return 'bg-[#D4B8FF] text-[#0C144E]';   // Digital Blue 64%
+    default:
+      return 'bg-[#D4B8FF] text-[#0C144E]';
   }
 }
+
+
+// Badge pour le statut de l'incident
+getIncidentStatutBadgeClasses(statut: any): string {
+  let statutValue: number;
+  if (typeof statut === 'string') {
+    const statutClean = statut.trim().toLowerCase();
+    switch(statutClean) {
+      case 'non traité': statutValue = 0; break;
+      case 'en cours': statutValue = 1; break;
+      case 'fermé': statutValue = 2; break;
+      default: statutValue = 0;
+    }
+  } else {
+    statutValue = statut;
+  }
+  
+  switch(statutValue) {
+    case 0: return 'bg-[#C5C6FF] text-[#0C144E]';
+    case 1: return 'bg-[#8788FF] text-white';
+    case 2: return 'bg-[#B2B3FF] text-[#0C144E]';
+    default: return 'bg-[#C5C6FF] text-[#0C144E]';
+  }
+}
+
+// Badge pour la sévérité de l'incident
+getIncidentSeveriteBadgeClasses(severite: any): string {
+  if (severite === 0 || severite === null || severite === undefined) {
+    return 'bg-[#C5C6FF] text-[#0C144E]';
+  }
+  
+  let severiteValue: number;
+  if (typeof severite === 'string') {
+    switch(severite) {
+      case 'Faible': severiteValue = 1; break;
+      case 'Moyenne': severiteValue = 2; break;
+      case 'Forte': severiteValue = 3; break;
+      default: severiteValue = 0;
+    }
+  } else {
+    severiteValue = severite;
+  }
+  
+  switch(severiteValue) {
+    case 0: // Non traité
+      return 'bg-[#C5C6FF] text-[#0C144E]';   // Digital Blue 48%
+    case 1: // En cours
+      return 'bg-[#8788FF] text-white';        // Digital Purple
+    case 2: // Fermé
+      return 'bg-[#D4B8FF] text-[#0C144E]';   // Digital Blue 64%
+    default:
+      return 'bg-[#D4B8FF] text-[#0C144E]';
+  }
+}
+
   loadTicketDetails(id: string): void {
     this.loading = true;
     

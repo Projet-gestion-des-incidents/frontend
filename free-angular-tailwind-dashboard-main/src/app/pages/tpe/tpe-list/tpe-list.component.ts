@@ -231,16 +231,20 @@ resetFilters(): void {
     return pages;
   }
 
-  getBadgeColor(modele: string): BadgeColor {
-    const map: Record<string, BadgeColor> = {
-      'Ingenico': 'info',
-      'Verifone': 'primary',
-      'PAX': 'warning'
-    };
-    const key = modele?.trim() || '';
-    return map[key] ?? 'dark';
-  }
-
+getBadgeClasses(modele: string): string {
+  const map: Record<string, string> = {
+    // Ingenico - Bleu lavande (nuance bleutée proche du violet)
+    'Ingenico': 'bg-[#B2B3FF] text-[#0C144E]',
+    
+    // Verifone - Digital Purple (violet signature)
+    'Verifone': 'bg-[#8788FF] text-white',
+    
+    // PAX - Rose mauve (nuance rosée proche du violet)
+    'PAX': 'bg-[#D4B8FF] text-[#0C144E]'
+  };
+  const key = modele?.trim() || '';
+  return map[key] ?? 'bg-[#ECECFF] text-[#0C144E]';
+}
   canManage(): boolean {
     return this.userRole === 'Admin';
   }

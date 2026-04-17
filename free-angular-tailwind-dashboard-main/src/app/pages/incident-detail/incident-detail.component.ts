@@ -1,12 +1,13 @@
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
-import { BadgeComponent } from '../../shared/components/ui/badge/badge.component';
+import { BadgeColor, BadgeComponent } from '../../shared/components/ui/badge/badge.component';
 import { AvatarTextComponent } from '../../shared/components/ui/avatar/avatar-text.component';
 import { IncidentDetail, TypeEntiteImpactee, TypeProbleme, SeveriteIncident, StatutIncident, PieceJointeDTO } from '../../shared/models/incident.model';
 import { IncidentService } from '../../shared/services/incident.service';
 import { UserService } from '../../shared/services/user.service';
 import { forkJoin } from 'rxjs';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 
 @Component({
   selector: 'app-incident-detail',
@@ -15,7 +16,7 @@ import { forkJoin } from 'rxjs';
     CommonModule,
     RouterModule,
     BadgeComponent,
-    AvatarTextComponent
+    AvatarTextComponent,
   ],
   templateUrl: './incident-detail.component.html',
   styles: [`
@@ -63,7 +64,7 @@ export class IncidentDetailComponent implements OnInit {
     private route: ActivatedRoute,
     private router: Router,
     private incidentService: IncidentService,
-    private userService: UserService
+    private userService: UserService, private sanitizer: DomSanitizer
   ) {}
 
   ngOnInit(): void {
@@ -203,46 +204,112 @@ getSeveriteLibelle(severite: any, severiteLibelle?: string): string {
     }
   }
 
- getSeveriteBadgeColor(severite: any): 'success' | 'warning' | 'error' | 'info' {
-  // Si sévérité est null ou undefined
-  if (severite === undefined || severite === null) {
-    return 'info';  // Bleu/gris pour "Non définie"
+getSeveriteBadgeColor(severite: any): BadgeColor {
+  // Cas 1: La sévérité est 0 ou null
+  if (severite === 0 || severite === null || severite === undefined) {
+    return 'light'; // Gris pour "Non définie"
   }
   
-  // Si c'est une string
+  let severiteValue: number;
+  
   if (typeof severite === 'string') {
     switch(severite) {
-      case 'NonDefinie':
       case 'Non définie':
-        return 'info';
+        return 'light';
       case 'Faible':
-        return 'success';
+        severiteValue = SeveriteIncident.Faible;
+        break;
       case 'Moyenne':
-        return 'warning';
+        severiteValue = SeveriteIncident.Moyenne;
+        break;
       case 'Forte':
-        return 'error';
+        severiteValue = SeveriteIncident.Forte;
+        break;
       default:
-        return 'info';
+        const parsed = parseInt(severite);
+        severiteValue = isNaN(parsed) ? 0 : parsed;
     }
+  } else {
+    severiteValue = severite;
   }
   
-  // Si c'est un nombre
-  if (typeof severite === 'number') {
+  switch(severiteValue) {
+    case SeveriteIncident.Faible:
+      return 'success'; // Vert
+    case SeveriteIncident.Moyenne:
+      return 'warning'; // Orange
+    case SeveriteIncident.Forte:
+      return 'error'; // Rouge
+    default:
+      return 'light'; // Gris pour "Non définie"
+  }
+}
+
+getStatutBadgeClasses(statut: any): string {
+  // Convertir en nombre si c'est une string
+  let statutValue: number;
+  
+  if (typeof statut === 'string') {
+    const statutClean = statut.trim().toLowerCase();
+    switch(statutClean) {
+      case 'non traité':
+      case 'nontraite':
+      case 'non_traite':
+        statutValue = 0;
+        break;
+      case 'en cours':
+      case 'encours':
+        statutValue = 1;
+        break;
+      case 'fermé':
+      case 'ferme':
+      case 'résolu':
+      case 'resolu':
+        statutValue = 2;
+        break;
+      default:
+        statutValue = 0;
+    }
+  } else {
+    statutValue = statut;
+  }
+  
+  switch(statutValue) {
+    case 0: // Non traité
+      return 'bg-[#C5C6FF] text-[#0C144E]';   // Digital Blue 48%
+    case 1: // En cours
+      return 'bg-[#8788FF] text-white';        // Digital Purple
+    case 2: // Fermé
+      return 'bg-[#D4B8FF] text-[#0C144E]';   // Digital Blue 64%
+    default:
+      return 'bg-[#D4B8FF] text-[#0C144E]';
+  }
+}
+
+// Badges pour sévérité
+getSeveriteBadgeClasses(severite: any): string {
+  if (severite === 0 || severite === null || severite === undefined) {
+    return 'bg-[#C5C6FF] text-[#0C144E]';
+  }
+  
+  let severiteValue: number;
+  if (typeof severite === 'string') {
     switch(severite) {
-      case 0:
-        return 'info';
-      case SeveriteIncident.Faible:
-        return 'success';
-      case SeveriteIncident.Moyenne:
-        return 'warning';
-      case SeveriteIncident.Forte:
-        return 'error';
-      default:
-        return 'info';
+      case 'Faible': severiteValue = 1; break;
+      case 'Moyenne': severiteValue = 2; break;
+      case 'Forte': severiteValue = 3; break;
+      default: severiteValue = 0;
     }
+  } else {
+    severiteValue = severite;
   }
   
-  return 'info';
+  switch(severiteValue) {
+    case 1: return 'bg-[#B2B3FF] text-[#0C144E]';
+    case 2: return 'bg-[#8788FF] text-white';
+    case 3: return 'bg-[#D4B8FF] text-[#0C144E]';
+    default: return 'bg-[#C5C6FF] text-[#0C144E]';
+  }
 }
 
 
@@ -272,37 +339,9 @@ getSeveriteLibelle(severite: any, severiteLibelle?: string): string {
     return 'Non spécifié';
   }
 
-  // ========== GESTION DES TICKETS ==========
-  getTicketStatutBadgeColor(statut: any): 'success' | 'warning' | 'error' | 'info' | 'primary' {
-    if (typeof statut === 'string') {
-      switch(statut) {
-        case 'Assigne': return 'primary';
-        case 'En cours': return 'warning';
-        case 'Résolu': return 'success';
-        default: return 'info';
-      }
-    }
-    
-    switch(statut) {
-      case 1: return 'primary';
-      case 2: return 'warning';
-      case 3: return 'success';
-      default: return 'info';
-    }
-  }
 
-  getTicketStatutLibelle(statut: any): string {
-    if (typeof statut === 'string') {
-      return statut;
-    }
-    
-    const statuts: { [key: number]: string } = {
-      1: 'Assigné',
-      2: 'En cours',
-      3: 'Résolu'
-    };
-    return statuts[statut] || 'Inconnu';
-  }
+
+
 
   // ========== GESTION DES ENTITÉS IMPACTÉES ==========
   getTypeEntiteLibelle(type: any): string {
@@ -322,30 +361,138 @@ getSeveriteLibelle(severite: any, severiteLibelle?: string): string {
     
     return 'Inconnu';
   }
+// ========== GESTION DES PIÈCES JOINTES ==========
 
-  // ========== GESTION DES PIÈCES JOINTES ==========
-  isImage(contentType: string | null | undefined): boolean {
-    if (!contentType) {
-      return false;
-    }
-    return contentType.startsWith('image/');
+
+
+// Ouvrir une image dans un modal
+openImage(url: string): void {
+  console.log('🖼️ openImage - URL:', url);
+  console.log('🔗 Type:', typeof url);
+  console.log('📏 Longueur URL:', url?.length);
+  
+  if (!url) {
+    console.error('❌ URL de l\'image manquante');
+    return;
   }
+  
+  this.selectedImage = url;
+  this.selectedImageUrl = url;
+  console.log('✅ Image ouverte avec succès');
+}
 
-  isImageByExtension(fileName: string): boolean {
-    if (!fileName) return false;
-    const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
-    const ext = fileName.substring(fileName.lastIndexOf('.')).toLowerCase();
-    return imageExtensions.includes(ext);
+
+
+
+
+   
+ // Dans IncidentDetailComponent, ajoutez ces propriétés avec les autres déclarations
+selectedImageUrl: string | null = null;
+currentImageUrl: string = '';
+currentImageName: string = '';
+showImageModal: boolean = false;
+pdfUrl: SafeResourceUrl | null = null;
+showPdfModal: boolean = false;
+
+// ========== GESTION DES IMAGES ==========
+getImageUrl(pieceId: string): string {
+  return `https://localhost:7063/api/pieces-jointes/${pieceId}`;
+}
+
+openImageModal(pieceId: string, imageName: string): void {
+  console.log('🖼️ Ouverture du modal image:', pieceId, imageName);
+  this.currentImageUrl = this.getImageUrl(pieceId);
+  this.currentImageName = imageName;
+  this.showImageModal = true;
+}
+
+closeImageModal(): void {
+  console.log('❌ Fermeture du modal image');
+  this.showImageModal = false;
+  this.currentImageUrl = '';
+  this.currentImageName = '';
+}
+
+// Vérifier si c'est une image par content-type (plus fiable que l'extension)
+isImage(contentType: string | null | undefined): boolean {
+  if (!contentType) {
+    // Fallback: vérifier par extension si contentType est null
+    return false;
   }
+  const imageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/bmp', 'image/svg+xml'];
+  return imageTypes.includes(contentType.toLowerCase());
+}
 
-  openImage(url: string): void {
-    this.selectedImage = url;
+// Vérifier si c'est une image par extension (fallback)
+isImageByExtension(filename: string): boolean {
+  if (!filename) return false;
+  const ext = filename.substring(filename.lastIndexOf('.')).toLowerCase();
+  const imageExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.bmp'];
+  return imageExtensions.includes(ext);
+}
+
+// Vérifier si c'est un PDF
+isPdf(contentType: string | null | undefined, filename: string): boolean {
+  if (contentType === 'application/pdf') return true;
+  // Fallback par extension
+  return filename?.toLowerCase().endsWith('.pdf') || false;
+}
+
+// Ouvrir un PDF dans un modal
+openPdf(url: string): void {
+  console.log('📑 openPdf - URL:', url);
+  if (!url) {
+    console.error('❌ URL du PDF manquante');
+    return;
   }
-
-  closeImageModal(): void {
-    this.selectedImage = null;
+  
+  try {
+    this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    this.showPdfModal = true;
+    console.log('✅ PDF ouvert avec succès dans le modal');
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'ouverture du PDF:', error);
   }
+}
 
+// Fermer le modal PDF
+closePdfModal(): void {
+  console.log('❌ Fermeture du modal PDF');
+  this.showPdfModal = false;
+  this.pdfUrl = null;
+}
+
+// Télécharger un fichier
+downloadFile(piece: PieceJointeDTO): void {
+  console.log('💾 Téléchargement:', piece.nomFichier);
+  const downloadUrl = `https://localhost:7063/api/pieces-jointes/${piece.id}`;
+  
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+  link.download = piece.nomFichier;
+  link.target = '_blank';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+}
+
+// Ouvrir dans un nouvel onglet
+openInNewTab(url: string): void {
+  if (url) {
+    window.open(url, '_blank');
+  }
+}
+
+// Aperçu du fichier (image, PDF ou téléchargement)
+previewFile(piece: PieceJointeDTO): void {
+  if (this.isImage(piece.contentType)) {
+    this.openImageModal(piece.id, piece.nomFichier);
+  } else if (this.isPdf(piece.contentType, piece.nomFichier)) {
+    this.openPdf(piece.url);
+  } else {
+    this.downloadFile(piece);
+  }
+}
   // ========== NAVIGATION ==========
   viewTicket(ticketId: string): void {
     this.router.navigate(['/tickets', ticketId]);

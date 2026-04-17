@@ -22,121 +22,117 @@
       </button>
     </div>
   </app-alert>
-<!-- Modal de confirmation de suppression amélioré -->
-<div *ngIf="confirmIncident" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
-  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100 animate-modal-in">
-    
-    <!-- Header -->
-    <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
-      <div class="flex items-center gap-3">
-        <div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
-          <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"></path>
-          </svg>
-        </div>
-        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
-          Confirmation de suppression
-        </h3>
-      </div>
-      <button (click)="cancelDelete()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-        </svg>
-      </button>
-    </div>
-    
-    <!-- Body -->
-    <div class="p-6">
-      <div class="flex flex-col items-center text-center mb-4">
-        <!-- Icône d'avertissement -->
-        <div class="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4">
-          <svg class="w-8 h-8 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-          </svg>
-        </div>
-        
-        <p class="text-gray-600 dark:text-gray-300 mb-2 font-medium">
-          Vous êtes sur le point de supprimer cet incident :
-        </p>
-        
-        <!-- Informations de l'incident -->
-        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 w-full text-left mt-2">
-          <div class="flex items-center justify-between mb-2">
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Code</span>
-            <span class="text-sm font-mono font-semibold text-gray-900 dark:text-white">
-              {{ confirmIncident.codeIncident }}
-            </span>
-          </div>
 
+  <!-- Modal de confirmation de suppression amélioré -->
+  <div *ngIf="confirmIncident" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100 animate-modal-in">
+      
+      <!-- Header -->
+      <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+        <div class="flex items-center gap-3">
+          <div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+            <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"></path>
+            </svg>
+          </div>
+          <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+            Confirmation de suppression
+          </h3>
+        </div>
+        <button (click)="cancelDelete()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+      
+      <!-- Body -->
+      <div class="p-6">
+        <div class="flex flex-col items-center text-center mb-4">
+          <div class="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4">
+            <svg class="w-8 h-8 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+          </div>
+          <p class="text-gray-600 dark:text-gray-300 mb-2 font-medium">
+            Vous êtes sur le point de supprimer cet incident :
+          </p>
+          <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 w-full text-left mt-2">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Code</span>
+              <span class="text-sm font-mono font-semibold text-gray-900 dark:text-white">
+                {{ confirmIncident.codeIncident }}
+              </span>
+            </div>
+          </div>
+        </div>
+        
+        <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-4">
+          <div class="flex gap-2">
+            <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            <div>
+              <p class="text-sm font-medium text-red-800 dark:text-red-200">
+                Action irréversible
+              </p>
+              <p class="text-sm text-red-700 dark:text-red-300">
+                Cette action supprimera l'incident.
+              </p>
+            </div>
+          </div>
         </div>
       </div>
       
-      <!-- Message d'avertissement -->
-      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-4">
-        <div class="flex gap-2">
-          <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+      <!-- Footer -->
+      <div class="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+        <button
+          (click)="cancelDelete()"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
+        >
+          Annuler
+        </button>
+        <button
+          (click)="confirmDelete()"
+          [disabled]="deleting"
+          class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+        >
+          <svg *ngIf="!deleting" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
           </svg>
-          <div>
-            <p class="text-sm font-medium text-red-800 dark:text-red-200">
-              Action irréversible
-            </p>
-            <p class="text-sm text-red-700 dark:text-red-300">
-              Cette action supprimera l'incident .
-            </p>
-          </div>
-        </div>
+          <svg *ngIf="deleting" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+          </svg>
+          <span *ngIf="!deleting">Supprimer définitivement</span>
+          <span *ngIf="deleting">Suppression...</span>
+        </button>
       </div>
-    </div>
-    
-    <!-- Footer -->
-    <div class="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
-      <button
-        (click)="cancelDelete()"
-        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
-      >
-        Annuler
-      </button>
-      <button
-        (click)="confirmDelete()"
-        [disabled]="deleting"
-        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
-      >
-        <svg *ngIf="!deleting" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
-        </svg>
-        <svg *ngIf="deleting" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
-          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-        </svg>
-        <span *ngIf="!deleting">Supprimer définitivement</span>
-        <span *ngIf="deleting">Suppression...</span>
-      </button>
     </div>
   </div>
-</div> 
+
   <div class="flex flex-col gap-4 px-6 py-4 sm:flex-row sm:items-center sm:justify-between border-b border-gray-200 dark:border-gray-800">
     <div>
-          <h3 class="text-2xl font-bold text-gray-800 dark:text-white/90">
-            Liste des incidents
-                <span *ngIf="userRole === 'Commercant'" class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-brand-100 text-brand-700 dark:bg-brand-900/30 dark:text-brand-400 rounded-full">
-              {{ totalCount }}
-            </span>
-          </h3>
-          <p class="text-sm text-gray-500 dark:text-gray-400 mt-1"  *ngIf="userRole !== 'Commercant'">
-            Gérez et suivez l'ensemble des incidents
-          </p>
-                     <p class="text-sm text-gray-500 dark:text-gray-400 mt-1" *ngIf="userRole === 'Commercant'">
-            Consultez et gérez vos incidents
-          </p>
-        </div>
-      
- <!-- Bouton nouvel incident à droite -->
+      <h3 class="text-2xl font-bold text-[#0C144E] dark:text-white/90">
+        Liste des incidents
+        <span *ngIf="userRole === 'Commercant'" class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-[#ECECFF] text-[#8788FF] dark:bg-[#0C144E]/30 dark:text-[#B2B3FF] rounded-full ml-2">
+          {{ totalCount }}
+        </span>
+      </h3>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1" *ngIf="userRole !== 'Commercant'">
+        Gérez et suivez l'ensemble des incidents
+      </p>
+      <p class="text-sm text-gray-500 dark:text-gray-400 mt-1" *ngIf="userRole === 'Commercant'">
+        Consultez et gérez vos incidents
+      </p>
+    </div>
+    
+    <!-- Bouton nouvel incident -->
     <div class="flex justify-end">
       <button 
         *ngIf="userRole === 'Commercant'"
         routerLink="/incidents/new"
-      class="inline-flex items-center gap-2 rounded-xl bg-brand-500 px-5 py-2.5 text-sm font-medium text-white shadow-sm hover:bg-brand-600 transition-all hover:shadow-md"
+        class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#8788FF] to-[#787AEA] px-5 py-2.5 text-sm font-medium text-white shadow-md hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200 hover:shadow-lg"
       >
         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
@@ -144,295 +140,295 @@
         Nouvel incident
       </button>
     </div>
-     
-    </div>
-<br *ngIf="userRole !== 'Commercant'">
-    <!-- Cards de statistiques -->
-    <div class="px-6 pb-6" *ngIf="userRole !== 'Commercant'">
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Total Incidents -->
-        <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10 rounded-xl p-4 border border-blue-200 dark:border-blue-800 hover:shadow-md transition-all duration-300">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-blue-600 dark:text-blue-400 font-medium">Total incidents</p>
-              <p class="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-1">
-                {{ dashboardStats.overview.totalIncidents }}
-              </p>
-              <div class="h-6 mt-1"></div>
-            </div>
-            <div class="p-3 bg-blue-200 dark:bg-blue-800 rounded-xl">
-              <svg class="w-6 h-6 text-blue-700 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
-              </svg>
-            </div>
+  </div>
+<br>
+  <!-- Cards de statistiques -->
+  <div class="px-6 pb-6" *ngIf="userRole !== 'Commercant'">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <!-- Total Incidents -->
+      <div class="bg-gradient-to-br from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/20 dark:to-[#0C144E]/10 rounded-xl p-4 border border-[#C5C6FF] dark:border-[#8788FF]/30 hover:shadow-md transition-all duration-300">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-[#8788FF] dark:text-[#B2B3FF] font-medium">Total incidents</p>
+            <p class="text-2xl font-bold text-[#0C144E] dark:text-white mt-1">
+              {{ dashboardStats.overview.totalIncidents }}
+            </p>
+          </div>
+          <div class="p-3 bg-[#C5C6FF] dark:bg-[#0C144E]/30 rounded-xl">
+            <svg class="w-6 h-6 text-[#0C144E] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path>
+            </svg>
           </div>
         </div>
+      </div>
 
-        <!-- Non traités -->
-        <div class="bg-gradient-to-br from-yellow-50 to-yellow-100 dark:from-yellow-900/20 dark:to-yellow-800/10 rounded-xl p-4 border border-yellow-200 dark:border-yellow-800 hover:shadow-md transition-all duration-300">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-yellow-600 dark:text-yellow-400 font-medium">Non traités</p>
-              <p class="text-2xl font-bold text-yellow-700 dark:text-yellow-300 mt-1">
-                {{ dashboardStats.overview.incidentsNonTraite }}
-              </p>
-              <div class="flex items-center gap-1 mt-1">
-                <div class="flex-1 h-1.5 bg-yellow-200 dark:bg-yellow-800 rounded-full overflow-hidden">
-                  <div class="h-full bg-yellow-500 rounded-full transition-all duration-500" [style.width]="dashboardStats.overview.tauxNonTraite + '%'"></div>
-                </div>
-                <p class="text-xs font-medium text-yellow-600 dark:text-yellow-400 min-w-[40px]">
-                  {{ dashboardStats.overview.tauxNonTraite }}%
-                </p>
+      <!-- Non traités -->
+      <div class="bg-gradient-to-br from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/20 dark:to-[#0C144E]/10 rounded-xl p-4 border border-[#C5C6FF] dark:border-[#8788FF]/30 hover:shadow-md transition-all duration-300">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-[#8788FF] dark:text-[#B2B3FF] font-medium">Non traités</p>
+            <p class="text-2xl font-bold text-[#0C144E] dark:text-white mt-1">
+              {{ dashboardStats.overview.incidentsNonTraite }}
+            </p>
+            <div class="flex items-center gap-1 mt-1">
+              <div class="flex-1 h-1.5 bg-[#C5C6FF] dark:bg-[#0C144E]/30 rounded-full overflow-hidden">
+                <div class="h-full bg-[#8788FF] rounded-full transition-all duration-500" [style.width]="dashboardStats.overview.tauxNonTraite + '%'"></div>
               </div>
-            </div>
-            <div class="p-3 bg-yellow-200 dark:bg-yellow-800 rounded-xl ml-3">
-<svg class="w-6 h-6 text-yellow-700 dark:text-yellow-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 8l8 8M16 8l-8 8" />
-</svg>
+              <p class="text-xs font-medium text-[#8788FF] dark:text-[#B2B3FF] min-w-[40px]">
+                {{ dashboardStats.overview.tauxNonTraite }}%
+              </p>
             </div>
           </div>
-        </div>
-
-        <!-- En cours -->
-        <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/10 rounded-xl p-4 border border-orange-200 dark:border-orange-800 hover:shadow-md transition-all duration-300">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-orange-600 dark:text-orange-400 font-medium">En cours</p>
-              <p class="text-2xl font-bold text-orange-700 dark:text-orange-300 mt-1">
-                {{ dashboardStats.overview.incidentsEnCours }}
-              </p>
-              <div class="flex items-center gap-1 mt-1">
-                <div class="flex-1 h-1.5 bg-orange-200 dark:bg-orange-800 rounded-full overflow-hidden">
-                  <div class="h-full bg-orange-500 rounded-full transition-all duration-500" [style.width]="dashboardStats.overview.tauxEnCours + '%'"></div>
-                </div>
-                <p class="text-xs font-medium text-orange-600 dark:text-orange-400 min-w-[40px]">
-                  {{ dashboardStats.overview.tauxEnCours }}%
-                </p>
-              </div>
-            </div>
-            <div class="p-3 bg-orange-200 dark:bg-orange-800 rounded-xl ml-3">
-              <svg class="w-6 h-6 text-orange-700 dark:text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-            </div>
+          <div class="p-3 bg-[#C5C6FF] dark:bg-[#0C144E]/30 rounded-xl ml-3">
+            <svg class="w-6 h-6 text-[#0C144E] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 8l8 8M16 8l-8 8" />
+            </svg>
           </div>
         </div>
+      </div>
 
-        <!-- Fermés -->
-        <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/10 rounded-xl p-4 border border-green-200 dark:border-green-800 hover:shadow-md transition-all duration-300">
-          <div class="flex items-center justify-between">
-            <div>
-              <p class="text-sm text-green-600 dark:text-green-400 font-medium">Fermés</p>
-              <p class="text-2xl font-bold text-green-700 dark:text-green-300 mt-1">
-                {{ dashboardStats.overview.incidentsFerme }}
-              </p>
-              <div class="flex items-center gap-1 mt-1">
-                <div class="flex-1 h-1.5 bg-green-200 dark:bg-green-800 rounded-full overflow-hidden">
-                  <div class="h-full bg-green-500 rounded-full transition-all duration-500" [style.width]="dashboardStats.overview.tauxFerme + '%'"></div>
-                </div>
-                <p class="text-xs font-medium text-green-600 dark:text-green-400 min-w-[40px]">
-                  {{ dashboardStats.overview.tauxFerme }}%
-                </p>
+      <!-- En cours -->
+      <div class="bg-gradient-to-br from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/20 dark:to-[#0C144E]/10 rounded-xl p-4 border border-[#C5C6FF] dark:border-[#8788FF]/30 hover:shadow-md transition-all duration-300">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-[#8788FF] dark:text-[#B2B3FF] font-medium">En cours</p>
+            <p class="text-2xl font-bold text-[#0C144E] dark:text-white mt-1">
+              {{ dashboardStats.overview.incidentsEnCours }}
+            </p>
+            <div class="flex items-center gap-1 mt-1">
+              <div class="flex-1 h-1.5 bg-[#C5C6FF] dark:bg-[#0C144E]/30 rounded-full overflow-hidden">
+                <div class="h-full bg-[#8788FF] rounded-full transition-all duration-500" [style.width]="dashboardStats.overview.tauxEnCours + '%'"></div>
               </div>
+              <p class="text-xs font-medium text-[#8788FF] dark:text-[#B2B3FF] min-w-[40px]">
+                {{ dashboardStats.overview.tauxEnCours }}%
+              </p>
             </div>
-            <div class="p-3 bg-green-200 dark:bg-green-800 rounded-xl ml-3">
-              <svg class="w-6 h-6 text-green-700 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
+          </div>
+          <div class="p-3 bg-[#C5C6FF] dark:bg-[#0C144E]/30 rounded-xl ml-3">
+            <svg class="w-6 h-6 text-[#0C144E] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Fermés -->
+      <div class="bg-gradient-to-br from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/20 dark:to-[#0C144E]/10 rounded-xl p-4 border border-[#C5C6FF] dark:border-[#8788FF]/30 hover:shadow-md transition-all duration-300">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-[#8788FF] dark:text-[#B2B3FF] font-medium">Fermés</p>
+            <p class="text-2xl font-bold text-[#0C144E] dark:text-white mt-1">
+              {{ dashboardStats.overview.incidentsFerme }}
+            </p>
+            <div class="flex items-center gap-1 mt-1">
+              <div class="flex-1 h-1.5 bg-[#C5C6FF] dark:bg-[#0C144E]/30 rounded-full overflow-hidden">
+                <div class="h-full bg-[#8788FF] rounded-full transition-all duration-500" [style.width]="dashboardStats.overview.tauxFerme + '%'"></div>
+              </div>
+              <p class="text-xs font-medium text-[#8788FF] dark:text-[#B2B3FF] min-w-[40px]">
+                {{ dashboardStats.overview.tauxFerme }}%
+              </p>
             </div>
+          </div>
+          <div class="p-3 bg-[#C5C6FF] dark:bg-[#0C144E]/30 rounded-xl ml-3">
+            <svg class="w-6 h-6 text-[#0C144E] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
           </div>
         </div>
       </div>
     </div>
-<!-- Barre d'actions avec bouton Filtrer et Nouvel incident -->
-<div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
-  <div class="p-4">
-    <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
-      <!-- Barre de recherche à gauche -->
-      <div class="relative flex-1">
-        <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
-          <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-          </svg>
-        </div>
-        <input 
-          type="text" 
-          placeholder="Rechercher par code..." 
-          [(ngModel)]="searchTerm"
-          (input)="onSearch()"
-          class="h-11 w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-11 pr-10 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-white/30 transition-all"
-        />
-        <button *ngIf="searchTerm" 
-                (click)="searchTerm = ''; onSearch()" 
-                class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-          </svg>
-        </button>
-      </div>
-      
-      <!-- Bouton Filtrer à droite -->
-      <div class="flex items-center gap-3">
-        <button
-          (click)="toggleFilters()"
-          class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-all"
-          [class.bg-brand-50]="showFilters"
-          [class.text-brand-600]="showFilters"
-          [class.border-brand-300]="showFilters"
-        >
-          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
-          </svg>
-          Filtrer
-          <span *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedDateDetection || selectedDateResolution" class="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-brand-500 rounded-full">
-            {{ (selectedSeverite !== undefined ? 1 : 0) + (selectedStatut !== undefined ? 1 : 0) + (selectedDateDetection ? 1 : 0) + (selectedDateResolution ? 1 : 0) }}
-          </span>
-        </button>
+  </div>
 
-        <!-- Indicateur de filtres actifs -->
-        <div *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedDateDetection || selectedDateResolution" class="flex items-center gap-2 px-3 py-1.5 bg-brand-50 dark:bg-brand-900/20 rounded-lg">
-          <span class="text-xs text-brand-600 dark:text-brand-400">Filtres actifs</span>
-          <button (click)="clearFilters()" class="text-brand-600 hover:text-brand-700 dark:text-brand-400">
+  <!-- Barre de recherche et filtres -->
+  <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
+    <div class="p-4">
+      <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
+        <!-- Barre de recherche -->
+        <div class="relative flex-1">
+          <div class="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+            <svg class="w-5 h-5 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+            </svg>
+          </div>
+          <input 
+            type="text" 
+            placeholder="Rechercher par code..." 
+            [(ngModel)]="searchTerm"
+            (input)="onSearch()"
+            class="h-11 w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-11 pr-10 text-sm text-gray-800 placeholder:text-gray-400 focus:border-[#8788FF] focus:outline-none focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-white/30 transition-all"
+          />
+          <button *ngIf="searchTerm" 
+                  (click)="searchTerm = ''; onSearch()" 
+                  class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600">
             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
             </svg>
           </button>
         </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Panneau de filtres amélioré -->
-  <div *ngIf="showFilters" class="mx-6 my-4 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-    <div class="flex items-center gap-2 mb-4">
-      <div class="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-500/10">
-        <svg class="w-4 h-4 text-brand-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
-        </svg>
-      </div>
-      <h4 class="text-md font-semibold text-gray-700 dark:text-gray-300">Filtres avancés</h4>
-    </div>
-    
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-      <!-- Filtre par sévérité - UNIQUEMENT pour l'admin -->
-      <div *ngIf="userRole === 'Admin'">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-          Sévérité
-        </label>
-        <select
-          [(ngModel)]="tempFilters.severite"
-          class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors"
-        >
-          <option [ngValue]="undefined">Toutes sévérités</option>
-          <option *ngFor="let option of severiteOptions" [ngValue]="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Filtre par statut -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-          Statut
-        </label>
-        <select
-          [(ngModel)]="tempFilters.statut"
-          class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors"
-        >
-          <option [ngValue]="undefined">Tous statuts</option>
-          <option *ngFor="let option of statutOptions" [ngValue]="option.value">
-            {{ option.label }}
-          </option>
-        </select>
-      </div>
-
-      <!-- Filtre par date -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
-          Date de détection
-        </label>
-        <div class="relative">
-          <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-            <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-          </div>
-          <input 
-            type="date"
-            id="incidentDate"
-          [value]="selectedDateDetection"
-  (change)="onDateDetectionChange($event)"
-            [max]="today"
-            class="pl-10 pr-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all cursor-pointer"
-          />
-          <button 
-            type="button"
-            (click)="openCalendar()"
-            class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-            title="Ouvrir le calendrier"
+        
+        <!-- Bouton Filtrer -->
+        <div class="flex items-center gap-3">
+          <button
+            (click)="toggleFilters()"
+            class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-all"
+            [class.bg-[#ECECFF]]="showFilters"
+            [class.text-[#8788FF]]="showFilters"
+            [class.border-[#8788FF]]="showFilters"
           >
-            <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
             </svg>
+            Filtrer
+            <span *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedDateDetection || selectedDateResolution" class="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-[#8788FF] rounded-full">
+              {{ (selectedSeverite !== undefined ? 1 : 0) + (selectedStatut !== undefined ? 1 : 0) + (selectedDateDetection ? 1 : 0) + (selectedDateResolution ? 1 : 0) }}
+            </span>
           </button>
+
+          <div *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedDateDetection || selectedDateResolution" class="flex items-center gap-2 px-3 py-1.5 bg-[#ECECFF] dark:bg-[#0C144E]/20 rounded-lg">
+            <span class="text-xs text-[#8788FF] dark:text-[#B2B3FF]">Filtres actifs</span>
+            <button (click)="clearFilters()" class="text-[#8788FF] hover:text-[#0C144E] dark:text-[#B2B3FF]">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>
 
-    <!-- Boutons d'action du panneau -->
-    <div class="flex justify-end gap-3 mt-6">
-      <button
-        (click)="cancelFilters()"
-        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
-      >
-        Annuler
-      </button>
-      <button
-        (click)="clearFilters()"
-        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
-      >
-        Effacer tout
-      </button>
-      <button
-        (click)="applyFilters()"
-        class="px-4 py-2 text-sm font-medium text-white bg-brand-500 rounded-lg hover:bg-brand-600 transition-colors shadow-sm"
-      >
-        Appliquer les filtres
-      </button>
+    <!-- Panneau de filtres -->
+    <div *ngIf="showFilters" class="mx-6 my-4 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+      <div class="flex items-center gap-2 mb-4">
+        <div class="p-1.5 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+          <svg class="w-4 h-4 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 110-4m0 4v2m0-6V4"></path>
+          </svg>
+        </div>
+        <h4 class="text-md font-semibold text-gray-700 dark:text-gray-300">Filtres avancés</h4>
+      </div>
+      
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <!-- Filtre par sévérité - Admin seulement -->
+        <div *ngIf="userRole === 'Admin'">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+            Sévérité
+          </label>
+          <select
+            [(ngModel)]="tempFilters.severite"
+            class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-[#8788FF] focus:ring-1 focus:ring-[#8788FF] dark:border-gray-600 dark:bg-gray-800 transition-colors"
+          >
+            <option [ngValue]="undefined">Toutes sévérités</option>
+            <option *ngFor="let option of severiteOptions" [ngValue]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Filtre par statut -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+            Statut
+          </label>
+          <select
+            [(ngModel)]="tempFilters.statut"
+            class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-[#8788FF] focus:ring-1 focus:ring-[#8788FF] dark:border-gray-600 dark:bg-gray-800 transition-colors"
+          >
+            <option [ngValue]="undefined">Tous statuts</option>
+            <option *ngFor="let option of statutOptions" [ngValue]="option.value">
+              {{ option.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Filtre par date -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+            Date de détection
+          </label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
+              <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+            </div>
+            <input 
+              type="date"
+              id="incidentDate"
+              [value]="selectedDateDetection"
+              (change)="onDateDetectionChange($event)"
+              [max]="today"
+              class="pl-10 pr-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all cursor-pointer"
+            />
+            <button 
+              type="button"
+              (click)="openCalendar()"
+              class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              title="Ouvrir le calendrier"
+            >
+              <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex justify-end gap-3 mt-6">
+        <button
+          (click)="cancelFilters()"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
+        >
+          Annuler
+        </button>
+        <button
+          (click)="clearFilters()"
+          class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
+        >
+          Effacer tout
+        </button>
+        <button
+          (click)="applyFilters()"
+          class="px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-lg hover:from-[#787AEA] hover:to-[#0C144E] transition-colors shadow-sm"
+        >
+          Appliquer les filtres
+        </button>
+      </div>
     </div>
   </div>
-</div>
 
-<!-- Loading indicator amélioré -->
-<div *ngIf="loading" class="flex justify-center items-center py-16">
-  <div class="animate-spin rounded-full h-10 w-10 border-4 border-brand-200 border-t-brand-600"></div>
-</div>
+  <!-- Loading indicator -->
+  <div *ngIf="loading" class="flex justify-center items-center py-16">
+    <div class="animate-spin rounded-full h-10 w-10 border-4 border-[#C5C6FF] border-t-[#8788FF]"></div>
+  </div>
 
-<!-- Error message amélioré -->
-<div *ngIf="error" class="mx-6 my-4 p-4 bg-red-50 text-red-600 rounded-xl border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 flex items-center gap-3">
-  <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-  </svg>
-  <span class="text-sm">{{ error }}</span>
-</div>
+  <!-- Error message -->
+  <div *ngIf="error" class="mx-6 my-4 p-4 bg-red-50 text-red-600 rounded-xl border border-red-200 dark:bg-red-900/20 dark:text-red-400 dark:border-red-800 flex items-center gap-3">
+    <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    <span class="text-sm">{{ error }}</span>
+  </div>
+
   <!-- Tableau des incidents -->
   <div *ngIf="!loading && !error" class="overflow-x-auto">
     <table class="min-w-full">
       <thead>
-        <tr class="border-y border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
-          <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Code</th>
-<th *ngIf="userRole === 'Commercant'" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
-          Type Problème
-        </th>
-        <th *ngIf="userRole === 'Admin'" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
-          Entité Impactée
-        </th>
-                  <th *ngIf="userRole !== 'Commercant'" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Commerçant</th>
-          <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">    Date de détection
-</th>
-          <th *ngIf="userRole !== 'Commercant'" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Sévérité</th>
-          <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Statut</th>
-          <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">Actions</th>
+  <tr class="border-y border-gray-200 dark:border-gray-700 bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/20 dark:to-[#0C144E]/30">
+    <th class="px-6 py-4 text-left text-xs font-medium text-[#0C144E] dark:text-[#B2B3FF] uppercase tracking-wider">
+            Code</th>
+          <th *ngIf="userRole === 'Commercant'" class="px-6 py-4 text-left text-xs font-medium text-[#0C144E] dark:text-[#B2B3FF] uppercase tracking-wider">
+            Type Problème
+          </th>
+          <th *ngIf="userRole === 'Admin'" class="px-6 py-4 text-left text-xs font-medium text-[#0C144E] dark:text-[#B2B3FF] uppercase tracking-wider">
+            Entité Impactée
+          </th>
+          <th *ngIf="userRole !== 'Commercant'" class="px-6 py-4 text-left text-xs font-medium text-[#0C144E] dark:text-[#B2B3FF] uppercase tracking-wider">
+            Commerçant</th>
+          <th class="px-6 py-4 text-left text-xs font-medium text-[#0C144E] dark:text-[#B2B3FF] uppercase tracking-wider">
+            Date de détection</th>
+          <th *ngIf="userRole !== 'Commercant'" class="px-6 py-4 text-left text-xs font-medium text-[#0C144E] dark:text-[#B2B3FF] uppercase tracking-wider">Sévérité</th>
+          <th class="px-6 py-4 text-left text-xs font-medium text-[#0C144E] dark:text-[#B2B3FF] uppercase tracking-wider">Statut</th>
+          <th class="px-6 py-4 text-left text-xs font-medium text-[#0C144E] dark:text-[#B2B3FF] uppercase tracking-wider">Actions</th>
         </tr>
       </thead>
       <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
@@ -444,66 +440,56 @@
           </td>
           
           <td class="px-6 py-4 whitespace-nowrap">
-          <!-- Si commerçant : afficher Type Problème -->
-          <span *ngIf="userRole === 'Commercant'" class="text-sm text-gray-600 dark:text-gray-400">
-            {{ getTypeProblemeLibelle(incident.typeProbleme) }}
-          </span>
-          <!-- Si admin : afficher Entité Impactée -->
-          <span *ngIf="userRole === 'Admin'" class="text-sm text-gray-600 dark:text-gray-400">
-    {{ getEntiteImpacteeLabel(incident) }}
-          </span>
-        </td>
+            <span *ngIf="userRole === 'Commercant'" class="text-sm text-gray-600 dark:text-gray-400">
+              {{ getTypeProblemeLibelle(incident.typeProbleme) }}
+            </span>
+            <span *ngIf="userRole === 'Admin'" class="text-sm text-gray-600 dark:text-gray-400">
+              {{ getEntiteImpacteeLabel(incident) }}
+            </span>
+          </td>
           
-  
-          
-        <td *ngIf="userRole !== 'Commercant'" class="px-4 sm:px-6 py-3.5">
-          <div class="flex items-center gap-3">
-            <app-avatar-text 
-              [name]="incident.createdByName || 'N/A'" 
-              class="w-8 h-8"
-            />
-            <div>
-              <span class="block text-theme-sm font-medium text-gray-700 dark:text-gray-400">
-                {{ incident.createdByName }}
-              </span>
+          <td *ngIf="userRole !== 'Commercant'" class="px-4 sm:px-6 py-3.5">
+            <div class="flex items-center gap-3">
+              <div class="w-8 h-8 rounded-full bg-gradient-to-r from-[#8788FF] to-[#B2B3FF] flex items-center justify-center shadow-sm">
+                <span class="text-sm font-medium text-white">
+                  {{ (incident.createdByName || 'N/A').charAt(0) }}
+                </span>
+              </div>
+              <div>
+                <span class="block text-theme-sm font-medium text-[#0C144E] dark:text-gray-300">
+                  {{ incident.createdByName }}
+                </span>
+              </div>
             </div>
-          </div>
-        </td>
+          </td>
           
           <td class="px-6 py-4 whitespace-nowrap">
             <div>
               <span class="text-sm text-gray-700 dark:text-gray-300">
                 {{ formatDate(incident.dateDetection) }}
               </span>
-           
             </div>
           </td>
           
-        <td class="px-6 py-4 whitespace-nowrap" *ngIf="userRole !== 'Commercant'">
-  <app-badge
-    variant="light"
-    [color]="getSeveriteBadgeColor(incident.severiteIncident)"
-    size="sm"
-  >
+          <td class="px-6 py-4 whitespace-nowrap" *ngIf="userRole !== 'Commercant'">
+         <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+        [ngClass]="getSeveriteBadgeClasses(incident.severiteIncident)">
     {{ getSeveriteLibelle(incident) }}
-  </app-badge>
-</td>
+  </span>
+          </td>
           
           <td class="px-6 py-4 whitespace-nowrap">
-            <app-badge
-              variant="light"
-              [color]="getStatutBadgeColor(incident.statutIncident)"
-              size="sm"
-            >
-              {{ incident.statutIncidentLibelle }}
-            </app-badge>
+          <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
+        [ngClass]="getStatutBadgeClasses(incident.statutIncident)">
+    {{ incident.statutIncidentLibelle }}
+  </span>
           </td>
           
           <td class="px-6 py-4 whitespace-nowrap">
             <div class="flex items-center gap-1">
               <button 
                 (click)="viewIncidentDetails(incident.id)"
-                class="p-2 text-gray-400 hover:text-brand-600 rounded-lg hover:bg-brand-50 dark:hover:bg-brand-900/20 transition-colors"
+                class="p-2 text-gray-400 hover:text-[#8788FF] rounded-lg hover:bg-[#ECECFF] dark:hover:bg-[#0C144E]/30 transition-colors"
                 title="Voir détails"
               >
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -511,39 +497,34 @@
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
                 </svg>
               </button>
- 
-<button 
-  [routerLink]="['/incidents/edit', incident.id]"
-  [disabled]="incident.statutIncident?.toString() === 'EnCours' || incident.statutIncident?.toString() === 'Ferme'"
-  class="p-2 text-gray-400 hover:text-warning-600 rounded-lg hover:bg-warning-50 dark:hover:bg-warning-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-  [title]="(incident.statutIncident?.toString() === 'EnCours' || incident.statutIncident?.toString() === 'Ferme') ? 'Modification impossible : incident en cours ou fermé' : 'Modifier l\'incident'"
->
-  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
-      d="M11 4h2m-1-1v2m7.071 2.929a2 2 0 010 2.828l-8.486 8.486a2 2 0 01-.878.515l-4 1a1 1 0 01-1.213-1.213l1-4a2 2 0 01.515-.878l8.486-8.486a2 2 0 012.828 0z">
-    </path>
-  </svg>
-</button>
-            
-   <button
-        (click)="onDelete(incident)"
-        [disabled]="userRole === 'Commercant' || incident.statutIncident?.toString() === 'EnCours' || incident.statutIncident?.toString() === 'Ferme'"
-        class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-        [title]="(userRole === 'Commercant' && incident.statutIncident?.toString() === 'EnCours' || incident.statutIncident?.toString() === 'Ferme') ? 'Impossible de supprimer un incident en cours ou fermé' : 'Supprimer l\'incident'"
-      >
-        <!-- Icône Corbeille -->
-        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
-                d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
-        </svg>
-      </button>
+
+              <button 
+                [routerLink]="['/incidents/edit', incident.id]"
+                [disabled]="incident.statutIncident?.toString() === 'EnCours' || incident.statutIncident?.toString() === 'Ferme'"
+                class="p-2 text-gray-400 hover:text-[#8788FF] rounded-lg hover:bg-[#ECECFF] dark:hover:bg-[#0C144E]/30 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                [title]="(incident.statutIncident?.toString() === 'EnCours' || incident.statutIncident?.toString() === 'Ferme') ? 'Modification impossible : incident en cours ou fermé' : 'Modifier l\'incident'"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4h2m-1-1v2m7.071 2.929a2 2 0 010 2.828l-8.486 8.486a2 2 0 01-.878.515l-4 1a1 1 0 01-1.213-1.213l1-4a2 2 0 01.515-.878l8.486-8.486a2 2 0 012.828 0z"></path>
+                </svg>
+              </button>
+              
+              <button
+                (click)="onDelete(incident)"
+                [disabled]="userRole === 'Commercant' || incident.statutIncident?.toString() === 'EnCours' || incident.statutIncident?.toString() === 'Ferme'"
+                class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                [title]="(userRole === 'Commercant' && incident.statutIncident?.toString() === 'EnCours' || incident.statutIncident?.toString() === 'Ferme') ? 'Impossible de supprimer un incident en cours ou fermé' : 'Supprimer l\'incident'"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+                </svg>
+              </button>
             </div>
           </td>
         </tr>
         
-        <!-- Message si aucun incident -->
         <tr *ngIf="filteredIncidents.length === 0">
-          <td [attr.colspan]="userRole !== 'Commercant' ? 8 : 7" class="px-6 py-16 text-center">
+          <td [attr.colspan]="userRole !== 'Commercant' ? 7 : 6" class="px-6 py-16 text-center">
             <div class="flex flex-col items-center justify-center">
               <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
@@ -557,14 +538,13 @@
     </table>
   </div>
 
-  <!-- Pagination améliorée -->
+  <!-- Pagination -->
   <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-800" *ngIf="!loading && !error && filteredIncidents.length > 0">
     <div class="flex items-center justify-between">
-      <!-- Previous Button -->
       <button
         (click)="onPageChange(currentPage - 1)"
         [disabled]="currentPage === 1 || totalPages === 0"
-        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors hover:border-[#8788FF]"
       >
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
@@ -572,12 +552,10 @@
         <span class="hidden sm:inline">Précédent</span>
       </button>
       
-      <!-- Page Info (Mobile) -->
       <span class="text-sm font-medium text-gray-700 dark:text-gray-400 sm:hidden">
         Page {{ currentPage }} / {{ totalPages || 1 }}
       </span>
       
-      <!-- Page Numbers (Desktop) -->
       <ul class="hidden items-center gap-1 sm:flex">
         <ng-container *ngIf="totalPages > 0; else noPages">
           <li *ngFor="let page of getPageNumbers()">
@@ -586,7 +564,7 @@
                 (click)="onPageChange(page)"
                 class="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-colors"
                 [ngClass]="{
-                  'bg-brand-500 text-white hover:bg-brand-600': currentPage === page,
+                  'bg-gradient-to-r from-[#8788FF] to-[#787AEA] text-white': currentPage === page,
                   'text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800': currentPage !== page
                 }"
               >
@@ -600,18 +578,17 @@
         </ng-container>
         <ng-template #noPages>
           <li>
-            <button class="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-500 text-white">
+            <button class="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-r from-[#8788FF] to-[#787AEA] text-white">
               1
             </button>
           </li>
         </ng-template>
       </ul>
       
-      <!-- Next Button -->
       <button
         (click)="onPageChange(currentPage + 1)"
         [disabled]="currentPage === totalPages || totalPages === 0"
-        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors hover:border-[#8788FF]"
       >
         <span class="hidden sm:inline">Suivant</span>
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

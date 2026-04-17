@@ -648,7 +648,85 @@ cancelDelete() {
   viewIncidentDetails(id: string): void {
     this.router.navigate(['/incidents', id]);
   }
-
+getSeveriteBadgeClasses(severite: any): string {
+  // Cas où la sévérité est 0, null ou undefined
+  if (severite === 0 || severite === null || severite === undefined) {
+    return 'bg-[#C5C6FF] text-[#0C144E]';  // Digital Blue 48%
+  }
+  
+  let severiteValue: number;
+  
+  if (typeof severite === 'string') {
+    switch(severite) {
+      case 'Non définie':
+        return 'bg-[#C5C6FF] text-[#0C144E]';
+      case 'Faible':
+        severiteValue = 1;
+        break;
+      case 'Moyenne':
+        severiteValue = 2;
+        break;
+      case 'Forte':
+        severiteValue = 3;
+        break;
+      default:
+        severiteValue = 0;
+    }
+  } else {
+    severiteValue = severite;
+  }
+  
+  switch(severiteValue) {
+    case 1: // Faible
+      return 'bg-[#B2B3FF] text-[#0C144E]';  // Digital Blue 64%
+    case 2: // Moyenne
+      return 'bg-[#8788FF] text-white';       // Digital Purple
+    case 3: // Forte
+      return 'bg-[#D4B8FF] text-[#0C144E]';   // Rose Mauve
+    default:
+      return 'bg-[#C5C6FF] text-[#0C144E]';   // Digital Blue 48%
+  }
+}
+getStatutBadgeClasses(statut: any): string {
+  // Convertir en nombre si c'est une string
+  let statutValue: number;
+  
+  if (typeof statut === 'string') {
+    const statutClean = statut.trim().toLowerCase();
+    switch(statutClean) {
+      case 'non traité':
+      case 'nontraite':
+      case 'non_traite':
+        statutValue = 0;
+        break;
+      case 'en cours':
+      case 'encours':
+        statutValue = 1;
+        break;
+      case 'fermé':
+      case 'ferme':
+      case 'résolu':
+      case 'resolu':
+        statutValue = 2;
+        break;
+      default:
+        statutValue = 0;
+    }
+  } else {
+    statutValue = statut;
+  }
+  
+  switch(statutValue) {
+    case 0: // Non traité
+      return 'bg-[#C5C6FF] text-[#0C144E]';   // Digital Blue 48%
+    case 1: // En cours
+      return 'bg-[#8788FF] text-white';        // Digital Purple
+    case 2: // Fermé
+      return 'bg-[#D4B8FF] text-[#0C144E]';   // Digital Blue 64%
+    default:
+      return 'bg-[#D4B8FF] text-[#0C144E]';
+  }
+}
 getSeveriteBadgeColor(severite: any): BadgeColor {
   // Cas 1: La sévérité est 0 ou null
   if (severite === 0 || severite === null || severite === undefined) {

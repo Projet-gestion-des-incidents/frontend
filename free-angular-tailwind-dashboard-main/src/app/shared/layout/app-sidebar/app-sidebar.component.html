@@ -26,21 +26,33 @@
       @if ((isExpanded$ | async) || (isHovered$ | async) || (isMobileOpen$ | async)) {
       <img
         class="dark:hidden"
-        src="/images/logo/logo.svg"
+        src="/images/logo/2.png"
         alt="Logo"
-        width="150"
-        height="40"
+        width="220"
+        height="200"
       />
       <img
         class="hidden dark:block"
-        src="/images/logo/logo-dark.svg"
+        src="/images/logo/3.png"
         alt="Logo"
-        width="150"
-        height="40"
+        width="220"
+        height="200"
       />
       } @else {
-      <img src="/images/logo/logo-icon.svg" alt="Logo" width="32" height="32" />
-      }
+  <img
+      class="dark:hidden"
+      src="/images/logo/1.png"
+      alt="Logo"
+      width="80"
+      height="80"
+    />
+    <img
+      class="hidden dark:block"
+      src="/images/logo/44.png"
+      alt="Logo"
+      width="80"
+      height="80"
+    />      }
     </a>
   </div>
 
@@ -247,7 +259,7 @@
         <!-- Support Section -->
         <!-- end support section -->
 
-        <!-- Others Section -->
+        <!-- Others Section 
         <div>
           <h2
             class="mb-4 text-xs uppercase flex leading-[20px] text-gray-400"
@@ -284,7 +296,6 @@
           </h2>
 
           <ul class="flex flex-col gap-1">
-            <!-- CHANGEMENT ICI: filteredOthersItems au lieu de othersItems -->
             @for (nav of filteredOthersItems; track $index;let i = $index) {
             <li>
               @if (nav.subItems) {
@@ -448,7 +459,7 @@
             </li>
             }
           </ul>
-        </div>
+        </div> -->
         <!-- end other section -->
       </div>
     </nav>

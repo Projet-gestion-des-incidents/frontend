@@ -40,21 +40,39 @@ layer(base);
   --color-current: currentColor;
   --color-transparent: transparent;
   --color-white: #ffffff;
-  --color-black: #101828;
+  --color-black: #000000;
 
-  --color-brand-25: #f2f7ff;
-  --color-brand-50: #ecf3ff;
-  --color-brand-100: #dde9ff;
-  --color-brand-200: #c2d6ff;
-  --color-brand-300: #9cb9ff;
-  --color-brand-400: #7592ff;
-  --color-brand-500: #465fff;
-  --color-brand-600: #3641f5;
-  --color-brand-700: #2a31d8;
-  --color-brand-800: #252dae;
-  --color-brand-900: #262e89;
-  --color-brand-950: #1C143E;
+  /* ========== NOUVELLES COULEURS ========== */
+  --color-deep-purple: #0c144e;
+  --color-digital-purple: #8788ff;
+  --color-digital-blue: #787aea;
+  --color-grey: #f9f9f9;
+  --color-grey-dark: #e5e5e5;
+  
+  /* Dégradés et variantes Digital Blue */
+  --color-digital-blue-64: #b2b3ff;
+  --color-digital-blue-48: #c5c6ff;
+  --color-digital-blue-24: #c5c6ff;
+  --color-digital-blue-16: #ececff;
+  
+  /* Shade de Deep Purple */
+  --color-deep-purple-12: rgba(12, 20, 78, 0.12);
+  
+  /* Brand - utiliser Digital Purple comme couleur principale */
+  --color-brand-25: var(--color-digital-blue-16);
+  --color-brand-50: var(--color-digital-blue-16);
+  --color-brand-100: var(--color-digital-blue-24);
+  --color-brand-200: var(--color-digital-blue-48);
+  --color-brand-300: var(--color-digital-blue-64);
+  --color-brand-400: var(--color-digital-blue);
+  --color-brand-500: var(--color-digital-purple);
+  --color-brand-600: #6a6bcc;
+  --color-brand-700: #5556aa;
+  --color-brand-800: #404188;
+  --color-brand-900: #2b2c66;
+  --color-brand-950: var(--color-deep-purple);
 
+  /* Garder les autres couleurs existantes */
   --color-blue-light-25: #f5fbff;
   --color-blue-light-50: #f0f9ff;
   --color-blue-light-100: #e0f2fe;
@@ -69,7 +87,7 @@ layer(base);
   --color-blue-light-950: #062c41;
 
   --color-gray-25: #fcfcfd;
-  --color-gray-50: #f9fafb;
+  --color-gray-50: var(--color-grey);
   --color-gray-100: #f2f4f7;
   --color-gray-200: #e4e7ec;
   --color-gray-300: #d0d5dd;
@@ -135,24 +153,24 @@ layer(base);
   --color-warning-950: #4e1d09;
 
   --color-theme-pink-500: #ee46bc;
-
   --color-theme-purple-500: #7a5af8;
 
-  --shadow-theme-md: 0px 4px 8px -2px rgba(16, 24, 40, 0.1),
-    0px 2px 4px -2px rgba(16, 24, 40, 0.06);
-  --shadow-theme-lg: 0px 12px 16px -4px rgba(16, 24, 40, 0.08),
-    0px 4px 6px -2px rgba(16, 24, 40, 0.03);
-  --shadow-theme-sm: 0px 1px 3px 0px rgba(16, 24, 40, 0.1),
-    0px 1px 2px 0px rgba(16, 24, 40, 0.06);
-  --shadow-theme-xs: 0px 1px 2px 0px rgba(16, 24, 40, 0.05);
-  --shadow-theme-xl: 0px 20px 24px -4px rgba(16, 24, 40, 0.08),
-    0px 8px 8px -4px rgba(16, 24, 40, 0.03);
+  /* Ombres */
+  --shadow-theme-md: 0px 4px 8px -2px rgba(12, 20, 78, 0.1),
+    0px 2px 4px -2px rgba(12, 20, 78, 0.06);
+  --shadow-theme-lg: 0px 12px 16px -4px rgba(12, 20, 78, 0.08),
+    0px 4px 6px -2px rgba(12, 20, 78, 0.03);
+  --shadow-theme-sm: 0px 1px 3px 0px rgba(12, 20, 78, 0.1),
+    0px 1px 2px 0px rgba(12, 20, 78, 0.06);
+  --shadow-theme-xs: 0px 1px 2px 0px rgba(12, 20, 78, 0.05);
+  --shadow-theme-xl: 0px 20px 24px -4px rgba(12, 20, 78, 0.08),
+    0px 8px 8px -4px rgba(12, 20, 78, 0.03);
   --shadow-datepicker: -5px 0 0 #262d3c, 5px 0 0 #262d3c;
-  --shadow-focus-ring: 0px 0px 0px 4px rgba(70, 95, 255, 0.12);
-  --shadow-slider-navigation: 0px 1px 2px 0px rgba(16, 24, 40, 0.1),
-    0px 1px 3px 0px rgba(16, 24, 40, 0.1);
-  --shadow-tooltip: 0px 4px 6px -2px rgba(16, 24, 40, 0.05),
-    -8px 0px 20px 8px rgba(16, 24, 40, 0.05);
+  --shadow-focus-ring: 0px 0px 0px 4px rgba(135, 136, 255, 0.12);
+  --shadow-slider-navigation: 0px 1px 2px 0px rgba(12, 20, 78, 0.1),
+    0px 1px 3px 0px rgba(12, 20, 78, 0.1);
+  --shadow-tooltip: 0px 4px 6px -2px rgba(12, 20, 78, 0.05),
+    -8px 0px 20px 8px rgba(12, 20, 78, 0.05);
 
   --drop-shadow-4xl: 0 35px 35px rgba(0, 0, 0, 0.25),
     0 45px 65px rgba(0, 0, 0, 0.15);
@@ -190,7 +208,46 @@ layer(base);
     @apply relative font-normal font-outfit z-1 bg-gray-50;
   }
 }
+@utility bg-deep-purple {
+  background-color: var(--color-deep-purple);
+}
 
+@utility text-deep-purple {
+  color: var(--color-deep-purple);
+}
+
+@utility bg-digital-purple {
+  background-color: var(--color-digital-purple);
+}
+
+@utility text-digital-purple {
+  color: var(--color-digital-purple);
+}
+
+@utility bg-digital-blue {
+  background-color: var(--color-digital-blue);
+}
+
+@utility text-digital-blue {
+  color: var(--color-digital-blue);
+}
+
+@utility bg-gradient-digital {
+  background-image: linear-gradient(
+    135deg,
+    var(--color-deep-purple) 0%,
+    var(--color-digital-purple) 50%,
+    var(--color-digital-blue) 100%
+  );
+}
+
+@utility bg-gradient-digital-purple {
+  background-image: linear-gradient(
+    135deg,
+    var(--color-digital-purple) 0%,
+    var(--color-digital-blue) 100%
+  );
+}
 @utility menu-item {
   @apply relative flex items-center w-full gap-3 px-3 py-2 font-medium rounded-lg text-theme-sm;
 }
@@ -293,7 +350,46 @@ layer(base);
 .dark .custom-scrollbar::-webkit-scrollbar-thumb {
   background-color: #344054;
 }
+/* Nouvelles couleurs personnalisées */
+:root {
+  --deep-purple: #0C144E;
+  --digital-purple: #8788FF;
+  --digital-blue: #787AEA;
+  --digital-blue-64: #B2B3FF;
+  --digital-blue-48: #C5C6FF;
+  --digital-blue-24: #C5C6FF;
+  --digital-blue-16: #ECECFF;
+  --gradient-digital: linear-gradient(135deg, #0C144E 0%, #8788FF 50%, #787AEA 100%);
+  --gradient-digital-horizontal: linear-gradient(90deg, #0C144E 0%, #8788FF 100%);
+}
 
+/* Classes utilitaires */
+.bg-deep-purple { background-color: #0C144E; }
+.bg-digital-purple { background-color: #8788FF; }
+.bg-digital-blue { background-color: #787AEA; }
+.text-deep-purple { color: #0C144E; }
+.text-digital-purple { color: #8788FF; }
+.text-digital-blue { color: #787AEA; }
+.border-deep-purple { border-color: #0C144E; }
+.border-digital-purple { border-color: #8788FF; }
+
+.bg-gradient-digital {
+  background: linear-gradient(135deg, #0C144E 0%, #8788FF 50%, #787AEA 100%);
+}
+
+.bg-gradient-digital-horizontal {
+  background: linear-gradient(90deg, #0C144E 0%, #8788FF 100%);
+}
+
+.btn-gradient-digital {
+  background: linear-gradient(135deg, #8788FF 0%, #787AEA 100%);
+  transition: all 0.3s ease;
+}
+
+.btn-gradient-digital:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px 0 rgba(135, 136, 255, 0.4);
+}
 @layer utilities {
   /* For Remove Date Icon */
   input[type="date"]::-webkit-inner-spin-button,
