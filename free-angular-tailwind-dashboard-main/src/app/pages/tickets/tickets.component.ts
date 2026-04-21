@@ -550,24 +550,25 @@ else if (this.isTechnicien) {
 
   // ========== COULEURS DES BADGES ==========
 
-  getStatusBadgeColor(status: string): BadgeColor {
-    switch (status) {
-      case 'Nouveau': return 'info';
-      case 'Assigné': return 'primary';
-      case 'En cours': return 'warning';
-      case 'Résolu': return 'success';
-      case 'Clôturé': return 'dark';
-      default: return 'light';
-    }
+getStatusBadgeColor(status: string): BadgeColor {
+  switch (status) {
+    case 'Non assigné':
+    case 'Non assigne':
+    case 'NonAssigne':
+      return 'error';      // Rouge - pour alerter
+    case 'Assigné':
+    case 'Assigne':
+      return 'warning';    // Jaune/Ambre - en attente
+    case 'En cours':
+    case 'EnCours':
+      return 'orange';    // Orange - en progression
+    case 'Résolu':
+    case 'Resolu':
+      return 'success';    // Vert - terminé
+    default:
+      return 'light';      // Gris clair
   }
+}
 
-  getPriorityBadgeColor(priority: string): BadgeColor {
-    switch (priority) {
-      case 'Basse': return 'success';
-      case 'Moyenne': return 'warning';
-      case 'Haute': return 'primary';   
-      case 'Critique': return 'dark';
-      default: return 'light';
-    }
-  }
+
 }

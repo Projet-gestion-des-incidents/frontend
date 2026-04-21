@@ -4,7 +4,7 @@ import { SafeHtmlPipe } from '../../../pipe/safe-html.pipe';
 
 type BadgeVariant = 'light' | 'solid';
 type BadgeSize = 'sm' | 'md';
-export type BadgeColor = 'primary' | 'success' | 'error' | 'warning' | 'info' | 'light' | 'dark';
+export type BadgeColor = 'primary' | 'success' | 'error' | 'warning' | 'info' | 'light' | 'dark' | 'orange';
 
 @Component({
   selector: 'app-badge',
@@ -44,6 +44,7 @@ export class BadgeComponent {
         info: 'bg-blue-light-50 text-blue-light-500 dark:bg-blue-light-500/15 dark:text-blue-light-500',
         light: 'bg-gray-100 text-gray-700 dark:bg-white/5 dark:text-white/80',
         dark: 'bg-gray-500 text-white dark:bg-white/5 dark:text-white',
+           orange: 'bg-orange-50 text-orange-600 dark:bg-orange-500/15 dark:text-orange-400',
       },
       solid: {
         primary: 'bg-brand-500 text-white dark:text-white',
@@ -53,6 +54,7 @@ export class BadgeComponent {
         info: 'bg-blue-light-500 text-white dark:text-white',
         light: 'bg-gray-400 dark:bg-white/5 text-white dark:text-white/80',
         dark: 'bg-gray-700 text-white dark:text-white',
+          orange: 'bg-orange-500 text-white dark:text-white',
       },
     };
     return variants[this.variant][this.color];

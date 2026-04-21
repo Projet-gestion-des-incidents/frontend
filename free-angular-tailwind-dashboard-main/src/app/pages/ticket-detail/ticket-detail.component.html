@@ -64,10 +64,11 @@
         <div class="flex flex-wrap items-center gap-4 mt-3">
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Statut :</span>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                  [ngClass]="getStatutBadgeClasses(ticket.statutTicketLibelle)">
+            <app-badge
+                size="sm"
+                [color]="getStatutBadgeClasses(ticket.statutTicketLibelle)">
               {{ ticket.statutTicketLibelle }}
-            </span>
+              </app-badge>
           </div>
         </div>
       </div>
@@ -172,11 +173,7 @@
               </span>
             </div>
             <div class="flex items-center gap-3 pl-6">
-              <div class="w-8 h-8 rounded-full bg-gradient-to-r from-[#8788FF] to-[#B2B3FF] flex items-center justify-center shadow-sm">
-                <span class="text-sm font-medium text-white">
-                  {{ ticket.assigneeNom.charAt(0) }}
-                </span>
-              </div>
+              
               <p class="text-gray-900 dark:text-white font-medium">
                 {{ ticket.assigneeNom }}
               </p>
@@ -234,14 +231,16 @@
                   <span class="font-semibold text-gray-900 dark:text-white text-lg">
                     {{ incident.codeIncident }}
                   </span>
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                        [ngClass]="getIncidentStatutBadgeClasses(incident.statutIncident)">
+           <app-badge
+                size="sm"
+                [color]="getStatutBadgeColor(incident.statutIncident)">
                     {{ incident.statutIncidentLibelle || 'Non défini' }}
-                  </span>
-                  <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                        [ngClass]="getIncidentSeveriteBadgeClasses(incident.severiteIncident)">
+              </app-badge>
+       <app-badge
+                size="sm"
+                [color]="getSeveriteBadgeColor(incident.severiteIncident)">
                     {{ getSeveriteLibelle(incident.severiteIncident, incident.severiteIncidentLibelle) }}
-                  </span>
+              </app-badge>
                 </div>
                 
                 <!-- Type de problème -->

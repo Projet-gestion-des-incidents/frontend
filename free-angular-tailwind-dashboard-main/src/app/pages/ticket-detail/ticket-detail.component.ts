@@ -6,7 +6,7 @@ import { CommonModule, DatePipe, NgForOf, NgIf } from '@angular/common';
 import { BadgeColor, BadgeComponent } from '../../shared/components/ui/badge/badge.component';
 import { AvatarTextComponent } from '../../shared/components/ui/avatar/avatar-text.component';
 import { finalize, forkJoin } from 'rxjs';
-import { Incident } from '../../shared/models/incident.model';
+import { Incident, StatutIncident } from '../../shared/models/incident.model';
 import { UserService } from '../../shared/services/user.service';
 
 @Component({
@@ -100,68 +100,68 @@ getIncidentStatutBadgeColor(statut: number): 'success' | 'warning' | 'error' | '
   }
 }
 // Badge pour le statut du ticket
-getStatutBadgeClasses(statut: any): string {
+getStatutBadgeClasses(status: string): BadgeColor {
+  switch (status) {
+    case 'Non assigné':
+    case 'Non assigne':
+    case 'NonAssigne':
+      return 'error';      // Rouge - pour alerter
+    case 'Assigné':
+    case 'Assigne':
+      return 'warning';    // Jaune/Ambre - en attente
+    case 'En cours':
+    case 'EnCours':
+      return 'orange';    // Orange - en progression
+    case 'Résolu':
+    case 'Resolu':
+      return 'success';    // Vert - terminé
+    default:
+      return 'light';      // Gris clair
+  }
+}
+
+// Badge pour le statut de l'incident
+getStatutBadgeColor(statut: StatutIncident | string | number): BadgeColor {
+  console.log('Statut reçu:', statut, 'Type:', typeof statut);
+  
   // Convertir en nombre si c'est une string
   let statutValue: number;
   
   if (typeof statut === 'string') {
     const statutClean = statut.trim().toLowerCase();
+    
     switch(statutClean) {
       case 'non traité':
       case 'nontraite':
       case 'non_traite':
-        statutValue = 0;
+        statutValue = StatutIncident.NonTraite;
         break;
       case 'en cours':
       case 'encours':
-        statutValue = 1;
+        statutValue = StatutIncident.EnCours;
         break;
       case 'fermé':
       case 'ferme':
       case 'résolu':
       case 'resolu':
-        statutValue = 2;
+        statutValue = StatutIncident.Ferme;
         break;
       default:
-        statutValue = 0;
+        statutValue = StatutIncident.NonTraite;
     }
   } else {
     statutValue = statut;
   }
   
   switch(statutValue) {
-    case 0: // Non traité
-      return 'bg-[#C5C6FF] text-[#0C144E]';   // Digital Blue 48%
-    case 1: // En cours
-      return 'bg-[#8788FF] text-white';        // Digital Purple
-    case 2: // Fermé
-      return 'bg-[#D4B8FF] text-[#0C144E]';   // Digital Blue 64%
+    case StatutIncident.NonTraite:
+      return 'error';  // Bleu pour "Non traité"
+    case StatutIncident.EnCours:
+      return 'orange';  // Orange pour "En cours"
+    case StatutIncident.Ferme:
+      return 'success';  // Vert pour "Fermé"
     default:
-      return 'bg-[#D4B8FF] text-[#0C144E]';
-  }
-}
-
-
-// Badge pour le statut de l'incident
-getIncidentStatutBadgeClasses(statut: any): string {
-  let statutValue: number;
-  if (typeof statut === 'string') {
-    const statutClean = statut.trim().toLowerCase();
-    switch(statutClean) {
-      case 'non traité': statutValue = 0; break;
-      case 'en cours': statutValue = 1; break;
-      case 'fermé': statutValue = 2; break;
-      default: statutValue = 0;
-    }
-  } else {
-    statutValue = statut;
-  }
-  
-  switch(statutValue) {
-    case 0: return 'bg-[#C5C6FF] text-[#0C144E]';
-    case 1: return 'bg-[#8788FF] text-white';
-    case 2: return 'bg-[#B2B3FF] text-[#0C144E]';
-    default: return 'bg-[#C5C6FF] text-[#0C144E]';
+      return 'light';
   }
 }
 

@@ -128,17 +128,49 @@ export class IncidentDetailComponent implements OnInit {
   }
 
   // ========== GESTION DU STATUT DE L'INCIDENT ==========
-  getStatutBadgeColor(statut: number): 'success' | 'warning' | 'error' | 'info' {
-    if (!statut || statut === 0) {
-      return 'info';
-    }
+getStatutBadgeColor(statut: StatutIncident | string | number): BadgeColor {
+  console.log('Statut reçu:', statut, 'Type:', typeof statut);
+  
+  // Convertir en nombre si c'est une string
+  let statutValue: number;
+  
+  if (typeof statut === 'string') {
+    const statutClean = statut.trim().toLowerCase();
     
-    switch(statut) {
-      case 1: return 'warning';   // EnCours
-      case 2: return 'success';   // Ferme
-      default: return 'info';
+    switch(statutClean) {
+      case 'non traité':
+      case 'nontraite':
+      case 'non_traite':
+        statutValue = StatutIncident.NonTraite;
+        break;
+      case 'en cours':
+      case 'encours':
+        statutValue = StatutIncident.EnCours;
+        break;
+      case 'fermé':
+      case 'ferme':
+      case 'résolu':
+      case 'resolu':
+        statutValue = StatutIncident.Ferme;
+        break;
+      default:
+        statutValue = StatutIncident.NonTraite;
     }
+  } else {
+    statutValue = statut;
   }
+  
+  switch(statutValue) {
+    case StatutIncident.NonTraite:
+      return 'error';  // Bleu pour "Non traité"
+    case StatutIncident.EnCours:
+      return 'orange';  // Orange pour "En cours"
+    case StatutIncident.Ferme:
+      return 'success';  // Vert pour "Fermé"
+    default:
+      return 'light';
+  }
+}
 
   getStatutLibelle(statut: number, statutLibelle: string): string {
     if (!statut || statut === 0) {

@@ -98,3 +98,35 @@ select {
   transform: translateY(-2px);
   box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.02);
 }
+/* Style pour le graphique radial bar (demi-cercle) */
+.apexcharts-radialbar-track path {
+  stroke: #e5e7eb;
+}
+
+.apexcharts-radialbar-hollow {
+  fill: white;
+}
+
+.dark .apexcharts-radialbar-hollow {
+  fill: #1f2937;
+}
+
+.apexcharts-datalabels-group .apexcharts-text {
+  fill: #0C144E !important;
+  font-weight: 600 !important;
+}
+
+.dark .apexcharts-datalabels-group .apexcharts-text {
+  fill: #ffffff !important;
+}
+
+.apexcharts-datalabel-value {
+  font-size: 28px !important;
+  font-weight: bold !important;
+}
+
+.apexcharts-datalabel-label {
+  font-size: 14px !important;
+  font-weight: 500 !important;
+  fill: #6b7280 !important;
+}

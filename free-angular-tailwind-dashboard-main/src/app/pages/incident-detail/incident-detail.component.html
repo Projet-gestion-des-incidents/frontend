@@ -59,17 +59,19 @@
         <div class="flex flex-wrap items-center gap-4 mt-3">
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Statut :</span>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                  [ngClass]="getStatutBadgeClasses(incident.statutIncident)">
+              <app-badge
+                size="sm"
+                [color]="getStatutBadgeColor(incident.statutIncident)">
               {{ getStatutLibelle(incident.statutIncident, incident.statutIncidentLibelle) }}
-            </span>
+              </app-badge>
           </div>
           <div class="flex items-center gap-2">
             <span class="text-sm font-medium text-gray-500 dark:text-gray-400">Sévérité :</span>
-            <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium"
-                  [ngClass]="getSeveriteBadgeClasses(incident.severiteIncident)">
+           <app-badge
+                size="sm"
+                [color]="getSeveriteBadgeColor(incident.severiteIncident)">
               {{ getSeveriteLibelle(incident.severiteIncident, incident.severiteIncidentLibelle) }}
-            </span>
+              </app-badge>
           </div>
         </div>
       </div>
@@ -174,11 +176,7 @@
               </span>
             </div>
             <div class="flex items-center gap-3 pl-6">
-              <div class="w-8 h-8 rounded-full bg-gradient-to-r from-[#8788FF] to-[#B2B3FF] flex items-center justify-center shadow-sm">
-                <span class="text-sm font-medium text-white">
-                  {{ (incident.createdByName || 'N/A').charAt(0) }}
-                </span>
-              </div>
+             
               <p class="text-gray-900 dark:text-white font-medium">
                 {{ incident.createdByName || 'Non assigné' }}
               </p>
@@ -364,7 +362,7 @@
     </div>
 
     <!-- SECTION 7: Tickets liés -->
-    <div *ngIf="userRole === 'Admin'" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+  <div *ngIf="userRole === 'Admin' && incident.tickets && incident.tickets.length > 0" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
       <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
         <div class="flex items-center justify-between">
           <div class="flex items-center gap-3">

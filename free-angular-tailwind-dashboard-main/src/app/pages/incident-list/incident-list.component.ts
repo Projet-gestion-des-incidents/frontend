@@ -831,13 +831,13 @@ getStatutBadgeColor(statut: StatutIncident | string | number): BadgeColor {
   
   switch(statutValue) {
     case StatutIncident.NonTraite:
-      return 'info';  // Bleu pour "Non traité"
+      return 'error';  // Bleu pour "Non traité"
     case StatutIncident.EnCours:
-      return 'warning';  // Orange pour "En cours"
+      return 'orange';  // Orange pour "En cours"
     case StatutIncident.Ferme:
       return 'success';  // Vert pour "Fermé"
     default:
-      return 'info';
+      return 'light';
   }
 }
 getStatutLibelle(statut: number | string): string {
