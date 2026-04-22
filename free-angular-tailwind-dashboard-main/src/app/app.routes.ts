@@ -45,6 +45,9 @@ import { TechniciensListComponent } from './shared/listeUtilisateurs/techniciens
 import { CommercantsListComponent } from './shared/listeUtilisateurs/commercants-list/commercants-list.component';
 import { UpdateCommercantComponent } from './shared/components/updateUser/update-commercant/update-commercant.component';
 import { UpdateTechnicienComponent } from './shared/components/updateUser/update-technicien/update-technicien.component';
+import { IncidentsComponent } from './pages/dashboard/admin-dashboard/incidents/incidents.component';
+import { TechnicienPerformanceComponent } from './pages/dashboard/admin-dashboard/technicien-performance/technicien-performance.component';
+import { TicketsDashboardComponent } from './pages/dashboard/admin-dashboard/tickets-dashboard/tickets-dashboard.component';
 
 export const routes: Routes = [
   {
@@ -58,12 +61,17 @@ export const routes: Routes = [
         title:
           'Angular Ecommerce Dashboard | TailAdmin - Angular Admin Dashboard Template',
       },
-     {
-  path: 'admin-dashboard',
-  component: AdminDashboardComponent,
-  canActivate: [AuthGuard],
-  data: { roles: ['Admin'] }
-}, { 
+      {
+    path: 'admin-dashboard',
+    component: AdminDashboardComponent,
+    children: [
+      { path: '', redirectTo: 'tickets', pathMatch: 'full' },
+      { path: 'tickets', component:   TicketsDashboardComponent },
+      { path: 'incidents', component: IncidentsComponent },
+      { path: 'technicien-performance', component: TechnicienPerformanceComponent },
+    ]
+  }
+, { 
         path: 'techniciens', 
         component: TechniciensListComponent,
         canActivate: [AuthGuard],

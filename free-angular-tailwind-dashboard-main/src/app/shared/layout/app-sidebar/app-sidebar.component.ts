@@ -13,7 +13,7 @@ type NavItem = {
   icon: string;   path?: string;
   new?: boolean;
   roles?: string[]; // Rôles autorisés à voir cet élément
-  subItems?: { name: string; path: string; pro?: boolean; new?: boolean; roles?: string[] }[];
+  subItems?: { name: string; path: string; pro?: boolean;   icon?: string; new?: boolean; roles?: string[] }[];
 };
 
 @Component({
@@ -39,7 +39,24 @@ export class AppSidebarComponent implements OnInit, OnDestroy {
       name: "Dashboard",
       roles: ['Admin', 'Technicien', 'Commercant'],
       subItems: [
-        { name: "Ecommerce", path: "/", roles: ['Admin', 'Technicien', 'Commercant'] },
+        { name: "Tickets", path: "/admin-dashboard/tickets", roles: ['Admin'] ,  icon: `<svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+               <path stroke-linecap="round" stroke-linejoin="round" d="M3 9a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 4v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-4V9z"/>
+               <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v10"/>
+             </svg>`,},
+              { name: "Incidents", path: "/admin-dashboard/incidents", roles: ['Admin'] ,  icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+               <path d="M12 3L2 20H22L12 3Z" fill="currentColor" opacity="0.2"/>
+               <path d="M12 9V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+               <circle cx="12" cy="17" r="1" fill="currentColor"/>
+               <path d="M10.3 4.6C11.1 3.2 12.9 3.2 13.7 4.6L21.3 18.1C22.1 19.5 21.2 21 19.6 21H4.4C2.8 21 1.9 19.5 2.7 18.1L10.3 4.6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+             </svg>`,}, 
+              { name: "Suivi performance techniciens", 
+                     path: "/admin-dashboard/technicien-performance", 
+ roles: ['Admin'] ,  icon: `<svg width="1em" height="1em" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+               <path d="M12 3L2 20H22L12 3Z" fill="currentColor" opacity="0.2"/>
+               <path d="M12 9V13" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+               <circle cx="12" cy="17" r="1" fill="currentColor"/>
+               <path d="M10.3 4.6C11.1 3.2 12.9 3.2 13.7 4.6L21.3 18.1C22.1 19.5 21.2 21 19.6 21H4.4C2.8 21 1.9 19.5 2.7 18.1L10.3 4.6Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/>
+             </svg>`,}
       ],
     },
     // {

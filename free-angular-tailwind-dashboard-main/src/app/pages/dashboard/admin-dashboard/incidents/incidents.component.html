@@ -1,0 +1,165 @@
+  <!-- ==================== SECTION INCIDENTS ==================== -->
+  <div class="space-y-6 animate-fadeIn">
+  
+  <div *ngIf="loadingIncidents" class="flex justify-center items-center py-20">
+    <div class="animate-spin rounded-full h-12 w-12 border-4 border-[#C5C6FF] border-t-[#8788FF]"></div>
+  </div>
+
+  <div *ngIf="errorIncidents" class="p-4 bg-red-50 text-red-600 rounded-xl border border-red-200">
+    {{ errorIncidents }}
+  </div>
+
+  <div *ngIf="!loadingIncidents && incidentData" class="space-y-6">
+    <!-- Cartes métriques Incidents -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-2">
+      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200 hover:shadow-md transition">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-purple-600 font-medium">Total incidents</p>
+            <p class="text-2xl font-bold text-purple-700">{{ incidentData.overview.totalIncidents }}</p>
+          </div>
+          <div class="p-3 bg-purple-200 rounded-xl">
+            <svg class="w-6 h-6 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            </svg>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200 hover:shadow-md transition">
+        <div class="flex items-center justify-between">
+          <div>
+            <p class="text-sm text-green-600 font-medium">Taux de résolution</p>
+            <p class="text-2xl font-bold text-green-700">{{ incidentData.statsResolution.tauxResolution }}%</p>
+          </div>
+          <div class="p-3 bg-green-200 rounded-xl">
+            <svg class="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+        </div>
+        <div class="mt-2">
+          <div class="flex items-center gap-2">
+            <div class="flex-1 h-1.5 bg-green-200 rounded-full overflow-hidden">
+              <div class="h-full bg-green-500 rounded-full" [style.width]="incidentData.statsResolution.tauxResolution + '%'"></div>
+            </div>
+            <p class="text-xs font-medium text-green-600">{{ incidentData.statsResolution.tauxResolution }}%</p>
+          </div>
+          <p class="text-xs text-green-500 mt-2">{{ incidentData.statsResolution.incidentsResolus }} / {{ incidentData.overview.totalIncidents }} résolus</p>
+        </div>
+      </div>
+
+   
+    </div>
+
+    <!-- Graphiques Incidents : Répartition par statut et Par sévérité -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      
+      <div class="bg-white rounded-2xl border shadow-sm">
+        <div class="px-6 py-4 border-b bg-gradient-to-r from-[#ECECFF] to-white rounded-t-2xl">
+          <h3 class="text-lg font-semibold text-[#0C144E]">Répartition par statut</h3>
+          <p class="text-xs text-gray-500">Distribution des incidents selon leur statut</p>
+        </div>
+        <div class="p-5">
+          <apx-chart *ngIf="chartIncidentDonut" [series]="chartIncidentDonut.series" [chart]="chartIncidentDonut.chart" 
+                     [labels]="chartIncidentDonut.labels" [colors]="chartIncidentDonut.colors" [legend]="chartIncidentDonut.legend"
+                     [dataLabels]="chartIncidentDonut.dataLabels" [plotOptions]="chartIncidentDonut.plotOptions">
+          </apx-chart>
+        </div>
+      </div>
+
+<div class="bg-white rounded-2xl border shadow-sm">
+  <div class="px-6 py-4 border-b bg-gradient-to-r from-[#ECECFF] to-white rounded-t-2xl">
+    <div class="flex items-center justify-between">
+      <div>
+        <h3 class="text-lg font-semibold text-[#0C144E]">Par sévérité</h3>
+        <p class="text-xs text-gray-500">Taux de résolution par niveau de criticité</p>
+      </div>
+      <div class="flex gap-1">
+                <span class="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full">Non definie</span>
+        <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">Faible</span>
+        <span class="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full">Moyenne</span>
+        <span class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-full">Forte</span>
+      </div>
+    </div>
+  </div>
+  <div class="p-5">
+    <!-- Graphique Radial Bar -->
+    <apx-chart *ngIf="chartSeveriteRadial" 
+               [series]="chartSeveriteRadial.series" 
+               [chart]="chartSeveriteRadial.chart"
+               [plotOptions]="chartSeveriteRadial.plotOptions"
+               [labels]="chartSeveriteRadial.labels"
+               [colors]="chartSeveriteRadial.colors"
+               [title]="chartSeveriteRadial.title"
+               [stroke]="chartSeveriteRadial.stroke">
+    </apx-chart>
+    
+    <!-- Message si pas de données -->
+    <div *ngIf="!chartSeveriteRadial" class="text-center py-12">
+      <div class="text-gray-400 mb-2">
+        <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+        </svg>
+      </div>
+      <p class="text-sm text-gray-500">Chargement du graphique...</p>
+    </div>
+    
+ 
+  </div>
+</div>
+    </div>
+
+    <!-- Graphiques Incidents : Par type de problème -->
+    <div class="grid grid-cols-1 gap-6">
+      <div class="bg-white rounded-2xl border shadow-sm">
+        <div class="px-6 py-4 border-b bg-gradient-to-r from-[#ECECFF] to-white rounded-t-2xl">
+          <h3 class="text-lg font-semibold text-[#0C144E]">Par type de problème</h3>
+          <p class="text-xs text-gray-500">Distribution des incidents par catégorie</p>
+        </div>
+        <div class="p-5">
+          <apx-chart *ngIf="chartTypeProbleme" [series]="chartTypeProbleme.series" [chart]="chartTypeProbleme.chart"
+                     [plotOptions]="chartTypeProbleme.plotOptions" [xaxis]="chartTypeProbleme.xaxis"
+                     [yaxis]="chartTypeProbleme.yaxis" [colors]="chartTypeProbleme.colors"
+                     [dataLabels]="chartTypeProbleme.dataLabels" [tooltip]="chartTypeProbleme.tooltip">
+          </apx-chart>
+        </div>
+      </div>
+    </div>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+               
+   <!-- Graphique: Taux de panne par modèle (Camembert) -->
+      <div class="bg-white rounded-2xl border shadow-sm">
+        <div class="px-6 py-4 border-b bg-gradient-to-r from-[#ECECFF] to-white rounded-t-2xl">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-lg font-semibold text-[#0C144E]">Taux de panne par modèle</h3>
+              <p class="text-xs text-gray-500">Distribution des incidents par modèle de TPE</p>
+            </div>
+            <div class="flex gap-1">
+              <span class="text-xs px-2 py-1 bg-cyan-100 text-cyan-700 rounded-full">Ingenico</span>
+              <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">Verifone</span>
+              <span class="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full">PAX</span>
+            </div>
+          </div>
+        </div>
+        <div class="p-5">
+          <apx-chart *ngIf="chartPannesParModele" 
+                     [series]="chartPannesParModele.series" 
+                     [chart]="chartPannesParModele.chart"
+                     [labels]="chartPannesParModele.labels"
+                     [colors]="chartPannesParModele.colors"
+                     [legend]="chartPannesParModele.legend"
+                     [dataLabels]="chartPannesParModele.dataLabels"
+                     [plotOptions]="chartPannesParModele.plotOptions"
+                     [tooltip]="chartPannesParModele.tooltip"
+                     [title]="chartPannesParModele.title">
+          </apx-chart>
+        </div>
+      </div>
+                                  <!-- taux de panne tpe selon adressee  -->
+
+                        <div class="bg-white rounded-2xl border shadow-sm">
+</div>
+        </div>
+  </div>
