@@ -1,0 +1,4 @@
+/* Dans votre fichier CSS global ou composant */
+:host ::ng-deep .apexcharts-legend {
+  display: none !important;
+}

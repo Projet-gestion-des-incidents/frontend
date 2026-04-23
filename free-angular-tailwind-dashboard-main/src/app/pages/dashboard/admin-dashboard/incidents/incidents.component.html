@@ -157,9 +157,69 @@
           </apx-chart>
         </div>
       </div>
-                                  <!-- taux de panne tpe selon adressee  -->
 
-                        <div class="bg-white rounded-2xl border shadow-sm">
+
+<!-- Graphique: Taux de panne par gouvernorat (Barres horizontales) -->
+<div class="bg-white rounded-2xl border shadow-sm">
+  <div class="px-6 py-4 border-b bg-gradient-to-r from-[#ECECFF] to-white rounded-t-2xl">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div>
+        <h3 class="text-lg font-semibold text-[#0C144E]">Taux de panne par gouvernorat</h3>
+        <p class="text-xs text-gray-500">Classement par taux de panne décroissant</p>
+      </div>
+      <div class="flex gap-2 flex-wrap">
+        <span class="text-xs px-2.5 py-1 bg-green-100 text-green-700 rounded-full flex items-center gap-1 font-poppins">
+          <span class="w-2 h-2 rounded-full bg-green-500"></span>
+          Taux normal (≤100%)
+        </span>
+        <span class="text-xs px-2.5 py-1 bg-red-100 text-red-700 rounded-full flex items-center gap-1 font-poppins">
+          <span class="w-2 h-2 rounded-full bg-red-500"></span>
+          Taux critique (>100%)
+        </span>
+      </div>
+    </div>
+  </div>
+  
+  <div class="p-5">
+    <!-- Message si absence de données -->
+    <div *ngIf="!chartPannesParGovernorat" class="text-center py-12">
+      <div class="text-gray-400 mb-3">
+        <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2a3 3 0 013-3h0a3 3 0 013 3v2m-8 0h10m-10 0a2 2 0 01-2-2V9a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 01-2 2m-6-9h.01M12 7h.01" />
+        </svg>
+      </div>
+      <p class="text-sm text-gray-500 font-['Poppins']">Aucune donnée de gouvernorat disponible</p>
+      <p class="text-xs text-gray-400 mt-1 font-['Poppins']">Vérifiez les données d'adresse des commerçants</p>
+    </div>
+
+    <!-- Graphique -->
+    <apx-chart *ngIf="chartPannesParGovernorat" 
+               [series]="chartPannesParGovernorat.series" 
+               [chart]="chartPannesParGovernorat.chart"
+               [plotOptions]="chartPannesParGovernorat.plotOptions"
+               [xaxis]="chartPannesParGovernorat.xaxis"
+               [yaxis]="chartPannesParGovernorat.yaxis"
+               [colors]="chartPannesParGovernorat.colors"
+               [dataLabels]="chartPannesParGovernorat.dataLabels"
+               [tooltip]="chartPannesParGovernorat.tooltip"
+               [title]="chartPannesParGovernorat.title"
+               [grid]="chartPannesParGovernorat.grid"
+               [states]="chartPannesParGovernorat.states"
+               [responsive]="chartPannesParGovernorat.responsive">
+    </apx-chart>
+  </div>
+
+  <!-- Pied de page avec statistiques -->
+  <div *ngIf="govData.length > 0" class="px-5 py-3 border-t bg-gray-50 rounded-b-2xl">
+    <div class="flex justify-between items-center text-xs text-gray-500 font-poppins">
+      <div class="flex items-center gap-4">
+        <span class="flex items-center gap-1">Total: <strong class="text-gray-700">{{ govData.length }}</strong> gouvernorats</span>
+        <span class="flex items-center gap-1">TPEs: <strong class="text-gray-700">{{ totalTPEs }}</strong></span>
+        <span class="flex items-center gap-1">Incidents: <strong class="text-gray-700">{{ totalIncidents }}</strong></span>
+      </div>
+      <div>
+        <span class="flex items-center gap-1">Taux moyen: <strong class="text-[#8788FF]">{{ tauxMoyen | number:'1.0-0' }}%</strong></span>
+      </div>
 </div>
         </div>
   </div>

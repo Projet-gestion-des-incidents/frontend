@@ -5,6 +5,8 @@ import { FormsModule } from '@angular/forms';
 import { DropdownComponent } from '../../../../shared/components/ui/dropdown/dropdown.component';
 import { DropdownItemComponent } from '../../../../shared/components/ui/dropdown/dropdown-item/dropdown-item.component';
 import { NgApexchartsModule } from 'ng-apexcharts';
+import { TunisiaGovernoratesService } from '../../../../shared/services/tunisia-governorates.service';
+import { TunisiaMapComponent } from '../tunisia-map-data/tunisia-map-data.component';
 
 @Component({
   selector: 'app-incidents',
@@ -13,14 +15,16 @@ import { NgApexchartsModule } from 'ng-apexcharts';
     CommonModule,
     FormsModule,
     NgApexchartsModule,
-    DropdownComponent,
+    DropdownComponent,    TunisiaMapComponent
+,
     DropdownItemComponent
   ],
   templateUrl: './incidents.component.html',
   styleUrls: ['./incidents.component.css']
 })
 export class IncidentsComponent implements OnInit {
-  
+  govData: any[] = [];
+chartPannesParGovernorat: any;
   incidentData: IncidentDashboardDTO | null = null;
   tpeData: TPEDashboardDTO | null = null;
   
@@ -45,7 +49,8 @@ export class IncidentsComponent implements OnInit {
   // Dropdown
   isOpen = false;
 
-  constructor(private dashboardService: DashboardAdminService) {}
+  constructor(private dashboardService: DashboardAdminService,  private govService: TunisiaGovernoratesService
+) {}
 
   ngOnInit() {
     console.log('🟢 Composant incidents initialisé');
@@ -363,8 +368,7 @@ export class IncidentsComponent implements OnInit {
   initTPECharts() {
     if (!this.tpeData) return;
     this.initPannesParModeleChart();
-    this.initPannesParAdresseChart();
-  }
+  this.processPannesParGovernorat();   }
 
 initPannesParModeleChart() {
   const data = this.tpeData!.pannesParModele;
@@ -482,82 +486,178 @@ initPannesParModeleChart() {
     ]
   };
 }
-
-  initPannesParAdresseChart() {
-    const data = this.tpeData!.pannesParAdresse.slice(0, 6);
-    
-    this.chartPannesParAdresse = {
-      series: [{
-        name: "Taux de panne (%)",
-        data: data.map(a => a.tauxPanne)
-      }],
-      chart: {
-        type: 'bar',
-        height: 350,
-        toolbar: { show: false },
-        fontFamily: 'Poppins, system-ui, sans-serif'
-      },
-      plotOptions: {
-        bar: {
-          borderRadius: 8,
-          horizontal: true,
-          barHeight: '40%'
-        }
-      },
-      xaxis: {
-        categories: data.map(a => a.commercantNom.length > 20 ? a.commercantNom.substring(0, 20) + '...' : a.commercantNom),
-        labels: {
-          style: { fontSize: '11px', fontFamily: 'Poppins, system-ui, sans-serif' }
-        }
-      },
-      yaxis: {
-        title: { text: "Taux de panne (%)", style: { fontFamily: 'Poppins' } },
-        labels: {
-          formatter: (val: number) => `${val}%`,
-          style: { fontFamily: 'Poppins' }
-        }
-      },
-      colors: ['#8788FF'],
-      fill: {
-        type: 'gradient',
-        gradient: {
-          shade: 'light',
-          type: 'horizontal',
-          gradientToColors: ['#ECECFF'],
-          stops: [0, 100]
-        }
-      },
-      dataLabels: {
-        enabled: true,
-        formatter: (val: number) => `${val}%`,
-        style: { fontFamily: 'Poppins', fontSize: '11px', fontWeight: 'bold' }
-      },
-      tooltip: {
-        style: { fontFamily: 'Poppins' },
-        custom: ({ dataPointIndex }: any) => {
-          const item = data[dataPointIndex];
-          return `
-            <div style="padding: 10px; font-family: Poppins; min-width: 250px;">
-              <strong style="color: #8788FF">${item.commercantNom}</strong><br/>
-              📍 ${item.adresse}<br/>
-              📊 TPEs: ${item.nombreTPEs}<br/>
-              ⚠️ Incidents: ${item.nombreIncidents}<br/>
-              🔥 Taux de panne: <strong>${item.tauxPanne}%</strong>
-            </div>
-          `;
-        }
-      },
-      title: {
-        text: 'Taux de panne par commerçant',
-        align: 'center',
-        style: { fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins' }
-      },
-      grid: {
-        borderColor: '#e2e8f0',
-        strokeDashArray: 4
-      }
-    };
+processPannesParGovernorat() {
+  console.log('📊 === DÉBUT processPannesParGovernorat ===');
+  
+  if (!this.tpeData?.pannesParAdresse) {
+    console.warn('⚠️ Aucune donnée pannesParAdresse disponible');
+    return;
   }
+  
+  console.log('📊 Nombre de commerçants:', this.tpeData.pannesParAdresse.length);
+  
+  // Grouper par gouvernorat
+  const govMap = new Map<string, {
+    gouvName: string;
+    totalTPEs: number;
+    totalIncidents: number;
+    commercants: any[];
+  }>();
+  
+  for (const item of this.tpeData.pannesParAdresse) {
+    const govName = this.govService.extractGovernorateFromAddress(item.adresse);
+    
+    if (!govMap.has(govName)) {
+      govMap.set(govName, {
+        gouvName: govName,
+        totalTPEs: 0,
+        totalIncidents: 0,
+        commercants: []
+      });
+    }
+    
+    const govData = govMap.get(govName)!;
+    govData.totalTPEs += item.nombreTPEs;
+    govData.totalIncidents += item.nombreIncidents;
+    govData.commercants.push(item);
+  }
+  
+  // Convertir en tableau et calculer les taux
+  this.govData = Array.from(govMap.values()).map(gov => ({
+    name: gov.gouvName,
+    totalTPEs: gov.totalTPEs,
+    totalIncidents: gov.totalIncidents,
+    tauxPanne: gov.totalTPEs > 0 ? Math.round((gov.totalIncidents / gov.totalTPEs) * 100) : 0,
+    commercants: gov.commercants,
+    color: this.govService.getGovernorateColor(gov.gouvName)
+  })).sort((a, b) => b.tauxPanne - a.tauxPanne);
+  
+  // ✅ Mettre à jour les statistiques
+  this.updateStatsFromGovData();
+  
+  // Initialiser le graphique
+  this.initPannesParGovernoratChart();
+}
+
+initPannesParGovernoratChart() {
+  console.log('📊 === DÉBUT initPannesParGovernoratChart ===');
+  
+  const data = this.govData.slice(0, 10);
+  
+  if (data.length === 0) {
+    console.warn('⚠️ Aucune donnée de gouvernorat disponible');
+    return;
+  }
+  
+  // Préparer les données pour l'affichage
+  const chartData = data.map(g => ({
+    name: g.name,
+    displayValue: Math.min(g.tauxPanne, 100),
+    originalValue: g.tauxPanne,
+    totalTPEs: g.totalTPEs,
+    totalIncidents: g.totalIncidents,
+    color: g.color,
+    isOverflow: g.tauxPanne > 100
+  }));
+  
+  // Couleurs pour chaque barre
+  const barColors = chartData.map(g => g.isOverflow ? '#FCA5A5' : '#86efac');
+  
+  this.chartPannesParGovernorat = {
+    series: [{
+      name: "Taux de panne (%)",
+      data: chartData.map(g => g.displayValue)
+    }],
+    chart: {
+      type: 'bar',
+      height: Math.max(350, chartData.length * 35),
+      toolbar: { show: false },
+      fontFamily: 'Poppins, system-ui, sans-serif',
+      animations: { enabled: true, easing: 'easeinout', speed: 800 }
+    },
+    plotOptions: {
+      bar: {
+        borderRadius: 8,
+        horizontal: true,
+        barHeight: '40%',
+        dataLabels: { position: 'top' },
+        distributed: true
+      }
+    },
+    xaxis: {
+      categories: chartData.map(g => g.name),
+      labels: {
+        style: { fontSize: '12px', fontFamily: 'Poppins, system-ui, sans-serif', fontWeight: 500 },
+        trim: false
+      },
+      title: { text: "Taux de panne (%)", style: { fontSize: '12px', fontFamily: 'Poppins, system-ui, sans-serif', fontWeight: 600 } }
+    },
+    yaxis: {
+      labels: { style: { fontSize: '12px', fontFamily: 'Poppins, system-ui, sans-serif' } },
+      max: 100
+    },
+    colors: barColors,
+    // ✅ LÉGENDE DÉSACTIVÉE - À METTRE ICI, PAS DANS responsive
+    legend: {
+      show: false
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: (val: number, { dataPointIndex }: any) => {
+        const item = chartData[dataPointIndex];
+        return `${item.originalValue}%`;
+      },
+      style: { fontSize: '11px', fontFamily: 'Poppins, system-ui, sans-serif', fontWeight: 'bold', colors: ['#1E293B'] },
+      offsetX: 10
+    },
+    tooltip: {
+      custom: ({ dataPointIndex }: any) => {
+        const item = chartData[dataPointIndex];
+        return `
+          <div style="padding: 12px 16px; font-family: Poppins; min-width: 240px; border-radius: 12px; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.15); border: 1px solid #e2e8f0;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">
+              <div style="width: 12px; height: 12px; border-radius: 50%; background-color: ${item.isOverflow ? '#FCA5A5' : '#86efac'};"></div>
+              <strong style="color: #0C144E; font-size: 14px;">${item.name}</strong>
+              ${item.isOverflow ? '<span style="background: #FEE2E2; color: #FCA5A5; padding: 2px 8px; border-radius: 20px; font-size: 10px; font-weight: bold; margin-left: 8px;">Critique</span>' : ''}
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: #64748b;">TPEs:</span>
+              <strong style="color: #0C144E;">${item.totalTPEs}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+              <span style="color: #64748b;">Incidents:</span>
+              <strong style="color: #0C144E;">${item.totalIncidents}</strong>
+            </div>
+            <div style="display: flex; justify-content: space-between; padding-top: 8px; border-top: 1px solid #e2e8f0;">
+              <span style="color: #64748b;">Taux de panne:</span>
+              <strong style="color: ${item.isOverflow ? '#FCA5A5' : '#86efac'}; font-size: 14px;">${item.originalValue}%</strong>
+            </div>
+           
+          </div>
+        `;
+      }
+    },
+    title: {
+      text: 'Taux de panne par gouvernorat',
+      align: 'center',
+      style: { fontSize: '15px', fontWeight: '600', fontFamily: 'Poppins, system-ui, sans-serif', color: '#0C144E' }
+    },
+    grid: { borderColor: '#e2e8f0', strokeDashArray: 4, position: 'back' },
+    states: { hover: { filter: { type: 'darken', value: 0.1 } } },
+    responsive: [{
+      breakpoint: 768,
+      options: {
+        chart: { height: 300 },
+        plotOptions: { bar: { barHeight: '35%' } },
+        dataLabels: { style: { fontSize: '9px' } },
+        xaxis: { labels: { style: { fontSize: '10px' } } }
+      }
+    }]
+  };
+  
+  console.log('✅ Graphique chartPannesParGovernorat configuré');
+  console.log('📊 Couleurs finales:', barColors);
+}
 
   getIncidentStatsByPeriode() {
     if (!this.incidentData) return [];
@@ -577,7 +677,25 @@ initPannesParModeleChart() {
   toggleDropdown() {
     this.isOpen = !this.isOpen;
   }
+// Ajouter ces propriétés dans la classe IncidentsComponent
+totalTPEs: number = 0;
+totalIncidents: number = 0;
+tauxMoyen: number = 0;
 
+// Ajouter cette méthode dans la classe IncidentsComponent
+updateStatsFromGovData() {
+  this.totalTPEs = this.govData.reduce((sum, g) => sum + g.totalTPEs, 0);
+  this.totalIncidents = this.govData.reduce((sum, g) => sum + g.totalIncidents, 0);
+  this.tauxMoyen = this.govData.length > 0 
+    ? this.govData.reduce((sum, g) => sum + g.tauxPanne, 0) / this.govData.length 
+    : 0;
+  
+  console.log('📊 Statistiques mises à jour:', {
+    totalTPEs: this.totalTPEs,
+    totalIncidents: this.totalIncidents,
+    tauxMoyen: this.tauxMoyen
+  });
+}
   closeDropdown() {
     this.isOpen = false;
   }
