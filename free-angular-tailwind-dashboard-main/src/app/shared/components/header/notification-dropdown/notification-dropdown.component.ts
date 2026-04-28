@@ -21,6 +21,9 @@ export class NotificationDropdownComponent implements OnInit, OnDestroy {
   private refreshSubscription?: Subscription;
   private isComponentAlive = true;
   private lastClickedNotificationId: string | null = null; // ✅ Éviter les doublons
+  displayLimit = 5;  // Nombre de notifications affichées initialement
+  allNotifications: Notification[] = [];  // Stocker toutes les notifications
+  showAll = false;  // Afficher toutes ou non
 
   constructor(
     private notificationService: NotificationService,
@@ -47,37 +50,53 @@ export class NotificationDropdownComponent implements OnInit, OnDestroy {
     }
   }
 
-  toggleDropdown() {
-    this.isOpen = !this.isOpen;
-    if (this.isOpen) {
-      this.loadNotifications();
-      this.loadUnreadCount();
-    }
+toggleDropdown() {
+  this.isOpen = !this.isOpen;
+  if (this.isOpen) {
+    this.showAll = false;  // Réinitialiser l'affichage
+    this.loadNotifications();
+    this.loadUnreadCount();
   }
+}
   
   closeDropdown() {
     this.isOpen = false;
   }
 
-  loadNotifications() {
-    if (this.isLoading) return;
-    
-    this.isLoading = true;
-    this.notificationService.getMyNotifications().subscribe({
-      next: (data) => {
-        if (this.isComponentAlive) {
-          this.notifications = data;
-          this.isLoading = false;
-        }
-      },
-      error: (err) => {
-        if (this.isComponentAlive) {
-          console.error('Erreur chargement notifications:', err);
-          this.isLoading = false;
-        }
+loadNotifications() {
+  if (this.isLoading) return;
+  
+  this.isLoading = true;
+  this.notificationService.getMyNotifications().subscribe({
+    next: (data) => {
+      if (this.isComponentAlive) {
+        this.allNotifications = data;
+        this.updateDisplayedNotifications();
+        this.isLoading = false;
       }
-    });
+    },
+    error: (err) => {
+      if (this.isComponentAlive) {
+        console.error('Erreur chargement notifications:', err);
+        this.isLoading = false;
+      }
+    }
+  });
+}
+
+updateDisplayedNotifications() {
+  if (this.showAll) {
+    this.notifications = [...this.allNotifications];
+  } else {
+    this.notifications = this.allNotifications.slice(0, this.displayLimit);
   }
+}
+
+// Ajoutez cette méthode pour charger plus
+loadMore() {
+  this.showAll = true;
+  this.updateDisplayedNotifications();
+}
 
   loadUnreadCount() {
     this.notificationService.getUnreadCount().subscribe({
@@ -95,31 +114,28 @@ export class NotificationDropdownComponent implements OnInit, OnDestroy {
   }
 
   // ✅ Version corrigée de la redirection
-  onNotificationClick(notification: Notification) {
-    // Éviter les clics multiples sur la même notification
-    if (this.lastClickedNotificationId === notification.id) {
-      return;
-    }
-    this.lastClickedNotificationId = notification.id;
-    setTimeout(() => { this.lastClickedNotificationId = null; }, 500);
+onNotificationClick(notification: Notification) {
+  if (this.lastClickedNotificationId === notification.id) return;
+  this.lastClickedNotificationId = notification.id;
+  setTimeout(() => { this.lastClickedNotificationId = null; }, 500);
 
-    // 1. Marquer comme lu si non lu
-    if (!notification.estLu) {
-      this.notificationService.markAsRead(notification.id).subscribe({
-        next: () => {
-          notification.estLu = true;
-          this.unreadCount = Math.max(0, this.unreadCount - 1);
-        },
-        error: (err) => console.error('Erreur marquage:', err)
-      });
-    }
-    
-    // 2. Fermer le dropdown
-    this.closeDropdown();
-    
-    // 3. Rediriger avec force
-    this.redirectToDetail(notification);
+  // Marquer comme lu si non lu
+  if (!notification.estLu) {
+    this.notificationService.markAsRead(notification.id).subscribe({
+      next: () => {
+        notification.estLu = true;
+        this.unreadCount = Math.max(0, this.unreadCount - 1);
+        // Mettre à jour dans toutes les listes
+        const allNotif = this.allNotifications.find(n => n.id === notification.id);
+        if (allNotif) allNotif.estLu = true;
+      },
+      error: (err) => console.error('Erreur marquage:', err)
+    });
   }
+  
+  this.closeDropdown();
+  this.redirectToDetail(notification);
+}
 
 private redirectToDetail(notification: Notification): void {
   console.log('=== REDIRECTION NOTIFICATION ===');
@@ -199,6 +215,22 @@ private redirectToDetail(notification: Notification): void {
   console.log('=== FIN REDIRECTION ===');
 }
 
+deleteAllNotifications() {
+  if (confirm('Supprimer toutes les notifications ? Cette action est irréversible.')) {
+    const deleteObservables = this.notifications.map(n => 
+      this.notificationService.deleteNotification(n.id)
+    );
+    
+    Promise.all(deleteObservables).then(() => {
+      this.allNotifications = [];
+      this.notifications = [];
+      this.unreadCount = 0;
+    }).catch(err => {
+      console.error('Erreur suppression multiple:', err);
+    });
+  }
+}
+
   markAsRead(notificationId: string, event: Event) {
     event.stopPropagation();
     this.notificationService.markAsRead(notificationId).subscribe({
@@ -247,42 +279,23 @@ private redirectToDetail(notification: Notification): void {
   }
 
   // ✅ Méthode pour obtenir l'icône SVG
-  getNotificationIconSvg(typeNotification: number): string {
-    const svgIcons: { [key: number]: string } = {
-      1: `<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 5v2m0 4v2m0 4v2M5 5h14a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2z"/>
-          </svg>`,
-      2: `<svg class="w-5 h-5 text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/>
-          </svg>`,
-      3: `<svg class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/>
-          </svg>`,
-      4: `<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>`,
-      5: `<svg class="w-5 h-5 text-red-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
-          </svg>`,
-      6: `<svg class="w-5 h-5 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/>
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
-          </svg>`,
-      7: `<svg class="w-5 h-5 text-indigo-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/>
-          </svg>`,
-      8: `<svg class="w-5 h-5 text-orange-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
-          </svg>`,
-      9: `<svg class="w-5 h-5 text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
-          </svg>`,
-      10: `<svg class="w-5 h-5 text-cyan-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/>
-           </svg>`
-    };
-    return svgIcons[typeNotification] || svgIcons[5];
-  }
+ // notification-dropdown.component.ts
+// ✅ Remplacer getNotificationIconSvg par une méthode qui retourne juste le type
+getNotificationIconType(typeNotification: number): string {
+  const iconTypes: { [key: number]: string } = {
+    1: 'ticket',
+    2: 'assign',
+    3: 'edit',
+    4: 'resolved',
+    5: 'incident',
+    6: 'incident-resolved',
+    7: 'comment',
+    8: 'reminder',
+    9: 'incident-edit',
+    10: 'tpe'
+  };
+  return iconTypes[typeNotification] || 'default';
+}
 
   formatDate(date: Date | string): string {
     const now = new Date();
@@ -299,19 +312,24 @@ private redirectToDetail(notification: Notification): void {
     return `${diffDays} jours`;
   }
 
-  getTypeLabel(typeNotification: number): string {
-    const labels: { [key: number]: string } = {
-      1: 'Ticket créé',
-      2: 'Ticket assigné',
-      3: 'Ticket modifié',
-      4: 'Ticket résolu',
-      5: 'Incident créé',
-      6: 'Incident résolu',
-      7: 'Commentaire',
-      8: 'Rappel',
-      9: 'Incident modifié',
-      10: 'TPE ajouté'
-    };
-    return labels[typeNotification] || 'Notification';
-  }
+// notification-dropdown.component.ts
+// notification-dropdown.component.ts
+getTypeLabel(typeNotificationName: string): string {
+  const labels: { [key: string]: string } = {
+    'TicketCree': 'Ticket créé',
+    'TicketAssigne': 'Ticket assigné',
+    'TicketModifie': 'Ticket modifié',
+    'TicketEnCours': 'Ticket en cours',
+    'TicketResolu': 'Ticket résolu',
+    'TicketCloture': 'Ticket résolu',
+    'IncidentCree': 'Incident créé',
+    'IncidentEnCours': 'Incident en cours',
+    'IncidentResolu': 'Incident résolu',
+    'IncidentModifie': 'Incident modifié',
+    'CommentaireAjoute': 'Commentaire',
+    'Rappel': 'Rappel',
+    'TPECree': 'TPE ajouté'
+  };
+  return labels[typeNotificationName] || 'Notification';
+}
 }

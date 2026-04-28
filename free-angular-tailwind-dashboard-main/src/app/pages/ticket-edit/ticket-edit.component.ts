@@ -296,7 +296,7 @@ incidentToResolve: { id: string; code: string; description: string } | null = nu
 
 // Dans ticket-edit.component.ts
 
- loadTechniciens(): void {
+loadTechniciens(): void {
   console.log('🔍 Récupération des techniciens...');
   
   this.userService.getTechniciens().subscribe({
@@ -313,8 +313,21 @@ incidentToResolve: { id: string; code: string; description: string } | null = nu
         techniciensData = response.items;
       }
       
-      // ✅ Mapper les techniciens
-      this.techniciens = techniciensData.map((u: any) => ({
+      // ✅ Filtrer les techniciens avec email confirmé ET statut Actif
+      const techniciensFiltres = techniciensData.filter((u: any) => 
+        u.emailConfirmed === true && u.statut === 'Actif'
+      );
+      
+      console.log(`📊 Total techniciens: ${techniciensData.length}, Confirmés et Actifs: ${techniciensFiltres.length}`);
+      
+      // ✅ Afficher la répartition pour déboguer
+      const emailNonConfirmes = techniciensData.filter((u: any) => u.emailConfirmed !== true).length;
+      const statutNonActif = techniciensData.filter((u: any) => u.statut !== 'Actif').length;
+      console.log(`   - Email non confirmé: ${emailNonConfirmes}`);
+      console.log(`   - Statut non actif: ${statutNonActif}`);
+      
+      // ✅ Mapper les techniciens filtrés
+      this.techniciens = techniciensFiltres.map((u: any) => ({
         id: u.id,
         nom: u.nom,
         prenom: u.prenom,
@@ -323,17 +336,23 @@ incidentToResolve: { id: string; code: string; description: string } | null = nu
         phoneNumber: u.phoneNumber,
         statut: u.statut,
         birthDate: u.birthDate,
-        image: u.image
+        image: u.image,
+        emailConfirmed: u.emailConfirmed
       }));
       
-      // ✅ Créer les options pour le select
+      // ✅ Créer les options pour le select (uniquement ceux avec email confirmé ET actif)
       this.technicienOptions = this.techniciens.map(t => ({
         value: t.id,
-        label: `${t.prenom} ${t.nom}`  // Prénom puis Nom pour meilleure lisibilité
+        label: `${t.prenom} ${t.nom}`
       }));
       
-      console.log('✅ Techniciens chargés:', this.techniciens.length);
+      console.log('✅ Techniciens disponibles (email confirmé + actif):', this.techniciens.length);
       console.log('📋 Options:', this.technicienOptions);
+      
+      // Afficher un message si aucun technicien disponible
+      if (this.technicienOptions.length === 0) {
+        console.warn('⚠️ Aucun technicien avec email confirmé ET statut actif disponible');
+      }
     },
     error: (err) => {
       console.error('❌ Erreur chargement techniciens:', err);
@@ -354,6 +373,30 @@ getIncidentStatutClasses(statut: number): string {
       return 'bg-[#D4B8FF] text-[#0C144E]';
   }
 }
+formatDateLimite(dateLimite: string | null): string {
+  if (!dateLimite || dateLimite === '0001-01-01T00:00:00') {
+    return 'Non définie';
+  }
+  const date = new Date(dateLimite);
+  return date.toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
+
+// Vérifier si la date est passée
+isPastDate(dateString: string): boolean {
+  if (!dateString || dateString === '0001-01-01T00:00:00') return false;
+  const date = new Date(dateString);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return date < today;
+}// Ajoutez cette propriété avec les autres
+today: string = this.getTodayString();
+
 
   // Gestion des incidents
   desactiverIncident(incidentId: string): void {
@@ -659,7 +702,21 @@ private saveAsAdmin(): void {
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
+   // ✅ Validation de la date limite
+  if (!this.ticket.dateLimite || this.ticket.dateLimite === '0001-01-01T00:00:00') {
+    this.error = 'La date limite est obligatoire';
+    this.loading = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
   
+  // ✅ Vérifier que la date limite n'est pas passée (sauf si ticket déjà résolu)
+  if (this.ticket.statutTicket !== 'Resolu' && this.isPastDate(this.ticket.dateLimite)) {
+    this.error = 'La date limite ne peut pas être antérieure à aujourd\'hui';
+    this.loading = false;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    return;
+  }
   // ✅ Validation du titre (optionnel mais recommandé)
   if (!this.ticket.titreTicket || this.ticket.titreTicket.trim() === '') {
     this.error = 'Le titre est requis';
