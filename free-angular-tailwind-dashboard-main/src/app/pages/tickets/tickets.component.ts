@@ -143,7 +143,104 @@ dashboardStats = {
 };
 
 loadingDashboard = false;
+// Remplacer les méthodes existantes par celles-ci
 
+formatDateLimite(dateLimite: string | null): string {
+  if (!dateLimite || dateLimite === '0001-01-01T00:00:00') {
+    return 'Non définie';
+  }
+  return new Date(dateLimite).toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric'
+  });
+}
+
+// ✅ Nouvelle méthode : évaluer le statut par rapport à la date limite
+getDateLimiteStatus(ticket: any): {
+  text: string;
+  color: string;
+  icon: string;
+} {
+  // Si pas de date limite
+  if (!ticket.dateLimite || ticket.dateLimite === '0001-01-01T00:00:00') {
+    return {
+      text: 'Non définie',
+      color: 'text-gray-500 dark:text-gray-400',
+      icon: 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+    };
+  }
+
+  const dateLimite = new Date(ticket.dateLimite);
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  
+  // Cas 1: Ticket résolu
+  if (ticket.statutTicketLibelle === 'Résolu' && ticket.dateCloture) {
+    const dateCloture = new Date(ticket.dateCloture);
+    
+    if (dateCloture <= dateLimite) {
+      // ✅ Résolu avant la date limite
+      return {
+        text: ' Réalisé avant délai',
+        color: 'text-green-600 dark:text-green-400',
+        icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
+      };
+    } else {
+      // ❌ Résolu après la date limite
+      const daysLate = Math.ceil((dateCloture.getTime() - dateLimite.getTime()) / (1000 * 3600 * 24));
+      return {
+        text: ` Réalisé après délai (+${daysLate}j)`,
+        color: 'text-red-600 dark:text-red-400',
+        icon: 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+      };
+    }
+  }
+  
+  // Cas 2: Ticket non résolu - vérifier si la date limite est dépassée
+  if (dateLimite < today) {
+    const daysOverdue = Math.ceil((today.getTime() - dateLimite.getTime()) / (1000 * 3600 * 24));
+    return {
+      text: ` Expiré (${daysOverdue}j de retard)`,
+      color: 'text-red-600 dark:text-red-400 font-semibold',
+      icon: 'M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z'
+    };
+  }
+  
+  // Cas 3: Ticket non résolu mais date limite pas encore dépassée
+  const daysLeft = Math.ceil((dateLimite.getTime() - today.getTime()) / (1000 * 3600 * 24));
+  
+  if (daysLeft === 0) {
+    return {
+      text: ' Dernier jour',
+      color: 'text-orange-600 dark:text-orange-400 font-semibold',
+      icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+    };
+  }
+  
+  if (daysLeft <= 3) {
+    return {
+      text: ` ${daysLeft}j restants (urgent)`,
+      color: 'text-orange-600 dark:text-orange-400',
+      icon: 'M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z'
+    };
+  }
+  
+  return {
+    text: `${daysLeft}j restants`,
+    color: 'text-green-600 dark:text-green-400',
+    icon: 'M5 13l4 4L19 7'
+  };
+}
+
+// Version simplifiée pour la couleur du texte uniquement (optionnelle)
+getDateLimiteSimpleStatus(ticket: any): { text: string; colorClass: string } {
+  const status = this.getDateLimiteStatus(ticket);
+  return {
+    text: status.text,
+    colorClass: status.color
+  };
+}
 // Ajouter dans ngOnInit après le chargement du rôle
 loadDashboardStats(): void {
   if (!this.isAdmin) return;
