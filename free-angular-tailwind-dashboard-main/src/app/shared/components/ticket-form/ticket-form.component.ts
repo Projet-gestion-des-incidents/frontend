@@ -79,7 +79,30 @@ export class TicketFormComponent implements OnInit {
       commentaireInterne: [false]
     });
   }
-
+// Ajoutez cette propriété avec les autres
+commercantsAvecIncidents: any[] = [];
+/**
+ * Filtre les commerçants pour ne garder que ceux qui ont des incidents disponibles
+ */
+filtrerCommercantsAvecIncidents(): void {
+  if (!this.incidents || this.incidents.length === 0) {
+    this.commercantsAvecIncidents = [];
+    return;
+  }
+  
+  // Récupérer les IDs des commerçants qui ont des incidents disponibles
+  const commercantsIdsAvecIncidents = new Set(
+    this.incidents.map(incident => incident.createdById)
+  );
+  
+  // Filtrer la liste complète des commerçants
+  this.commercantsAvecIncidents = this.commercants.filter(commercant => 
+    commercantsIdsAvecIncidents.has(commercant.id)
+  );
+  
+  console.log(`📊 Commerçants avec incidents disponibles: ${this.commercantsAvecIncidents.length}`);
+  console.log('Commerçants filtrés:', this.commercantsAvecIncidents);
+}
   futureDateValidator(control: AbstractControl): ValidationErrors | null {
     if (!control.value) {
       return null;
@@ -230,31 +253,34 @@ clearAllSelections(): void {
   this.showIncidentError = false;
   console.log('🧹 Sélection complètement vidée');
 }
- loadIncidents(): void {
-    this.incidentService.getIncidentsSansTicket().subscribe({
-      next: (incidents) => {
-        this.incidents = incidents;
-        console.log('Incidents disponibles:', this.incidents.length);
-        
-        // Trier les incidents
-        this.incidents.sort((a, b) => {
-          return new Date(b.dateDetection).getTime() - new Date(a.dateDetection).getTime();
-        });
-        
-        // ✅ NE PAS initialiser filteredIncidents ici
-        // La liste ne s'affichera qu'après sélection d'un commerçant
-        this.filteredIncidents = [];
-        this.groupedIncidents = [];
-        
-        // Réinitialiser la sélection
-        this.selectedIncidentIds = [];
-      },
-      error: (err) => {
-        console.error('Erreur chargement incidents:', err);
-        this.showError('Impossible de charger les incidents');
-      }
-    });
-  }
+loadIncidents(): void {
+  this.incidentService.getIncidentsSansTicket().subscribe({
+    next: (incidents) => {
+      this.incidents = incidents;
+      console.log('Incidents disponibles:', this.incidents.length);
+      
+      // Trier les incidents
+      this.incidents.sort((a, b) => {
+        return new Date(b.dateDetection).getTime() - new Date(a.dateDetection).getTime();
+      });
+      
+      // ✅ Filtrer les commerçants qui ont des incidents disponibles
+      this.filtrerCommercantsAvecIncidents();
+      
+      // ✅ NE PAS initialiser filteredIncidents ici
+      // La liste ne s'affichera qu'après sélection d'un commerçant
+      this.filteredIncidents = [];
+      this.groupedIncidents = [];
+      
+      // Réinitialiser la sélection
+      this.selectedIncidentIds = [];
+    },
+    error: (err) => {
+      console.error('Erreur chargement incidents:', err);
+      this.showError('Impossible de charger les incidents');
+    }
+  });
+}
 
 
   // Modifier groupIncidentsByCommercant pour utiliser filteredIncidents
