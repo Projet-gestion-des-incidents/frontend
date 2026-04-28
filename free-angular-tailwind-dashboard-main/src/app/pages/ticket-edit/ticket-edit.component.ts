@@ -31,7 +31,12 @@ import { TechnicianUpdateTicketDTO } from '../../shared/models/Ticket.models';
 })
 export class TicketEditComponent implements OnInit {
 
-  
+  // Ajoutez ces propriétés avec les autres déclarations
+commercants: any[] = [];
+selectedCommercantId: string | null = null;
+showIncidentsList: boolean = false;
+filteredIncidentsDisponibles: any[] = [];
+groupedIncidentsDisponibles: any[] = [];
   // Ticket
   ticket!: any;
   ticketId!: string;
@@ -104,6 +109,8 @@ statutsTechnicien = [
         
         // Charger les données
         this.loadTechniciens();
+        this.loadCommercants();
+
         this.loadData();
       },
       error: (err) => {
@@ -126,7 +133,98 @@ statutsTechnicien = [
 
 
 
+// Dans ngOnInit, après loadTechniciens(), ajoutez :
 
+// Ajoutez cette méthode
+loadCommercants(): void {
+  console.log('🔍 Chargement des commerçants...');
+  this.userService.getCommercants().subscribe({
+    next: (commercants) => {
+      this.commercants = commercants;
+      console.log('✅ Commerçants chargés:', this.commercants.length);
+    },
+    error: (err) => {
+      console.error('❌ Erreur chargement commerçants:', err);
+    }
+  });
+}
+// Ajoutez cette propriété avec les autres
+commercantsAvecIncidents: any[] = []; // Commerçants qui ont au moins un incident disponible
+/**
+ * Filtre les commerçants pour ne garder que ceux qui ont des incidents disponibles
+ */
+filtrerCommercantsAvecIncidents(): void {
+  if (!this.incidentsDisponibles || this.incidentsDisponibles.length === 0) {
+    this.commercantsAvecIncidents = [];
+    return;
+  }
+  
+  // Récupérer les IDs des commerçants qui ont des incidents disponibles
+  const commercantsIdsAvecIncidents = new Set(
+    this.incidentsDisponibles.map(incident => incident.createdById)
+  );
+  
+  // Filtrer la liste complète des commerçants
+  this.commercantsAvecIncidents = this.commercants.filter(commercant => 
+    commercantsIdsAvecIncidents.has(commercant.id)
+  );
+  
+  console.log(`📊 Commerçants avec incidents disponibles: ${this.commercantsAvecIncidents.length}`);
+  console.log('Commerçants filtrés:', this.commercantsAvecIncidents);
+}
+// Méthode appelée quand le commerçant change
+// Méthode appelée quand le commerçant change
+onCommercantChange(): void {
+  if (!this.selectedCommercantId) {
+    this.showIncidentsList = false;
+    this.filteredIncidentsDisponibles = [];
+    this.groupedIncidentsDisponibles = [];
+    return;
+  }
+  
+  // ✅ Utiliser incidentsDisponibles au lieu de incidents
+  this.filteredIncidentsDisponibles = this.incidentsDisponibles.filter(
+    incident => incident.createdById === this.selectedCommercantId
+  );
+  
+  // Regrouper les incidents filtrés
+  this.groupIncidentsDisponiblesByCommercant();
+  
+  // ✅ Afficher la liste
+  this.showIncidentsList = true;
+  
+  console.log(`📊 ${this.filteredIncidentsDisponibles.length} incidents pour le commerçant sélectionné`);
+  console.log('Incidents disponibles:', this.incidentsDisponibles);
+  console.log('Incidents filtrés:', this.filteredIncidentsDisponibles);
+}
+
+// Méthode pour grouper les incidents disponibles par commerçant
+// Méthode pour grouper les incidents disponibles par commerçant
+groupIncidentsDisponiblesByCommercant(): void {
+  const groups = new Map();
+  
+  this.filteredIncidentsDisponibles.forEach(incident => {
+    const commercantId = incident.createdById;
+    const commercantName = incident.createdByName || 'Commerçant inconnu';
+    const key = `${commercantId}-${commercantName}`;
+    
+    if (!groups.has(key)) {
+      groups.set(key, {
+        commercantId: commercantId,
+        commercantName: commercantName,
+        incidents: []
+      });
+    }
+    
+    groups.get(key).incidents.push(incident);
+  });
+  
+  this.groupedIncidentsDisponibles = Array.from(groups.values()).sort((a, b) => 
+    a.commercantName.localeCompare(b.commercantName)
+  );
+  
+  console.log('Incidents disponibles groupés par commerçant:', this.groupedIncidentsDisponibles);
+}
 
 
 
@@ -442,23 +540,32 @@ loadData(): void {
         this.originalStatut = this.ticket.statutTicket;
         this.originalAssigneeId = this.ticket.assigneeId;
         
-        // ✅ Initialisation de showAssignmentSection
-        // La section est visible SEULEMENT si le ticket n'est PAS assigné
         this.showAssignmentSection = !this.ticket.assigneeId;
-        
-        // ✅ Initialiser la variable temporaire
         this.tempAssigneeId = this.ticket.assigneeId;
 
         this.incidentsLies = results.incidentsLies;
         this.incidentsSelectionnes = this.incidentsLies.map((i: any) => i.id);
 
-        this.incidentsDisponibles = results.incidentsDisponibles || [];
-        this.incidentsDisponibles = this.incidentsDisponibles.filter((incident: any) => {
+        // ✅ Incidents disponibles (sans ticket lié)
+        const allIncidentsDisponibles = results.incidentsDisponibles || [];
+        this.incidentsDisponibles = allIncidentsDisponibles.filter((incident: any) => {
           const estDejaLie = this.incidentsLies.some((lie: any) => lie.id === incident.id);
           return !estDejaLie;
         });
         
+        console.log('📊 Incidents disponibles après filtrage:', this.incidentsDisponibles.length);
+        console.log('📊 Détails incidents disponibles:', this.incidentsDisponibles);
+        
         this.incidents = this.incidentsDisponibles;
+        
+        // ✅ Filtrer les commerçants qui ont des incidents disponibles
+        this.filtrerCommercantsAvecIncidents();
+        
+        // Réinitialiser le filtrage
+        this.selectedCommercantId = null;
+        this.showIncidentsList = false;
+        this.filteredIncidentsDisponibles = [];
+        this.groupedIncidentsDisponibles = [];
       } else {
         this.error = 'Ticket introuvable';
       }
@@ -497,6 +604,31 @@ reloadIncidentsDisponibles(): void {
       );
       this.incidents = this.incidentsDisponibles;
       console.log('✅ Incidents disponibles (sans aucun ticket lié):', this.incidentsDisponibles.length);
+      
+      // ✅ Mettre à jour la liste des commerçants avec incidents
+      this.filtrerCommercantsAvecIncidents();
+      
+      // ✅ Si un commerçant est sélectionné, refiltrer automatiquement
+      if (this.selectedCommercantId) {
+        // Vérifier si le commerçant sélectionné a encore des incidents
+        const commercantADesIncidents = this.commercantsAvecIncidents.some(
+          c => c.id === this.selectedCommercantId
+        );
+        
+        if (commercantADesIncidents) {
+          this.filteredIncidentsDisponibles = this.incidentsDisponibles.filter(
+            incident => incident.createdById === this.selectedCommercantId
+          );
+          this.groupIncidentsDisponiblesByCommercant();
+          this.showIncidentsList = true;
+        } else {
+          // Réinitialiser la sélection si le commerçant n'a plus d'incidents
+          this.selectedCommercantId = null;
+          this.showIncidentsList = false;
+          this.filteredIncidentsDisponibles = [];
+          this.groupedIncidentsDisponibles = [];
+        }
+      }
     },
     error: (err) => {
       console.error('❌ Erreur chargement incidents disponibles:', err);
@@ -1091,6 +1223,8 @@ confirmerLierIncident(incidentId: string, incidentCode: string, incidentDescript
 }
 
 // Méthode pour exécuter la liaison
+// Méthode pour exécuter la liaison
+// Méthode pour exécuter la liaison
 executerLierIncident(): void {
   if (!this.incidentToLink) return;
   
@@ -1107,9 +1241,36 @@ executerLierIncident(): void {
           this.incidentsLies.push(incidentComplet);
           this.incidentsSelectionnes.push(this.incidentToLink!.id);
           
-          // Retirer de la liste des disponibles
+          // ✅ Retirer de la liste des disponibles
           this.incidentsDisponibles = this.incidentsDisponibles.filter(i => i.id !== this.incidentToLink!.id);
           this.incidents = this.incidentsDisponibles;
+          
+          // ✅ Mettre à jour la liste des commerçants avec incidents
+          this.filtrerCommercantsAvecIncidents();
+          
+          // ✅ IMPORTANT: Mettre à jour les listes filtrées pour le commerçant actuel
+          if (this.selectedCommercantId) {
+            // Vérifier si le commerçant sélectionné a encore des incidents
+            const commercantADesIncidents = this.commercantsAvecIncidents.some(
+              c => c.id === this.selectedCommercantId
+            );
+            
+            if (commercantADesIncidents) {
+              // Re-filtrer les incidents disponibles par le commerçant actuel
+              this.filteredIncidentsDisponibles = this.incidentsDisponibles.filter(
+                incident => incident.createdById === this.selectedCommercantId
+              );
+              // Re-grouper les incidents filtrés
+              this.groupIncidentsDisponiblesByCommercant();
+              this.showIncidentsList = true;
+            } else {
+              // Réinitialiser la sélection si le commerçant n'a plus d'incidents
+              this.selectedCommercantId = null;
+              this.showIncidentsList = false;
+              this.filteredIncidentsDisponibles = [];
+              this.groupedIncidentsDisponibles = [];
+            }
+          }
         }
         
         this.showSuccess(`Incident ${this.incidentToLink!.code} lié avec succès`);
