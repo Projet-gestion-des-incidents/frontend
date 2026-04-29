@@ -171,7 +171,12 @@ private globalSuccessTimeout: any;
       phoneNumber: ['', [Validators.pattern(/^[0-9]{8}$/)]],
       birthDate: ['', [this.ageValidator]],
       adresse: ['', [Validators.maxLength(200)]],
-      nomMagasin: ['', [Validators.minLength(3), Validators.maxLength(50)]]
+      nomMagasin: ['', [
+      Validators.required, 
+      Validators.minLength(3), 
+      Validators.maxLength(50),
+      Validators.pattern(/^[a-zA-Z0-9]+$/)  // ✅ Permet seulement lettres et chiffres, PAS d'espaces
+    ]]
     });
 
     this.passwordForm = this.fb.group({
@@ -303,7 +308,19 @@ saveInfo(): void {
     if (this.editForm.get('email')?.errors) errors.push('Email invalide');
     if (this.editForm.get('phoneNumber')?.errors) errors.push('Téléphone invalide (8 chiffres)');
     if (this.editForm.get('birthDate')?.errors) errors.push('Date de naissance invalide (18 ans minimum)');
-    
+     // ✅ AJOUTER CETTE LIGNE POUR LE NOM DU MAGASIN
+    if (this.user.role === 'Commercant' && this.editForm.get('nomMagasin')?.errors) {
+    const nomMagasinErrors = this.editForm.get('nomMagasin')?.errors;
+    if (nomMagasinErrors?.['required']) {
+      errors.push('Nom du magasin requis');
+    } else if (nomMagasinErrors?.['minlength']) {
+      errors.push('Nom du magasin minimum 3 caractères');
+    } else if (nomMagasinErrors?.['maxlength']) {
+      errors.push('Nom du magasin maximum 50 caractères');
+    } else if (nomMagasinErrors?.['pattern']) {
+      errors.push('Nom du magasin : uniquement lettres et chiffres (pas d\'espaces)');
+    }
+  }
     console.error('❌ Formulaire invalide:', errors);
     this.showAlert('error', 'Formulaire invalide', errors.join(', '));
     return;

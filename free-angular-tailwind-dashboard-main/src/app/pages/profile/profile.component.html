@@ -1,9 +1,9 @@
 <app-page-breadcrumb pageTitle="Mon Profil" />
 
 
+<!-- ✅ Message de succès global - CENTRÉ EN HAUT -->
 <div *ngIf="globalSuccessMessage" 
-     class="fixed top-20 right-4 z-[100] rounded-xl border shadow-lg p-4 flex items-center justify-between min-w-[300px] max-w-md animate-slide-in-right"
-     style="border-color: #22c55e; background-color: #f0fdf4;"
+     class="rounded-xl border p-4 flex items-center justify-between animate-slide-down mb-6 "
      [ngClass]="{
        'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20': true
      }">
@@ -15,12 +15,17 @@
         </svg>
       </div>
     </div>
-    <span class="text-sm font-medium text-green-800 dark:text-green-200">
-      {{ globalSuccessMessage }}
-    </span>
+    <div>
+      <p class="text-sm font-medium text-green-800 dark:text-green-200">
+        Succès
+      </p>
+      <p class="text-sm text-green-700 dark:text-green-300">
+        {{ globalSuccessMessage }}
+      </p>
+    </div>
   </div>
-  <button (click)="globalSuccessMessage = ''" class="ml-4 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <button (click)="globalSuccessMessage = ''" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
     </svg>
   </button>
@@ -28,64 +33,7 @@
 <div class="space-y-6">
   
   <!-- Alerte améliorée -->
-  <div *ngIf="alert.show" 
-       class="rounded-xl border p-4 flex items-center justify-between animate-slide-down"
-       [ngClass]="{
-         'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20': alert.variant === 'error',
-         'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20': alert.variant === 'success',
-         'border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-900/20': alert.variant === 'warning',
-         'border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-900/20': alert.variant === 'info'
-       }">
-    <div class="flex items-center gap-3">
-      <div class="flex-shrink-0">
-        <div class="w-8 h-8 rounded-full flex items-center justify-center"
-             [ngClass]="{
-               'bg-red-100 text-red-600 dark:bg-red-800/50 dark:text-red-400': alert.variant === 'error',
-               'bg-green-100 text-green-600 dark:bg-green-800/50 dark:text-green-400': alert.variant === 'success',
-               'bg-amber-100 text-amber-600 dark:bg-amber-800/50 dark:text-amber-400': alert.variant === 'warning',
-               'bg-blue-100 text-blue-600 dark:bg-blue-800/50 dark:text-blue-400': alert.variant === 'info'
-             }">
-          <svg *ngIf="alert.variant === 'error'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <svg *ngIf="alert.variant === 'success'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
-          <svg *ngIf="alert.variant === 'warning'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-          </svg>
-          <svg *ngIf="alert.variant === 'info'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-        </div>
-      </div>
-      <div>
-        <p class="text-sm font-medium"
-           [ngClass]="{
-             'text-red-800 dark:text-red-200': alert.variant === 'error',
-             'text-green-800 dark:text-green-200': alert.variant === 'success',
-             'text-amber-800 dark:text-amber-200': alert.variant === 'warning',
-             'text-blue-800 dark:text-blue-200': alert.variant === 'info'
-           }">
-          {{ alert.title }}
-        </p>
-        <p class="text-sm"
-           [ngClass]="{
-             'text-red-700 dark:text-red-300': alert.variant === 'error',
-             'text-green-700 dark:text-green-300': alert.variant === 'success',
-             'text-amber-700 dark:text-amber-300': alert.variant === 'warning',
-             'text-blue-700 dark:text-blue-300': alert.variant === 'info'
-           }">
-          {{ alert.message }}
-        </p>
-      </div>
-    </div>
-    <button (click)="clearAlert()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-      </svg>
-    </button>
-  </div>
+
 
   <!-- En-tête avec bannière - Couleur Digital Purple -->
   <div class="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#8788FF] to-[#787AEA] shadow-lg">
