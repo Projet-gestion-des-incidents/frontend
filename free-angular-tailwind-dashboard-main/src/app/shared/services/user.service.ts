@@ -87,7 +87,9 @@ getCommercants(): Observable<any[]> {
             phoneNumber: commercant.phoneNumber,
             adresse: commercant.adresse,
             statut: commercant.statut,
-            role: 'Commercant'
+            role: 'Commercant',
+                    image: this.getFullImageUrl(commercant.image)
+
           }));
         }
         if (Array.isArray(response)) {
@@ -98,7 +100,9 @@ getCommercants(): Observable<any[]> {
             phoneNumber: commercant.phoneNumber,
             adresse: commercant.adresse,
             statut: commercant.statut,
-            role: 'Commercant'
+            role: 'Commercant',                  
+              image: this.getFullImageUrl(commercant.image)
+
           }));
         }
         return [];

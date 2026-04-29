@@ -28,6 +28,9 @@ confirmDeleteAll = false;
 confirmDeleteNotification: Notification | null = null;
 deletingAllNotifications = false;
 deletingNotification = false;
+successMessage: string = '';
+  private successMessageTimeout: any;
+
 
   constructor(
     private notificationService: NotificationService,
@@ -51,6 +54,9 @@ deletingNotification = false;
     if (this.refreshSubscription) {
       this.refreshSubscription.unsubscribe();
       this.refreshSubscription = undefined;
+    }
+    if (this.successMessageTimeout) {
+      clearTimeout(this.successMessageTimeout);
     }
   }
 
@@ -221,29 +227,37 @@ private redirectToDetail(notification: Notification): void {
 
 // Nouvelle méthode pour confirmer la suppression de toutes
 executeDeleteAll() {
-  this.deletingAllNotifications = true;
-  
-  const deleteObservables = this.notifications.map(n => 
-    this.notificationService.deleteNotification(n.id)
-  );
-  
-  Promise.all(deleteObservables).then(() => {
-    this.allNotifications = [];
-    this.notifications = [];
-    this.unreadCount = 0;
-    this.deletingAllNotifications = false;
-    this.confirmDeleteAll = false;
-  }).catch(err => {
-    console.error('Erreur suppression multiple:', err);
-    this.deletingAllNotifications = false;
-    this.confirmDeleteAll = false;
-  });
-}
+    this.deletingAllNotifications = true;
+    
+    this.notificationService.deleteAllMyNotifications().subscribe({
+      next: (response) => {
+        console.log('✅ Toutes les notifications supprimées:', response);
+        this.allNotifications = [];
+        this.notifications = [];
+        this.unreadCount = 0;
+        this.showAll = false;
+        this.deletingAllNotifications = false;
+        this.confirmDeleteAll = false;
+        
+        // ✅ Afficher le message de succès
+        this.showSuccessMessage('Toutes les notifications ont été supprimées avec succès');
+      },
+      error: (err) => {
+        console.error('❌ Erreur lors de la suppression de toutes les notifications:', err);
+        this.deletingAllNotifications = false;
+        this.confirmDeleteAll = false;
+        
+        // ✅ Afficher un message d'erreur
+        this.showSuccessMessage('Erreur lors de la suppression des notifications', true);
+      }
+    });
+  }
+
+// ✅ Ouvre le modal de confirmation
 deleteAllNotifications() {
   if (this.allNotifications.length === 0) {
     return;
   }
-  // Afficher le modal au lieu du confirm
   this.confirmDeleteAll = true;
 }
 
@@ -289,32 +303,58 @@ closeDeleteAllModal() {
 }
 
 executeDeleteSingle() {
-  if (!this.confirmDeleteNotification) return;
-  
-  this.deletingNotification = true;
-  const notificationId = this.confirmDeleteNotification.id;
-  const deletedNotification = this.confirmDeleteNotification;
-  
-  this.notificationService.deleteNotification(notificationId).subscribe({
-    next: () => {
-      this.allNotifications = this.allNotifications.filter(n => n.id !== notificationId);
-      this.notifications = this.notifications.filter(n => n.id !== notificationId);
-      
-      if (!deletedNotification.estLu) {
-        this.unreadCount = Math.max(0, this.unreadCount - 1);
+    if (!this.confirmDeleteNotification) return;
+    
+    this.deletingNotification = true;
+    const notificationId = this.confirmDeleteNotification.id;
+    const deletedNotification = this.confirmDeleteNotification;
+    
+    this.notificationService.deleteNotification(notificationId).subscribe({
+      next: () => {
+        this.allNotifications = this.allNotifications.filter(n => n.id !== notificationId);
+        this.notifications = this.notifications.filter(n => n.id !== notificationId);
+        
+        if (!deletedNotification.estLu) {
+          this.unreadCount = Math.max(0, this.unreadCount - 1);
+        }
+        
+        this.deletingNotification = false;
+        this.confirmDeleteNotification = null;
+        
+        // ✅ Afficher le message de succès
+        this.showSuccessMessage(`Notification "${deletedNotification.titre.substring(0, 50)}" supprimée avec succès`);
+      },
+      error: (err) => {
+        console.error('Erreur suppression:', err);
+        this.deletingNotification = false;
+        this.confirmDeleteNotification = null;
+        
+        // ✅ Afficher un message d'erreur
+        this.showSuccessMessage('Erreur lors de la suppression de la notification', true);
       }
-      
-      this.deletingNotification = false;
-      this.confirmDeleteNotification = null;
-    },
-    error: (err) => {
-      console.error('Erreur suppression:', err);
-      this.deletingNotification = false;
-      this.confirmDeleteNotification = null;
+    });
+  }
+private showSuccessMessage(message: string, isError: boolean = false) {
+    this.successMessage = message;
+    
+    // Appliquer la classe CSS appropriée selon le type
+    const container = document.querySelector('.notification-success-message');
+    if (container) {
+      if (isError) {
+        container.classList.add('error');
+      } else {
+        container.classList.remove('error');
+      }
     }
-  });
-}
-
+    
+    // Effacer automatiquement après 5 secondes
+    if (this.successMessageTimeout) {
+      clearTimeout(this.successMessageTimeout);
+    }
+    this.successMessageTimeout = setTimeout(() => {
+      this.successMessage = '';
+    }, 5000);
+  }
 // Nouvelle méthode pour annuler la suppression individuelle
 closeDeleteSingleModal() {
   this.confirmDeleteNotification = null;
@@ -375,4 +415,5 @@ getTypeLabel(typeNotificationName: string): string {
   };
   return labels[typeNotificationName] || 'Notification';
 }
+
 }

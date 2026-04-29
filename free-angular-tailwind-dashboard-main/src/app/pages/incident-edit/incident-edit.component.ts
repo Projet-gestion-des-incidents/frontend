@@ -125,22 +125,26 @@ piecesJointesExistantes: any[] = [];
     private userService: UserService
   ) { }
 
-  ngOnInit(): void {
-    this.userService.getMyProfile().subscribe({
-      next: (user) => {
-        this.userRole = user.role;
-        console.log('Rôle utilisateur:', this.userRole);
-        this.loadTpesDisponibles(); // Charger après avoir le rôle
-      },
-      error: (err) => console.error('Erreur récupération rôle:', err)
-    });
-
-    const incidentId = this.route.snapshot.paramMap.get('id');
-    if (incidentId) {
-      this.loadIncident(incidentId);
-    }
-  }
-
+ngOnInit(): void {
+  this.userService.getMyProfile().subscribe({
+    next: (user) => {
+      this.userRole = user.role;
+      console.log('Rôle utilisateur:', this.userRole);
+      
+      // ✅ Attendre que l'incident soit chargé avant de charger les TPEs
+      const incidentId = this.route.snapshot.paramMap.get('id');
+      if (incidentId) {
+        this.loadIncident(incidentId, () => {
+          // Callback après chargement de l'incident
+          this.loadTpesDisponibles();
+        });
+      } else {
+        this.loadTpesDisponibles();
+      }
+    },
+    error: (err) => console.error('Erreur récupération rôle:', err)
+  });
+}
   get isAdmin(): boolean {
     return this.userRole === 'Admin';
   }
@@ -151,38 +155,45 @@ piecesJointesExistantes: any[] = [];
 
   // ========== GESTION DES TPES DISPONIBLES ==========
 
-  loadTpesDisponibles() {
-    console.log('📦 Chargement des TPEs disponibles...');
-    
-    // Pour le commerçant : ses propres TPEs via getMyTpes()
-    const tpeObservable = this.isCommercant 
-      ? this.tpeService.getMyTpes() 
-      : this.tpeService.getAllTPEs();
-    
-    tpeObservable.subscribe({
-      next: (tpes) => {
-        this.tpEsDisponibles = tpes || [];
-        this.updateTpeOptions();
-        console.log('📦 TPEs disponibles:', this.tpEsDisponibles);
-      },
-      error: (err) => {
-        console.error('❌ Erreur chargement TPEs:', err);
-        this.tpEsDisponibles = [];
-        this.tpeOptions = [];
-        this.error = 'Impossible de charger la liste des TPEs';
-      }
-    });
-  }
-
+loadTpesDisponibles() {
+  console.log('📦 Chargement des TPEs disponibles...');
+  
+  // Pour le commerçant : ses propres TPEs via getMyTpes()
+  const tpeObservable = this.isCommercant 
+    ? this.tpeService.getMyTpes() 
+    : this.tpeService.getAllTPEs();
+  
+  tpeObservable.subscribe({
+    next: (tpes) => {
+      console.log('📦 TPEs reçus de l\'API:', tpes);
+      console.log('📦 TPEs déjà liés:', this.incident?.tpEs);
+      
+      // ✅ Filtrer pour exclure les TPEs déjà liés
+      const tpesAssociesIds = this.incident?.tpEs?.map(t => t.tpeId) || [];
+      this.tpEsDisponibles = (tpes || []).filter(tpe => !tpesAssociesIds.includes(tpe.id));
+      
+      console.log('📦 TPEs disponibles (non liés):', this.tpEsDisponibles.length);
+      console.log('📦 Détails TPEs disponibles:', this.tpEsDisponibles);
+      
+      this.updateTpeOptions();
+    },
+    error: (err) => {
+      console.error('❌ Erreur chargement TPEs:', err);
+      this.tpEsDisponibles = [];
+      this.tpeOptions = [];
+      this.error = 'Impossible de charger la liste des TPEs';
+    }
+  });
+}
   // Mettre à jour les options du multi-select
-  updateTpeOptions() {
-    this.tpeOptions = this.tpEsDisponibles.map(tpe => ({
-      value: tpe.id,
-      text: `${tpe.numSerieComplet} - ${tpe.modele}`,
-      selected: this.selectedTpeIds.includes(tpe.id)
-    }));
-    console.log('📦 Options TPE mises à jour:', this.tpeOptions);
-  }
+updateTpeOptions() {
+  this.tpeOptions = this.tpEsDisponibles.map(tpe => ({
+    value: tpe.id,
+    text: `${tpe.numSerieComplet} - ${tpe.modele}`,
+    selected: false // Toujours false car ce sont les TPEs disponibles (non liés)
+  }));
+  console.log('📦 Options TPE mises à jour:', this.tpeOptions);
+}
 
   // Obtenir le code d'un TPE à partir de son ID
   getTpeCode(tpeId: string): string {
@@ -293,62 +304,6 @@ piecesJointesExistantes: any[] = [];
     });
   }
 
-  /**
-   * Ajouter un TPE à l'incident
-   */
-  ajouterTpe(tpeId: string) {
-    if (!this.isCommercant) {
-      this.error = 'Seul le commerçant peut ajouter des TPEs';
-      return;
-    }
-    
-    console.log('➕ Ajout TPE:', tpeId);
-      if (this.isIncidentLieATicket) {
-    this.showErrorDialog(' Impossible de modifier les TPEs : cet incident est déjà lié à un support.');
-    return;
-  }
-    const tpeAjoute = this.tpEsDisponibles.find(t => t.id === tpeId);
-    if (!tpeAjoute) {
-      this.error = 'TPE non trouvé';
-      return;
-    }
-
-    this.incidentService.lierTpe(this.incident.id, tpeId).subscribe({
-      next: (response) => {
-        console.log('✅ Réception réponse:', response);
-        
-        if (response.isSuccess) {
-          // Ajouter le TPE à la liste locale
-          if (!this.incident.tpEs) {
-            this.incident.tpEs = [];
-          }
-          
-          this.incident.tpEs.push({
-            tpeId: tpeAjoute.id,
-            numSerie: tpeAjoute.numSerie,
-            numSerieComplet: tpeAjoute.numSerieComplet,
-            modele: tpeAjoute.modele,
-            modeleNom: tpeAjoute.modeleNom || tpeAjoute.modele,
-            dateAssociation: new Date().toISOString()
-          });
-          
-          // Ajouter l'ID à la liste des sélectionnés
-          this.selectedTpeIds.push(tpeId);
-          
-          // Mettre à jour les options du multi-select
-          this.updateTpeOptions();
-          
-          this.showTemporaryMessage('TPE lié avec succès', 'success');
-        } else {
-          this.error = response.message || 'Erreur lors de la liaison';
-        }
-      },
-      error: (err) => {
-        console.error('❌ Erreur liaison TPE:', err);
-        this.error = err.error?.message || 'Erreur lors de la liaison du TPE';
-      }
-    });
-  }
 
   // ========== GESTION DES SUPPRESSIONS AVEC MODALES ==========
 
@@ -397,34 +352,182 @@ showErrorDialog(message: string, resultCode?: number): void {
     if (this.error === message || this.error === this.error) {
       this.error = null;
     }
-  }, 5000);
+  }, 3000);
 }
-  confirmerSuppressionTpe() {
-    if (!this.tpeToDelete) return;
+ confirmerSuppressionTpe() {
+  if (!this.tpeToDelete) return;
 
-    console.log('🗑️ Suppression TPE:', this.tpeToDelete.id);
-    
-    this.incidentService.retirerTpe(this.incident.id, this.tpeToDelete.id).subscribe({
-      next: (response) => {
-        if (response.isSuccess) {
-          this.incident.tpEs?.splice(this.tpeToDelete!.index, 1);
-          this.selectedTpeIds = this.selectedTpeIds.filter(id => id !== this.tpeToDelete!.id);
-          this.updateTpeOptions();
-          this.showTemporaryMessage('TPE retiré avec succès', 'success');
-        } else {
-          this.error = response.message || 'Erreur lors du retrait';
+  console.log('🗑️ Suppression TPE:', this.tpeToDelete.id);
+  
+  this.loading = true;
+  
+  this.incidentService.retirerTpe(this.incident.id, this.tpeToDelete.id).subscribe({
+    next: (response) => {
+      if (response.isSuccess) {
+        // ✅ Récupérer le TPE retiré pour le remettre dans la liste des disponibles
+        const tpeRetire = this.incident.tpEs?.[this.tpeToDelete!.index];
+        
+        // ✅ Retirer de la liste des TPEs liés
+        this.incident.tpEs?.splice(this.tpeToDelete!.index, 1);
+        this.selectedTpeIds = this.selectedTpeIds.filter(id => id !== this.tpeToDelete!.id);
+        
+        // ✅ Remettre le TPE dans la liste des disponibles
+        if (tpeRetire) {
+          // Créer un objet TPE complet pour la liste des disponibles
+          const tpeComplet = {
+            id: tpeRetire.tpeId,
+            numSerie: tpeRetire.numSerie,
+            numSerieComplet: tpeRetire.numSerieComplet,
+            modele: tpeRetire.modele,
+            modeleNom: tpeRetire.modeleNom || tpeRetire.modele
+          };
+          this.tpEsDisponibles.push(tpeComplet);
         }
-        this.fermerModalTpe();
-      },
-      error: (err) => {
-        console.error('❌ Erreur retrait TPE:', err);
-        this.error = err.error?.message || 'Erreur lors du retrait du TPE';
-        this.fermerModalTpe();
+        
+        // ✅ Mettre à jour les options
+        this.updateTpeOptions();
+        
+        this.showTemporaryMessage(`TPE ${this.tpeToDelete!.label} retiré avec succès`, 'success');
+      } else {
+        this.error = response.message || 'Erreur lors du retrait';
       }
-    });
+      this.loading = false;
+      this.fermerModalTpe();
+    },
+    error: (err) => {
+      console.error('❌ Erreur retrait TPE:', err);
+      this.error = err.error?.message || 'Erreur lors du retrait du TPE';
+      this.loading = false;
+      this.fermerModalTpe();
+    }
+  });
+}
+showLinkTpeModal: boolean = false;
+tpeToLink: { id: string; label: string; modele: string; numSerieComplet: string } | null = null;
+/**
+ * Confirmer la liaison d'un TPE (ouvre la modale)
+ */
+confirmerLierTpe(tpe: any) {
+  this.tpeToLink = {
+    id: tpe.id,
+    label: tpe.numSerieComplet,
+    modele: tpe.modele,
+    numSerieComplet: tpe.numSerieComplet
+  };
+  this.showLinkTpeModal = true;
+}
+
+/**
+ * Exécuter la liaison du TPE
+ */
+executerLierTpe() {
+  if (!this.tpeToLink) return;
+
+  console.log('➕ Ajout TPE via modale:', this.tpeToLink.id);
+  
+  if (this.isIncidentLieATicket) {
+    this.showErrorDialog('Impossible de modifier les TPEs : cet incident est déjà lié à un support.');
+    this.fermerModalLienTpe();
+    return;
   }
-// Ajoutez cette propriété dans la classe
-get isIncidentLieATicket(): boolean {
+  
+  // ✅ Vérifier si le TPE est déjà dans la liste des TPEs liés
+  const dejaLie = this.incident.tpEs?.some(t => t.tpeId === this.tpeToLink!.id) || false;
+  if (dejaLie) {
+    this.showTemporaryMessage(`Le TPE ${this.tpeToLink!.label} est déjà associé à cet incident`, 'error');
+    this.fermerModalLienTpe();
+    return;
+  }
+  
+  // ✅ Vérifier si le TPE est encore disponible
+  const tpeToujoursDisponible = this.tpEsDisponibles.some(t => t.id === this.tpeToLink!.id);
+  if (!tpeToujoursDisponible) {
+    this.showTemporaryMessage(`Le TPE ${this.tpeToLink!.label} n'est plus disponible`, 'error');
+    this.fermerModalLienTpe();
+    // Recharger les TPEs disponibles
+    this.loadTpesDisponibles();
+    return;
+  }
+  
+  this.loading = true;
+  
+  this.incidentService.lierTpe(this.incident.id, this.tpeToLink.id).subscribe({
+    next: (response) => {
+      if (response.isSuccess && response.data && response.data.length > 0) {
+        const tpeLieu = response.data[0];
+        
+        // Ajouter à la liste locale
+        if (!this.incident.tpEs) {
+          this.incident.tpEs = [];
+        }
+        
+        // ✅ Double vérification avant d'ajouter
+        const dejaExistant = this.incident.tpEs.some(t => t.tpeId === this.tpeToLink!.id);
+        if (!dejaExistant) {
+          this.incident.tpEs.push({
+            tpeId: this.tpeToLink!.id,
+            numSerie: this.tpeToLink!.label,
+            numSerieComplet: this.tpeToLink!.numSerieComplet,
+            modele: this.tpeToLink!.modele,
+            modeleNom: this.tpeToLink!.modele,
+            dateAssociation: new Date().toISOString()
+          });
+          
+          // ✅ Retirer de la liste des disponibles
+          this.tpEsDisponibles = this.tpEsDisponibles.filter(t => t.id !== this.tpeToLink!.id);
+          this.updateTpeOptions();
+          
+          this.showTemporaryMessage(`TPE ${this.tpeToLink!.label} lié avec succès`, 'success');
+          
+          // ✅ Mettre à jour selectedTpeIds
+          if (!this.selectedTpeIds.includes(this.tpeToLink!.id)) {
+            this.selectedTpeIds.push(this.tpeToLink!.id);
+            this.tpeIdsModifies = true;
+          }
+        } else {
+          this.showTemporaryMessage(`Le TPE ${this.tpeToLink!.label} est déjà associé à cet incident`, 'error');
+        }
+        
+        // ✅ Fermer la modale et le sélecteur
+        this.fermerModalLienTpe();
+        this.showTpeSelector = false;
+        
+      } else if (response.message && response.message.includes('déjà lié')) {
+        // ✅ Cas où l'API retourne une erreur "déjà lié"
+        this.showTemporaryMessage(`Le TPE ${this.tpeToLink!.label} est déjà associé à cet incident`, 'error');
+        this.fermerModalLienTpe();
+        
+        // ✅ Rafraîchir les listes
+        this.loadTpesDisponibles();
+      } else {
+        this.error = response.message || 'Erreur lors de la liaison';
+        this.fermerModalLienTpe();
+      }
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('❌ Erreur liaison TPE:', err);
+      // ✅ Vérifier si l'erreur est "déjà lié"
+      if (err.error?.message && err.error.message.includes('déjà lié')) {
+        this.showTemporaryMessage(`Le TPE ${this.tpeToLink!.label} est déjà associé à cet incident`, 'error');
+      } else {
+        this.error = err.error?.message || 'Erreur lors de la liaison du TPE';
+      }
+      this.loading = false;
+      this.fermerModalLienTpe();
+      // ✅ Rafraîchir les listes
+      this.loadTpesDisponibles();
+    }
+  });
+}
+
+/**
+ * Fermer la modale de liaison
+ */
+fermerModalLienTpe() {
+  this.showLinkTpeModal = false;
+  this.tpeToLink = null;
+}get isIncidentLieATicket(): boolean {
   return this.incident?.tickets && this.incident.tickets.length > 0;
 }
 get isIncidentModifiable(): boolean {
@@ -534,7 +637,7 @@ get isIncidentModifiable(): boolean {
 
   // ========== CHARGEMENT DE L'INCIDENT ==========
 
-loadIncident(id: string) {
+loadIncident(id: string, callback?: () => void) {
   this.loading = true;
   
   // Charger l'incident et ses pièces jointes
@@ -558,9 +661,6 @@ loadIncident(id: string) {
         this.incident.tpEs = [];
         this.selectedTpeIds = [];
       }
-      
-      // Mettre à jour les options avec les sélections
-      this.updateTpeOptions();
       
       // Convertir le typeProbleme pour l'affichage
       if (this.incident.typeProbleme) {
@@ -587,6 +687,11 @@ loadIncident(id: string) {
       
       console.log('✅ Incident chargé:', this.incident);
       this.loading = false;
+      
+      // ✅ Exécuter le callback si fourni
+      if (callback) {
+        callback();
+      }
     },
     error: (err: any) => {
       console.error('❌ Erreur:', err);
@@ -846,20 +951,35 @@ async save() {
     return 'Inconnu';
   }
 
-  showTemporaryMessage(message: string, type: 'success' | 'error' = 'success') {
-    if (type === 'success') {
-      this.successMessage = message;
-      this.showSuccessModal = true;
-      setTimeout(() => {
-        this.showSuccessModal = false;
-      }, 3000);
-    } else {
-      this.error = message;
-      setTimeout(() => {
-        this.error = null;
-      }, 3000);
-    }
+// Ajoutez cette propriété pour les timeouts
+private messageTimeout: any = null;
+
+showTemporaryMessage(message: string, type: 'success' | 'error' = 'success') {
+  // ✅ Annuler le timeout précédent
+  if (this.messageTimeout) {
+    clearTimeout(this.messageTimeout);
   }
+  
+  if (type === 'success') {
+    this.successMessage = message;
+    // ✅ Ne pas utiliser showSuccessModal si elle n'est pas affichée dans le HTML
+    // this.showSuccessModal = true;  // ← Supprimer ou commenter
+    
+    // ✅ Fermeture automatique après 3 secondes
+    this.messageTimeout = setTimeout(() => {
+      this.successMessage = '';
+      this.messageTimeout = null;
+    }, 3000);
+    
+  } else {
+    this.error = message;
+    // ✅ Fermeture automatique après 3 secondes (comme le succès)
+    this.messageTimeout = setTimeout(() => {
+      this.error = null;
+      this.messageTimeout = null;
+    }, 3000);
+  }
+}
 
   cancel() {
     this.router.navigate(['/incidents']);

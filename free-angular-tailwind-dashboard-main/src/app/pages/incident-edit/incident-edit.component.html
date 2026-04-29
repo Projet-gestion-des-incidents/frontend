@@ -31,6 +31,39 @@
   </div>
 
   <!-- MODALES DE CONFIRMATION -->
+  <!-- Modale liaison TPE -->
+<div *ngIf="showLinkTpeModal" 
+     class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+     (click)="fermerModalLienTpe()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-modal-in"
+       (click)="$event.stopPropagation()">
+    <div class="text-center">
+      <div class="mx-auto w-16 h-16 rounded-full bg-green-100 dark:bg-green-900/30 flex items-center justify-center mb-4">
+        <svg class="w-8 h-8 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Confirmer la liaison</h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-4">
+        Êtes-vous sûr de vouloir lier le TPE 
+        <span class="font-semibold text-gray-900 dark:text-white">"{{ tpeToLink?.label }}"</span> 
+        à cet incident ?
+      </p>
+      <div class="flex gap-3">
+        <button (click)="fermerModalLienTpe()" 
+                class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors">
+          Annuler
+        </button>
+        <button (click)="executerLierTpe()" 
+                [disabled]="loading"
+                class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-green-500 to-green-600 rounded-xl hover:from-green-600 hover:to-green-700 transition-colors shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+          <span *ngIf="loading" class="animate-spin inline-block w-4 h-4 border-2 border-white border-t-transparent rounded-full mr-2"></span>
+          {{ loading ? 'Liaison...' : 'Confirmer la liaison' }}
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
   <!-- Modale suppression entité -->
   <div *ngIf="showDeleteEntiteModal" 
        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
@@ -337,7 +370,7 @@
             <span class="px-3 py-1 text-xs font-medium rounded-full bg-[#ECECFF] text-[#8788FF] dark:bg-[#0C144E]/30 dark:text-[#B2B3FF]">
               {{ incident.tpEs?.length || 0 }}
             </span>
-            <button *ngIf="isCommercant && !isIncidentLieATicket" 
+            <button *ngIf="isCommercant && !isIncidentLieATicket"   type="button" 
                     (click)="toggleTpeSelector()" 
                     class="px-3 py-1.5 text-sm font-medium text-[#8788FF] hover:text-[#787AEA] bg-[#ECECFF] hover:bg-[#C5C6FF] dark:bg-[#0C144E]/20 dark:hover:bg-[#0C144E]/30 rounded-lg transition-all">
               <span class="flex items-center gap-1">
@@ -382,7 +415,7 @@
               </div>
             </div>
             <button *ngIf="isCommercant && !isIncidentLieATicket" 
-                    (click)="supprimerTpe(tpe.tpeId, i)" 
+                    (click)="supprimerTpe(tpe.tpeId, i)"  type="button"
                     class="p-2 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all" 
                     title="Retirer ce TPE">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -407,55 +440,56 @@
           <p *ngIf="isCommercant && !isIncidentLieATicket" class="text-xs text-gray-400 mt-1">Cliquez sur "Ajouter des TPEs" pour en ajouter</p>
         </div>
 
-        <!-- Sélecteur de TPEs -->
-        <div *ngIf="showTpeSelector && isCommercant" class="mt-6 space-y-4">
-          <div class="p-3 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/20 border border-[#C5C6FF] dark:border-[#8788FF]/30">
-            <div class="flex items-start gap-2">
-              <svg class="w-4 h-4 text-[#8788FF] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span class="text-xs text-[#0C144E] dark:text-[#B2B3FF]">Sélectionnez les TPEs à associer à cet incident</span>
-            </div>
-          </div>
+ <!-- Sélecteur de TPEs -->
+<div *ngIf="showTpeSelector && isCommercant && !isIncidentLieATicket" class="mt-6 space-y-4">
+  
+  <div class="p-3 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/20 border border-[#C5C6FF] dark:border-[#8788FF]/30">
+    <div class="flex items-start gap-2">
+      <svg class="w-4 h-4 text-[#8788FF] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <span class="text-xs text-[#0C144E] dark:text-[#B2B3FF]">Sélectionnez les TPEs à associer à cet incident</span>
+    </div>
+  </div>
 
-          <div *ngIf="tpEsDisponiblesFiltres.length === 0" class="p-6 text-center bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
-            <svg class="w-12 h-12 mx-auto text-amber-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-            </svg>
-            <p class="text-sm text-amber-600 dark:text-amber-400">Aucun TPE disponible dans votre liste.</p>
-            <button routerLink="/tpes/new" class="mt-3 inline-flex items-center gap-1 text-sm text-[#8788FF] hover:text-[#787AEA] font-medium">
-              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-              </svg>
-              Ajouter un TPE
-            </button>
-          </div>
+  <!-- ✅ Message "Aucun TPE disponible" -->
+  <div *ngIf="tpEsDisponibles.length === 0 || tpEsDisponiblesFiltres.length === 0" 
+       class="p-6 text-center bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
+    <svg class="w-12 h-12 mx-auto text-amber-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+    </svg>
+    <p class="text-sm font-medium text-amber-800 dark:text-amber-300">Aucun TPE disponible</p>
+    <p class="text-xs text-amber-600 dark:text-amber-400 mt-1">
+      Tous vos TPEs sont déjà associés à un incident.
+    </p>
 
-          <div *ngIf="tpEsDisponiblesFiltres.length > 0" class="space-y-3 max-h-96 overflow-y-auto pr-2">
+  </div>
+
+  <!-- Liste des TPEs disponibles -->
+    <div *ngIf="tpEsDisponiblesFiltres.length > 0" class="space-y-3 max-h-96 overflow-y-auto pr-2">
             <div *ngFor="let tpe of tpEsDisponiblesFiltres" 
                  class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl hover:bg-gray-100 dark:hover:bg-gray-700/50 transition-all group cursor-pointer"
-                 (click)="ajouterTpe(tpe.id)">
-              <div class="flex items-center gap-3 flex-1">
-                <div class="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/30 flex items-center justify-center">
-                  <svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
-                  </svg>
-                </div>
+>              <div class="flex items-center gap-3 flex-1">
+               
                 <div class="flex-1">
                   <p class="text-sm font-medium text-gray-900 dark:text-white">{{ tpe.numSerieComplet }}</p>
                   <p class="text-xs text-gray-500 dark:text-gray-400">{{ tpe.modele }}</p>
                 </div>
               </div>
-              <button class="p-2 text-[#8788FF] hover:text-[#787AEA] bg-[#ECECFF] hover:bg-[#C5C6FF] rounded-lg transition-all group-hover:scale-110" title="Ajouter ce TPE">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                </svg>
-              </button>
-            </div>
-          </div>
+      <button (click)="confirmerLierTpe(tpe)" 
+              type="button"
+              class="p-2 text-[#8788FF] hover:text-[#787AEA] bg-[#ECECFF] hover:bg-[#C5C6FF] rounded-lg transition-all group-hover:scale-110" 
+              title="Ajouter ce TPE">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
         </div>
       </div>
-    </div>
+      
 
     <!-- SECTION 4: Pièces jointes -->
     <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">

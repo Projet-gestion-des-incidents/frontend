@@ -1,5 +1,30 @@
 <app-page-breadcrumb pageTitle="Mon Profil" />
 
+
+<div *ngIf="globalSuccessMessage" 
+     class="fixed top-20 right-4 z-[100] rounded-xl border shadow-lg p-4 flex items-center justify-between min-w-[300px] max-w-md animate-slide-in-right"
+     style="border-color: #22c55e; background-color: #f0fdf4;"
+     [ngClass]="{
+       'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20': true
+     }">
+  <div class="flex items-center gap-3">
+    <div class="flex-shrink-0">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center bg-green-100 dark:bg-green-800/50">
+        <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+    </div>
+    <span class="text-sm font-medium text-green-800 dark:text-green-200">
+      {{ globalSuccessMessage }}
+    </span>
+  </div>
+  <button (click)="globalSuccessMessage = ''" class="ml-4 text-green-600 hover:text-green-800 dark:text-green-400 dark:hover:text-green-300">
+    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+    </svg>
+  </button>
+</div>
 <div class="space-y-6">
   
   <!-- Alerte améliorée -->

@@ -79,4 +79,7 @@ export class NotificationService {
   deleteNotification(notificationId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${notificationId}`, this.getAuthHeaders());
   }
+  deleteAllMyNotifications(): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.apiUrl}/cleanup`, this.getAuthHeaders());
+  }
 }

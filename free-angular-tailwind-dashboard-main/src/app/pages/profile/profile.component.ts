@@ -24,6 +24,7 @@ interface ApiResponse<T> {
   resultCode: number;
   errors?: string[];
   isSuccess?: boolean;
+  
 }
 registerLocaleData(localeFr);
 
@@ -61,7 +62,9 @@ export class ProfileComponent implements OnInit {
   // Modals
   isInfoModalOpen = false;
   isPasswordModalOpen = false;
-  
+  globalSuccessMessage: string = '';
+private globalSuccessTimeout: any;
+
   // Forms
   editForm!: FormGroup;
   passwordForm!: FormGroup;
@@ -286,6 +289,8 @@ onLocationSelectedInModal(location: any): void {
 
 // Dans profile.component.ts, modifiez les méthodes saveInfo et changePassword
 
+// profile.component.ts - Remplacez la méthode saveInfo entièrement
+
 saveInfo(): void {
   console.log('========== DÉBUT SAVE INFO ==========');
   console.log('Rôle utilisateur:', this.user.role);
@@ -379,7 +384,10 @@ saveInfo(): void {
       }
       else if (response.resultCode === 0) {
         console.log('✅ Cas: Mise à jour réussie sans OTP');
-        this.showAlert('success', 'Succès', response.message || 'Profil mis à jour avec succès');
+        
+        // ✅ AFFICHER LE MESSAGE DE SUCCÈS EN DEHORS DU MODAL
+        this.showGlobalSuccess(response.message || 'Profil mis à jour avec succès');
+        
         if (response.data) {
           this.user = { ...this.user, ...response.data };
         }
@@ -405,7 +413,6 @@ saveInfo(): void {
       
       if (err.error?.message) {
         errorMessage = err.error.message;
-        console.log('Message d\'erreur serveur:', errorMessage);
         if (errorMessage.includes('email déjà utilisé')) {
           errorMessage = 'Cet email est déjà utilisé par un autre compte';
         } else if (errorMessage.includes('téléphone déjà utilisé')) {
@@ -413,10 +420,23 @@ saveInfo(): void {
         }
       }
       
+      // ✅ Les erreurs restent DANS le modal
       this.showAlert('error', 'Erreur de mise à jour', errorMessage);
       console.log('========== FIN SAVE INFO (ERREUR) ==========');
     }
   });
+}
+
+private showGlobalSuccess(message: string): void {
+  this.globalSuccessMessage = message;
+  
+  // Efface automatiquement après 5 secondes
+  if (this.globalSuccessTimeout) {
+    clearTimeout(this.globalSuccessTimeout);
+  }
+  this.globalSuccessTimeout = setTimeout(() => {
+    this.globalSuccessMessage = '';
+  }, 5000);
 }
 changePassword(): void {
   console.log('========== DÉBUT CHANGE PASSWORD ==========');
@@ -601,88 +621,52 @@ confirmWithOtp(): void {
   console.log('Pending Email:', this.pendingEmailChange);
   console.log('Pending Password:', this.pendingPasswordChange ? '***' : 'null');
   
-  if (!this.otpCode || this.otpCode.length !== 6) {
-    console.error('❌ Code OTP invalide - Longueur:', this.otpCode?.length);
-    this.showAlert('error', 'Code invalide', 'Veuillez entrer un code OTP valide (6 chiffres)');
-    return;
-  }
-
-  this.otpLoading = true;
-
   if (this.otpPurpose === 'email') {
-    console.log('📧 Confirmation changement d\'email vers:', this.pendingEmailChange);
-    console.log('🔄 Appel API confirmEmailChange...');
-    
     this.otpService.confirmEmailChange(this.pendingEmailChange, this.otpCode).subscribe({
       next: (response) => {
-        console.log('✅ Réponse confirmEmailChange:', {
-          resultCode: response.resultCode,
-          message: response.message,
-          hasData: !!response.data
-        });
-        
         this.otpLoading = false;
         if (response.resultCode === 0) {
           console.log('✅ Email changé avec succès');
           this.showOtpModal = false;
-          this.showAlert('success', 'Email modifié', response.message);
+          
+          // ✅ AFFICHER LE MESSAGE DE SUCCÈS EN DEHORS DU MODAL
+          this.showGlobalSuccess(response.message || 'Email modifié avec succès');
+          
           this.user.email = this.pendingEmailChange;
           this.loadProfile();
         } else {
-          console.error('❌ Erreur confirmation email - Code:', response.resultCode);
+          // ✅ Les erreurs restent DANS le modal OTP
           this.showAlert('error', 'Erreur', response.message || 'Code OTP invalide');
         }
-        console.log('========== FIN CONFIRM OTP (EMAIL) ==========');
       },
       error: (err) => {
-        console.error('❌ ERREUR HTTP confirmEmailChange:', {
-          status: err.status,
-          statusText: err.statusText,
-          message: err.message,
-          error: err.error
-        });
-        
         this.otpLoading = false;
+        // ✅ Les erreurs restent DANS le modal OTP
         this.showAlert('error', 'Erreur', err.error?.message || 'Erreur lors de la confirmation');
-        console.log('========== FIN CONFIRM OTP (EMAIL ERREUR) ==========');
       }
     });
   } else {
-    console.log('🔐 Confirmation changement mot de passe');
-    console.log('🔄 Appel API confirmPasswordChange...');
-    
     this.otpService.confirmPasswordChange(this.pendingPasswordChange, this.otpCode).subscribe({
       next: (response) => {
-        console.log('✅ Réponse confirmPasswordChange:', {
-          resultCode: response.resultCode,
-          message: response.message,
-          hasData: !!response.data
-        });
-        
         this.otpLoading = false;
         if (response.resultCode === 0) {
           console.log('✅ Mot de passe changé avec succès');
           this.showOtpModal = false;
-          this.showAlert('success', 'Mot de passe modifié', response.message);
+          
+          // ✅ AFFICHER LE MESSAGE DE SUCCÈS EN DEHORS DU MODAL
+          this.showGlobalSuccess(response.message || 'Mot de passe modifié avec succès');
+          
           this.passwordForm.reset();
           this.loadProfile();
         } else {
-          console.error('❌ Erreur confirmation mot de passe - Code:', response.resultCode);
+          // ✅ Les erreurs restent DANS le modal OTP
           this.showAlert('error', 'Erreur', response.message || 'Code OTP invalide');
         }
-        console.log('========== FIN CONFIRM OTP (PASSWORD) ==========');
       },
       error: (err) => {
-        console.error('❌ ERREUR HTTP confirmPasswordChange:', {
-          status: err.status,
-          statusText: err.statusText,
-          message: err.message,
-          error: err.error
-        });
-        
         this.otpLoading = false;
+        // ✅ Les erreurs restent DANS le modal OTP
         this.showAlert('error', 'Erreur', err.error?.message || 'Erreur lors de la confirmation');
-        console.log('========== FIN CONFIRM OTP (PASSWORD ERREUR) ==========');
       }
     });
   }
@@ -795,25 +779,32 @@ formatFileSize(bytes: number): string {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
-  showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string): void {
-    if (this.alert.autoCloseTimeout) {
-      clearTimeout(this.alert.autoCloseTimeout);
-    }
-    
-    this.alert = { 
-      show: true, 
-      variant, 
-      title, 
-      message,
-      autoCloseTimeout: null
-    };
-    
-    if (variant === 'success' || variant === 'error') {
-      this.alert.autoCloseTimeout = setTimeout(() => {
-        this.clearAlert();
-      }, 5000);
-    }
+// profile.component.ts - Modifiez showAlert
+
+showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string): void {
+  if (this.alert.autoCloseTimeout) {
+    clearTimeout(this.alert.autoCloseTimeout);
   }
+  
+  this.alert = { 
+    show: true, 
+    variant, 
+    title, 
+    message,
+    autoCloseTimeout: null
+  };
+  
+  // ✅ Pour les erreurs et avertissements, scroller automatiquement vers l'alerte
+  if (variant === 'error' || variant === 'warning') {
+    this.scrollToAlertInModal();
+  }
+  
+  if (variant === 'success') {
+    this.alert.autoCloseTimeout = setTimeout(() => {
+      this.clearAlert();
+    }, 5000);
+  }
+}
 
   clearAlert(): void {
     if (this.alert.autoCloseTimeout) {
@@ -834,6 +825,40 @@ formatFileSize(bytes: number): string {
     this.showConfirmPassword = !this.showConfirmPassword;
   }
 
+  ngOnDestroy(): void {
+  if (this.globalSuccessTimeout) {
+    clearTimeout(this.globalSuccessTimeout);
+  }
+}
+// profile.component.ts - Ajoutez cette méthode
+
+// profile.component.ts - Remplacez la méthode scrollToAlertInModal par celle-ci
+
+// profile.component.ts - Version qui scroll au début du contenu
+
+private scrollToAlertInModal(): void {
+  setTimeout(() => {
+    const modalContainer = document.querySelector('.overflow-y-auto.max-h-\\[90vh\\], .rounded-3xl.overflow-y-auto');
+    
+    if (modalContainer) {
+      // ✅ Scroller directement en haut du conteneur
+      modalContainer.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    }
+    
+    // Ensuite, s'assurer que l'alerte est visible
+    const alertElement = document.getElementById('modal-alert');
+    if (alertElement) {
+      alertElement.scrollIntoView({ 
+        behavior: 'smooth', 
+        block: 'start',
+        inline: 'nearest'
+      });
+    }
+  }, 250);
+}
   showOtpModal = false;
 otpPurpose: 'email' | 'password' = 'email';
 pendingEmailChange: string = '';
