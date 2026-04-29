@@ -41,14 +41,15 @@
         >
            Tout lu
         </button>
-        <button
-          *ngIf="notifications.length > 0"
-          (click)="deleteAllNotifications()"
-          class="text-xs text-red-500 hover:text-red-700"
-          title="Supprimer toutes"
-        >
-           Tout supprimer
-        </button>
+       <!-- Remplacer l'ancien bouton par celui-ci -->
+<button
+  *ngIf="notifications.length > 0"
+  (click)="deleteAllNotifications()"
+  class="text-xs text-red-500 hover:text-red-700"
+  title="Supprimer toutes"
+>
+   Tout supprimer
+</button>
         <button
           (click)="toggleDropdown()"
           class="text-gray-500 hover:text-gray-700"
@@ -129,6 +130,16 @@
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 3v2m6-2v2M9 19v2m6-2v2M5 3h14a2 2 0 012 2v14a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2z"/>
     </svg>
 
+    <!-- Ticket en cours (type 11) - Icône horloge -->
+<svg *ngSwitchCase="'TicketEnCours'" class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+</svg>
+
+<!-- Incident en cours (type 12) - Icône horloge -->
+<svg *ngSwitchCase="'IncidentEnCours'" class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+</svg>
+
     <!-- ⚠️ Pour "Ticket en cours" - détection par le titre car pas de type dédié -->
     <ng-container *ngSwitchDefault>
       <svg *ngIf="notification.titre?.includes('En cours')" class="w-5 h-5 text-yellow-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -172,13 +183,14 @@
                     >
                        Marquer lu
                     </button>
-                    <button
-                      (click)="deleteNotification(notification.id, $event)"
-                      class="text-xs text-red-500 hover:text-red-700 px-2 py-0.5 rounded hover:bg-red-50"
-                      title="Supprimer"
-                    >
-                       Supprimer
-                    </button>
+                    <!-- Remplacer l'ancien bouton supprimer par celui-ci -->
+<button
+  (click)="deleteNotification(notification.id, $event)"
+  class="text-xs text-red-500 hover:text-red-700 px-2 py-0.5 rounded hover:bg-red-50"
+  title="Supprimer"
+>
+   Supprimer
+</button>
                   </div>
                 </div>
               </div>
@@ -209,4 +221,191 @@
     </div>
 
   </app-dropdown>
+  <!-- Modal de confirmation de suppression des notifications -->
+
+<!-- Modal de confirmation de suppression d'une notification individuelle -->
+<!-- Dans notification-dropdown.component.html -->
+
+<!-- Modal de suppression de toutes les notifications -->
+<div *ngIf="confirmDeleteAll" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4">
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+          <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+          Confirmation de suppression
+        </h3>
+      </div>
+      <button (click)="closeDeleteAllModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Body -->
+    <div class="p-6">
+      <div class="flex flex-col items-center text-center mb-4">
+        <div class="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+        <p class="text-gray-600 dark:text-gray-300 mb-2 font-medium">
+          Vous êtes sur le point de supprimer <strong>Toutes les notifications</strong>.
+        </p>
+        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 w-full text-left mt-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Nombre de notifications</span>
+            <span class="text-sm font-semibold text-gray-900 dark:text-white">
+              {{ allNotifications.length }}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-4">
+        <div class="flex gap-2">
+          <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-red-800 dark:text-red-200">
+              Action irréversible
+            </p>
+            <p class="text-sm text-red-700 dark:text-red-300">
+              Cette action supprimera définitivement toutes vos notifications.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+      <button
+        (click)="closeDeleteAllModal()"
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
+      >
+        Annuler
+      </button>
+      <button
+        (click)="executeDeleteAll()"
+        [disabled]="deletingAllNotifications"
+        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      >
+        <svg *ngIf="!deletingAllNotifications" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+        </svg>
+        <svg *ngIf="deletingAllNotifications" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span *ngIf="!deletingAllNotifications">Supprimer toutes les notifications</span>
+        <span *ngIf="deletingAllNotifications">Suppression...</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal de suppression d'une notification individuelle -->
+<!-- Modal de suppression d'une notification individuelle - Version correcte -->
+<div *ngIf="confirmDeleteNotification" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4">
+    
+    <!-- Header -->
+    <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
+      <div class="flex items-center gap-3">
+        <div class="p-2 bg-red-100 dark:bg-red-900/30 rounded-full">
+          <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"></path>
+          </svg>
+        </div>
+        <h3 class="text-xl font-semibold text-gray-900 dark:text-white">
+          Confirmation de suppression
+        </h3>
+      </div>
+      <button (click)="closeDeleteSingleModal()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
+    </div>
+    
+    <!-- Body -->
+    <div class="p-6">
+      <div class="flex flex-col items-center text-center mb-4">
+        <div class="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+        <p class="text-gray-600 dark:text-gray-300 mb-2 font-medium">
+          Supprimer cette notification ?
+        </p>
+        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 w-full text-left mt-2">
+          <div class="flex items-center justify-between mb-2">
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Titre</span>
+            <span class="text-sm font-semibold text-gray-900 dark:text-white max-w-[200px] truncate">
+              {{ confirmDeleteNotification?.titre }}
+            </span>
+          </div>
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400">Type</span>
+            <span class="text-sm text-gray-600 dark:text-gray-400">
+              {{ getTypeLabel(confirmDeleteNotification?.typeNotificationName || '') }}
+            </span>
+          </div>
+        </div>
+      </div>
+      
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 mt-4">
+        <div class="flex gap-2">
+          <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-red-800 dark:text-red-200">
+              Action irréversible
+            </p>
+            <p class="text-sm text-red-700 dark:text-red-300">
+              Cette notification sera définitivement supprimée.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Footer -->
+    <div class="flex justify-end gap-3 p-6 border-t border-gray-200 dark:border-gray-700">
+      <button
+        (click)="closeDeleteSingleModal()"
+        class="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors"
+      >
+        Annuler
+      </button>
+      <button
+        (click)="executeDeleteSingle()"
+        [disabled]="deletingNotification"
+        class="px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+      >
+        <svg *ngIf="!deletingNotification" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+        </svg>
+        <svg *ngIf="deletingNotification" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span *ngIf="!deletingNotification">Supprimer</span>
+        <span *ngIf="deletingNotification">Suppression...</span>
+      </button>
+    </div>
+  </div>
+</div>
 </div>

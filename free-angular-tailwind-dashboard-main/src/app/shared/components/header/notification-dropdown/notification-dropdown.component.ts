@@ -24,6 +24,10 @@ export class NotificationDropdownComponent implements OnInit, OnDestroy {
   displayLimit = 5;  // Nombre de notifications affichées initialement
   allNotifications: Notification[] = [];  // Stocker toutes les notifications
   showAll = false;  // Afficher toutes ou non
+confirmDeleteAll = false;
+confirmDeleteNotification: Notification | null = null;
+deletingAllNotifications = false;
+deletingNotification = false;
 
   constructor(
     private notificationService: NotificationService,
@@ -215,20 +219,40 @@ private redirectToDetail(notification: Notification): void {
   console.log('=== FIN REDIRECTION ===');
 }
 
+// Nouvelle méthode pour confirmer la suppression de toutes
+executeDeleteAll() {
+  this.deletingAllNotifications = true;
+  
+  const deleteObservables = this.notifications.map(n => 
+    this.notificationService.deleteNotification(n.id)
+  );
+  
+  Promise.all(deleteObservables).then(() => {
+    this.allNotifications = [];
+    this.notifications = [];
+    this.unreadCount = 0;
+    this.deletingAllNotifications = false;
+    this.confirmDeleteAll = false;
+  }).catch(err => {
+    console.error('Erreur suppression multiple:', err);
+    this.deletingAllNotifications = false;
+    this.confirmDeleteAll = false;
+  });
+}
 deleteAllNotifications() {
-  if (confirm('Supprimer toutes les notifications ? Cette action est irréversible.')) {
-    const deleteObservables = this.notifications.map(n => 
-      this.notificationService.deleteNotification(n.id)
-    );
-    
-    Promise.all(deleteObservables).then(() => {
-      this.allNotifications = [];
-      this.notifications = [];
-      this.unreadCount = 0;
-    }).catch(err => {
-      console.error('Erreur suppression multiple:', err);
-    });
+  if (this.allNotifications.length === 0) {
+    return;
   }
+  // Afficher le modal au lieu du confirm
+  this.confirmDeleteAll = true;
+}
+
+
+
+// Nouvelle méthode pour annuler la suppression de toutes
+closeDeleteAllModal() {
+  this.confirmDeleteAll = false;
+  this.deletingAllNotifications = false;
 }
 
   markAsRead(notificationId: string, event: Event) {
@@ -256,27 +280,46 @@ deleteAllNotifications() {
   }
 
   deleteNotification(notificationId: string, event: Event) {
-    event.stopPropagation();
-    
-    const deletedNotification = this.notifications.find(n => n.id === notificationId);
-    this.notifications = this.notifications.filter(n => n.id !== notificationId);
-    
-    if (deletedNotification && !deletedNotification.estLu) {
-      this.unreadCount = Math.max(0, this.unreadCount - 1);
-    }
-    
-    this.notificationService.deleteNotification(notificationId).subscribe({
-      error: (err) => {
-        console.error('Erreur suppression:', err);
-        if (deletedNotification) {
-          this.notifications = [deletedNotification, ...this.notifications];
-          if (!deletedNotification.estLu) {
-            this.unreadCount++;
-          }
-        }
-      }
-    });
+  event.stopPropagation();
+  
+  const notification = this.allNotifications.find(n => n.id === notificationId);
+  if (notification) {
+    this.confirmDeleteNotification = notification;
   }
+}
+
+executeDeleteSingle() {
+  if (!this.confirmDeleteNotification) return;
+  
+  this.deletingNotification = true;
+  const notificationId = this.confirmDeleteNotification.id;
+  const deletedNotification = this.confirmDeleteNotification;
+  
+  this.notificationService.deleteNotification(notificationId).subscribe({
+    next: () => {
+      this.allNotifications = this.allNotifications.filter(n => n.id !== notificationId);
+      this.notifications = this.notifications.filter(n => n.id !== notificationId);
+      
+      if (!deletedNotification.estLu) {
+        this.unreadCount = Math.max(0, this.unreadCount - 1);
+      }
+      
+      this.deletingNotification = false;
+      this.confirmDeleteNotification = null;
+    },
+    error: (err) => {
+      console.error('Erreur suppression:', err);
+      this.deletingNotification = false;
+      this.confirmDeleteNotification = null;
+    }
+  });
+}
+
+// Nouvelle méthode pour annuler la suppression individuelle
+closeDeleteSingleModal() {
+  this.confirmDeleteNotification = null;
+  this.deletingNotification = false;
+}
 
   // ✅ Méthode pour obtenir l'icône SVG
  // notification-dropdown.component.ts
@@ -314,16 +357,16 @@ getNotificationIconType(typeNotification: number): string {
 
 // notification-dropdown.component.ts
 // notification-dropdown.component.ts
+// notification-dropdown.component.ts
 getTypeLabel(typeNotificationName: string): string {
   const labels: { [key: string]: string } = {
     'TicketCree': 'Ticket créé',
     'TicketAssigne': 'Ticket assigné',
     'TicketModifie': 'Ticket modifié',
-    'TicketEnCours': 'Ticket en cours',
-    'TicketResolu': 'Ticket résolu',
+    'TicketEnCours': 'Ticket en cours',     // ✅ NOUVEAU
     'TicketCloture': 'Ticket résolu',
     'IncidentCree': 'Incident créé',
-    'IncidentEnCours': 'Incident en cours',
+    'IncidentEnCours': 'Incident en cours', // ✅ NOUVEAU
     'IncidentResolu': 'Incident résolu',
     'IncidentModifie': 'Incident modifié',
     'CommentaireAjoute': 'Commentaire',
