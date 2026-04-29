@@ -62,10 +62,14 @@ successMessage: string = '';
 
 toggleDropdown() {
   this.isOpen = !this.isOpen;
+  
   if (this.isOpen) {
     this.showAll = false;  // Réinitialiser l'affichage
     this.loadNotifications();
-    this.loadUnreadCount();
+    
+    // ✅ CACHER LE COMPTEUR VISUELLEMENT (sans appeler l'API)
+    // Le compteur disparaît de la cloche, mais les notifications restent "non lues" côté serveur
+    this.unreadCount = 0;
   }
 }
   
@@ -380,20 +384,53 @@ getNotificationIconType(typeNotification: number): string {
   return iconTypes[typeNotification] || 'default';
 }
 
-  formatDate(date: Date | string): string {
-    const now = new Date();
-    const notifDate = new Date(date);
-    const diffMs = now.getTime() - notifDate.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMs / 3600000);
-    const diffDays = Math.floor(diffMs / 86400000);
+// notification-dropdown.component.ts
+// Remplacez la méthode formatDate par celle-ci
 
-    if (diffMins < 1) return "À l'instant";
-    if (diffMins < 60) return `${diffMins} min`;
-    if (diffHours < 24) return `${diffHours} h`;
-    if (diffDays === 1) return 'Hier';
-    return `${diffDays} jours`;
+// notification-dropdown.component.ts
+// Remplacez la méthode formatDate par celle-ci
+
+formatDate(date: Date | string): string {
+  if (!date) return '';
+  
+  // ✅ SOLUTION 1 : Forcer l'interprétation comme UTC
+  let notifDate: Date;
+  
+  if (typeof date === 'string') {
+    // Si la date n'a pas d'indicateur de fuseau, on ajoute 'Z' pour UTC
+    if (date.includes('T') && !date.includes('Z') && !date.includes('+')) {
+      notifDate = new Date(date + 'Z');
+    } else {
+      notifDate = new Date(date);
+    }
+  } else {
+    notifDate = date;
   }
+  
+  // Vérifier si la date est valide
+  if (isNaN(notifDate.getTime())) return '';
+  
+  const now = new Date();
+  const diffMs = now.getTime() - notifDate.getTime();
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  // Debug: Afficher les valeurs pour vérifier
+  console.log('🔍 FormatDate Debug:', {
+    dateBrute: date,
+    dateUTC: notifDate.toISOString(),
+    maintenant: now.toISOString(),
+    diffMinutes: diffMins,
+    diffHeures: diffHours
+  });
+
+  if (diffMins < 1) return "À l'instant";
+  if (diffMins < 60) return `Il y a ${diffMins} minute${diffMins > 1 ? 's' : ''}`;
+  if (diffHours < 24) return `Il y a ${diffHours} heure${diffHours > 1 ? 's' : ''}`;
+  if (diffDays === 1) return 'Hier';
+  return `Il y a ${diffDays} jours`;
+}
 
 // notification-dropdown.component.ts
 // notification-dropdown.component.ts

@@ -194,12 +194,19 @@ private globalSuccessTimeout: any;
       : null;
   }
 
- openInfoModal(): void {
+openInfoModal(): void {
   let formattedBirthDate = null;
   if (this.user.birthDate) {
+    // ✅ CORRECTION : Formater la date sans décalage UTC
     const date = new Date(this.user.birthDate);
     if (!isNaN(date.getTime())) {
-      formattedBirthDate = date.toISOString().split('T')[0];
+      // Extraire l'année, mois, jour du fuseau local
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      formattedBirthDate = `${year}-${month}-${day}`;
+      console.log('Date originale:', this.user.birthDate);
+      console.log('Date formatée locale:', formattedBirthDate);
     }
   }
   
@@ -218,10 +225,7 @@ private globalSuccessTimeout: any;
   this.selectedImage = null;
   this.isInfoModalOpen = true;
   
-  // ✅ Réinitialiser mapReady
   this.mapReady = false;
-  
-  // ✅ Attendre que le modal soit complètement ouvert avant d'initialiser la carte
   setTimeout(() => {
     this.mapReady = true;
   }, 300);

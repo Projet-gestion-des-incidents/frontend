@@ -98,46 +98,53 @@ validateAge(control: any): { [key: string]: boolean } | null {
       dateInput.showPicker(); // Fonctionne dans les navigateurs modernes
     }
   }
-  loadTechnicienData(): void {
-    this.loading = true;
-    console.log('🔄 Chargement du technicien ID:', this.technicienId);
-    
-    // ✅ Utiliser getTechnicienById au lieu de getTechniciens
-    this.userService.getTechnicienById(this.technicienId!).subscribe({
-      next: (technicien) => {
-        console.log('🎯 Technicien trouvé:', technicien);
-        
-        if (technicien) {
-          // Formater la date de naissance pour l'input date (YYYY-MM-DD)
-          let birthDateValue = '';
-          if (technicien.birthDate) {
-            const date = new Date(technicien.birthDate);
-            birthDateValue = date.toISOString().split('T')[0];
+loadTechnicienData(): void {
+  this.loading = true;
+  console.log('🔄 Chargement du technicien ID:', this.technicienId);
+  
+  this.userService.getTechnicienById(this.technicienId!).subscribe({
+    next: (technicien) => {
+      console.log('🎯 Technicien trouvé:', technicien);
+      
+      if (technicien) {
+        // ✅ CORRECTION : Formater la date sans utiliser toISOString()
+        let birthDateValue = '';
+        if (technicien.birthDate) {
+          const date = new Date(technicien.birthDate);
+          if (!isNaN(date.getTime())) {
+            // Extraire directement l'année, mois, jour du fuseau local
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            birthDateValue = `${year}-${month}-${day}`;
+            console.log('Date originale:', technicien.birthDate);
+            console.log('Date formatée locale:', birthDateValue);
           }
-          
-          this.technicienForm.patchValue({
-            userName: technicien.userName || '',
-            email: technicien.email || '',
-            nom: technicien.nom || '',
-            prenom: technicien.prenom || '',
-            phoneNumber: technicien.phoneNumber || '',
-            birthDate: birthDateValue
-          });
-          
-          console.log('✅ Formulaire après patch:', this.technicienForm.value);
-        } else {
-          this.showAlert('error', 'Erreur', 'Technicien non trouvé');
         }
-        this.loading = false;
-      },
-      error: (error) => {
-        console.error('❌ Erreur chargement:', error);
-        const errorMessage = error.error?.message || error.message || 'Impossible de charger les données du technicien';
-        this.showAlert('error', 'Erreur', errorMessage);
-        this.loading = false;
+        
+        this.technicienForm.patchValue({
+          userName: technicien.userName || '',
+          email: technicien.email || '',
+          nom: technicien.nom || '',
+          prenom: technicien.prenom || '',
+          phoneNumber: technicien.phoneNumber || '',
+          birthDate: birthDateValue
+        });
+        
+        console.log('✅ Formulaire après patch:', this.technicienForm.value);
+      } else {
+        this.showAlert('error', 'Erreur', 'Technicien non trouvé');
       }
-    });
-  }
+      this.loading = false;
+    },
+    error: (error) => {
+      console.error('❌ Erreur chargement:', error);
+      const errorMessage = error.error?.message || error.message || 'Impossible de charger les données du technicien';
+      this.showAlert('error', 'Erreur', errorMessage);
+      this.loading = false;
+    }
+  });
+}
 
   onSubmit(): void {
     if (this.technicienForm.invalid) {
