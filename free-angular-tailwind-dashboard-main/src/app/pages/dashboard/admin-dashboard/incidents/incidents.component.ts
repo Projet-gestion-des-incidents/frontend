@@ -7,6 +7,7 @@ import { DropdownItemComponent } from '../../../../shared/components/ui/dropdown
 import { NgApexchartsModule } from 'ng-apexcharts';
 import { TunisiaGovernoratesService } from '../../../../shared/services/tunisia-governorates.service';
 import { TunisiaMapComponent } from '../tunisia-map-data/tunisia-map-data.component';
+import { ExportExcelService } from '../../../../shared/services/export-excel.service';
 
 @Component({
   selector: 'app-incidents',
@@ -15,8 +16,8 @@ import { TunisiaMapComponent } from '../tunisia-map-data/tunisia-map-data.compon
     CommonModule,
     FormsModule,
     NgApexchartsModule,
-    DropdownComponent,    TunisiaMapComponent
-,
+    DropdownComponent,
+    TunisiaMapComponent,
     DropdownItemComponent
   ],
   templateUrl: './incidents.component.html',
@@ -24,7 +25,7 @@ import { TunisiaMapComponent } from '../tunisia-map-data/tunisia-map-data.compon
 })
 export class IncidentsComponent implements OnInit {
   govData: any[] = [];
-chartPannesParGovernorat: any;
+  chartPannesParGovernorat: any;
   incidentData: IncidentDashboardDTO | null = null;
   tpeData: TPEDashboardDTO | null = null;
   
@@ -33,24 +34,34 @@ chartPannesParGovernorat: any;
   errorIncidents: string | null = null;
   errorTPE: string | null = null;
   
-  // Période sélectionnée pour l'évolution
   selectedPeriode: 'jour' | 'semaine' | 'mois' = 'semaine';
   
-  // Graphiques Incidents
   chartIncidentDonut: any;
   chartIncidentEvolution: any;
   chartSeveriteRadial: any;
   chartTypeProbleme: any;
-  
-  // Graphiques TPE
   chartPannesParModele: any;
   chartPannesParAdresse: any;
+    
+  // Export
+  showExportModal = false;
+  exportPeriod: 'jour' | 'semaine' | 'mois' | 'annee' = 'mois';
+  exportYears: number[] = [];
+  selectedYear = new Date().getFullYear();
+  selectedMonth = new Date().getMonth() + 1;
   
-  // Dropdown
   isOpen = false;
+  totalTPEs: number = 0;
+  totalIncidents: number = 0;
+  tauxMoyen: number = 0;
 
-  constructor(private dashboardService: DashboardAdminService,  private govService: TunisiaGovernoratesService
-) {}
+  constructor(
+    private dashboardService: DashboardAdminService,
+    private govService: TunisiaGovernoratesService,
+    private exportExcelService: ExportExcelService
+  ) {
+    this.initYears();
+  }
 
   ngOnInit() {
     console.log('🟢 Composant incidents initialisé');
@@ -58,6 +69,214 @@ chartPannesParGovernorat: any;
     this.loadTPEDashboard();
   }
 
+  initYears() {
+    const currentYear = new Date().getFullYear();
+    this.exportYears = [];
+    for (let i = currentYear - 2; i <= currentYear; i++) {
+      this.exportYears.push(i);
+    }
+  }
+
+  openExportModal() {
+    this.showExportModal = true;
+  }
+
+  closeExportModal() {
+    this.showExportModal = false;
+  }
+
+
+// incidents.component.ts - Remplacer la méthode exportData()
+
+// incidents.component.ts - Remplacer la méthode exportData()
+
+// incidents.component.ts - Remplacer la méthode exportData()
+
+exportData() {
+  console.log('📊 === DÉBUT exportData Incidents ===');
+  console.log('📊 exportPeriod:', this.exportPeriod);
+  console.log('📊 selectedYear:', this.selectedYear);
+  console.log('📊 selectedMonth:', this.selectedMonth);
+  
+  if (!this.incidentData) {
+    console.error('❌ incidentData est null!');
+    return;
+  }
+  
+  let filename = '';
+  
+  switch (this.exportPeriod) {
+    case 'jour':
+      filename = `incidents_quotidiens_${this.getCurrentDate()}`;
+      break;
+    case 'semaine':
+      filename = `incidents_hebdomadaires_${this.selectedYear}_${this.selectedMonth}`;
+      break;
+    case 'mois':
+      const currentYear = new Date().getFullYear();
+      filename = `incidents_mensuels_${currentYear}`;
+      break;
+    default:
+      filename = `dashboard_incidents_${this.getCurrentDate()}`;
+  }
+  
+  const evolutionData = this.getEvolutionSheet();
+  console.log('📊 Données à exporter:', evolutionData.length, 'lignes');
+  console.log('📊 Première ligne:', evolutionData[0]);
+  console.log('📊 Headers:', Object.keys(evolutionData[0] || {}));
+  
+  // ✅ Version complète avec toutes les options pour Incidents
+  this.exportExcelService.exportToExcelWithColors({
+    filename: filename,
+    sheetName: 'Évolution des incidents',
+    data: evolutionData,
+    columnColors: {
+        'Jour': { bgColor: 'FFFFFF', fontColor: '0C144E' },
+      'Créés': { bgColor: 'ECECFF', fontColor: '8788FF' },
+      'Non traités': { bgColor: 'FEE2E2', fontColor: 'EF4444' },
+      'En cours': { bgColor: 'FFEDD5', fontColor: 'F97316' },
+      'Fermés': { bgColor: 'D1FAE5', fontColor: '10B981' }
+    },
+    firstColumnBold: true,                       // ✅ Première colonne en gras
+    colorHeadersWithColumnColors: true,          // ✅ En-têtes colorés comme les colonnes
+    excludeFirstColumnDataFromColoring: true     // ✅ Données 1ère colonne sans couleur (blanc)
+  });
+  
+  this.closeExportModal();
+  console.log('📊 === FIN exportData Incidents ===');
+}
+// incidents.component.ts - Corriger la méthode getEvolutionSheet()
+
+private getEvolutionSheet(): any[] {
+  if (!this.incidentData) return [];
+  
+  switch (this.exportPeriod) {
+    case 'jour': {
+      // Afficher les jours de la SEMAINE ACTUELLE (Lundi à Dimanche)
+      const today = new Date();
+      const currentDay = today.getDay();
+      const monday = new Date(today);
+      const diffToMonday = currentDay === 0 ? 6 : currentDay - 1;
+      monday.setDate(today.getDate() - diffToMonday);
+      
+      const weekDays = [];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        const dayData = this.incidentData!.statsParJour.find(d => 
+          new Date(d.date).toISOString().split('T')[0] === dateStr
+        );
+        
+        weekDays.push({
+          'Date': date.toLocaleDateString('fr-FR'),
+          'Jour': date.toLocaleDateString('fr-FR', { weekday: 'long' }),
+          'Créés': dayData?.crees || 0,
+          'Non traités': dayData?.nonTraite || 0,
+          'En cours': dayData?.enCours || 0,
+          'Fermés': dayData?.ferme || 0
+        });
+      }
+      return weekDays;
+    }
+      
+    case 'semaine': {
+      // ✅ Afficher les SEMAINES du MOIS SÉLECTIONNÉ (via selectedMonth)
+      const year = new Date().getFullYear(); // Année actuelle
+      const month = this.selectedMonth; // Mois sélectionné dans le modal
+      
+      // Premier jour du mois
+      const firstDayOfMonth = new Date(year, month - 1, 1);
+      // Dernier jour du mois
+      const lastDayOfMonth = new Date(year, month, 0);
+      
+      // Filtrer les semaines qui tombent dans le mois sélectionné
+      const weeksInMonth = this.incidentData.statsParSemaine.filter(week => {
+        const weekDate = new Date(week.date);
+        // Vérifier si la semaine chevauche le mois
+        const weekStart = weekDate;
+        const weekEnd = new Date(weekDate);
+        weekEnd.setDate(weekDate.getDate() + 6);
+        
+        return (weekStart <= lastDayOfMonth && weekEnd >= firstDayOfMonth);
+      });
+      
+      if (weeksInMonth.length === 0) {
+        return [{
+          'Information': `Aucune donnée pour le mois de ${this.getMonthName(month)} ${year}`,
+          'Créés': 0,
+          'Non traités': 0,
+          'En cours': 0,
+          'Fermés': 0
+        }];
+      }
+      
+      return weeksInMonth.map((week) => {
+        // Extraire le numéro de semaine
+        const weekDate = new Date(week.date);
+        const weekNumber = this.getWeekNumber(weekDate);
+        
+        return {
+          'Semaine': `Semaine ${weekNumber} (du ${week.dateFormatee})`,
+          'Créés': week.crees,
+          'Non traités': week.nonTraite,
+          'En cours': week.enCours,
+          'Fermés': week.ferme
+        };
+      });
+    }
+      
+case 'mois': {
+  // Afficher les MOIS de l'ANNÉE ACTUELLE
+  const currentYear = new Date().getFullYear();
+  const monthsInYear = this.incidentData!.statsParMois.filter(month => 
+    new Date(month.date).getFullYear() === currentYear
+  );
+  
+  // Fonction pour obtenir le nom du mois à partir de la date
+  const getMonthNameFromDate = (dateStr: string): string => {
+    const date = new Date(dateStr);
+    const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                        'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    return monthNames[date.getMonth()];
+  };
+  
+  return monthsInYear.map(month => ({
+    'Mois': `${getMonthNameFromDate(month.date)} ${currentYear}`,
+    'Créés': month.crees,
+    'Non traités': month.nonTraite,
+    'En cours': month.enCours,
+    'Fermés': month.ferme
+  }));
+}
+      
+    default:
+      return [];
+  }
+}
+
+// Méthode utilitaire pour obtenir le numéro de semaine
+private getWeekNumber(date: Date): number {
+  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+  const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+}
+
+// Méthode utilitaire pour obtenir le nom du mois
+private getMonthName(month: number): string {
+  const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+  return months[month - 1];
+}
+  
+
+  private getCurrentDate(): string {
+    const now = new Date();
+    return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+  }
+
+  // ==================== FIN MÉTHODES D'EXPORT ====================
   loadIncidentDashboard() {
     console.log('🔄 Chargement dashboard incidents...');
     this.loadingIncidents = true;
@@ -677,10 +896,7 @@ initPannesParGovernoratChart() {
   toggleDropdown() {
     this.isOpen = !this.isOpen;
   }
-// Ajouter ces propriétés dans la classe IncidentsComponent
-totalTPEs: number = 0;
-totalIncidents: number = 0;
-tauxMoyen: number = 0;
+
 
 // Ajouter cette méthode dans la classe IncidentsComponent
 updateStatsFromGovData() {

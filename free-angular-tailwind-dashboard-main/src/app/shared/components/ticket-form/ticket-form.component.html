@@ -337,47 +337,36 @@
           </div>
         </div>
 
-     <!-- Date limite -->
-<div>
-  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-    Date limite <span class="text-red-500">*</span>  <!-- ✅ Ajouter l'astérisque rouge -->
-  </label>
-  
-  <div class="mb-4 p-3 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/20 border border-[#C5C6FF] dark:border-[#8788FF]/30">
-    <div class="flex items-start gap-2">
-      <svg class="w-4 h-4 text-[#8788FF] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-      </svg>
-      <span class="text-xs text-[#0C144E] dark:text-[#B2B3FF]">Date avant laquelle le ticket doit être traité (obligatoire)</span>
-    </div>
-  </div>
-  
-  <input
-    type="datetime-local"
-    formControlName="dateLimite"
-    [min]="today"
-    class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
-    [class.border-red-500]="ticketForm.get('dateLimite')?.invalid && ticketForm.get('dateLimite')?.touched"
-  />
-  
-  <!-- ✅ Erreur champ requis -->
-  <div *ngIf="ticketForm.get('dateLimite')?.errors?.['required'] && ticketForm.get('dateLimite')?.touched" 
-       class="mt-2 text-xs text-red-600 flex items-center gap-1">
-    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-    </svg>
-    La date limite est obligatoire
-  </div>
-  
-  <!-- ✅ Erreur date passée -->
-  <div *ngIf="ticketForm.get('dateLimite')?.errors?.['pastDate'] && ticketForm.get('dateLimite')?.touched" 
-       class="mt-2 text-xs text-red-600 flex items-center gap-1">
-    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-    </svg>
-    La date limite ne peut pas être antérieure à aujourd'hui
-  </div>
-</div>
+        <!-- Date limite -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Date limite <span class="text-gray-400 text-xs">(optionnel)</span>
+          </label>
+          
+          <div class="mb-4 p-3 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/20 border border-[#C5C6FF] dark:border-[#8788FF]/30">
+            <div class="flex items-start gap-2">
+              <svg class="w-4 h-4 text-[#8788FF] mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <span class="text-xs text-[#0C144E] dark:text-[#B2B3FF]">Date avant laquelle le ticket doit être traité</span>
+            </div>
+          </div>
+          
+          <input
+            type="datetime-local"
+            formControlName="dateLimite"
+            [min]="today"
+            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+          />
+          
+          <div *ngIf="ticketForm.get('dateLimite')?.errors?.['pastDate'] && ticketForm.get('dateLimite')?.touched" 
+               class="mt-2 text-xs text-red-600 flex items-center gap-1">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            La date limite ne peut pas être antérieure à aujourd'hui
+          </div>
+        </div>
       </div>
     </div>
 

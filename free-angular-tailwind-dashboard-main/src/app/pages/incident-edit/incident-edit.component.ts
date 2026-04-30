@@ -304,6 +304,63 @@ updateTpeOptions() {
     });
   }
 
+  /**
+   * Ajouter un TPE à l'incident
+   */
+  ajouterTpe(tpeId: string) {
+    if (!this.isCommercant) {
+      this.error = 'Seul le commerçant peut ajouter des TPEs';
+      return;
+    }
+    
+    console.log('➕ Ajout TPE:', tpeId);
+      if (this.isIncidentLieATicket) {
+        
+    this.showErrorDialog(' Impossible de modifier les TPEs : cet incident est déjà lié à un support.');
+    return;
+  }
+    const tpeAjoute = this.tpEsDisponibles.find(t => t.id === tpeId);
+    if (!tpeAjoute) {
+      this.error = 'TPE non trouvé';
+      return;
+    }
+
+    this.incidentService.lierTpe(this.incident.id, tpeId).subscribe({
+      next: (response) => {
+        console.log('✅ Réception réponse:', response);
+        
+        if (response.isSuccess) {
+          // Ajouter le TPE à la liste locale
+          if (!this.incident.tpEs) {
+            this.incident.tpEs = [];
+          }
+          
+          this.incident.tpEs.push({
+            tpeId: tpeAjoute.id,
+            numSerie: tpeAjoute.numSerie,
+            numSerieComplet: tpeAjoute.numSerieComplet,
+            modele: tpeAjoute.modele,
+            modeleNom: tpeAjoute.modeleNom || tpeAjoute.modele,
+            dateAssociation: new Date().toISOString()
+          });
+          
+          // Ajouter l'ID à la liste des sélectionnés
+          this.selectedTpeIds.push(tpeId);
+          
+          // Mettre à jour les options du multi-select
+          this.updateTpeOptions();
+          
+          this.showTemporaryMessage('TPE lié avec succès', 'success');
+        } else {
+          this.error = response.message || 'Erreur lors de la liaison';
+        }
+      },
+      error: (err) => {
+        console.error('❌ Erreur liaison TPE:', err);
+        this.error = err.error?.message || 'Erreur lors de la liaison du TPE';
+      }
+    });
+  }
 
   // ========== GESTION DES SUPPRESSIONS AVEC MODALES ==========
 

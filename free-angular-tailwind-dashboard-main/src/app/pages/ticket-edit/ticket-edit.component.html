@@ -213,7 +213,143 @@
   </div>
 
   <form #ticketForm="ngForm" (ngSubmit)="save()" class="space-y-6">
-       <!-- SECTION 3: Incidents liés -->
+    
+    <!-- SECTION 1: Informations générales -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+            <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Informations générales</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Détails du ticket</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-6 space-y-5">
+        <!-- Titre - Visible seulement pour Admin -->
+        <div *ngIf="isAdmin">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Titre du ticket <span class="text-red-500">*</span>
+          </label>
+          <input
+            [(ngModel)]="ticket.titreTicket"
+            name="titreTicket"
+            required
+            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-700"
+            placeholder="Ex: Panne du serveur de production"
+            [readonly]="!isAdmin"
+          />
+        </div>
+
+        <!-- Description - Visible seulement pour Admin -->
+        <div *ngIf="isAdmin">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Description <span class="text-red-500">*</span>
+          </label>
+          <textarea
+            [(ngModel)]="ticket.descriptionTicket"
+            name="descriptionTicket"
+            required
+            rows="4"
+            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all resize-none disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-700"
+            placeholder="Décrivez le ticket en détail..."
+            [readonly]="!isAdmin"
+          ></textarea>
+        </div>
+
+        <!-- Statut - Visible seulement pour les non-admins (techniciens) -->
+        <div *ngIf="!isAdmin">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Statut
+          </label>
+          <select 
+            [(ngModel)]="ticket.statutTicket"
+            name="statutTicket"
+            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all appearance-none cursor-pointer"
+          >
+            <option *ngFor="let s of statuts" [value]="s.value">
+              {{ s.label }}
+            </option>
+          </select>
+        </div>
+
+        <!-- Pour l'admin, afficher le statut en lecture seule -->
+        <div *ngIf="isAdmin">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Statut
+          </label>
+          <div class="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+            <span class="text-sm text-gray-700 dark:text-gray-300">{{ getStatutLibelle(ticket.statutTicket) }}</span>
+          </div>
+        </div>
+
+        <div *ngIf="isAdmin && ticket.assigneeNom" class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600">
+          <div class="flex items-center gap-2 mb-2">
+            <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+              Assigné à
+            </span>
+          </div>
+          <div class="flex items-center gap-3 pl-6">
+          
+            <p class="text-gray-900 dark:text-white font-medium">
+              {{ ticket.assigneeNom }}
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 2: Assignation (visible uniquement pour l'admin) -->
+    <div *ngIf="isAdmin && showAssignmentSection" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
+        <div class="flex items-center gap-3">
+          <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+            <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Assignation</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Attribuer le ticket à un technicien</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="p-6 space-y-5">
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+            Technicien assigné
+          </label>
+          <select
+            [(ngModel)]="ticket.assigneeId"
+            name="assigneeId"
+            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all appearance-none cursor-pointer"
+          >
+            <option [ngValue]="null">-- Non assigné --</option>
+            <option *ngFor="let technicien of technicienOptions" [ngValue]="technicien.value">
+              {{ technicien.label }}
+            </option>
+          </select>
+          
+          <div *ngIf="technicienOptions.length === 0" class="mt-2 text-xs text-amber-600 flex items-center gap-1">
+            <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            </svg>
+            Aucun technicien disponible.
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SECTION 3: Incidents liés -->
     <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
       <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
         <div class="flex items-center justify-between">
@@ -450,197 +586,6 @@
 </div>
     </div>
 
-    <!-- SECTION 1: Informations générales -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
-      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
-        <div class="flex items-center gap-3">
-          <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
-            <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Informations générales</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Détails du ticket</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="p-6 space-y-5">
-        <!-- Titre - Visible seulement pour Admin -->
-        <div *ngIf="isAdmin">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Titre du ticket <span class="text-red-500">*</span>
-          </label>
-          <input
-            [(ngModel)]="ticket.titreTicket"
-            name="titreTicket"
-            required
-            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-700"
-            placeholder="Ex: Panne du serveur de production"
-            [readonly]="!isAdmin"
-          />
-        </div>
-
-        <!-- Description - Visible seulement pour Admin -->
-        <div *ngIf="isAdmin">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Description <span class="text-red-500">*</span>
-          </label>
-          <textarea
-            [(ngModel)]="ticket.descriptionTicket"
-            name="descriptionTicket"
-            required
-            rows="4"
-            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all resize-none disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-700"
-            placeholder="Décrivez le ticket en détail..."
-            [readonly]="!isAdmin"
-          ></textarea>
-        </div>
-
-        <!-- Statut - Visible seulement pour les non-admins (techniciens) -->
-        <div *ngIf="!isAdmin">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Statut
-          </label>
-          <select 
-            [(ngModel)]="ticket.statutTicket"
-            name="statutTicket"
-            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all appearance-none cursor-pointer"
-          >
-            <option *ngFor="let s of statuts" [value]="s.value">
-              {{ s.label }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Pour l'admin, afficher le statut en lecture seule -->
-        <div *ngIf="isAdmin">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Statut
-          </label>
-          <div class="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-            <span class="text-sm text-gray-700 dark:text-gray-300">{{ getStatutLibelle(ticket.statutTicket) }}</span>
-          </div>
-        </div>
-<div *ngIf="!isAdmin">
-     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Date limite 
-      </label>
-          <!-- Non-admin : affichage en lecture seule -->
-      <div *ngIf="!isAdmin" class="space-y-2">
-        <div class="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-          <div class="flex items-center gap-3">
-            <svg class="w-5 h-5 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-            </svg>
-            <span class="text-sm text-gray-700 dark:text-gray-300">
-              {{ formatDateLimite(ticket.dateLimite) }}
-            </span>
-          </div>
-        </div>
-      </div>
-</div>
- 
-      </div>
-    </div>
-
-<!-- SECTION 2: Assignation et délais -->
-<div *ngIf="isAdmin" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
-  <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
-    <div class="flex items-center gap-3">
-      <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
-        <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-        </svg>
-      </div>
-      <div>
-        <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Assignation et délais</h3>
-        <p class="text-xs text-gray-500 dark:text-gray-400">
-          {{ isAdmin ? 'Choisissez un technicien et une date limite' : 'Informations sur l\'assignation et la date limite' }}
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <div class="p-6 space-y-5" >
-    
-    <!-- Assignation à un technicien -->
-    <div         *ngIf="isAdmin"
->
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Assigner à 
-        <span *ngIf="isAdmin" class="text-gray-400 text-xs">(optionnel)</span>
-      </label>
-      
-    
-      
-      <!-- Admin : champ modifiable -->
-      <select
-        *ngIf="isAdmin"
-        [(ngModel)]="ticket.assigneeId"
-        name="assigneeId"
-        class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all appearance-none cursor-pointer"
-      >
-        <option *ngFor="let technicien of technicienOptions" [ngValue]="technicien.value">
-          {{ technicien.label }}
-        </option>
-      </select>
-      
-   
-      
-      <div *ngIf="isAdmin && technicienOptions.length === 0" class="mt-2 text-xs text-amber-600 flex items-center gap-1">
-        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
-        </svg>
-        Aucun technicien disponible
-      </div>
-    </div>
-
-    <!-- Date limite -->
-    <div>
-      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-        Date limite 
-        <span *ngIf="isAdmin" class="text-red-500">*</span>
-      </label>
-      
-    
-      
-      <!-- Admin : champ modifiable -->
-      <input
-        *ngIf="isAdmin"
-        type="datetime-local"
-        [(ngModel)]="ticket.dateLimite"
-        name="dateLimite"
-        [min]="today"
-        required
-        class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
-        [class.border-red-500]="!ticket.dateLimite || ticket.dateLimite === '0001-01-01T00:00:00'"
-      />
-      
-    
-      
-      <!-- Erreurs pour admin -->
-      <div *ngIf="isAdmin && (!ticket.dateLimite || ticket.dateLimite === '0001-01-01T00:00:00') && ticketForm?.submitted" 
-           class="mt-2 text-xs text-red-600 flex items-center gap-1">
-        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        La date limite est obligatoire
-      </div>
-      
-      <div *ngIf="isAdmin && ticket.dateLimite && isPastDate(ticket.dateLimite) && ticketForm?.submitted" 
-           class="mt-2 text-xs text-red-600 flex items-center gap-1">
-        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-        </svg>
-        La date limite ne peut pas être antérieure à aujourd'hui
-      </div>
-    </div>
-  </div>
-</div>
-
- 
     <!-- Boutons d'action -->
     <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
       <button type="button" (click)="cancel()"

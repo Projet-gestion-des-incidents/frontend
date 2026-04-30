@@ -5,24 +5,22 @@ import { FormsModule } from '@angular/forms';
 import { DropdownComponent } from '../../../../shared/components/ui/dropdown/dropdown.component';
 import { DropdownItemComponent } from '../../../../shared/components/ui/dropdown/dropdown-item/dropdown-item.component';
 import { NgApexchartsModule } from 'ng-apexcharts';
+import { ExportExcelService } from '../../../../shared/services/export-excel.service';
 
 @Component({
   selector: 'app-tickets',
-  imports: [    CommonModule,
-    FormsModule,
-    NgApexchartsModule,
-    DropdownComponent,
-    DropdownItemComponent],
+  imports: [CommonModule, FormsModule, NgApexchartsModule, DropdownComponent, DropdownItemComponent],
   templateUrl: './tickets-dashboard.component.html',
   styleUrl: './tickets-dashboard.component.css',
 })
 export class TicketsDashboardComponent {
-    // Graphiques Tickets
+  // Graphiques Tickets
   chartDonut: any;
   chartEvolution: any;
   chartResolution: any;
   chartTechniciens: any;
- // Données
+  
+  // Données
   ticketData: TicketDashboardDTO | null = null;
   
   // États de chargement
@@ -36,8 +34,15 @@ export class TicketsDashboardComponent {
   // Période sélectionnée
   selectedPeriode: 'jour' | 'semaine' | 'mois' = 'semaine';
   
- // Dropdown
+  // Dropdown
   isOpen = false;
+  
+  // Champs pour l'export
+  showExportModal = false;
+  exportPeriod: 'jour' | 'semaine' | 'mois' | 'annee' = 'mois';
+  exportYears: number[] = [];
+  selectedYear = new Date().getFullYear();
+  selectedMonth = new Date().getMonth() + 1;
   
   // Indicateurs délais
   totalAvantDelai = 0;
@@ -45,13 +50,146 @@ export class TicketsDashboardComponent {
   tauxRespectDelai = 0;
   tendanceRespectDelai = '';
   messageRespectDelai = '';
-    constructor(private dashboardService: DashboardAdminService) {}
+
+  constructor(
+    private dashboardService: DashboardAdminService,
+    private exportExcelService: ExportExcelService
+  ) {
+    this.initYears();
+  }
+
+  // ==================== MÉTHODES D'EXPORT ====================
   
-    ngOnInit() {
-      console.log('🟢 Composant admin dashboard initialisé');
-      this.loadTicketDashboard();
+  initYears() {
+    const currentYear = new Date().getFullYear();
+    this.exportYears = [];
+    for (let i = currentYear - 2; i <= currentYear; i++) {
+      this.exportYears.push(i);
     }
-    loadTicketDashboard() {
+  }
+
+  openExportModal() {
+    this.showExportModal = true;
+  }
+
+  closeExportModal() {
+    this.showExportModal = false;
+  }
+
+  exportData() {
+    if (!this.ticketData) return;
+    
+    let data: any[] = [];
+    let filename = '';
+    let sheetName = '';
+    
+    switch (this.exportPeriod) {
+      case 'jour':
+        data = this.getDataForDay();
+        filename = `tickets_quotidiens_${this.getCurrentDate()}`;
+        sheetName = 'Tickets par jour';
+        break;
+      case 'semaine':
+        data = this.getDataForWeek();
+        filename = `tickets_hebdomadaires_${this.getCurrentDate()}`;
+        sheetName = 'Tickets par semaine';
+        break;
+      case 'mois':
+        data = this.getDataForMonth();
+        filename = `tickets_mensuels_${this.selectedYear}_${this.selectedMonth}`;
+        sheetName = `Tickets ${this.getMonthName(this.selectedMonth)} ${this.selectedYear}`;
+        break;
+      case 'annee':
+        data = this.getDataForYear();
+        filename = `tickets_annuels_${this.selectedYear}`;
+        sheetName = `Tickets ${this.selectedYear}`;
+        break;
+    }
+    
+    this.exportExcelService.exportToExcel({
+      filename: filename,
+      sheetName: sheetName,
+      data: data
+    });
+    
+    this.closeExportModal();
+  }
+
+  private getDataForDay(): any[] {
+    return this.ticketData!.statsParJour.map(day => ({
+      'Date': day.dateFormatee,
+      'Jour': day.jour,
+      'Tickets créés': day.crees,
+      'Non assignés': day.nonAssigne,
+      'Assignés': day.assignes,
+      'En cours': day.enCours,
+      'Résolus': day.resolus
+    }));
+  }
+
+  private getDataForWeek(): any[] {
+    return this.ticketData!.statsParSemaine.map((week, index) => ({
+      'Semaine N°': index + 1,
+      'Date début': week.dateFormatee,
+      'Tickets créés': week.crees,
+      'Non assignés': week.nonAssigne,
+      'Assignés': week.assignes,
+      'En cours': week.enCours,
+      'Résolus': week.resolus
+    }));
+  }
+
+  private getDataForMonth(): any[] {
+    const filtered = this.ticketData!.statsParMois.filter(month => 
+      new Date(month.date).getFullYear() === this.selectedYear &&
+      new Date(month.date).getMonth() + 1 === this.selectedMonth
+    );
+    
+    return filtered.map(month => ({
+      'Mois': month.jour,
+      'Date': month.dateFormatee,
+      'Tickets créés': month.crees,
+      'Non assignés': month.nonAssigne,
+      'Assignés': month.assignes,
+      'En cours': month.enCours,
+      'Résolus': month.resolus
+    }));
+  }
+
+  private getDataForYear(): any[] {
+    const filtered = this.ticketData!.statsParMois.filter(month => 
+      new Date(month.date).getFullYear() === this.selectedYear
+    );
+    
+    return filtered.map(month => ({
+      'Mois': month.jour,
+      'Tickets créés': month.crees,
+      'Non assignés': month.nonAssigne,
+      'Assignés': month.assignes,
+      'En cours': month.enCours,
+      'Résolus': month.resolus
+    }));
+  }
+
+  private getMonthName(month: number): string {
+    const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+    return months[month - 1];
+  }
+
+  private getCurrentDate(): string {
+    const now = new Date();
+    return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+  }
+
+  // ==================== FIN MÉTHODES D'EXPORT ====================
+
+  ngOnInit() {
+    console.log('🟢 Composant admin dashboard initialisé');
+    this.loadTicketDashboard();
+  }
+
+  loadTicketDashboard() {
     console.log('🔄 Chargement dashboard tickets...');
     this.loadingTickets = true;
     this.dashboardService.getTicketDashboard().subscribe({
@@ -73,20 +211,16 @@ export class TicketsDashboardComponent {
       }
     });
   }
-// ==================== GRAPHIQUES TICKETS ====================
-initTicketCharts() {
-  if (!this.ticketData) return;
-  
-  // ✅ 1. D'abord mettre à jour les statistiques
-  this.updateResolutionStats();
-  
-  // ✅ 2. Ensuite initialiser les graphiques qui dépendent de ces stats
-  this.initTicketResolutionChart();
-  
-  // ✅ 3. Puis le reste des graphiques
-  this.initTicketDonutChart();
-  this.initTicketEvolutionChart();
-}
+
+  // ==================== GRAPHIQUES TICKETS ====================
+  initTicketCharts() {
+    if (!this.ticketData) return;
+    
+    this.updateResolutionStats();
+    this.initTicketResolutionChart();
+    this.initTicketDonutChart();
+    this.initTicketEvolutionChart();
+  }
 
   initTicketDonutChart() {
     const couleursParStatut: { [key: string]: string[] } = {
@@ -180,108 +314,64 @@ initTicketCharts() {
     };
   }
 
-initTicketResolutionChart() {
-  console.log('📊 === DÉBUT initTicketResolutionChart ===');
-  console.log('📊 totalAvantDelai:', this.totalAvantDelai);
-  console.log('📊 totalApresDelai:', this.totalApresDelai);
-  
-  const total = this.totalAvantDelai + this.totalApresDelai;
-  console.log('📊 Total des tickets résolus (avec délai):', total);
-  
-  const tauxGlobal = total > 0 ? (this.totalAvantDelai / total) * 100 : 0;
-  console.log('📊 Taux de respect calculé (brut):', tauxGlobal, '%');
-  console.log('📊 Taux de respect arrondi:', Math.round(tauxGlobal), '%');
-  
-  // Vérification des cas particuliers
-  if (total === 0) {
-    console.warn('⚠️ Aucun ticket résolu avec date limite - le taux sera affiché à 0%');
-  }
-  if (this.totalAvantDelai === 0 && total > 0) {
-    console.warn('⚠️ Aucun ticket résolu avant délai - le taux est à 0%');
-  }
-  if (this.totalAvantDelai === total && total > 0) {
-    console.log('✅ Tous les tickets ont été résolus avant délai - taux à 100%');
-  }
-  
-  this.chartResolution = {
-    series: [tauxGlobal],
-    chart: { 
-      type: 'radialBar', 
-      height: 350, 
-      toolbar: { show: false },
-      fontFamily: 'Poppins, system-ui, sans-serif'
-    },
-    plotOptions: {
-      radialBar: {
-        startAngle: -90,
-        endAngle: 90,
-        hollow: { size: '65%' },
-        track: { background: '#ebe5e5', strokeWidth: '100%' },
-        dataLabels: {
-          name: { 
-            show: true, 
-            fontSize: '14px',
-            fontFamily: 'Poppins, system-ui, sans-serif',
-            offsetY: -10 
-          },
-          value: { 
-            show: true, 
-            fontSize: '28px',
-            fontFamily: 'Poppins, system-ui, sans-serif',
-            offsetY: 10, 
-            formatter: (val: number) => {
-              const rounded = Math.round(val);
-              console.log(`📊 Chart formatter - valeur: ${val}, arrondi: ${rounded}%`);
-              return `${rounded}%`;
-            }
-          },
-          total: { 
-            show: true, 
-            label: 'Taux respect',
-            fontFamily: 'Poppins, system-ui, sans-serif',
-            formatter: () => {
-              const rounded = Math.round(tauxGlobal);
-              console.log(`📊 Total formatter - taux affiché: ${rounded}%`);
-              return `${rounded}%`;
+  initTicketResolutionChart() {
+    const total = this.totalAvantDelai + this.totalApresDelai;
+    const tauxGlobal = total > 0 ? (this.totalAvantDelai / total) * 100 : 0;
+    
+    this.chartResolution = {
+      series: [tauxGlobal],
+      chart: { 
+        type: 'radialBar', 
+        height: 350, 
+        toolbar: { show: false },
+        fontFamily: 'Poppins, system-ui, sans-serif'
+      },
+      plotOptions: {
+        radialBar: {
+          startAngle: -90,
+          endAngle: 90,
+          hollow: { size: '65%' },
+          track: { background: '#ebe5e5', strokeWidth: '100%' },
+          dataLabels: {
+            name: { 
+              show: true, 
+              fontSize: '14px',
+              fontFamily: 'Poppins, system-ui, sans-serif',
+              offsetY: -10 
+            },
+            value: { 
+              show: true, 
+              fontSize: '28px',
+              fontFamily: 'Poppins, system-ui, sans-serif',
+              offsetY: 10, 
+              formatter: (val: number) => `${Math.round(val)}%`
+            },
+            total: { 
+              show: true, 
+              label: 'Taux respect',
+              fontFamily: 'Poppins, system-ui, sans-serif',
+              formatter: () => `${Math.round(tauxGlobal)}%`
             }
           }
         }
-      }
-    },
-    fill: { colors: ['#86EFAC'] },
-    labels: ['Avant délai']
-  };
-  
-  console.log('✅ Graphique chartResolution configuré avec succès');
-  console.log('📊 Série envoyée:', this.chartResolution.series);
-  console.log('📊 === FIN initTicketResolutionChart ===\n');
-}
+      },
+      fill: { colors: ['#86EFAC'] },
+      labels: ['Avant délai']
+    };
+  }
+
   // ==================== UTILITAIRES ====================
- updateResolutionStats() {
-  if (!this.ticketData) return;
-  
-  // Utiliser directement les données globales de statsResolution
-  this.totalAvantDelai = this.ticketData.statsResolution.ticketsResolusAvantDelai || 0;
-  this.totalApresDelai = this.ticketData.statsResolution.ticketsResolusApresDelai || 0;
-  
-  console.log('📊 updateResolutionStats - Données globales:');
-  console.log('   - ticketsResolusAvantDelai:', this.totalAvantDelai);
-  console.log('   - ticketsResolusApresDelai:', this.totalApresDelai);
-  console.log('   - ticketsSansDateLimite:', this.ticketData.statsResolution.ticketsSansDateLimite);
-  console.log('   - tauxRespectDelai (API):', this.ticketData.statsResolution.tauxRespectDelai);
-  
-  const total = this.totalAvantDelai + this.totalApresDelai;
-  this.tauxRespectDelai = total > 0 ? Math.round((this.totalAvantDelai / total) * 100) : 0;
-  
-  console.log('   - Total avec délai:', total);
-  console.log('   - Taux calculé:', this.tauxRespectDelai, '%');
-  
-  // Message pour l'affichage
-  this.messageRespectDelai = `${this.totalAvantDelai} tickets résolus avant la date limite sur ${total} tickets avec délai. Taux de respect: ${this.tauxRespectDelai}%.`;
-  
-  // Tendance (optionnelle - basée sur les données globales)
-  this.tendanceRespectDelai = `Basé sur ${total} tickets avec délai`;
-}
+  updateResolutionStats() {
+    if (!this.ticketData) return;
+    
+    this.totalAvantDelai = this.ticketData.statsResolution.ticketsResolusAvantDelai || 0;
+    this.totalApresDelai = this.ticketData.statsResolution.ticketsResolusApresDelai || 0;
+    
+    const total = this.totalAvantDelai + this.totalApresDelai;
+    this.tauxRespectDelai = total > 0 ? Math.round((this.totalAvantDelai / total) * 100) : 0;
+    this.messageRespectDelai = `${this.totalAvantDelai} tickets résolus avant la date limite sur ${total} tickets avec délai. Taux de respect: ${this.tauxRespectDelai}%.`;
+    this.tendanceRespectDelai = `Basé sur ${total} tickets avec délai`;
+  }
 
   getTicketStatsByPeriode() {
     if (!this.ticketData) return [];
@@ -325,7 +415,7 @@ initTicketResolutionChart() {
   }
 
   get isLoading(): boolean {
-    return (this.activeTab === 'tickets' && this.loadingTickets) 
+    return (this.activeTab === 'tickets' && this.loadingTickets);
   }
 
   get currentError(): string | null {

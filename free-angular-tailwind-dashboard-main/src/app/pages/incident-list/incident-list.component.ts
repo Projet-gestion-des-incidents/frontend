@@ -727,6 +727,129 @@ getStatutBadgeClasses(statut: any): string {
       return 'bg-[#D4B8FF] text-[#0C144E]';
   }
 }
+// Ajoutez ces propriétés avec les autres
+selectedIncidents: Set<string> = new Set<string>();  // IDs des incidents sélectionnés
+showMultiDeleteModal = false;  // Pour la modale de suppression multiple
+confirmIncidents: Incident[] = [];  // Incidents à supprimer en masse
+bulkDeleting = false;  // État de suppression en cours
+
+// Méthodes de sélection
+toggleSelection(incidentId: string, checked: boolean): void {
+  if (checked) {
+    this.selectedIncidents.add(incidentId);
+  } else {
+    this.selectedIncidents.delete(incidentId);
+  }
+}
+
+// Sélectionner/Désélectionner tous les incidents de la page
+toggleAllSelection(checked: boolean): void {
+  if (checked) {
+    this.filteredIncidents.forEach(incident => 
+      this.selectedIncidents.add(incident.id)
+    );
+  } else {
+    this.selectedIncidents.clear();
+  }
+}
+
+// Vérifier si un incident est sélectionné
+isSelected(incidentId: string): boolean {
+  return this.selectedIncidents.has(incidentId);
+}
+
+// Vérifier si tous les incidents sont sélectionnés
+isAllSelected(): boolean {
+  return this.filteredIncidents.length > 0 && 
+         this.selectedIncidents.size === this.filteredIncidents.length;
+}
+
+// Vérifier si la sélection est partielle (indéterminée)
+isIndeterminate(): boolean {
+  return this.selectedIncidents.size > 0 && 
+         this.selectedIncidents.size < this.filteredIncidents.length;
+}
+
+// Annuler la sélection
+clearSelection(): void {
+  this.selectedIncidents.clear();
+}
+
+// Confirmer la suppression multiple
+confirmDeleteMultiple(): void {
+  if (this.selectedIncidents.size === 0) return;
+  
+  const selectedIds = Array.from(this.selectedIncidents);
+  this.confirmIncidents = this.filteredIncidents.filter(incident => 
+    selectedIds.includes(incident.id)
+  );
+  this.showMultiDeleteModal = true;
+}
+
+// Annuler la suppression multiple
+cancelMultiDelete(): void {
+  this.showMultiDeleteModal = false;
+  this.confirmIncidents = [];
+  this.bulkDeleting = false;
+}
+
+// Exécuter la suppression multiple
+executeMultiDelete(): void {
+  if (this.confirmIncidents.length === 0) return;
+
+  this.bulkDeleting = true;
+  let completed = 0;
+  const total = this.confirmIncidents.length;
+  let successCount = 0;
+
+  this.confirmIncidents.forEach(incident => {
+    this.incidentService.deleteIncident(incident.id).subscribe({
+      next: () => {
+        const index = this.filteredIncidents.findIndex(i => i.id === incident.id);
+        if (index !== -1) this.filteredIncidents.splice(index, 1);
+        
+        const indexAll = this.incidents.findIndex(i => i.id === incident.id);
+        if (indexAll !== -1) this.incidents.splice(indexAll, 1);
+        
+        this.selectedIncidents.delete(incident.id);
+        successCount++;
+        completed++;
+        
+        if (completed === total) {
+          this.bulkDeleting = false;
+          this.showMultiDeleteModal = false;
+          this.confirmIncidents = [];
+          
+          this.totalCount = this.filteredIncidents.length;
+          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+          if (this.currentPage > this.totalPages && this.totalPages > 0) {
+            this.currentPage = this.totalPages;
+          }
+          
+          if (successCount === total) {
+            this.showAlert('success', 'Succès', `${total} incident(s) supprimé(s) avec succès.`);
+          } else if (successCount > 0) {
+            this.showAlert('warning', 'Suppression partielle', `${successCount} incident(s) supprimé(s), ${total - successCount} échec(s).`);
+          } else {
+            this.showAlert('error', 'Échec', `Aucun incident n'a pu être supprimé.`);
+          }
+          this.loadIncidents();
+        }
+      },
+      error: (err) => {
+        console.error(`Erreur suppression ${incident.codeIncident}:`, err);
+        completed++;
+        if (completed === total) {
+          this.bulkDeleting = false;
+          this.showMultiDeleteModal = false;
+          this.confirmIncidents = [];
+          this.showAlert('error', 'Erreur', `${successCount}/${total} incident(s) supprimé(s).`);
+          this.loadIncidents();
+        }
+      }
+    });
+  });
+}
 getSeveriteBadgeColor(severite: any): BadgeColor {
   // Cas 1: La sévérité est 0 ou null
   if (severite === 0 || severite === null || severite === undefined) {

@@ -75,7 +75,8 @@ export class TicketFormComponent implements OnInit {
       titreTicket: ['', [Validators.required, Validators.minLength(3)]],
       descriptionTicket: ['', Validators.required],
       assigneeId: [null],
-  dateLimite: ['', [Validators.required, this.futureDateValidator]],       commentaireInitial: [''],
+      dateLimite: [null],
+      commentaireInitial: [''],
       commentaireInterne: [false]
     });
   }
@@ -129,7 +130,7 @@ filtrerCommercantsAvecIncidents(): void {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
-loadTechniciens(): void {
+ loadTechniciens(): void {
   console.log('🔍 Récupération des techniciens...');
   
   this.userService.getTechniciens().subscribe({
@@ -146,21 +147,8 @@ loadTechniciens(): void {
         techniciensData = response.items;
       }
       
-      // ✅ Filtrer les techniciens avec email confirmé ET statut Actif
-      const techniciensFiltres = techniciensData.filter((u: any) => 
-        u.emailConfirmed === true && u.statut === 'Actif'
-      );
-      
-      console.log(`📊 Total techniciens: ${techniciensData.length}, Confirmés et Actifs: ${techniciensFiltres.length}`);
-      
-      // ✅ Afficher la répartition pour déboguer
-      const emailNonConfirmes = techniciensData.filter((u: any) => u.emailConfirmed !== true).length;
-      const statutNonActif = techniciensData.filter((u: any) => u.statut !== 'Actif').length;
-      console.log(`   - Email non confirmé: ${emailNonConfirmes}`);
-      console.log(`   - Statut non actif: ${statutNonActif}`);
-      
-      // ✅ Mapper les techniciens filtrés
-      this.techniciens = techniciensFiltres.map((u: any) => ({
+      // ✅ Mapper les techniciens
+      this.techniciens = techniciensData.map((u: any) => ({
         id: u.id,
         nom: u.nom,
         prenom: u.prenom,
@@ -169,23 +157,17 @@ loadTechniciens(): void {
         phoneNumber: u.phoneNumber,
         statut: u.statut,
         birthDate: u.birthDate,
-        image: u.image,
-        emailConfirmed: u.emailConfirmed
+        image: u.image
       }));
       
-      // ✅ Créer les options pour le select (uniquement ceux avec email confirmé ET actif)
+      // ✅ Créer les options pour le select
       this.technicienOptions = this.techniciens.map(t => ({
         value: t.id,
-        label: `${t.prenom} ${t.nom}`
+        label: `${t.prenom} ${t.nom}`  // Prénom puis Nom pour meilleure lisibilité
       }));
       
-      console.log('✅ Techniciens disponibles (email confirmé + actif):', this.techniciens.length);
+      console.log('✅ Techniciens chargés:', this.techniciens.length);
       console.log('📋 Options:', this.technicienOptions);
-      
-      // Afficher un message si aucun technicien disponible
-      if (this.technicienOptions.length === 0) {
-        console.warn('⚠️ Aucun technicien avec email confirmé ET statut actif disponible');
-      }
     },
     error: (err) => {
       console.error('❌ Erreur chargement techniciens:', err);

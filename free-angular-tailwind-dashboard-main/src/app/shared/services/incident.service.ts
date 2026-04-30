@@ -208,24 +208,8 @@ deleteIncident(id: string) {
 }
 
 
-  // Méthodes spécifiques
-  getIncidentsByStatut(statut: StatutIncident): Observable<Incident[]> {
-    return this.http.get<ApiResponse<Incident[]>>(
-      `${this.apiUrl}/statut/${statut}`, 
-      this.getAuthHeaders()
-    ).pipe(
-      map(response => response.data)
-    );
-  }
 
-  getIncidentsBySeverite(severite: SeveriteIncident): Observable<Incident[]> {
-    return this.http.get<ApiResponse<Incident[]>>(
-      `${this.apiUrl}/severite/${severite}`, 
-      this.getAuthHeaders()
-    ).pipe(
-      map(response => response.data)
-    );
-  }
+
 
   getMyIncidents(): Observable<Incident[]> {
     return this.http.get<ApiResponse<Incident[]>>(
@@ -333,14 +317,6 @@ searchMyIncidents(params: any): Observable<any> {
     return this.lierPlusieursTpes(incidentId, [tpeId]);
   }
 
-// Dans incident.service.ts
-// Dans incident.service.ts
-
-/**
- * 🔹 Ajouter des pièces jointes à un incident
- * POST /api/incident/{incidentId}/upload
- */
-// Dans incident.service.ts
 
 /**
  * 🔹 Ajouter des pièces jointes à un incident
