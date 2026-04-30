@@ -76,44 +76,210 @@ export class TicketsDashboardComponent {
     this.showExportModal = false;
   }
 
-  exportData() {
-    if (!this.ticketData) return;
-    
-    let data: any[] = [];
-    let filename = '';
-    let sheetName = '';
-    
-    switch (this.exportPeriod) {
-      case 'jour':
-        data = this.getDataForDay();
-        filename = `tickets_quotidiens_${this.getCurrentDate()}`;
-        sheetName = 'Tickets par jour';
-        break;
-      case 'semaine':
-        data = this.getDataForWeek();
-        filename = `tickets_hebdomadaires_${this.getCurrentDate()}`;
-        sheetName = 'Tickets par semaine';
-        break;
-      case 'mois':
-        data = this.getDataForMonth();
-        filename = `tickets_mensuels_${this.selectedYear}_${this.selectedMonth}`;
-        sheetName = `Tickets ${this.getMonthName(this.selectedMonth)} ${this.selectedYear}`;
-        break;
-      case 'annee':
-        data = this.getDataForYear();
-        filename = `tickets_annuels_${this.selectedYear}`;
-        sheetName = `Tickets ${this.selectedYear}`;
-        break;
-    }
-    
-    this.exportExcelService.exportToExcel({
-      filename: filename,
-      sheetName: sheetName,
-      data: data
-    });
-    
-    this.closeExportModal();
+// tickets-dashboard.component.ts - Remplacer les méthodes d'export
+
+exportData() {
+  console.log('📊 === DÉBUT exportData Tickets ===');
+  console.log('📊 exportPeriod:', this.exportPeriod);
+  console.log('📊 selectedYear:', this.selectedYear);
+  console.log('📊 selectedMonth:', this.selectedMonth);
+  
+  if (!this.ticketData) {
+    console.error('❌ ticketData est null!');
+    return;
   }
+  
+  let filename = '';
+  
+  switch (this.exportPeriod) {
+    case 'jour':
+      filename = `tickets_quotidiens_${this.getCurrentDate()}`;
+      break;
+    case 'semaine':
+      filename = `tickets_hebdomadaires_${this.selectedYear}_${this.selectedMonth}`;
+      break;
+    case 'mois':
+      const currentYear = new Date().getFullYear();
+      filename = `tickets_mensuels_${currentYear}`;
+      break;
+    case 'annee':
+      filename = `tickets_annuels_${this.selectedYear}`;
+      break;
+    default:
+      filename = `tickets_${this.getCurrentDate()}`;
+  }
+  
+  const evolutionData = this.getEvolutionSheet();
+  console.log('📊 Données à exporter:', evolutionData.length, 'lignes');
+  console.log('📊 Première ligne:', evolutionData[0]);
+  console.log('📊 Headers:', Object.keys(evolutionData[0] || {}));
+  
+  // ✅ Version avec le même style que les incidents
+  this.exportExcelService.exportToExcelWithColors({
+    filename: filename,
+    sheetName: 'Évolution des tickets',
+    data: evolutionData,
+    columnColors: {
+      'Date': { bgColor: 'FFFFFF', fontColor: '0C144E' },
+      'Jour': { bgColor: 'FFFFFF', fontColor: '0C144E' },
+      'Semaine': { bgColor: 'FFFFFF', fontColor: '0C144E' },
+      'Mois': { bgColor: 'FFFFFF', fontColor: '0C144E' },
+      'Tickets créés': { bgColor: 'ECECFF', fontColor: '8788FF' },
+      'Non assignés': { bgColor: 'FEE2E2', fontColor: 'EF4444' },
+      'Assignés': { bgColor: 'FFEDD5', fontColor: 'F97316' },
+      'En cours': { bgColor: 'FEF3C7', fontColor: 'D97706' },
+      'Résolus': { bgColor: 'D1FAE5', fontColor: '10B981' }
+    },
+    firstColumnBold: true,
+    colorHeadersWithColumnColors: true,
+    excludeFirstColumnDataFromColoring: true
+  });
+  
+  this.closeExportModal();
+  console.log('📊 === FIN exportData Tickets ===');
+}
+
+private getEvolutionSheet(): any[] {
+  if (!this.ticketData) return [];
+  
+  switch (this.exportPeriod) {
+    case 'jour': {
+      // Afficher les jours de la SEMAINE ACTUELLE (Lundi à Dimanche)
+      const today = new Date();
+      const currentDay = today.getDay();
+      const monday = new Date(today);
+      const diffToMonday = currentDay === 0 ? 6 : currentDay - 1;
+      monday.setDate(today.getDate() - diffToMonday);
+      
+      const weekDays = [];
+      for (let i = 0; i < 7; i++) {
+        const date = new Date(monday);
+        date.setDate(monday.getDate() + i);
+        const dateStr = date.toISOString().split('T')[0];
+        
+        const dayData = this.ticketData!.statsParJour.find(d => 
+          new Date(d.date).toISOString().split('T')[0] === dateStr
+        );
+        
+        weekDays.push({
+          'Date': date.toLocaleDateString('fr-FR'),
+          'Jour': date.toLocaleDateString('fr-FR', { weekday: 'long' }),
+          'Tickets créés': dayData?.crees || 0,
+          'Non assignés': dayData?.nonAssigne || 0,
+          'Assignés': dayData?.assignes || 0,
+          'En cours': dayData?.enCours || 0,
+          'Résolus': dayData?.resolus || 0
+        });
+      }
+      return weekDays;
+    }
+      
+    case 'semaine': {
+      // Afficher les SEMAINES du MOIS SÉLECTIONNÉ
+      const year = this.selectedYear;
+      const month = this.selectedMonth;
+      
+      const weeksInMonth = this.ticketData.statsParSemaine.filter(week => {
+        const weekDate = new Date(week.date);
+        return weekDate.getFullYear() === year && 
+               weekDate.getMonth() + 1 === month;
+      });
+      
+      if (weeksInMonth.length === 0) {
+        return [{
+          'Semaine': `Aucune donnée pour ${this.getMonthName(month)} ${year}`,
+          'Tickets créés': 0,
+          'Non assignés': 0,
+          'Assignés': 0,
+          'En cours': 0,
+          'Résolus': 0
+        }];
+      }
+      
+      return weeksInMonth.map((week) => {
+        const weekDate = new Date(week.date);
+        const weekNumber = this.getWeekNumber(weekDate);
+        
+        return {
+          'Semaine': `Semaine ${weekNumber} (du ${week.dateFormatee})`,
+          'Tickets créés': week.crees,
+          'Non assignés': week.nonAssigne,
+          'Assignés': week.assignes,
+          'En cours': week.enCours,
+          'Résolus': week.resolus
+        };
+      });
+    }
+      
+    case 'mois': {
+      // Afficher les MOIS de l'ANNÉE ACTUELLE
+      const currentYear = new Date().getFullYear();
+      const monthsInYear = this.ticketData.statsParMois.filter(month => 
+        new Date(month.date).getFullYear() === currentYear
+      );
+      
+      const getMonthNameFromDate = (dateStr: string): string => {
+        const date = new Date(dateStr);
+        const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                            'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+        return monthNames[date.getMonth()];
+      };
+      
+      return monthsInYear.map(month => ({
+        'Mois': `${getMonthNameFromDate(month.date)} ${currentYear}`,
+        'Tickets créés': month.crees,
+        'Non assignés': month.nonAssigne,
+        'Assignés': month.assignes,
+        'En cours': month.enCours,
+        'Résolus': month.resolus
+      }));
+    }
+      
+    case 'annee': {
+      // Afficher les MOIS de l'ANNÉE SÉLECTIONNÉE
+      const monthsInYear = this.ticketData.statsParMois.filter(month => 
+        new Date(month.date).getFullYear() === this.selectedYear
+      );
+      
+      const getMonthNameFromDate = (dateStr: string): string => {
+        const date = new Date(dateStr);
+        const monthNames = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                            'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+        return monthNames[date.getMonth()];
+      };
+      
+      return monthsInYear.map(month => ({
+        'Mois': `${getMonthNameFromDate(month.date)} ${this.selectedYear}`,
+        'Tickets créés': month.crees,
+        'Non assignés': month.nonAssigne,
+        'Assignés': month.assignes,
+        'En cours': month.enCours,
+        'Résolus': month.resolus
+      }));
+    }
+      
+    default:
+      return [];
+  }
+}
+
+// Méthode utilitaire pour obtenir le numéro de semaine
+private getWeekNumber(date: Date): number {
+  const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+  const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
+  return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+}
+
+private getMonthName(month: number): string {
+  const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
+                  'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
+  return months[month - 1];
+}
+
+private getCurrentDate(): string {
+  const now = new Date();
+  return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
+}
 
   private getDataForDay(): any[] {
     return this.ticketData!.statsParJour.map(day => ({
@@ -171,16 +337,6 @@ export class TicketsDashboardComponent {
     }));
   }
 
-  private getMonthName(month: number): string {
-    const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
-                    'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
-    return months[month - 1];
-  }
-
-  private getCurrentDate(): string {
-    const now = new Date();
-    return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
-  }
 
   // ==================== FIN MÉTHODES D'EXPORT ====================
 
