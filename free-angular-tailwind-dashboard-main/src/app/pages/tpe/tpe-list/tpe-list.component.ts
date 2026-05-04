@@ -20,6 +20,8 @@ export class TpeListComponent implements OnInit {
   tpes: any[] = [];
   userRole: string = '';
   loading = true;
+
+  
   
   // Pagination
   currentPage = 1;
@@ -76,10 +78,17 @@ export class TpeListComponent implements OnInit {
 // Variables pour les filtres temporaires
 tempFilters = {
   modele: '',
-  commercantId: ''
+  commercantId: '',
+  createdAt: '',
+  updatedAt: ''
 };
 
 showFilters = false;
+
+
+// ✅ Ajouter ces propriétés pour les dates
+selectedCreatedAt = '';
+selectedUpdatedAt = '';
 
 // Méthodes pour les filtres
 toggleFilters(): void {
@@ -88,7 +97,9 @@ toggleFilters(): void {
     // Initialiser les filtres temporaires avec les valeurs actuelles
     this.tempFilters = {
       modele: this.selectedModele,
-      commercantId: this.selectedCommercantId
+      commercantId: this.selectedCommercantId,
+      createdAt: this.selectedCreatedAt,
+      updatedAt: this.selectedUpdatedAt
     };
   }
 }
@@ -98,7 +109,9 @@ cancelFilters(): void {
   // Restaurer les valeurs depuis les filtres temporaires (inchangés)
   this.tempFilters = {
     modele: this.selectedModele,
-    commercantId: this.selectedCommercantId
+    commercantId: this.selectedCommercantId,
+    createdAt: this.selectedCreatedAt,
+      updatedAt: this.selectedUpdatedAt
   };
 }
 
@@ -106,6 +119,8 @@ applyFilters(): void {
   // Appliquer les filtres temporaires aux filtres actifs
   this.selectedModele = this.tempFilters.modele;
   this.selectedCommercantId = this.tempFilters.commercantId;
+  this.selectedCreatedAt = this.tempFilters.createdAt;
+  this.selectedUpdatedAt = this.tempFilters.updatedAt;
   this.currentPage = 1;
   this.loadTPEs();
   this.showFilters = false;
@@ -115,10 +130,14 @@ clearFilters(): void {
   // Réinitialiser tous les filtres
   this.tempFilters = {
     modele: '',
-    commercantId: ''
+    commercantId: '',
+    createdAt: '',
+    updatedAt: ''
   };
   this.selectedModele = '';
   this.selectedCommercantId = '';
+  this.selectedCreatedAt = '';
+  this.selectedUpdatedAt = '';
   this.searchTerm = '';
   this.currentPage = 1;
   this.loadTPEs();
@@ -143,49 +162,57 @@ resetFilters(): void {
     });
   }
 
-  loadTPEs(): void {
-    this.loading = true;
-    
-    if (this.userRole === 'Admin') {
-      // Admin utilise la méthode paginée
-      this.tpeService.getPagedTPEs({
-        page: this.currentPage,
-        pageSize: this.pageSize,
-        searchTerm: this.searchTerm,
-        modele: this.selectedModele || undefined,
-        commercantId: this.selectedCommercantId || undefined
-      }).subscribe({
-        next: (response: PagedResponse<any>) => {
-          this.tpes = response.data;
-          this.totalCount = response.pagination.totalCount;
-          this.totalPages = response.pagination.totalPages;
-          this.currentPage = response.pagination.page;
-          this.loading = false;
-        },
-        error: err => {
-          console.error('Erreur chargement TPEs:', err);
-          this.loading = false;
-        }
-      });
-    } else if (this.userRole === 'Commercant') {
-      // Commerçant voit SES TPEs
-      this.tpeService.getMyTpes().subscribe({
-        next: (tpes) => {
-          this.tpes = tpes;
-          this.totalCount = tpes.length;
-          this.totalPages = 1;
-          this.loading = false;
-        },
-        error: err => {
-          console.error('Erreur chargement TPEs (Commercant):', err);
-          this.loading = false;
-        }
-      });
-    } else {
-      this.tpes = [];
-      this.loading = false;
-    }
+loadTPEs(): void {
+  this.loading = true;
+  
+  if (this.userRole === 'Admin') {
+    // Admin utilise getPagedTPEs avec tous les filtres
+    this.tpeService.getPagedTPEs({
+      page: this.currentPage,
+      pageSize: this.pageSize,
+      searchTerm: this.searchTerm,
+      modele: this.selectedModele || undefined,
+      commercantId: this.selectedCommercantId || undefined,
+      createdAt: this.selectedCreatedAt || undefined,    // ✅ AJOUTER
+      updatedAt: this.selectedUpdatedAt || undefined     // ✅ AJOUTER
+    }).subscribe({
+      next: (response: PagedResponse<any>) => {
+        this.tpes = response.data;
+        this.totalCount = response.pagination.totalCount;
+        this.totalPages = response.pagination.totalPages;
+        this.currentPage = response.pagination.page;
+        this.loading = false;
+      },
+      error: err => {
+        console.error('Erreur chargement TPEs:', err);
+        this.loading = false;
+      }
+    });
+  } else if (this.userRole === 'Commercant') {
+    // ✅ Commerçant utilise getMesTPEsPaged (pagination + recherche + filtre modèle)
+    this.tpeService.getMesTPEsPaged({
+      page: this.currentPage,
+      pageSize: this.pageSize,
+      searchTerm: this.searchTerm,
+      modele: this.selectedModele || undefined
+    }).subscribe({
+      next: (response: PagedResponse<any>) => {
+        this.tpes = response.data;
+        this.totalCount = response.pagination.totalCount;
+        this.totalPages = response.pagination.totalPages;
+        this.currentPage = response.pagination.page;
+        this.loading = false;
+      },
+      error: err => {
+        console.error('Erreur chargement TPEs (Commercant):', err);
+        this.loading = false;
+      }
+    });
+  } else {
+    this.tpes = [];
+    this.loading = false;
   }
+}
 
   onPageChange(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
@@ -313,4 +340,19 @@ cancelDelete() {
     return 'Vous';
   }
 
+
+
+//   openCreatedAtCalendar(): void {
+//   const dateInput = document.querySelector('input[formControlName="createdAt"]') as HTMLInputElement;
+//   if (dateInput) {
+//     dateInput.showPicker();
+//   }
+// }
+
+// openUpdatedAtCalendar(): void {
+//   const dateInput = document.querySelector('input[formControlName="updatedAt"]') as HTMLInputElement;
+//   if (dateInput) {
+//     dateInput.showPicker();
+//   }
+// }
 }

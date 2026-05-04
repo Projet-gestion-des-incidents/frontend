@@ -79,6 +79,10 @@ getPagedTPEs(params: {
   searchTerm?: string;
   modele?: string;
   commercantId?: string;
+  createdAt?: string;      // ✅ AJOUTER
+  updatedAt?: string;      // ✅ AJOUTER
+  createdById?: string;    // ✅ AJOUTER (optionnel)
+  updatedById?: string;    // ✅ AJOUTER (optionnel)
 }): Observable<PagedResponse<any>> {
   let httpParams = new HttpParams()
     .set('Page', params.page.toString())
@@ -93,6 +97,19 @@ getPagedTPEs(params: {
   if (params.commercantId) {
     httpParams = httpParams.set('CommercantId', params.commercantId);
   }
+  // ✅ AJOUTER les filtres de dates
+  if (params.createdAt) {
+    httpParams = httpParams.set('CreatedAt', params.createdAt);
+  }
+  if (params.updatedAt) {
+    httpParams = httpParams.set('UpdatedAt', params.updatedAt);
+  }
+  if (params.createdById) {
+    httpParams = httpParams.set('CreatedById', params.createdById);
+  }
+  if (params.updatedById) {
+    httpParams = httpParams.set('UpdatedById', params.updatedById);
+  }
 
   return this.http.get<any>(`${this.apiUrl}/withFilters`, {
     params: httpParams,
@@ -101,7 +118,6 @@ getPagedTPEs(params: {
     map(response => {
       const pagedResult = response.data;
       
-      // ✅ Mapper les items avec les champs d'audit
       const items = (pagedResult?.items || []).map((item: any) => ({
         id: item.id,
         numSerie: item.numSerie,
@@ -109,7 +125,6 @@ getPagedTPEs(params: {
         modele: item.modele,
         commercantId: item.commercantId,
         commercantNom: item.commercantNom,
-        // ✅ Ajouter les champs d'audit
         createdAt: item.createdAt,
         createdByNom: item.createdByNom,
         updatedAt: item.updatedAt,
@@ -130,4 +145,62 @@ getPagedTPEs(params: {
     })
   );
 }
+
+
+// Dans tpe.service.ts
+
+// ✅ Nouvelle méthode pour le commerçant (avec pagination, recherche et filtres)
+getMesTPEsPaged(params: {
+  page: number;
+  pageSize: number;
+  searchTerm?: string;
+  modele?: string;
+}): Observable<PagedResponse<any>> {
+  let httpParams = new HttpParams()
+    .set('Page', params.page.toString())
+    .set('PageSize', params.pageSize.toString());
+
+  if (params.searchTerm?.trim()) {
+    httpParams = httpParams.set('SearchTerm', params.searchTerm.trim());
+  }
+  if (params.modele) {
+    httpParams = httpParams.set('Modele', params.modele);
+  }
+
+  return this.http.get<any>(`${this.apiUrl}/mes-tpe`, {
+    params: httpParams,
+    ...this.getAuthHeaders()
+  }).pipe(
+    map(response => {
+      const pagedResult = response.data;
+      
+      const items = (pagedResult?.items || []).map((item: any) => ({
+        id: item.id,
+        numSerie: item.numSerie,
+        numSerieComplet: item.numSerieComplet,
+        modele: item.modele,
+        commercantId: item.commercantId,
+        commercantNom: item.commercantNom,
+        createdAt: item.createdAt,
+        createdByNom: item.createdByNom,
+        updatedAt: item.updatedAt,
+        updatedByNom: item.updatedByNom
+      }));
+      
+      return {
+        data: items,
+        pagination: {
+          page: pagedResult?.page || 1,
+          pageSize: pagedResult?.pageSize || params.pageSize,
+          totalCount: pagedResult?.totalCount || 0,
+          totalPages: pagedResult?.totalPages || 1,
+          hasPreviousPage: pagedResult?.hasPreviousPage || false,
+          hasNextPage: pagedResult?.hasNextPage || false
+        }
+      };
+    })
+  );
+}
+
+
 }
