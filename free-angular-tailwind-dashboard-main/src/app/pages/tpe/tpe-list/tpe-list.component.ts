@@ -20,8 +20,16 @@ export class TpeListComponent implements OnInit {
   tpes: any[] = [];
   userRole: string = '';
   loading = true;
+today: string = new Date().toISOString().split('T')[0];
+  showCommercantFilters = false;
+tempCommercantFilters = {
+  modele: '',
+  createdAt: ''
+};
 
-  
+// Pour la date de création (calendrier)
+selectedCreatedAtForCommercant = '';
+selectedDetectionDateObj: Date | null = null;
   
   // Pagination
   currentPage = 1;
@@ -162,19 +170,139 @@ resetFilters(): void {
     });
   }
 
+
+  // Méthodes pour les filtres du commerçant
+toggleCommercantFilters(): void {
+  this.showCommercantFilters = !this.showCommercantFilters;
+  if (this.showCommercantFilters) {
+    this.tempCommercantFilters = {
+      modele: this.selectedModele,
+      createdAt: this.selectedCreatedAtForCommercant
+    };
+  }
+}
+
+cancelCommercantFilters(): void {
+  this.showCommercantFilters = false;
+  this.tempCommercantFilters = {
+    modele: this.selectedModele,
+    createdAt: this.selectedCreatedAtForCommercant
+  };
+}
+
+applyCommercantFilters(): void {
+  this.selectedModele = this.tempCommercantFilters.modele;
+  this.selectedCreatedAtForCommercant = this.tempCommercantFilters.createdAt;
+  this.currentPage = 1;
+  this.loadTPEs();
+  this.showCommercantFilters = false;
+}
+
+clearCommercantFilters(): void {
+  this.tempCommercantFilters = {
+    modele: '',
+    createdAt: ''
+  };
+  this.selectedModele = '';
+  this.selectedCreatedAtForCommercant = '';
+  this.searchTerm = '';
+  this.currentPage = 1;
+  this.loadTPEs();
+  this.showCommercantFilters = false;
+}
+
+// Ajouter ces méthodes pour les calendriers admin
+
+// Pour la date de création admin
+onAdminCreatedAtChange(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const dateValue = input.value;
+  
+  if (dateValue) {
+    const date = new Date(dateValue);
+    if (!isNaN(date.getTime())) {
+      this.tempFilters.createdAt = dateValue;
+    } else {
+      this.tempFilters.createdAt = '';
+    }
+  } else {
+    this.tempFilters.createdAt = '';
+  }
+}
+
+openAdminCreatedAtCalendar(): void {
+  const dateInput = document.getElementById('adminCreatedAtDate') as HTMLInputElement;
+  if (dateInput) {
+    dateInput.showPicker();
+  }
+}
+
+// Pour la date de modification admin
+onAdminUpdatedAtChange(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const dateValue = input.value;
+  
+  if (dateValue) {
+    const date = new Date(dateValue);
+    if (!isNaN(date.getTime())) {
+      this.tempFilters.updatedAt = dateValue;
+    } else {
+      this.tempFilters.updatedAt = '';
+    }
+  } else {
+    this.tempFilters.updatedAt = '';
+  }
+}
+
+openAdminUpdatedAtCalendar(): void {
+  const dateInput = document.getElementById('adminUpdatedAtDate') as HTMLInputElement;
+  if (dateInput) {
+    dateInput.showPicker();
+  }
+}
+
+// Méthode pour la date (comme dans incidents)
+openCalendar(): void {
+  const dateInput = document.getElementById('tpeDate') as HTMLInputElement;
+  if (dateInput) {
+    dateInput.showPicker();
+  }
+}
+
+onDateChange(event: Event): void {
+  const input = event.target as HTMLInputElement;
+  const dateValue = input.value;
+  
+  if (dateValue) {
+    const date = new Date(dateValue);
+    if (!isNaN(date.getTime())) {
+      this.selectedDetectionDateObj = date;
+      this.selectedCreatedAtForCommercant = dateValue;
+      this.tempCommercantFilters.createdAt = dateValue;
+    } else {
+      this.selectedDetectionDateObj = null;
+      this.selectedCreatedAtForCommercant = '';
+      this.tempCommercantFilters.createdAt = '';
+    }
+  } else {
+    this.selectedDetectionDateObj = null;
+    this.selectedCreatedAtForCommercant = '';
+    this.tempCommercantFilters.createdAt = '';
+  }
+}
+
 loadTPEs(): void {
   this.loading = true;
   
   if (this.userRole === 'Admin') {
-    // Admin utilise getPagedTPEs avec tous les filtres
     this.tpeService.getPagedTPEs({
       page: this.currentPage,
       pageSize: this.pageSize,
       searchTerm: this.searchTerm,
       modele: this.selectedModele || undefined,
       commercantId: this.selectedCommercantId || undefined,
-      createdAt: this.selectedCreatedAt || undefined,    // ✅ AJOUTER
-      updatedAt: this.selectedUpdatedAt || undefined     // ✅ AJOUTER
+      createdAt: this.selectedCreatedAt || undefined,
+      updatedAt: this.selectedUpdatedAt || undefined
     }).subscribe({
       next: (response: PagedResponse<any>) => {
         this.tpes = response.data;
@@ -189,12 +317,13 @@ loadTPEs(): void {
       }
     });
   } else if (this.userRole === 'Commercant') {
-    // ✅ Commerçant utilise getMesTPEsPaged (pagination + recherche + filtre modèle)
+    // ✅ Commerçant avec filtre modèle ET date de création
     this.tpeService.getMesTPEsPaged({
       page: this.currentPage,
       pageSize: this.pageSize,
       searchTerm: this.searchTerm,
-      modele: this.selectedModele || undefined
+      modele: this.selectedModele || undefined,
+      createdAt: this.selectedCreatedAtForCommercant || undefined
     }).subscribe({
       next: (response: PagedResponse<any>) => {
         this.tpes = response.data;
@@ -342,17 +471,5 @@ cancelDelete() {
 
 
 
-//   openCreatedAtCalendar(): void {
-//   const dateInput = document.querySelector('input[formControlName="createdAt"]') as HTMLInputElement;
-//   if (dateInput) {
-//     dateInput.showPicker();
-//   }
-// }
 
-// openUpdatedAtCalendar(): void {
-//   const dateInput = document.querySelector('input[formControlName="updatedAt"]') as HTMLInputElement;
-//   if (dateInput) {
-//     dateInput.showPicker();
-//   }
-// }
 }

@@ -155,6 +155,7 @@ getMesTPEsPaged(params: {
   pageSize: number;
   searchTerm?: string;
   modele?: string;
+  createdAt?: string;  
 }): Observable<PagedResponse<any>> {
   let httpParams = new HttpParams()
     .set('Page', params.page.toString())
@@ -166,7 +167,10 @@ getMesTPEsPaged(params: {
   if (params.modele) {
     httpParams = httpParams.set('Modele', params.modele);
   }
-
+ // ✅ AJOUTER le filtre par date
+  if (params.createdAt) {
+    httpParams = httpParams.set('CreatedAt', params.createdAt);
+  }
   return this.http.get<any>(`${this.apiUrl}/mes-tpe`, {
     params: httpParams,
     ...this.getAuthHeaders()
