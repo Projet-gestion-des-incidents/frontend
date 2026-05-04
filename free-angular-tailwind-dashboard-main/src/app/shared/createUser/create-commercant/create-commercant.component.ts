@@ -30,7 +30,8 @@ export class CreateCommercantComponent {
     show: false,
     variant: 'error' as 'error' | 'success',
     title: '',
-    message: ''
+    message: '',
+    details: [] as string[]
   };
 
   // Modale carte
@@ -47,7 +48,7 @@ export class CreateCommercantComponent {
     private router: Router
   ) {
     this.commercantForm = this.fb.group({
-      nomMagasin: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(50)]],
+      nomMagasin: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(20)]], // ✅ Changé de 50 à 20
       adresse: ['', [Validators.required, Validators.maxLength(200)]],
       email: ['', [Validators.required, Validators.email]],
       phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
@@ -92,19 +93,74 @@ export class CreateCommercantComponent {
     }
   }
 
+  /**
+   * ✅ Méthode améliorée pour parser les erreurs de validation du backend
+   */
+  private parseValidationErrors(error: any): string[] {
+    const errors: string[] = [];
+    
+    // Cas 1: Structure avec "errors" (validation ASP.NET)
+    if (error.error?.errors) {
+      const validationErrors = error.error.errors;
+      for (const field in validationErrors) {
+        if (validationErrors.hasOwnProperty(field)) {
+          const fieldErrors = validationErrors[field];
+          if (Array.isArray(fieldErrors)) {
+            fieldErrors.forEach((msg: string) => {
+              errors.push(this.formatFieldError(field, msg));
+            });
+          } else if (typeof fieldErrors === 'string') {
+            errors.push(this.formatFieldError(field, fieldErrors));
+          }
+        }
+      }
+    }
+    
+    // Cas 2: Message d'erreur simple
+    else if (error.error?.message) {
+      errors.push(error.error.message);
+    }
+    
+    // Cas 3: Message d'erreur générique
+    else if (error.message) {
+      errors.push(error.message);
+    }
+    
+    return errors;
+  }
+
+  /**
+   * ✅ Formate le nom du champ pour un affichage plus lisible
+   */
+  private formatFieldError(field: string, message: string): string {
+    const fieldNames: { [key: string]: string } = {
+      'NomMagasin': 'Nom du magasin',
+      'nomMagasin': 'Nom du magasin',
+      'Adresse': 'Adresse',
+      'adresse': 'Adresse',
+      'Email': 'Email',
+      'email': 'Email',
+      'PhoneNumber': 'Numéro de téléphone',
+      'phoneNumber': 'Numéro de téléphone'
+    };
+    
+    const displayName = fieldNames[field] || field;
+    return `${displayName} : ${message}`;
+  }
+
   onSubmit(): void {
     // Validation du formulaire
     if (this.commercantForm.invalid) {
       this.commercantForm.markAllAsTouched();
       
       const errors = [];
-      if (this.commercantForm.get('nomMagasin')?.invalid) errors.push('Nom de boutique invalide');
+      if (this.commercantForm.get('nomMagasin')?.invalid) errors.push('Nom de boutique invalide (3-20 caractères)');
       if (this.commercantForm.get('adresse')?.invalid) errors.push('Adresse invalide');
       if (this.commercantForm.get('email')?.invalid) errors.push('Email invalide');
-      if (this.commercantForm.get('phoneNumber')?.invalid) errors.push('Téléphone invalide');
+      if (this.commercantForm.get('phoneNumber')?.invalid) errors.push('Téléphone invalide (8 chiffres)');
       
       if (errors.length > 0) {
-        this.showError('Veuillez corriger les erreurs: ' + errors.join(', '));
+        this.showError('Veuillez corriger les erreurs', errors);
       }
       return;
     }
@@ -121,7 +177,6 @@ export class CreateCommercantComponent {
       phoneNumber: formData.phoneNumber
     }).subscribe({
       next: (res: any) => {
-        // ✅ IMPORTANT: Arrêter le loading dans TOUS les cas
         this.loading = false;
         
         if (res.resultCode !== 0) {
@@ -129,32 +184,58 @@ export class CreateCommercantComponent {
           return;
         }
 
-        // Succès - Afficher le message et rediriger
         console.log('✅ Commerçant créé avec succès:', res.data);
         this.showSuccess(res.message || 'Commerçant créé avec succès');
         
-        // Redirection après 2 secondes
         setTimeout(() => {
           this.router.navigate(['/commercants']);
         }, 2000);
       },
       error: (err: any) => {
-        // ✅ Arrêter le loading en cas d'erreur
         this.loading = false;
-        const errorMessage = err.error?.message || err.message || 'Erreur serveur';
-        this.showError(errorMessage);
+        
+        // ✅ Analyser les erreurs de validation
+        const validationErrors = this.parseValidationErrors(err);
+        
+        if (validationErrors.length > 0) {
+          // Afficher les erreurs détaillées
+          this.showError('Erreur de validation', validationErrors);
+        } else {
+          // Message d'erreur générique
+          const errorMessage = err.error?.message || err.message || 'Erreur serveur';
+          this.showError(errorMessage);
+        }
+        
         console.error('❌ Erreur création commerçant:', err);
       }
     });
   }
 
+  /**
+   * ✅ Affiche un message de succès
+   */
   private showSuccess(message: string) {
-    this.alert = { show: true, variant: 'success', title: 'Succès', message };
+    this.alert = { 
+      show: true, 
+      variant: 'success', 
+      title: 'Succès', 
+      message,
+      details: []
+    };
     this.autoHideAlert();
   }
 
-  private showError(message: string) {
-    this.alert = { show: true, variant: 'error', title: 'Erreur', message };
+  /**
+   * ✅ Affiche un message d'erreur avec détails optionnels
+   */
+  private showError(message: string, details: string[] = []) {
+    this.alert = { 
+      show: true, 
+      variant: 'error', 
+      title: 'Erreur', 
+      message,
+      details
+    };
     this.autoHideAlert();
   }
 
@@ -164,11 +245,12 @@ export class CreateCommercantComponent {
     }
     this.alertTimeout = setTimeout(() => {
       this.clearAlert();
-    }, 5000);
+    }, 8000);
   }
 
   clearAlert() { 
     this.alert.show = false;
+    this.alert.details = [];
     if (this.alertTimeout) {
       clearTimeout(this.alertTimeout);
       this.alertTimeout = null;

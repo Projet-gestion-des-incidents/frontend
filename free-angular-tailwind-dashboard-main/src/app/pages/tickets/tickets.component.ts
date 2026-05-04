@@ -114,7 +114,82 @@ export class TicketsComponent implements OnInit {
       }
     });
   }
+// Ajoutez ces propriétés avec les autres déclarations
+ticketToArchive: TicketDTO | null = null;
+showArchiveModal: boolean = false;
+archiving: boolean = false;
+// Ajoutez ces méthodes dans votre classe TicketsComponent
 
+/**
+ * Ouvre la modale de confirmation d'archivage pour un ticket
+ */
+onArchive(ticket: TicketDTO): void {
+  this.ticketToArchive = ticket;
+  this.showArchiveModal = true;
+}
+
+/**
+ * Annule l'archivage
+ */
+cancelArchive(): void {
+  this.showArchiveModal = false;
+  this.ticketToArchive = null;
+  this.archiving = false;
+}
+
+// Dans tickets.component.ts, modifiez la méthode confirmArchive :
+
+confirmArchive(): void {
+  if (!this.ticketToArchive) return;
+  
+  this.archiving = true;
+  
+  this.ticketService.archiverTicket(this.ticketToArchive.id).subscribe({
+    next: (response) => {
+      console.log('📥 Réponse complète:', response);
+      
+      if (response.isSuccess) {
+        this.showAlert('success', 'Succès', `Le ticket "${this.ticketToArchive!.referenceTicket}" a été archivé avec succès.`);
+        
+        // Retirer le ticket de la liste actuelle
+        const index = this.tickets.findIndex(t => t.id === this.ticketToArchive!.id);
+        if (index !== -1) {
+          this.tickets.splice(index, 1);
+          this.filteredTickets = [...this.tickets];
+          this.totalCount--;
+          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+        }
+        
+        // Désélectionner si sélectionné
+        this.selectedTickets = this.selectedTickets.filter(id => id !== this.ticketToArchive!.id);
+      } else {
+        // Afficher le message d'erreur détaillé
+        const errorMessage = response.message || 'Impossible d\'archiver le ticket.';
+        this.showAlert('error', 'Erreur', errorMessage);
+      }
+      this.cancelArchive();
+    },
+    error: (err) => {
+      console.error('❌ Erreur complète:', err);
+      
+      // Extraire le message d'erreur du backend
+      let errorMessage = 'Erreur lors de l\'archivage';
+      
+      if (err.error?.message) {
+        errorMessage = err.error.message;
+      } else if (err.error?.errors) {
+        // Cas des erreurs de validation
+        const errors = Object.values(err.error.errors).flat();
+        errorMessage = errors.join(', ');
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      this.showAlert('error', 'Erreur', errorMessage);
+      this.cancelArchive();
+    }
+  });
+}
   generateYearOptions(): void {
     const currentYear = new Date().getFullYear();
     for (let i = 0; i < 10; i++) {

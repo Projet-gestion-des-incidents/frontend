@@ -57,7 +57,20 @@ statutOptions = [
   { value: StatutIncident.Ferme, label: 'Fermé' }
 ];
 
+// Dans incident-list.component.ts - Ajoutez ces propriétés
 
+// Pour l'archivage
+incidentToArchive: Incident | null = null;
+showArchiveModal: boolean = false;
+archiving: boolean = false;
+
+// Pour afficher les archives
+showArchives = false;
+archivedIncidents: Incident[] = [];
+archivedTotalCount = 0;
+archivedCurrentPage = 1;
+archivedTotalPages = 1;
+loadingArchives = false;
 
   // Années pour le filtre
   yearOptions: string[] = [];
@@ -99,6 +112,145 @@ statutOptions = [
       }
     });
   }
+  // Dans incident-list.component.ts
+
+/**
+ * Ouvre la modale de confirmation d'archivage
+ */
+onArchive(incident: Incident): void {
+  console.log('📦 Archivage de l\'incident:', incident.codeIncident);
+  this.incidentToArchive = incident;
+  this.showArchiveModal = true;
+}
+
+/**
+ * Annule l'archivage
+ */
+cancelArchive(): void {
+  this.showArchiveModal = false;
+  this.incidentToArchive = null;
+  this.archiving = false;
+}
+
+/**
+ * Confirme et exécute l'archivage
+ */
+confirmArchive(): void {
+  if (!this.incidentToArchive) return;
+  
+  this.archiving = true;
+  
+  this.incidentService.archiverIncident(this.incidentToArchive.id).subscribe({
+    next: (response) => {
+      if (response.isSuccess) {
+        this.showAlert('success', 'Succès', `L'incident "${this.incidentToArchive!.codeIncident}" a été archivé.`);
+        
+        // Retirer l'incident de la liste actuelle
+        const index = this.filteredIncidents.findIndex(i => i.id === this.incidentToArchive!.id);
+        if (index !== -1) {
+          this.filteredIncidents.splice(index, 1);
+          this.incidents.splice(index, 1);
+          this.totalCount--;
+          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+        }
+        
+        // Désélectionner si sélectionné
+        this.selectedIncidents.delete(this.incidentToArchive!.id);
+      } else {
+        this.showAlert('error', 'Erreur', response.message || 'Impossible d\'archiver l\'incident.');
+      }
+      this.cancelArchive();
+    },
+    error: (err) => {
+      console.error('❌ Erreur archivage:', err);
+      const errorMessage = err.error?.message || err.message || 'Erreur lors de l\'archivage';
+      this.showAlert('error', 'Erreur', errorMessage);
+      this.cancelArchive();
+    }
+  });
+}
+
+/**
+ * Restaure un incident archivé
+ */
+restaurerIncident(incident: Incident): void {
+  if (!confirm(`Voulez-vous restaurer l'incident "${incident.codeIncident}" ?`)) return;
+  
+  this.incidentService.restaurerIncident(incident.id).subscribe({
+    next: (response) => {
+      if (response.isSuccess) {
+        this.showAlert('success', 'Succès', `L'incident "${incident.codeIncident}" a été restauré.`);
+        
+        // Retirer de la liste des archives
+        const index = this.archivedIncidents.findIndex(i => i.id === incident.id);
+        if (index !== -1) {
+          this.archivedIncidents.splice(index, 1);
+          this.archivedTotalCount--;
+          this.archivedTotalPages = Math.ceil(this.archivedTotalCount / this.pageSize);
+        }
+      } else {
+        this.showAlert('error', 'Erreur', response.message || 'Impossible de restaurer l\'incident.');
+      }
+    },
+    error: (err) => {
+      console.error('❌ Erreur restauration:', err);
+      this.showAlert('error', 'Erreur', err.error?.message || 'Erreur lors de la restauration');
+    }
+  });
+}
+
+/**
+ * Charge les incidents archivés
+ */
+loadArchivedIncidents(): void {
+  this.loadingArchives = true;
+  
+  const params = {
+    Page: this.archivedCurrentPage,
+    PageSize: this.pageSize,
+    SortBy: 'DateArchivage',
+    SortDescending: true
+  };
+  
+  this.incidentService.getIncidentsArchives(params).subscribe({
+    next: (response: any) => {
+      let incidentsList: Incident[] = [];
+      let total = 0;
+      
+      if (response?.items && Array.isArray(response.items)) {
+        incidentsList = response.items;
+        total = response.totalCount || incidentsList.length;
+      } else if (response?.data?.items && Array.isArray(response.data.items)) {
+        incidentsList = response.data.items;
+        total = response.data.totalCount || incidentsList.length;
+      } else if (Array.isArray(response)) {
+        incidentsList = response;
+        total = incidentsList.length;
+      }
+      
+      this.archivedIncidents = incidentsList;
+      this.archivedTotalCount = total;
+      this.archivedTotalPages = Math.ceil(total / this.pageSize);
+      this.loadingArchives = false;
+    },
+    error: (err) => {
+      console.error('❌ Erreur chargement archives:', err);
+      this.showAlert('error', 'Erreur', 'Impossible de charger les incidents archivés');
+      this.loadingArchives = false;
+      this.archivedIncidents = [];
+    }
+  });
+}
+
+/**
+ * Bascule entre la vue des incidents actifs et des archives
+ */
+toggleArchives(show: boolean): void {
+  this.showArchives = show;
+  if (show) {
+    this.loadArchivedIncidents();
+  }
+}
   openCalendar(): void {
   const dateInput = document.getElementById('incidentDate') as HTMLInputElement;
   if (dateInput) {

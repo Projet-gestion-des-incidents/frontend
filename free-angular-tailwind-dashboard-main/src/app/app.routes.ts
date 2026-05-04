@@ -48,6 +48,7 @@ import { UpdateTechnicienComponent } from './shared/components/updateUser/update
 import { IncidentsComponent } from './pages/dashboard/admin-dashboard/incidents/incidents.component';
 import { TechnicienPerformanceComponent } from './pages/dashboard/admin-dashboard/technicien-performance/technicien-performance.component';
 import { TicketsDashboardComponent } from './pages/dashboard/admin-dashboard/tickets-dashboard/tickets-dashboard.component';
+import { ArchivesComponent } from './pages/archives/archives.component';
 
 export const routes: Routes = [
   {
@@ -147,6 +148,13 @@ export const routes: Routes = [
           }
         ]
       },
+      {
+  path: 'archives',
+  component: ArchivesComponent,
+  canActivate: [AuthGuard],
+  data: { roles: ['Admin', 'Technicien', 'Commercant'] },
+  title: 'Archives | Gestion des incidents et tickets archivés'
+},
 {
   path: 'incidents',
   children: [

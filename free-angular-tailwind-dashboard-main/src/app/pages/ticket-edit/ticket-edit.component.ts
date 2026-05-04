@@ -597,6 +597,11 @@ reloadIncidentsDisponibles(): void {
 showIncidentSelector: boolean = false;
 
 toggleIncidentSelector(): void {
+  // ✅ Ne pas ouvrir si la limite est atteinte
+  if (this.incidentsLies?.length >= this.maxIncidents && !this.showIncidentSelector) {
+    this.showErrorDialog(`Vous ne pouvez pas lier plus de ${this.maxIncidents} incidents.`);
+    return;
+  }
   this.showIncidentSelector = !this.showIncidentSelector;
 }
 lierIncident(incidentId: string): void {
@@ -1051,20 +1056,13 @@ private updateIncidents(): void {
   }
 showDeleteCommentModal: boolean = false;
 commentToDelete: { id: string, auteurNom: string } | null = null;
-/**
- * Demander confirmation avant de supprimer un commentaire
- */
-// confirmerSuppressionCommentaire(commentaireId: string, auteurNom: string): void {
-//   this.commentToDelete = { id: commentaireId, auteurNom: auteurNom };
-//   this.showDeleteCommentModal = true;
-// }
-// Ajoutez la méthode pour confirmer le délien d'un incident
+
 confirmerDelierIncident(incidentId: string, incidentCode: string): void {
   console.log('🔔 Confirmation délien incident:', incidentId, incidentCode);
   
-  // ✅ Vérifier si c'est le dernier incident
+  // ✅ Vérifier si c'est le dernier incident (limite minimum = 1)
   if (this.incidentsLies.length === 1) {
-    this.showErrorDialog('Impossible de retirer le dernier incident lié. Un ticket doit avoir au moins un incident associé.');
+    this.showErrorDialog('Impossible de retirer le dernier incident lié. Un ticket doit avoir au moins 1 incident associé.');
     return;
   }
   
@@ -1165,11 +1163,19 @@ confirmerLierIncident(incidentId: string, incidentCode: string, incidentDescript
   this.showLinkIncidentModal = true;
 }
 
-// Méthode pour exécuter la liaison
-// Méthode pour exécuter la liaison
-// Méthode pour exécuter la liaison
+  maxIncidents: number = 5;  // ✅ Limite maximum d'incidents
+  showMaxIncidentError: boolean = false;  // ✅ Pour afficher l'erreur de limite
+
 executerLierIncident(): void {
   if (!this.incidentToLink) return;
+  
+  // ✅ Vérifier la limite avant d'ajouter
+  if (this.incidentsLies.length >= this.maxIncidents) {
+    this.showErrorDialog(`Vous ne pouvez pas lier plus de ${this.maxIncidents} incidents à ce ticket.`);
+    this.fermerModalLienIncident();
+    this.loading = false;
+    return;
+  }
   
   this.loading = true;
   
@@ -1184,30 +1190,26 @@ executerLierIncident(): void {
           this.incidentsLies.push(incidentComplet);
           this.incidentsSelectionnes.push(this.incidentToLink!.id);
           
-          // ✅ Retirer de la liste des disponibles
+          // Retirer de la liste des disponibles
           this.incidentsDisponibles = this.incidentsDisponibles.filter(i => i.id !== this.incidentToLink!.id);
           this.incidents = this.incidentsDisponibles;
           
-          // ✅ Mettre à jour la liste des commerçants avec incidents
+          // Mettre à jour la liste des commerçants avec incidents
           this.filtrerCommercantsAvecIncidents();
           
-          // ✅ IMPORTANT: Mettre à jour les listes filtrées pour le commerçant actuel
+          // Mettre à jour les listes filtrées pour le commerçant actuel
           if (this.selectedCommercantId) {
-            // Vérifier si le commerçant sélectionné a encore des incidents
             const commercantADesIncidents = this.commercantsAvecIncidents.some(
               c => c.id === this.selectedCommercantId
             );
             
             if (commercantADesIncidents) {
-              // Re-filtrer les incidents disponibles par le commerçant actuel
               this.filteredIncidentsDisponibles = this.incidentsDisponibles.filter(
                 incident => incident.createdById === this.selectedCommercantId
               );
-              // Re-grouper les incidents filtrés
               this.groupIncidentsDisponiblesByCommercant();
               this.showIncidentsList = true;
             } else {
-              // Réinitialiser la sélection si le commerçant n'a plus d'incidents
               this.selectedCommercantId = null;
               this.showIncidentsList = false;
               this.filteredIncidentsDisponibles = [];
@@ -1217,8 +1219,6 @@ executerLierIncident(): void {
         }
         
         this.showSuccess(`Incident ${this.incidentToLink!.code} lié avec succès`);
-        
-        // Ne pas recharger toutes les données, juste fermer la modale
         this.fermerModalLienIncident();
       } else {
         this.showErrorDialog(response.message || 'Erreur lors de la liaison');

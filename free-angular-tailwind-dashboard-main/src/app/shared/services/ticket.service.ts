@@ -48,6 +48,66 @@ export class TicketService {
 
   return { headers };
 }
+// Dans ticket.service.ts, ajoutez :
+
+/**
+ * Récupère les tickets archivés par l'utilisateur connecté
+ */
+getArchivedTickets(params: any): Observable<any> {
+  console.log('📦 Récupération des tickets archivés, params:', params);
+  
+  let httpParams = new HttpParams()
+    .set('Page', params.Page?.toString() || '1')
+    .set('PageSize', params.PageSize?.toString() || '10')
+    .set('SortBy', params.SortBy || 'DateArchivage')
+    .set('SortDescending', params.SortDescending?.toString() || 'true');
+  
+  if (params.SearchTerm) {
+    httpParams = httpParams.set('SearchTerm', params.SearchTerm);
+  }
+  
+  if (params.StatutTicket) {
+    httpParams = httpParams.set('StatutTicket', params.StatutTicket);
+  }
+  
+  return this.http.get<ApiResponse<any>>(
+    `${this.baseUrl}/archives`,
+    { headers: this.getAuthHeaders().headers, params: httpParams }
+  ).pipe(
+    map(response => response.data || response),
+    tap(data => console.log('📦 Tickets archivés reçus:', data))
+  );
+}
+
+/**
+ * Restaure un ticket archivé
+ */
+restaurerTicket(ticketId: string): Observable<ApiResponse<any>> {
+  console.log('📦 Restauration du ticket:', ticketId);
+  
+  return this.http.post<ApiResponse<any>>(
+    `${this.baseUrl}/${ticketId}/restaurer`,
+    {},
+    this.getAuthHeaders()
+  ).pipe(
+    tap(response => console.log('📥 Réponse restauration:', response))
+  );
+}
+/**
+ * Archive un ticket
+ */
+archiverTicket(ticketId: string): Observable<ApiResponse<any>> {
+  console.log('📦 Archivage du ticket:', ticketId);
+  
+  return this.http.post<ApiResponse<any>>(
+    `${this.baseUrl}/${ticketId}/archiver`,
+    {},
+    this.getAuthHeaders()
+  ).pipe(
+    tap(response => console.log('📥 Réponse archivage:', response))
+  );
+}
+
 // Dans ticket.service.ts
 getIncidentsByTicket(ticketId: string): Observable<Incident[]> {
   console.log('🔍 Récupération des incidents pour le ticket:', ticketId);

@@ -305,12 +305,33 @@ loadIncidents(): void {
   }
 
 selectAllIncidents(): void {
-  // Ajouter les IDs des incidents filtrés à la sélection existante
-  const newIds = this.filteredIncidents.map(i => i.id);
-  const combinedIds = [...new Set([...this.selectedIncidentIds, ...newIds])];
+  // Calculer combien d'incidents on peut encore ajouter
+  const remainingSlots = this.maxIncidents - this.selectedIncidentIds.length;
+  
+  if (remainingSlots <= 0) {
+    this.showMaxIncidentError = true;
+    return;
+  }
+  
+  // Ne prendre que le nombre d'incidents permis
+  const newIds = this.filteredIncidents
+    .map(i => i.id)
+    .filter(id => !this.selectedIncidentIds.includes(id))
+    .slice(0, remainingSlots);
+  
+  const combinedIds = [...this.selectedIncidentIds, ...newIds];
   this.selectedIncidentIds = combinedIds;
   this.showIncidentError = false;
-  console.log('✅ Après "Tout sélectionner":', this.selectedIncidentIds);
+  
+  // Afficher un avertissement si tous n'ont pas pu être sélectionnés
+  if (newIds.length < this.filteredIncidents.length) {
+    this.showMaxIncidentError = true;
+    setTimeout(() => {
+      this.showMaxIncidentError = false;
+    }, 6000);
+  }
+  
+  console.log('✅ Après "Tout sélectionner":', this.selectedIncidentIds.length, '/', this.maxIncidents);
 }
 
 
@@ -323,17 +344,35 @@ selectAllIncidents(): void {
   isIncidentSelected(incidentId: string): boolean {
     return this.selectedIncidentIds.includes(incidentId);
   }
-
+  maxIncidents: number = 5;
+  showMaxIncidentError: boolean = false;
   // Ajoute ou retire un incident de la sélection
-  toggleIncidentSelection(incidentId: string): void {
-    if (this.isIncidentSelected(incidentId)) {
-      this.selectedIncidentIds = this.selectedIncidentIds.filter(id => id !== incidentId);
-    } else {
-      this.selectedIncidentIds = [...this.selectedIncidentIds, incidentId];
-    }
+ toggleIncidentSelection(incidentId: string): void {
+  if (this.isIncidentSelected(incidentId)) {
+    // Désélectionner l'incident (toujours permis)
+    this.selectedIncidentIds = this.selectedIncidentIds.filter(id => id !== incidentId);
     this.showIncidentError = false;
-    console.log('Incidents sélectionnés:', this.selectedIncidentIds);
+    this.showMaxIncidentError = false; // Ajoutez cette propriété
+  } else {
+    // Vérifier la limite avant d'ajouter
+    if (this.selectedIncidentIds.length >= this.maxIncidents) {
+      this.showMaxIncidentError = true;
+      this.showIncidentError = false;
+      
+      // Optionnel: faire disparaître l'erreur après 3 secondes
+      setTimeout(() => {
+        this.showMaxIncidentError = false;
+      }, 3000);
+      
+      return;
+    }
+    
+    this.selectedIncidentIds = [...this.selectedIncidentIds, incidentId];
+    this.showIncidentError = false;
+    this.showMaxIncidentError = false;
   }
+  console.log('Incidents sélectionnés:', this.selectedIncidentIds.length, '/', this.maxIncidents);
+}
 
   // Récupère les détails d'un incident par son ID
   getIncidentDetails(incidentId: string): any {

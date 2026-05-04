@@ -53,6 +53,70 @@ export class IncidentService {
       map(response => response.data)
     );
   }
+  // Dans incident.service.ts
+
+/**
+ * Archive un incident résolu (statut Fermé)
+ */
+archiverIncident(incidentId: string): Observable<ApiResponse<any>> {
+  console.log('📦 Archivage de l\'incident:', incidentId);
+  
+  return this.http.post<ApiResponse<any>>(
+    `${this.apiUrl}/${incidentId}/archiver`,
+    {},
+    this.getAuthHeaders()
+  ).pipe(
+    tap(response => console.log('📥 Réponse archivage:', response))
+  );
+}
+
+/**
+ * Restaure un incident archivé
+ */
+restaurerIncident(incidentId: string): Observable<ApiResponse<any>> {
+  console.log('📦 Restauration de l\'incident:', incidentId);
+  
+  return this.http.post<ApiResponse<any>>(
+    `${this.apiUrl}/${incidentId}/restaurer`,
+    {},
+    this.getAuthHeaders()
+  ).pipe(
+    tap(response => console.log('📥 Réponse restauration:', response))
+  );
+}
+
+/**
+ * Récupère les incidents archivés par l'utilisateur connecté
+ */
+getIncidentsArchives(params: any): Observable<any> {
+  console.log('📦 Récupération des incidents archivés, params:', params);
+  
+  let httpParams = new HttpParams()
+    .set('Page', params.Page?.toString() || '1')
+    .set('PageSize', params.PageSize?.toString() || '10')
+    .set('SortBy', params.SortBy || 'DateArchivage')
+    .set('SortDescending', params.SortDescending?.toString() || 'true');
+  
+  if (params.SearchTerm) {
+    httpParams = httpParams.set('SearchTerm', params.SearchTerm);
+  }
+  
+  if (params.StatutIncident) {
+    httpParams = httpParams.set('StatutIncident', params.StatutIncident);
+  }
+  
+  if (params.DateDetection) {
+    httpParams = httpParams.set('DateDetection', params.DateDetection);
+  }
+  
+  return this.http.get<ApiResponse<any>>(
+    `${this.apiUrl}/archives`,
+    { headers: this.getAuthHeaders().headers, params: httpParams }
+  ).pipe(
+    map(response => response.data || response),
+    tap(data => console.log('📦 Incidents archivés reçus:', data))
+  );
+}
 /**
  * Récupère les statistiques du dashboard incidents
  */

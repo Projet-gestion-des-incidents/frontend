@@ -1,51 +1,66 @@
 <div class="space-y-6">
   
-  <!-- Alerte -->
+  
+  <!-- Alerte améliorée avec détails -->
   <div *ngIf="alert.show" 
-       class="rounded-xl border p-4 flex items-center justify-between animate-slide-down"
+       class="rounded-xl border p-4 animate-slide-down"
        [ngClass]="{
          'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20': alert.variant === 'error',
          'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20': alert.variant === 'success'
        }">
-    <div class="flex items-center gap-3">
-      <div class="flex-shrink-0">
-        <div class="w-8 h-8 rounded-full flex items-center justify-center"
+    <div class="flex items-start justify-between">
+      <div class="flex items-start gap-3">
+        <div class="flex-shrink-0">
+          <div class="w-8 h-8 rounded-full flex items-center justify-center"
+               [ngClass]="{
+                 'bg-red-100 text-red-600 dark:bg-red-800/50 dark:text-red-400': alert.variant === 'error',
+                 'bg-green-100 text-green-600 dark:bg-green-800/50 dark:text-green-400': alert.variant === 'success'
+               }">
+            <svg *ngIf="alert.variant === 'error'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+            </svg>
+            <svg *ngIf="alert.variant === 'success'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <p class="text-sm font-medium"
              [ngClass]="{
-               'bg-red-100 text-red-600 dark:bg-red-800/50 dark:text-red-400': alert.variant === 'error',
-               'bg-green-100 text-green-600 dark:bg-green-800/50 dark:text-green-400': alert.variant === 'success'
+               'text-red-800 dark:text-red-200': alert.variant === 'error',
+               'text-green-800 dark:text-green-200': alert.variant === 'success'
              }">
-          <svg *ngIf="alert.variant === 'error'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <svg *ngIf="alert.variant === 'success'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-          </svg>
+            {{ alert.title }}
+          </p>
+          <p class="text-sm"
+             [ngClass]="{
+               'text-red-700 dark:text-red-300': alert.variant === 'error',
+               'text-green-700 dark:text-green-300': alert.variant === 'success'
+             }">
+            {{ alert.message }}
+          </p>
+          
+          <!-- ✅ Affichage des détails d'erreur -->
+          <div *ngIf="alert.details && alert.details.length > 0" class="mt-3">
+            <ul class="space-y-1">
+              <li *ngFor="let detail of alert.details" 
+                  class="text-xs flex items-start gap-2 text-red-700 dark:text-red-300">
+                <svg class="w-3 h-3 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+                {{ detail }}
+              </li>
+            </ul>
+          </div>
         </div>
       </div>
-      <div>
-        <p class="text-sm font-medium"
-           [ngClass]="{
-             'text-red-800 dark:text-red-200': alert.variant === 'error',
-             'text-green-800 dark:text-green-200': alert.variant === 'success'
-           }">
-          {{ alert.title }}
-        </p>
-        <p class="text-sm"
-           [ngClass]="{
-             'text-red-700 dark:text-red-300': alert.variant === 'error',
-             'text-green-700 dark:text-green-300': alert.variant === 'success'
-           }">
-          {{ alert.message }}
-        </p>
-      </div>
+      <button (click)="clearAlert()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+        </svg>
+      </button>
     </div>
-    <button (click)="clearAlert()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-      </svg>
-    </button>
   </div>
-
   <!-- En-tête -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div class="flex items-center gap-4">

@@ -6,8 +6,10 @@ import { CommonModule, DatePipe, NgForOf, NgIf } from '@angular/common';
 import { BadgeColor, BadgeComponent } from '../../shared/components/ui/badge/badge.component';
 import { AvatarTextComponent } from '../../shared/components/ui/avatar/avatar-text.component';
 import { finalize, forkJoin } from 'rxjs';
-import { Incident, StatutIncident } from '../../shared/models/incident.model';
+import { Incident, PieceJointeDTO, StatutIncident } from '../../shared/models/incident.model';
 import { UserService } from '../../shared/services/user.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { IncidentService } from '../../shared/services/incident.service';
 
 @Component({
   selector: 'app-ticket-detail',
@@ -30,7 +32,9 @@ selectedImage: string | null = null;
     private route: ActivatedRoute,
     private ticketService: TicketService,
     private router: Router,
-    private userService: UserService // AJOUTER UserService
+      private incidentService: IncidentService, 
+    private userService: UserService, // AJOUTER UserService
+      private sanitizer: DomSanitizer  
   ) {}
 
   ngOnInit(): void {
@@ -54,10 +58,12 @@ selectedImage: string | null = null;
       }
     });
   }
-// Ajoutez ces propriétés
+piecesJointes: PieceJointeDTO[] = [];
 showImageModal: boolean = false;
 currentImageUrl: string = '';
 currentImageName: string = '';
+pdfUrl: SafeResourceUrl | null = null;
+showPdfModal: boolean = false;
 
 // Ajoutez cette méthode pour obtenir l'URL d'une pièce jointe
 getImageUrl(pieceId: string): string {
@@ -66,9 +72,13 @@ getImageUrl(pieceId: string): string {
 
 // Ajoutez cette méthode pour ouvrir le modal d'image
 openImageModal(pieceId: string, imageName: string): void {
-  this.currentImageUrl = this.getImageUrl(pieceId);
+  console.log('🖼️ openImageModal appelé avec:', { pieceId, imageName });
+  const url = this.getImageUrl(pieceId);
+  console.log('📸 URL générée:', url);
+  this.currentImageUrl = url;
   this.currentImageName = imageName;
   this.showImageModal = true;
+  console.log('✅ showImageModal =', this.showImageModal);
 }
 
 // Ajoutez cette méthode pour fermer le modal d'image
@@ -76,6 +86,27 @@ closeImageModal(): void {
   this.showImageModal = false;
   this.currentImageUrl = '';
   this.currentImageName = '';
+}
+// Ouvrir un PDF dans un modal
+openPdf(url: string): void {
+  console.log('📑 openPdf - URL:', url);
+  if (!url) {
+    console.error('❌ URL du PDF manquante');
+    return;
+  }
+  
+  try {
+    this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
+    this.showPdfModal = true;
+  } catch (error) {
+    console.error('❌ Erreur lors de l\'ouverture du PDF:', error);
+  }
+}
+
+// Fermer le modal PDF
+closePdfModal(): void {
+  this.showPdfModal = false;
+  this.pdfUrl = null;
 }
   // Getter pour vérifier si l'utilisateur est admin
   get isAdmin(): boolean {
@@ -223,11 +254,29 @@ getIncidentSeveriteBadgeClasses(severite: any): string {
       }
     });
   }
-// Modifiez cette méthode
+// Vérifier si c'est une image
 isImage(contentType: string | null | undefined): boolean {
   if (!contentType) return false;
-  const imageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp'];
+  const imageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/bmp', 'image/svg+xml'];
   return imageTypes.includes(contentType.toLowerCase());
+}
+
+// Vérifier si c'est un PDF
+isPdf(contentType: string | null | undefined, filename: string): boolean {
+  if (contentType === 'application/pdf') return true;
+  return filename?.toLowerCase().endsWith('.pdf') || false;
+}
+downloadFile(piece: PieceJointeDTO): void {
+  console.log('💾 Téléchargement:', piece.nomFichier);
+  const downloadUrl = `https://localhost:7063/api/pieces-jointes/${piece.id}`;
+  
+  const link = document.createElement('a');
+  link.href = downloadUrl;
+  link.download = piece.nomFichier;
+  link.target = '_blank';
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
 }
   // Navigation vers le détail de l'incident
   viewIncident(incidentId: string): void {
