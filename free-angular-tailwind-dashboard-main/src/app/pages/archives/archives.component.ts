@@ -72,26 +72,45 @@ export class ArchivesComponent implements OnInit {
     this.loadUserRole();
   }
   
-  loadUserRole(): void {
-    this.userService.getMyProfile().subscribe({
-      next: (user) => {
-        this.userRole = user.role;
-        this.loadArchives();
-      },
-      error: (err) => {
-        console.error('Erreur récupération rôle:', err);
-        this.userRole = '';
-        this.loadArchives();
+loadUserRole(): void {
+  this.userService.getMyProfile().subscribe({
+    next: (user) => {
+      this.userRole = user.role;
+      
+      // ✅ Définir l'onglet par défaut selon le rôle
+      if (this.userRole === 'Technicien') {
+        this.activeTab = 'tickets';
+      } else if (this.userRole === 'Commercant') {
+        this.activeTab = 'incidents';
+      } else {
+        this.activeTab = 'incidents'; // Admin par défaut sur incidents
       }
-    });
-  }
+      
+      this.loadArchives();
+    },
+    error: (err) => {
+      console.error('Erreur récupération rôle:', err);
+      this.userRole = '';
+      this.loadArchives();
+    }
+  });
+}
   
   loadArchives(): void {
-      this.loadArchivedIncidents();
-            this.loadArchivedTickets();
-
-   
+  // ✅ Pour Admin : charger les deux
+  if (this.userRole === 'Admin') {
+    this.loadArchivedIncidents();
+    this.loadArchivedTickets();
   }
+  // ✅ Pour Commercant : charger uniquement les incidents
+  else if (this.userRole === 'Commercant') {
+    this.loadArchivedIncidents();
+  }
+  // ✅ Pour Technicien : charger uniquement les tickets
+  else if (this.userRole === 'Technicien') {
+    this.loadArchivedTickets();
+  }
+}
   
   loadArchivedIncidents(): void {
     this.loadingIncidents = true;
