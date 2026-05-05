@@ -48,7 +48,7 @@ export class CreateCommercantComponent {
     private router: Router
   ) {
     this.commercantForm = this.fb.group({
-      nomMagasin: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(20)]], // ✅ Changé de 50 à 20
+      nomMagasin: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(20)]], // ✅ Changé de 50 à 20
       adresse: ['', [Validators.required, Validators.maxLength(200)]],
       email: ['', [Validators.required, Validators.email]],
       phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
@@ -189,7 +189,7 @@ export class CreateCommercantComponent {
         
         setTimeout(() => {
           this.router.navigate(['/commercants']);
-        }, 2000);
+        }, 5000);
       },
       error: (err: any) => {
         this.loading = false;
