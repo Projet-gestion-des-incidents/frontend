@@ -406,7 +406,14 @@ loadIncidents(): void {
   if (this.selectedDateResolution) {
     searchParams.DateResolution = this.selectedDateResolution;
   }
+  if (this.selectedTypeProbleme != null) {
+    searchParams.TypeProbleme = this.selectedTypeProbleme;
+  }
 
+  // ✅ NOUVEAU : Filtre par entité impactée (pour Commercant)
+  if (this.selectedEntiteImpactee != null) {
+    searchParams.EntiteImpactee = this.selectedEntiteImpactee;
+  }
 
   console.log('🔍 Envoi requête avec params:', searchParams);
 
@@ -609,7 +616,11 @@ getTypeProblemeLibelle(typeProbleme: any): string {
   } else {
     console.log('🔍 DEBUG - Aucune DateDetection à envoyer');
   }
-  
+  if (this.selectedTypeProbleme != null) {
+    searchParams.TypeProbleme = this.selectedTypeProbleme;
+    console.log('🔍 TypeProbleme sélectionné:', this.selectedTypeProbleme);
+  }
+
   if (this.selectedDateResolution && this.selectedDateResolution.trim() !== '') {
     searchParams.DateResolution = this.selectedDateResolution;
     console.log('🔍 DEBUG - DateResolution ajoutée:', this.selectedDateResolution);
@@ -657,10 +668,15 @@ getTypeProblemeLibelle(typeProbleme: any): string {
     });
   }
  applyFilters(): void {
-    console.log('🎯 Filtres appliqués - Sévérité:', this.tempFilters.severite, 'Statut:', this.tempFilters.statut);
+    console.log('🎯 Filtres appliqués - Sévérité:', this.tempFilters.severite,
+       'Statut:', this.tempFilters.statut,
+        'TypeProbleme:', this.tempFilters.typeProbleme,
+              'EntiteImpactee:', this.tempFilters.entiteImpactee);
     
     this.selectedSeverite = this.tempFilters.severite;
     this.selectedStatut = this.tempFilters.statut;
+      this.selectedTypeProbleme = this.tempFilters.typeProbleme;
+  this.selectedEntiteImpactee = this.tempFilters.entiteImpactee;
     this.selectedDateDetection = this.tempFilters.dateDetection;
     this.selectedDateResolution = this.tempFilters.dateResolution;
     
@@ -1167,15 +1183,35 @@ getStatutLibelle(statut: number | string): string {
   extractYear(date: Date): string {
     return new Date(date).getFullYear().toString();
   }
+typeProblemeOptions = [
+  { value: 1, label: 'Paiement refusé' },
+  { value: 2, label: 'Terminal hors ligne' },
+  { value: 3, label: 'Lenteur' },
+  { value: 4, label: 'Bug affichage' },
+  { value: 5, label: 'Connexion réseau' },
+  { value: 6, label: 'Erreur flux transactionnel' },
+  { value: 7, label: 'Problème logiciel TPE' },
+  { value: 8, label: 'Autre' }
+];
 
+// Options pour le filtre par entité impactée (Admin)
+entiteImpacteeOptions = [
+  { value: 1, label: 'Machine TPE' },
+  { value: 2, label: 'Flux transactionnel' },
+  { value: 3, label: 'Réseau' },
+  { value: 4, label: 'Service applicatif' }
+];
 showFilters = false;
 tempFilters = {
   severite: undefined as number | undefined,
   statut: undefined as number | undefined,
+   typeProbleme: undefined as number | undefined,  // ✅ Ajouté pour Commercant
+  entiteImpactee: undefined as number | undefined, // ✅ Ajouté pour Admin
   dateDetection: '' as string,  // ✅ Ajouté
   dateResolution: '' as string  // ✅ Ajouté
 };
-
+selectedTypeProbleme?: number;
+selectedEntiteImpactee?: number;
   toggleFilters(): void {
     this.showFilters = !this.showFilters;
     if (this.showFilters) {
@@ -1206,7 +1242,9 @@ tempFilters = {
         severite: this.selectedSeverite,
         statut: this.selectedStatut,
         dateDetection: this.selectedDateDetection || '',
-        dateResolution: this.selectedDateResolution || ''
+        dateResolution: this.selectedDateResolution || '',
+            typeProbleme: this.selectedTypeProbleme,      // ✅ Ajouté
+      entiteImpactee: this.selectedEntiteImpactee  // ✅ Ajouté
       };
     }
   }
@@ -1217,19 +1255,25 @@ tempFilters = {
       severite: this.selectedSeverite,
       statut: this.selectedStatut,
       dateDetection: this.selectedDateDetection || '',
-      dateResolution: this.selectedDateResolution || ''
+      dateResolution: this.selectedDateResolution || '',
+        typeProbleme: this.selectedTypeProbleme,      // ✅ Ajouté
+    entiteImpactee: this.selectedEntiteImpactee  
     };
   }
 
  clearFilters(): void {
     this.tempFilters = {
-      severite: undefined,
-      statut: undefined,
-      dateDetection: '',
-      dateResolution: ''
-    };
-    this.selectedSeverite = undefined;
-    this.selectedStatut = undefined;
+         severite: undefined,
+    statut: undefined,
+    dateDetection: '',
+    dateResolution: '',
+    typeProbleme: undefined,
+    entiteImpactee: undefined
+  };
+  this.selectedSeverite = undefined;
+  this.selectedStatut = undefined;
+  this.selectedTypeProbleme = undefined;
+  this.selectedEntiteImpactee = undefined;
     this.selectedDateDetection = '';
     this.selectedDateResolution = '';
     this.selectedDetectionDateObj = null;

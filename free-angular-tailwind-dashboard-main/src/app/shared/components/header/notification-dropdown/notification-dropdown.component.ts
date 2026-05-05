@@ -416,14 +416,7 @@ formatDate(date: Date | string): string {
   const diffHours = Math.floor(diffMs / 3600000);
   const diffDays = Math.floor(diffMs / 86400000);
 
-  // Debug: Afficher les valeurs pour vérifier
-  console.log('🔍 FormatDate Debug:', {
-    dateBrute: date,
-    dateUTC: notifDate.toISOString(),
-    maintenant: now.toISOString(),
-    diffMinutes: diffMins,
-    diffHeures: diffHours
-  });
+ 
 
   if (diffMins < 1) return "À l'instant";
   if (diffMins < 60) return `Il y a ${diffMins} minute${diffMins > 1 ? 's' : ''}`;

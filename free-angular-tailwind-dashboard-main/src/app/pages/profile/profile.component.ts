@@ -293,7 +293,14 @@ private updateValidationsForRole(): void {
 
 openInfoModal(): void {
     this.updateValidationsForRole();
+    this.imagePreview = this.user.image || null;
+    this.imageBase64 = null;
+    this.selectedImage = null;  // ✅ S'assurer que c'est null
+    this.isInfoModalOpen = true;
+    // ✅ Réinitialiser formChanged
+    this.formChanged = false;
     
+
     let formattedBirthDate = null;
     if (this.user.birthDate) {
       const date = new Date(this.user.birthDate);
@@ -349,13 +356,15 @@ checkFormChanges(): void {
     // Comparer les valeurs (exclure les champs vides/null)
     const originalCleaned = this.cleanFormValues(this.originalFormValues);
     const currentCleaned = this.cleanFormValues(currentValues);
-    this.formChanged = JSON.stringify(currentCleaned) !== JSON.stringify(originalCleaned);
+    let formChanged = JSON.stringify(currentCleaned) !== JSON.stringify(originalCleaned);
     
-    // Vérifier aussi si une nouvelle image a été sélectionnée
-    if (this.selectedImage) {
-      this.formChanged = true;
-    }
-  }
+    // ✅ Vérifier aussi si une nouvelle image a été sélectionnée
+    const imageChanged = this.selectedImage !== null || this.imageBase64 !== null;
+    
+    this.formChanged = formChanged || imageChanged;
+    
+    console.log('formChanged:', this.formChanged, 'formChanged:', formChanged, 'imageChanged:', imageChanged);
+}
 
   // Nettoyer les valeurs null/undefined pour la comparaison
   cleanFormValues(values: any): any {
@@ -396,29 +405,33 @@ onLocationSelectedInModal(location: any): void {
 }
 
 
-  onImageSelected(event: any): void {
+onImageSelected(event: any): void {
     const file = event.target?.files?.[0];
     if (!file) return;
 
     if (file.size > 5 * 1024 * 1024) {
-      this.showAlert('error', 'Fichier trop volumineux', 'L\'image ne doit pas dépasser 5MB');
-      return;
+        this.showAlert('error', 'Fichier trop volumineux', 'L\'image ne doit pas dépasser 5MB');
+        return;
     }
 
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp'];
     if (!allowedTypes.includes(file.type)) {
-      this.showAlert('error', 'Format non supporté', 'Utilisez JPG, PNG, GIF ou WebP');
-      return;
+        this.showAlert('error', 'Format non supporté', 'Utilisez JPG, PNG, GIF ou WebP');
+        return;
     }
 
     this.selectedImage = file;
     const reader = new FileReader();
     reader.onload = () => {
-      this.imagePreview = reader.result as string;
-      this.imageBase64 = reader.result as string;
+        this.imagePreview = reader.result as string;
+        this.imageBase64 = reader.result as string;
+        console.log('✅ Image convertie en base64, longueur:', this.imageBase64.length);
+        
+        // ✅ Forcer la vérification du changement
+        this.formChanged = true;
     };
     reader.readAsDataURL(file);
-  }
+}
 
   onBirthDateChange(event: any): void {
     let date: Date | null = null;

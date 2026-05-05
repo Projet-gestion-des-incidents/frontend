@@ -948,6 +948,9 @@ pre[class*="language-"] {
 .token.attr-value {
   color: #a31615;
 }
+.apexcharts-menu-item.exportCSV {
+  display: none !important;
+}
 .token.punctuation {
   color: #344054;
 }

@@ -337,7 +337,12 @@ searchMyIncidents(params: any): Observable<any> {
     httpParams = httpParams.set('DateDetection', params.DateDetection);
     console.log('📤 SERVICE - Ajout DateDetection:', params.DateDetection);
   }
-  
+   if (params.TypeProbleme !== undefined && params.TypeProbleme !== null) {
+    httpParams = httpParams.set('TypeProbleme', params.TypeProbleme.toString());
+    console.log('📤 SERVICE - Ajout TypeProbleme:', params.TypeProbleme);
+  } else {
+    console.log('📤 SERVICE - TypeProbleme non trouvé dans les params');
+  }
   // ✅ CORRECTION: Ajouter DateResolution
   if (params.DateResolution) {
     httpParams = httpParams.set('DateResolution', params.DateResolution);

@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, FormArray, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { LabelComponent } from '../../components/form/label/label.component';
@@ -8,6 +8,17 @@ import { AlertComponent } from '../../components/ui/alert/alert.component';
 import { UserService } from '../../services/user.service';
 import { MapComponent } from '../../../google-maps-wrapper/map.component';
 
+
+function usernameValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (!value) return null;
+  
+  const regex = /^[a-zA-Z0-9]+$/;
+  if (!regex.test(value)) {
+    return { usernameInvalid: true };
+  }
+  return null;
+}
 @Component({
   selector: 'app-create-commercant',
   standalone: true,
@@ -22,6 +33,10 @@ import { MapComponent } from '../../../google-maps-wrapper/map.component';
   templateUrl: './create-commercant.component.html'
 })
 export class CreateCommercantComponent {
+    mapAlert = {
+    show: false,
+    message: ''
+  };
   commercantForm: FormGroup;
   loading = false;
   selectedAddress: string = '';
@@ -39,7 +54,7 @@ export class CreateCommercantComponent {
   tempSelectedAddress: string = '';
   tempSelectedLat: number | null = null;
   tempSelectedLng: number | null = null;
-  
+  selectedAddressValid: boolean = true;
   private alertTimeout: any;
 
   constructor(
@@ -48,7 +63,7 @@ export class CreateCommercantComponent {
     private router: Router
   ) {
     this.commercantForm = this.fb.group({
-      nomMagasin: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(20)]], // ✅ Changé de 50 à 20
+      nomMagasin: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(20),usernameValidator]], // ✅ Changé de 50 à 20
       adresse: ['', [Validators.required, Validators.maxLength(200)]],
       email: ['', [Validators.required, Validators.email]],
       phoneNumber: ['', [Validators.required, Validators.pattern(/^[0-9]{8}$/)]],
@@ -64,34 +79,90 @@ export class CreateCommercantComponent {
       console.log('Adresse sélectionnée:', location.address);
     }
   }
+onInvalidLocation(message: string): void {
+  this.mapAlert = {
+    show: true,
+    message: message
+  };
+  
+  setTimeout(() => {
+    this.mapAlert.show = false;
+  }, 4000);
+}
+ openMapModal(): void {
+  this.showMapModal = true;
+  this.tempSelectedAddress = this.commercantForm.get('adresse')?.value || '';
+  this.selectedAddressValid = true;
+  this.mapAlert.show = false; // ✅ Réinitialiser l'alerte de la modale
+}
 
-  openMapModal(): void {
-    this.showMapModal = true;
-    this.tempSelectedAddress = this.commercantForm.get('adresse')?.value || '';
-  }
-
-  closeMapModal(): void {
-    this.showMapModal = false;
-    this.tempSelectedAddress = '';
-    this.tempSelectedLat = null;
-    this.tempSelectedLng = null;
-  }
-
-  onLocationSelectedInModal(location: any): void {
-    if (location && location.address) {
-      this.tempSelectedAddress = location.address;
-      this.tempSelectedLat = location.lat;
-      this.tempSelectedLng = location.lng;
-      console.log('Adresse sélectionnée dans modale:', location.address);
+private isLocationInTunisia(location: any): boolean {
+  // Coordonnées approximatives de la Tunisie
+  const tunisiaBounds = {
+    latMin: 30.0,
+    latMax: 38.0,
+    lngMin: 7.5,
+    lngMax: 11.5
+  };
+  
+  const lat = location.lat;
+  const lng = location.lng;
+  
+  return lat >= tunisiaBounds.latMin && 
+         lat <= tunisiaBounds.latMax && 
+         lng >= tunisiaBounds.lngMin && 
+         lng <= tunisiaBounds.lngMax;
+}
+closeMapModal(): void {
+  this.showMapModal = false;
+  this.tempSelectedAddress = '';
+  this.tempSelectedLat = null;
+  this.tempSelectedLng = null;
+  this.mapAlert.show = false; // ✅ Réinitialiser l'alerte de la modale
+}
+onLocationSelectedInModal(location: any): void {
+  console.log('📍 Location reçue:', location);
+  
+  if (location && location.address) {
+    console.log('📍 Adresse:', location.address);
+    console.log('📍 Latitude:', location.lat);
+    console.log('📍 Longitude:', location.lng);
+    
+    const isTunisia = this.isLocationInTunisia(location);
+    console.log('📍 Est en Tunisie?', isTunisia);
+    
+    if (!isTunisia) {
+      // ✅ Utiliser mapAlert au lieu de alert
+      this.mapAlert = {
+        show: true,
+        message: 'Veuillez sélectionner un emplacement en Tunisie'
+      };
+      this.tempSelectedAddress = '';
+      this.selectedAddressValid = false;
+      
+      // Auto-hide après 4 secondes
+      setTimeout(() => {
+        this.mapAlert.show = false;
+      }, 4000);
+      return;
     }
+    
+    this.mapAlert.show = false;
+    this.tempSelectedAddress = location.address;
+    this.tempSelectedLat = location.lat;
+    this.tempSelectedLng = location.lng;
+    this.selectedAddressValid = true;
+    console.log('Adresse sélectionnée dans modale:', location.address);
   }
-
+}
   confirmAddress(): void {
-    if (this.tempSelectedAddress) {
-      this.commercantForm.patchValue({ adresse: this.tempSelectedAddress });
-      this.showMapModal = false;
-    }
+  if (this.tempSelectedAddress && this.selectedAddressValid) {
+    this.commercantForm.patchValue({ adresse: this.tempSelectedAddress });
+    this.commercantForm.get('adresse')?.markAsTouched();
+    this.showMapModal = false;
+    this.clearAlert(); // ✅ Effacer l'alerte après confirmation
   }
+}
 
   /**
    * ✅ Méthode améliorée pour parser les erreurs de validation du backend

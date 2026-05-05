@@ -1,10 +1,21 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserService } from '../../../services/user.service';
 import { AuthService } from '../../../services/auth.service';
 import { MapComponent } from '../../../../google-maps-wrapper/map.component';
+
+function usernameValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (!value) return null;
+  
+  const regex = /^[a-zA-Z0-9]+$/;
+  if (!regex.test(value)) {
+    return { usernameInvalid: true };
+  }
+  return null;
+}
 
 interface Alert {
   show: boolean;
@@ -34,6 +45,10 @@ export class UpdateCommercantComponent implements OnInit {
     message: '',
     variant: 'info'
   };
+  mapAlert = {
+    show: false,
+    message: ''
+  };
   
   // Map modal
   showMapModal = false;
@@ -48,7 +63,7 @@ export class UpdateCommercantComponent implements OnInit {
     private router: Router
   ) {
     this.commercantForm = this.fb.group({
-      nomMagasin: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(20)]],
+      nomMagasin: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(20),usernameValidator]],
       adresse: ['', [Validators.required]],
       email: ['', [Validators.required, Validators.email]],
       phoneNumber: ['', [Validators.required, Validators.pattern('^[0-9]{8}$')]],
@@ -181,19 +196,50 @@ checkFormChanges(): void {
   }
 
   // Map modal methods
-  openMapModal(): void {
+openMapModal(): void {
     this.showMapModal = true;
     this.tempSelectedAddress = this.commercantForm.get('adresse')?.value;
+    this.mapAlert.show = false; // Réinitialiser l'alerte
   }
 
+   onInvalidLocation(message: string): void {
+    this.mapAlert = {
+      show: true,
+      message: message
+    };
+    
+    setTimeout(() => {
+      this.mapAlert.show = false;
+    }, 4000);
+  }
+
+  // ✅ Modifier closeMapModal
   closeMapModal(): void {
     this.showMapModal = false;
     this.tempSelectedAddress = null;
+    this.mapAlert.show = false;
   }
 
   onLocationSelectedInModal(location: any): void {
     if (location && location.address) {
+      // Vérifier si l'adresse est en Tunisie via les coordonnées
+      const isTunisia = this.isLocationInTunisia(location);
+      
+      if (!isTunisia) {
+        this.mapAlert = {
+          show: true,
+          message: 'Veuillez sélectionner un emplacement en Tunisie'
+        };
+        this.tempSelectedAddress = null;
+        
+        setTimeout(() => {
+          this.mapAlert.show = false;
+        }, 4000);
+        return;
+      }
+      
       this.tempSelectedAddress = location.address;
+      this.mapAlert.show = false;
     } else if (location && location.lat && location.lng) {
       this.tempSelectedAddress = `${location.lat}, ${location.lng}`;
     } else {
@@ -201,7 +247,24 @@ checkFormChanges(): void {
     }
   }
 
-  confirmAddress(): void {
+  private isLocationInTunisia(location: any): boolean {
+    const tunisiaBounds = {
+      latMin: 30.0,
+      latMax: 38.0,
+      lngMin: 7.5,
+      lngMax: 11.5
+    };
+    
+    const lat = location.lat;
+    const lng = location.lng;
+    
+    return lat >= tunisiaBounds.latMin && 
+           lat <= tunisiaBounds.latMax && 
+           lng >= tunisiaBounds.lngMin && 
+           lng <= tunisiaBounds.lngMax;
+  }
+
+ confirmAddress(): void {
     if (this.tempSelectedAddress) {
       this.commercantForm.patchValue({ adresse: this.tempSelectedAddress });
       this.commercantForm.get('adresse')?.markAsTouched();

@@ -108,6 +108,7 @@
               <span *ngIf="commercantForm.get('nomMagasin')?.errors?.['required']">Le nom de la boutique est requis</span>
               <span *ngIf="commercantForm.get('nomMagasin')?.errors?.['minlength']">Minimum 2 caractères</span>
               <span *ngIf="commercantForm.get('nomMagasin')?.errors?.['maxlength']">Maximum 20 caractères</span>
+              <span *ngIf="commercantForm.get('nomMagasin')?.errors?.['usernameInvalid']">Lettres et chiffres uniquement, pas d'espaces</span>
             </div>
           </div>
 
@@ -220,6 +221,7 @@
 </div>
 
 <!-- MODALE DE LA CARTE -->
+<!-- MODALE DE LA CARTE -->
 <div *ngIf="showMapModal" 
      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
      (click)="closeMapModal()">
@@ -251,8 +253,37 @@
     
     <!-- Corps de la modale avec la carte -->
     <div class="p-6">
+      
+      <!-- ✅ ALERTE DANS LA MODALE -->
+      <div *ngIf="mapAlert.show" 
+           class="rounded-xl border border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20 p-4 mb-4 animate-slide-down">
+        <div class="flex items-start justify-between">
+          <div class="flex items-start gap-3">
+            <div class="flex-shrink-0">
+              <div class="w-8 h-8 rounded-full flex items-center justify-center bg-red-100 text-red-600 dark:bg-red-800/50 dark:text-red-400">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                </svg>
+              </div>
+            </div>
+            <div>
+              <p class="text-sm font-medium text-red-800 dark:text-red-200">Erreur</p>
+              <p class="text-sm text-red-700 dark:text-red-300">{{ mapAlert.message }}</p>
+            </div>
+          </div>
+          <button (click)="mapAlert.show = false" class="text-gray-400 hover:text-gray-600">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
       <div class="mb-4" style="height: 500px;">
-        <app-map (locationSelected)="onLocationSelectedInModal($event)"></app-map>
+        <app-map 
+          (locationSelected)="onLocationSelectedInModal($event)"
+          (invalidLocation)="onInvalidLocation($event)">
+        </app-map>
       </div>
       
       <div class="bg-[#ECECFF] dark:bg-[#0C144E]/20 rounded-lg p-3">

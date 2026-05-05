@@ -263,7 +263,7 @@ loadTechnicienData(): void {
         this.showAlert('success', 'Succès', 'Technicien mis à jour avec succès');
         setTimeout(() => {
           this.router.navigate(['/techniciens']);
-        }, 2000);
+        }, 5000);
       },
       error: (error) => {
         console.error('❌ Erreur mise à jour:', error);

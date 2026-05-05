@@ -83,21 +83,34 @@ Math = Math;
     return this.filteredCommercants.slice(start, end);
   }
 
-  loadCommercants(): void {
-    this.loading = true;
-    this.userService.getCommercants().subscribe({
-      next: (commercants) => {
-        this.commercants = commercants;
-        this.loading = false;
+loadCommercants(): void {
+  this.loading = true;
+  
+  // ✅ Récupérer TOUS les commerçants en une seule requête
+  this.userService.getCommercants().subscribe({
+    next: (response: any[]) => {
+      console.log('📦 Réponse commerçants:', response);
+      
+      if (response && Array.isArray(response)) {
+        this.commercants = response;
+        console.log('✅ Commerçants chargés:', this.commercants.length);
+        console.log('✅ Total dans la base:', response.length);
+        
+        // ✅ Mettre à jour la pagination
         this.updateTotalPages();
-      },
-      error: (err) => {
-        console.error('Erreur chargement commerçants:', err);
-        this.error = 'Impossible de charger les commerçants';
-        this.loading = false;
+      } else {
+        this.commercants = [];
       }
-    });
-  }
+      
+      this.loading = false;
+    },
+    error: (err: any) => {
+      console.error('Erreur chargement commerçants:', err);
+      this.error = 'Impossible de charger les commerçants';
+      this.loading = false;
+    }
+  });
+}
 onEdit(commercant: any): void {
   this.router.navigate(['/update-commercant', commercant.id]);
 }

@@ -565,7 +565,7 @@
     <span class="text-sm">{{ error }}</span>
   </div>
 
-  <!-- Tableau des incidents -->
+<!-- Tableau des incidents -->
   <div *ngIf="!loading && !error" class="overflow-x-auto">
     <table class="min-w-full">
       <thead>
@@ -576,8 +576,10 @@
     (checkedChange)="toggleAllSelection($event)"
   ></app-checkbox>
 </th>
-<th class="px-6 py-4 text-left text-xs font-medium text-[#0C144E] dark:text-[#B2B3FF] uppercase tracking-wider">
+          <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
             Code</th>
+          <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
+            Description</th>
           <th *ngIf="userRole === 'Commercant'" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
             Type Problème
           </th>
@@ -607,7 +609,11 @@
               {{ incident.codeIncident }}
             </span>
           </td>
-          
+          <td class="px-6 py-4 whitespace-nowrap">
+            <span class="text-sm font-mono font-medium text-gray-900 dark:text-white">
+              {{ incident.descriptionIncident }}
+            </span>
+          </td>
           <td class="px-6 py-4 whitespace-nowrap">
             <span *ngIf="userRole === 'Commercant'" class="text-sm text-gray-600 dark:text-gray-400">
               {{ getTypeProblemeLibelle(incident.typeProbleme) }}

@@ -71,14 +71,29 @@ desactivateUser(id: string) {
 
 getCommercants(): Observable<any[]> {
   console.log('🔍 Récupération des commerçants...');
+    let params = new HttpParams();
+
+ 
   
-  return this.http.get<any>(`${this.apiUrl}/commercants`, this.getAuthHeaders())
+  return this.http.get<any>(`${this.apiUrl}/commercants?Page=1&PageSize=1`, this.getAuthHeaders())
     .pipe(
-      tap(response => {
-        console.log('📦 Réponse API commerçants:', response);
+      switchMap(firstResponse => {
+        const totalCount = firstResponse?.pagination?.totalCount || 0;
+        if (totalCount === 0) return of([]);
+        
+        // Récupérer tous les commerçants en une seule requête avec un grand pageSize
+        const params = new HttpParams()
+          .set('Page', '1')
+          .set('PageSize', totalCount.toString())
+          .set('SortBy', 'nomMagasin')
+          .set('SortDescending', 'false');
+        
+        return this.http.get<any>(`${this.apiUrl}/commercants`, {
+          params,
+          headers: this.getAuthHeaders().headers
+        });
       }),
       map(response => {
-        // Le backend renvoie ApiResponse avec data
         if (response?.data && Array.isArray(response.data)) {
           return response.data.map((commercant: any) => ({
             id: commercant.id,
@@ -88,27 +103,13 @@ getCommercants(): Observable<any[]> {
             adresse: commercant.adresse,
             statut: commercant.statut,
             role: 'Commercant',
-                    image: this.getFullImageUrl(commercant.image)
-
-          }));
-        }
-        if (Array.isArray(response)) {
-          return response.map((commercant: any) => ({
-            id: commercant.id,
-            nomMagasin: commercant.nomMagasin || commercant.userName,
-            email: commercant.email,
-            phoneNumber: commercant.phoneNumber,
-            adresse: commercant.adresse,
-            statut: commercant.statut,
-            role: 'Commercant',                  
-              image: this.getFullImageUrl(commercant.image)
-
+            image: this.getFullImageUrl(commercant.image)
           }));
         }
         return [];
       }),
       catchError(error => {
-        console.error('❌ Erreur récupération commerçants:', error);
+        console.error('❌ Erreur récupération tous commerçants:', error);
         return of([]);
       })
     );
