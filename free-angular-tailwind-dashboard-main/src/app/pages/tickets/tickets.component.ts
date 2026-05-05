@@ -151,14 +151,14 @@ confirmArchive(): void {
       if (response.isSuccess) {
         this.showAlert('success', 'Succès', `Le ticket "${this.ticketToArchive!.referenceTicket}" a été archivé avec succès.`);
         
-        // Retirer le ticket de la liste actuelle
-        const index = this.tickets.findIndex(t => t.id === this.ticketToArchive!.id);
-        if (index !== -1) {
-          this.tickets.splice(index, 1);
-          this.filteredTickets = [...this.tickets];
-          this.totalCount--;
-          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
-        }
+        // ✅ Recharger les tickets pour mettre à jour la liste
+        this.loadTickets();
+        
+        // ✅ Optionnel: Afficher un message temporaire
+        this.successMessage = `Ticket "${this.ticketToArchive!.referenceTicket}" archivé avec succès.`;
+        setTimeout(() => {
+          this.successMessage = '';
+        }, 3000);
         
         // Désélectionner si sélectionné
         this.selectedTickets = this.selectedTickets.filter(id => id !== this.ticketToArchive!.id);
@@ -178,7 +178,6 @@ confirmArchive(): void {
       if (err.error?.message) {
         errorMessage = err.error.message;
       } else if (err.error?.errors) {
-        // Cas des erreurs de validation
         const errors = Object.values(err.error.errors).flat();
         errorMessage = errors.join(', ');
       } else if (err.message) {
