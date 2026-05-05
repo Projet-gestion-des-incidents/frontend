@@ -106,7 +106,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <span *ngIf="technicienForm.get('prenom')?.errors?.['required']">Le prénom est requis</span>
-              <span *ngIf="technicienForm.get('prenom')?.errors?.['minlength']">Minimum 4 caractères</span>
+              <span *ngIf="technicienForm.get('prenom')?.errors?.['minlength']">Minimum 3 caractères</span>
               <span *ngIf="technicienForm.get('prenom')?.errors?.['maxlength']">Maximum 30 caractères</span>
             </div>
           </div>
@@ -131,7 +131,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <span *ngIf="technicienForm.get('nom')?.errors?.['required']">Le nom est requis</span>
-              <span *ngIf="technicienForm.get('nom')?.errors?.['minlength']">Minimum 4 caractères</span>
+              <span *ngIf="technicienForm.get('nom')?.errors?.['minlength']">Minimum 3 caractères</span>
               <span *ngIf="technicienForm.get('nom')?.errors?.['maxlength']">Maximum 30 caractères</span>
             </div>
           </div>
@@ -180,7 +180,7 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <span *ngIf="technicienForm.get('userName')?.errors?.['required']">Le nom d'utilisateur est requis</span>
-              <span *ngIf="technicienForm.get('userName')?.errors?.['minlength']">Minimum 4 caractères</span>
+              <span *ngIf="technicienForm.get('userName')?.errors?.['minlength']">Minimum 3 caractères</span>
               <span *ngIf="technicienForm.get('userName')?.errors?.['maxlength']">Maximum 30 caractères</span>
             </div>
           </div>
@@ -225,6 +225,7 @@
                 id="birthDate"
                 formControlName="birthDate"
                 [max]="maxBirthDateISO"
+                [min]="minBirthDateISO"
                 class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
                 [class.border-red-500]="technicienForm.get('birthDate')?.invalid && technicienForm.get('birthDate')?.touched"
               />
@@ -241,12 +242,15 @@
             </div>
             
             <div *ngIf="technicienForm.get('birthDate')?.touched && technicienForm.get('birthDate')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span *ngIf="technicienForm.get('birthDate')?.errors?.['futureDate']">La date ne peut pas être dans le futur</span>
-              <span *ngIf="technicienForm.get('birthDate')?.errors?.['underAge']">Vous devez avoir au moins 18 ans</span>
-            </div>
+  <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+  </svg>
+  <span *ngIf="technicienForm.get('birthDate')?.errors?.['invalidDate']">Format de date invalide</span>
+  <span *ngIf="technicienForm.get('birthDate')?.errors?.['futureDate']">La date ne peut pas être dans le futur</span>
+  <span *ngIf="technicienForm.get('birthDate')?.errors?.['underAge']">Vous devez avoir au moins 18 ans</span>
+  <span *ngIf="technicienForm.get('birthDate')?.errors?.['overAge']">L'âge maximum est atteint</span>
+  <span *ngIf="technicienForm.get('birthDate')?.errors?.['tooOld']">Date de naissance trop ancienne (année minimum 1900)</span>
+</div>
           </div>
         </div>
       </div>

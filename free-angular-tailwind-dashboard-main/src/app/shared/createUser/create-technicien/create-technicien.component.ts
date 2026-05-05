@@ -1,11 +1,26 @@
 import { Component } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { LabelComponent } from '../../components/form/label/label.component';
 import { InputFieldComponent } from '../../components/form/input/input-field.component';
 import { AlertComponent } from '../../components/ui/alert/alert.component';
 import { UserService } from '../../services/user.service';
+
+
+
+
+function usernameValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (!value) return null;
+  
+  // Vérifie que le nom d'utilisateur contient uniquement des lettres et chiffres (pas d'espaces, pas de caractères spéciaux)
+  const regex = /^[a-zA-Z0-9]+$/;
+  if (!regex.test(value)) {
+    return { usernameInvalid: true };
+  }
+  return null;
+}
 
 @Component({
   selector: 'app-create-technicien',
@@ -41,7 +56,7 @@ export class CreateTechnicienComponent {
       prenom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
       nom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
       email: ['', [Validators.required, Validators.email]],
-      userName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]]
+      userName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30), usernameValidator]]
     });
   }
 
@@ -68,8 +83,9 @@ export class CreateTechnicienComponent {
         this.loading = false;
         if (res.resultCode === 0) {
           this.showSuccess(res.message || 'Technicien créé avec succès !');
-          setTimeout(() => this.router.navigate(['/techniciens']), 2000);
+          
         } else {
+          const errorMessage = this.getErrorMessage(res);
           this.showError(res.message || 'Erreur lors de la création');
         }
       },
@@ -79,13 +95,29 @@ export class CreateTechnicienComponent {
       }
     });
   }
+  private getErrorMessage(res: any): string {
+    if (res.errors && res.errors.length > 0) {
+      // Retourner la première erreur spécifique
+      return res.errors[0];
+    }
+    return res.message || 'Erreur lors de la création';
+  }
 
   private showSuccess(message: string) {
     this.alert = { show: true, variant: 'success', title: 'Succès', message };
+    // ✅ Augmenter le délai avant redirection à 5 secondes (ou plus)
+  setTimeout(() => {
+    this.router.navigate(['/techniciens']);
+  }, 5000); // 5 secondes au lieu de 2
   }
 
   private showError(message: string) {
     this.alert = { show: true, variant: 'error', title: 'Erreur', message };
+     setTimeout(() => {
+    if (this.alert.show) {
+      this.clearAlert();
+    }
+  }, 5000);
   }
 
   clearAlert() { this.alert.show = false; }

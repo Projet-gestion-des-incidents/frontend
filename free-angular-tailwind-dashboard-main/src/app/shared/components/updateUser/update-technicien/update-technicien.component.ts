@@ -1,5 +1,5 @@
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule, AbstractControl, ValidationErrors } from '@angular/forms';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { UserService } from '../../../services/user.service';
@@ -9,6 +9,65 @@ interface Alert {
   title: string;
   message: string;
   variant: 'error' | 'success' | 'warning' | 'info';
+}
+
+// ✅ Validateur personnalisé pour le nom d'utilisateur (sans espaces, uniquement lettres/chiffres)
+function usernameValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (!value) return null;
+  
+  // Vérifie que le nom d'utilisateur contient uniquement des lettres et chiffres (pas d'espaces, pas de caractères spéciaux)
+  const regex = /^[a-zA-Z0-9]+$/;
+  if (!regex.test(value)) {
+    return { usernameInvalid: true };
+  }
+  return null;
+}
+
+// ✅ Validateur personnalisé pour la date de naissance
+function birthDateValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  
+  // ✅ Si la valeur est vide, pas d'erreur (champ optionnel)
+  if (!value) {
+    return null;
+  }
+  
+  const birthDate = new Date(value);
+  const today = new Date();
+  
+  // ✅ Vérifier si la date est valide
+  if (isNaN(birthDate.getTime())) {
+    return { invalidDate: true };
+  }
+  
+  // ✅ Vérifier que la date n'est pas dans le futur
+  if (birthDate > today) {
+    return { futureDate: true };
+  }
+  
+  // ✅ Vérifier l'âge minimum (18 ans)
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  
+  if (age < 18) {
+    return { underAge: true };
+  }
+  
+  // ✅ Vérifier l'âge maximum (120 ans - date raisonnable)
+  if (age > 120) {
+    return { overAge: true };
+  }
+  
+  // ✅ Vérifier que l'année n'est pas inférieure à 1900
+  if (birthDate.getFullYear() < 1900) {
+    return { tooOld: true };
+  }
+  
+  return null;
 }
 
 @Component({
@@ -24,7 +83,8 @@ export class UpdateTechnicienComponent implements OnInit {
   isAdmin = false;
   technicienId: string | null = null;
     maxBirthDateISO: string = '';
-
+ minBirthDateISO: string = ''; // ✅ Ajout de la date minimale
+  
   // Alert
   alert: Alert = {
     show: false,
@@ -40,12 +100,19 @@ export class UpdateTechnicienComponent implements OnInit {
     private router: Router
   ) {
     this.technicienForm = this.fb.group({
-      userName: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(30)]],
+      userName: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30),usernameValidator]],
       email: ['', [Validators.required, Validators.email]],
-      nom: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(30)]],
-      prenom: ['', [Validators.required, Validators.minLength(4), Validators.maxLength(30)]],
+      nom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
+      prenom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
       phoneNumber: ['', [Validators.pattern('^[0-9]{8}$')]],
-  birthDate: ['', [this.validateAge.bind(this)]]     });
+  birthDate: ['', [ birthDateValidator]]     });
+ // Calculer la date maximale (18 ans minimum)
+    const today = new Date();
+    const minDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+    this.maxBirthDateISO = minDate.toISOString().split('T')[0];
+    
+    // ✅ Calculer la date minimale (120 ans maximum - année 1900)
+    this.minBirthDateISO = '1900-01-01';
   }
 
   ngOnInit(): void {

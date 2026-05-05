@@ -36,6 +36,8 @@ export class TechniciensListComponent implements OnInit {
   toggling = false;
   confirmUser: User | null = null;
   confirmToggleUser: User | null = null;
+  // À ajouter dans les deux composants
+Math = Math;
   
   // ✅ Suppression multiple
   showMultiDeleteModal = false;
@@ -349,5 +351,30 @@ loadTechniciens(): void {
   getStatutCount(statut: string): number {
     return this.techniciens.filter(t => t.statut === statut).length;
   }
+  // À ajouter dans les deux composants
+getPageNumbers(): (number | -1)[] {
+  const total = this.totalPages;
+  const current = this.currentPage;
+  const delta = 2; // Nombre de pages à afficher de chaque côté
+  const range: number[] = [];
+  
+  for (let i = Math.max(2, current - delta); i <= Math.min(total - 1, current + delta); i++) {
+    range.push(i);
+  }
+  
+  if (current - delta > 2) {
+    range.unshift(-1); // -1 représente "..."
+  }
+  if (current + delta < total - 1) {
+    range.push(-1);
+  }
+  
+  range.unshift(1);
+  if (total !== 1) {
+    range.push(total);
+  }
+  
+  return range;
+}
 
 }
