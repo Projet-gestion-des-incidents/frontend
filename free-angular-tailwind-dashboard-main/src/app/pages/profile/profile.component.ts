@@ -18,6 +18,78 @@ import { Observable } from 'rxjs';
 import localeFr from '@angular/common/locales/fr';
 import { registerLocaleData } from '@angular/common';
 
+
+// Ajouter ces validateurs après les imports
+function usernameValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (!value) return null;
+  
+  const regex = /^[a-zA-Z0-9]+$/;
+  if (!regex.test(value)) {
+    return { usernameInvalid: true };
+  }
+  return null;
+}
+
+function birthDateValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (!value) return null;
+  
+  const birthDate = new Date(value);
+  const today = new Date();
+  
+  if (isNaN(birthDate.getTime())) {
+    return { invalidDate: true };
+  }
+  
+  if (birthDate > today) {
+    return { futureDate: true };
+  }
+  
+  let age = today.getFullYear() - birthDate.getFullYear();
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+    age--;
+  }
+  
+  if (age < 18) {
+    return { underAge: true };
+  }
+  
+  if (age > 120) {
+    return { overAge: true };
+  }
+  
+  if (birthDate.getFullYear() < 1900) {
+    return { tooOld: true };
+  }
+  
+  return null;
+}
+
+function phoneNumberValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (!value) return null;
+  
+  const regex = /^[0-9]{8}$/;
+  if (!regex.test(value)) {
+    return { invalidPhone: true };
+  }
+  return null;
+}
+
+function nomMagasinValidator(control: AbstractControl): ValidationErrors | null {
+  const value = control.value;
+  if (!value) return null;
+  
+  const regex = /^[a-zA-Z0-9]+$/;
+  if (!regex.test(value)) {
+    return { nomMagasinInvalid: true };
+  }
+  return null;
+}
+
+
 interface ApiResponse<T> {
   data: T;
   message: string;
@@ -64,6 +136,8 @@ export class ProfileComponent implements OnInit {
   isPasswordModalOpen = false;
   globalSuccessMessage: string = '';
 private globalSuccessTimeout: any;
+originalFormValues: any = {};
+  formChanged = false;
 
   // Forms
   editForm!: FormGroup;
@@ -164,27 +238,50 @@ private globalSuccessTimeout: any;
   }
 
   initForms(): void {
-    this.editForm = this.fb.group({
-      nom: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-      prenom: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(50)]],
-      email: ['', [Validators.required, Validators.email]],
-      phoneNumber: ['', [Validators.pattern(/^[0-9]{8}$/)]],
-      birthDate: ['', [this.ageValidator]],
-      adresse: ['', [Validators.maxLength(200)]],
-      nomMagasin: ['', [
-      Validators.required, 
-      Validators.minLength(3), 
-      Validators.maxLength(50),
-      Validators.pattern(/^[a-zA-Z0-9]+$/)  // ✅ Permet seulement lettres et chiffres, PAS d'espaces
-    ]]
-    });
+  this.editForm = this.fb.group({
+    // Pour Technicien et Admin
+    nom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
+    prenom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
+    email: ['', [Validators.required, Validators.email]],
+    phoneNumber: ['', [phoneNumberValidator]],
+    birthDate: ['', [birthDateValidator]],
+    
+    // Pour Commercant uniquement
+    adresse: [''],
+    nomMagasin: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30), nomMagasinValidator]]
+  });
+  
+  // Mettre à jour les validations en fonction du rôle
+  this.updateValidationsForRole();
 
-    this.passwordForm = this.fb.group({
-      currentPassword: ['', [Validators.required]],
-      newPassword: ['', [Validators.required, Validators.minLength(6)]],
-      confirmPassword: ['', [Validators.required]]
-    }, { validators: this.passwordMatchValidator });
+  this.passwordForm = this.fb.group({
+    currentPassword: ['', [Validators.required]],
+    newPassword: ['', [Validators.required, Validators.minLength(6)]],
+    confirmPassword: ['', [Validators.required]]
+  }, { validators: this.passwordMatchValidator });
+}
+
+private updateValidationsForRole(): void {
+  const nomControl = this.editForm.get('nom');
+  const prenomControl = this.editForm.get('prenom');
+  const nomMagasinControl = this.editForm.get('nomMagasin');
+  
+  if (this.user?.role === 'Commercant') {
+    // Pour commerçant : nomMagasin requis, nom/prenom pas requis
+    nomControl?.clearValidators();
+    prenomControl?.clearValidators();
+    nomMagasinControl?.setValidators([Validators.required, Validators.minLength(3), Validators.maxLength(30), nomMagasinValidator]);
+  } else {
+    // Pour technicien/admin : nom/prenom requis
+    nomControl?.setValidators([Validators.required, Validators.minLength(3), Validators.maxLength(30)]);
+    prenomControl?.setValidators([Validators.required, Validators.minLength(3), Validators.maxLength(30)]);
+    nomMagasinControl?.clearValidators();
   }
+  
+  nomControl?.updateValueAndValidity();
+  prenomControl?.updateValueAndValidity();
+  nomMagasinControl?.updateValueAndValidity();
+}
 
   passwordMatchValidator(group: FormGroup): { [key: string]: boolean } | null {
     const newPassword = group.get('newPassword')?.value;
@@ -195,43 +292,85 @@ private globalSuccessTimeout: any;
   }
 
 openInfoModal(): void {
-  let formattedBirthDate = null;
-  if (this.user.birthDate) {
-    // ✅ CORRECTION : Formater la date sans décalage UTC
-    const date = new Date(this.user.birthDate);
-    if (!isNaN(date.getTime())) {
-      // Extraire l'année, mois, jour du fuseau local
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      formattedBirthDate = `${year}-${month}-${day}`;
-      console.log('Date originale:', this.user.birthDate);
-      console.log('Date formatée locale:', formattedBirthDate);
+    this.updateValidationsForRole();
+    
+    let formattedBirthDate = null;
+    if (this.user.birthDate) {
+      const date = new Date(this.user.birthDate);
+      if (!isNaN(date.getTime())) {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        formattedBirthDate = `${year}-${month}-${day}`;
+      }
+    }
+    
+    const patchValues: any = {
+      email: this.user.email,
+      phoneNumber: this.user.phoneNumber,
+      birthDate: formattedBirthDate
+    };
+    
+    if (this.user.role === 'Commercant') {
+      patchValues.nomMagasin = this.user.nom;
+      patchValues.adresse = this.user.adresse || '';
+      patchValues.nom = this.user.nom;
+      patchValues.prenom = this.user.prenom || '';
+    } else {
+      patchValues.nom = this.user.nom;
+      patchValues.prenom = this.user.prenom;
+      patchValues.adresse = this.user.adresse || '';
+    }
+    
+    this.editForm.patchValue(patchValues);
+    
+    // ✅ Stocker les valeurs originales
+    this.originalFormValues = { ...patchValues };
+    this.formChanged = false;
+    
+    // ✅ Écouter les changements du formulaire
+    this.editForm.valueChanges.subscribe(() => {
+      this.checkFormChanges();
+    });
+    
+    this.imagePreview = this.user.image || null;
+    this.imageBase64 = null;
+    this.selectedImage = null;
+    this.isInfoModalOpen = true;
+    
+    this.mapReady = false;
+    setTimeout(() => {
+      this.mapReady = true;
+    }, 300);
+  }
+
+checkFormChanges(): void {
+    const currentValues = this.editForm.value;
+    // Comparer les valeurs (exclure les champs vides/null)
+    const originalCleaned = this.cleanFormValues(this.originalFormValues);
+    const currentCleaned = this.cleanFormValues(currentValues);
+    this.formChanged = JSON.stringify(currentCleaned) !== JSON.stringify(originalCleaned);
+    
+    // Vérifier aussi si une nouvelle image a été sélectionnée
+    if (this.selectedImage) {
+      this.formChanged = true;
     }
   }
-  
-  this.editForm.patchValue({
-    nom: this.user.nom,
-    prenom: this.user.prenom,
-    email: this.user.email,
-    phoneNumber: this.user.phoneNumber,
-    birthDate: formattedBirthDate,
-    adresse: this.user.adresse || '',
-    nomMagasin: this.user.nom || ''
-  });
-  
-  this.imagePreview = this.user.image || null;
-  this.imageBase64 = null;
-  this.selectedImage = null;
-  this.isInfoModalOpen = true;
-  
-  this.mapReady = false;
-  setTimeout(() => {
-    this.mapReady = true;
-  }, 300);
-}
 
+  // Nettoyer les valeurs null/undefined pour la comparaison
+  cleanFormValues(values: any): any {
+    const cleaned: any = {};
+    Object.keys(values).forEach(key => {
+      if (values[key] !== null && values[key] !== undefined && values[key] !== '') {
+        cleaned[key] = values[key];
+      }
+    });
+    return cleaned;
+  }
 
+  isSubmitDisabled(): boolean {
+    return this.editForm.invalid || this.saving || !this.formChanged;
+  }
 
   openPasswordModal(): void {
     this.passwordForm.reset();
@@ -306,35 +445,15 @@ saveInfo(): void {
   console.log('Valeurs du formulaire:', this.editForm.value);
   
   if (this.editForm.invalid) {
-    const errors = [];
-    if (this.editForm.get('nom')?.errors) errors.push('Nom invalide');
-    if (this.editForm.get('prenom')?.errors) errors.push('Prénom invalide');
-    if (this.editForm.get('email')?.errors) errors.push('Email invalide');
-    if (this.editForm.get('phoneNumber')?.errors) errors.push('Téléphone invalide (8 chiffres)');
-    if (this.editForm.get('birthDate')?.errors) errors.push('Date de naissance invalide (18 ans minimum)');
-     // ✅ AJOUTER CETTE LIGNE POUR LE NOM DU MAGASIN
-    if (this.user.role === 'Commercant' && this.editForm.get('nomMagasin')?.errors) {
-    const nomMagasinErrors = this.editForm.get('nomMagasin')?.errors;
-    if (nomMagasinErrors?.['required']) {
-      errors.push('Nom du magasin requis');
-    } else if (nomMagasinErrors?.['minlength']) {
-      errors.push('Nom du magasin minimum 3 caractères');
-    } else if (nomMagasinErrors?.['maxlength']) {
-      errors.push('Nom du magasin maximum 50 caractères');
-    } else if (nomMagasinErrors?.['pattern']) {
-      errors.push('Nom du magasin : uniquement lettres et chiffres (pas d\'espaces)');
-    }
-  }
-    console.error('❌ Formulaire invalide:', errors);
-    this.showAlert('error', 'Formulaire invalide', errors.join(', '));
+    Object.keys(this.editForm.controls).forEach(key => {
+      this.editForm.get(key)?.markAsTouched();
+    });
     return;
   }
 
   this.saving = true;
   const formValue = this.editForm.value;
-  console.log('📤 Envoi des données de mise à jour...');
   
-  // Construire le payload selon le rôle
   let payload: any = {};
   let serviceCall: Observable<ApiResponse<User>>;
   
@@ -342,108 +461,114 @@ saveInfo(): void {
     payload = {
       nom: formValue.nom,
       prenom: formValue.prenom,
-      phoneNumber: formValue.phoneNumber,
-      birthDate: formValue.birthDate,
+      phoneNumber: formValue.phoneNumber || null,
+      birthDate: formValue.birthDate || null,
       email: formValue.email
     };
     if (this.imageBase64) payload.image = this.imageBase64;
-    console.log('📦 Payload Technicien:', { ...payload, image: payload.image ? 'present' : 'absent' });
     serviceCall = this.userService.updateTechnicienProfile(payload);
     
   } else if (this.user.role === 'Commercant') {
     payload = {
-      nomMagasin: formValue.nomMagasin || formValue.nom,
-      phoneNumber: formValue.phoneNumber,
-      adresse: formValue.adresse,
+      nomMagasin: formValue.nomMagasin,
+      phoneNumber: formValue.phoneNumber || null,
+      adresse: formValue.adresse || null,
       email: formValue.email
     };
     if (this.imageBase64) payload.image = this.imageBase64;
-    console.log('📦 Payload Commercant:', { ...payload, image: payload.image ? 'present' : 'absent' });
     serviceCall = this.userService.updateCommercantProfile(payload);
     
-  } else {
+  } else { // Admin
     payload = {
-      userName: formValue.nom,
       nom: formValue.nom,
       prenom: formValue.prenom,
-      phoneNumber: formValue.phoneNumber,
-      email: formValue.email
+      phoneNumber: formValue.phoneNumber || null,
+      email: formValue.email,
+      birthDate: formValue.birthDate || null
     };
-    if (formValue.birthDate) payload.birthDate = formValue.birthDate;
-    if (formValue.adresse) payload.adresse = formValue.adresse;
     if (this.imageBase64) payload.image = this.imageBase64;
-    console.log('📦 Payload Admin:', { ...payload, image: payload.image ? 'present' : 'absent' });
     serviceCall = this.userService.updateMyProfile(payload);
   }
   
-  console.log('🔄 Appel API en cours...');
+  console.log('📤 Payload envoyé:', payload);
+  
   serviceCall.subscribe({
-    next: (response: ApiResponse<User>) => {
-      console.log('✅ Réponse API reçue:', {
-        resultCode: response.resultCode,
-        message: response.message,
-        hasData: !!response.data,
-        isSuccess: response.isSuccess
-      });
-      
+    next: (response: any) => {
       this.saving = false;
+      // ✅ Log complet de la réponse
+      console.log('📥 Réponse API (type):', typeof response);
+      console.log('📥 Réponse API (contenu):', response);
+      console.log('📥 Réponse API (JSON string):', JSON.stringify(response, null, 2));
       
-      if (response.resultCode === 42) {
-        console.log('📧 Cas: Changement d\'email - OTP envoyé vers:', formValue.email);
+      // ✅ Vérifier si la réponse est un succès
+      // Cas 1: La réponse contient directement l'utilisateur (pas de wrapper)
+      if (response && (response.id || response.email) && !response.resultCode) {
+        console.log('✅ Cas 1: Succès - réponse directe');
+        this.showGlobalSuccess('Profil mis à jour avec succès');
+        this.user = { ...this.user, ...response };
+        this.closeInfoModal();
+        return;
+      }
+      
+      // Cas 2: La réponse a un champ isSuccess ou success
+      if (response && (response.isSuccess === true || response.success === true)) {
+        console.log('✅ Cas 2: Succès - isSuccess/success = true');
+        this.showGlobalSuccess(response.message || 'Profil mis à jour avec succès');
+        if (response.data) {
+          this.user = { ...this.user, ...response.data };
+        }
+        this.closeInfoModal();
+        return;
+      }
+      
+      // Cas 3: resultCode === 0
+      if (response && response.resultCode === 0) {
+        console.log('✅ Cas 3: Succès - resultCode = 0');
+        this.showGlobalSuccess(response.message || 'Profil mis à jour avec succès');
+        if (response.data) {
+          this.user = { ...this.user, ...response.data };
+        }
+        this.closeInfoModal();
+        return;
+      }
+      
+      // Cas OTP email
+      if (response && response.resultCode === 42) {
+        console.log('🔐 Cas OTP Email');
         this.pendingEmailChange = formValue.email;
         this.otpPurpose = 'email';
         this.showOtpModal = true;
         this.closeInfoModal();
         this.showAlert('info', 'Vérification requise', response.message || `Un code OTP a été envoyé à ${formValue.email}`);
-      } 
-      else if (response.resultCode === 43) {
-        console.log('🔐 Cas: Changement de mot de passe - OTP envoyé vers:', this.user.email);
+        return;
+      }
+      
+      // Cas OTP password
+      if (response && response.resultCode === 43) {
+        console.log('🔐 Cas OTP Password');
         this.otpPurpose = 'password';
         this.showOtpModal = true;
         this.closeInfoModal();
         this.showAlert('info', 'Vérification requise', response.message || `Un code OTP a été envoyé à ${this.user.email}`);
+        return;
       }
-      else if (response.resultCode === 0) {
-        console.log('✅ Cas: Mise à jour réussie sans OTP');
-        
-        // ✅ AFFICHER LE MESSAGE DE SUCCÈS EN DEHORS DU MODAL
-        this.showGlobalSuccess(response.message || 'Profil mis à jour avec succès');
-        
-        if (response.data) {
-          this.user = { ...this.user, ...response.data };
-        }
-        this.loadProfile();
-        this.closeInfoModal();
-      }
-      else {
-        console.error('❌ Cas: Erreur serveur - Code:', response.resultCode);
-        this.showAlert('error', 'Erreur', response.message || 'Erreur lors de la mise à jour');
-      }
-      console.log('========== FIN SAVE INFO ==========');
+      
+      // Si on arrive ici, c'est une erreur
+      console.error('❌ Échec de la mise à jour - Réponse non reconnue');
+      this.showAlert('error', 'Erreur', response?.message || response?.error || 'Erreur lors de la mise à jour');
     },
     error: (err: any) => {
-      console.error('❌ ERREUR HTTP:', {
-        status: err.status,
-        statusText: err.statusText,
-        message: err.message,
-        error: err.error
-      });
-      
+      console.error('❌ Erreur HTTP:', err);
       this.saving = false;
-      let errorMessage = 'Erreur lors de la mise à jour';
       
+      let errorMessage = 'Erreur lors de la mise à jour';
       if (err.error?.message) {
         errorMessage = err.error.message;
-        if (errorMessage.includes('email déjà utilisé')) {
-          errorMessage = 'Cet email est déjà utilisé par un autre compte';
-        } else if (errorMessage.includes('téléphone déjà utilisé')) {
-          errorMessage = 'Ce numéro de téléphone est déjà utilisé';
-        }
+      } else if (err.message) {
+        errorMessage = err.message;
       }
       
-      // ✅ Les erreurs restent DANS le modal
       this.showAlert('error', 'Erreur de mise à jour', errorMessage);
-      console.log('========== FIN SAVE INFO (ERREUR) ==========');
     }
   });
 }
@@ -815,11 +940,7 @@ showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, mess
     autoCloseTimeout: null
   };
   
-  // ✅ Pour les erreurs et avertissements, scroller automatiquement vers l'alerte
-  if (variant === 'error' || variant === 'warning') {
-    this.scrollToAlertInModal();
-  }
-  
+  // ✅ Pour les erreurs, ne pas fermer automatiquement trop vite
   if (variant === 'success') {
     this.alert.autoCloseTimeout = setTimeout(() => {
       this.clearAlert();

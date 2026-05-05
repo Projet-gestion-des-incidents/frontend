@@ -84,7 +84,9 @@ export class UpdateTechnicienComponent implements OnInit {
   technicienId: string | null = null;
     maxBirthDateISO: string = '';
  minBirthDateISO: string = ''; // ✅ Ajout de la date minimale
-  
+  originalFormValues: any = {}; // Stocker les valeurs originales
+  formChanged = false; // Indique si le formulaire a été modifié
+
   // Alert
   alert: Alert = {
     show: false,
@@ -165,53 +167,72 @@ validateAge(control: any): { [key: string]: boolean } | null {
       dateInput.showPicker(); // Fonctionne dans les navigateurs modernes
     }
   }
-loadTechnicienData(): void {
-  this.loading = true;
-  console.log('🔄 Chargement du technicien ID:', this.technicienId);
+
+  checkFormChanges(): void {
+    const currentValues = this.technicienForm.value;
+    this.formChanged = JSON.stringify(currentValues) !== JSON.stringify(this.originalFormValues);
+  }
+
+  // ✅ Vérifier si le bouton doit être désactivé
+  isSubmitDisabled(): boolean {
+    return this.technicienForm.invalid || this.loading || !this.formChanged;
+  }
   
-  this.userService.getTechnicienById(this.technicienId!).subscribe({
-    next: (technicien) => {
-      console.log('🎯 Technicien trouvé:', technicien);
-      
-      if (technicien) {
-        // ✅ CORRECTION : Formater la date sans utiliser toISOString()
-        let birthDateValue = '';
-        if (technicien.birthDate) {
-          const date = new Date(technicien.birthDate);
-          if (!isNaN(date.getTime())) {
-            // Extraire directement l'année, mois, jour du fuseau local
-            const year = date.getFullYear();
-            const month = String(date.getMonth() + 1).padStart(2, '0');
-            const day = String(date.getDate()).padStart(2, '0');
-            birthDateValue = `${year}-${month}-${day}`;
-            console.log('Date originale:', technicien.birthDate);
-            console.log('Date formatée locale:', birthDateValue);
+loadTechnicienData(): void {
+    this.loading = true;
+    console.log('🔄 Chargement du technicien ID:', this.technicienId);
+    
+    this.userService.getTechnicienById(this.technicienId!).subscribe({
+      next: (technicien) => {
+        console.log('🎯 Technicien trouvé:', technicien);
+        
+        if (technicien) {
+          let birthDateValue = '';
+          if (technicien.birthDate) {
+            const date = new Date(technicien.birthDate);
+            if (!isNaN(date.getTime())) {
+              const year = date.getFullYear();
+              const month = String(date.getMonth() + 1).padStart(2, '0');
+              const day = String(date.getDate()).padStart(2, '0');
+              birthDateValue = `${year}-${month}-${day}`;
+            }
           }
+          
+          const formValues = {
+            userName: technicien.userName || '',
+            email: technicien.email || '',
+            nom: technicien.nom || '',
+            prenom: technicien.prenom || '',
+            phoneNumber: technicien.phoneNumber || '',
+            birthDate: birthDateValue
+          };
+          
+          this.technicienForm.patchValue(formValues);
+          
+          // ✅ Stocker les valeurs originales
+          this.originalFormValues = { ...formValues };
+          
+          // ✅ Écouter les changements du formulaire
+          this.technicienForm.valueChanges.subscribe(() => {
+            this.checkFormChanges();
+          });
+          
+          console.log('✅ Formulaire après patch:', this.technicienForm.value);
+        } else {
+          this.showAlert('error', 'Erreur', 'Technicien non trouvé');
         }
-        
-        this.technicienForm.patchValue({
-          userName: technicien.userName || '',
-          email: technicien.email || '',
-          nom: technicien.nom || '',
-          prenom: technicien.prenom || '',
-          phoneNumber: technicien.phoneNumber || '',
-          birthDate: birthDateValue
-        });
-        
-        console.log('✅ Formulaire après patch:', this.technicienForm.value);
-      } else {
-        this.showAlert('error', 'Erreur', 'Technicien non trouvé');
+        this.loading = false;
+      },
+      error: (error) => {
+        console.error('❌ Erreur chargement:', error);
+        const errorMessage = error.error?.message || error.message || 'Impossible de charger les données du technicien';
+        this.showAlert('error', 'Erreur', errorMessage);
+        this.loading = false;
       }
-      this.loading = false;
-    },
-    error: (error) => {
-      console.error('❌ Erreur chargement:', error);
-      const errorMessage = error.error?.message || error.message || 'Impossible de charger les données du technicien';
-      this.showAlert('error', 'Erreur', errorMessage);
-      this.loading = false;
-    }
-  });
-}
+    });
+  }
+
+  
 
   onSubmit(): void {
     if (this.technicienForm.invalid) {

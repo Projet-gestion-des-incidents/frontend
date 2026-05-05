@@ -25,7 +25,8 @@ export class UpdateCommercantComponent implements OnInit {
   loading = false;
   isAdmin = false;
   commercantId: string | null = null;
-  
+  originalFormValues: any = {};
+  formChanged = false;
   // Alert
   alert: Alert = {
     show: false,
@@ -72,23 +73,33 @@ export class UpdateCommercantComponent implements OnInit {
     }
   }
 
-  loadCommercantData(): void {
+ loadCommercantData(): void {
     this.loading = true;
     console.log('🔄 Chargement du commerçant ID:', this.commercantId);
     
-    // ✅ Utiliser getCommercantById au lieu de getCommercants
     this.userService.getCommercantById(this.commercantId!).subscribe({
       next: (commercant) => {
         console.log('🎯 Commerçant trouvé:', commercant);
         
         if (commercant) {
-          this.commercantForm.patchValue({
+          const formValues = {
             nomMagasin: commercant.nomMagasin || '',
             adresse: commercant.adresse || '',
             email: commercant.email || '',
             phoneNumber: commercant.phoneNumber || '',
             statut: commercant.statut || 'Actif'
+          };
+          
+          this.commercantForm.patchValue(formValues);
+          
+          // ✅ Stocker les valeurs originales
+          this.originalFormValues = { ...formValues };
+          
+          // ✅ Écouter les changements du formulaire
+          this.commercantForm.valueChanges.subscribe(() => {
+            this.checkFormChanges();
           });
+          
           console.log('✅ Formulaire après patch:', this.commercantForm.value);
         } else {
           this.showAlert('error', 'Erreur', 'Commerçant non trouvé');
@@ -104,6 +115,14 @@ export class UpdateCommercantComponent implements OnInit {
     });
   }
 
+checkFormChanges(): void {
+    const currentValues = this.commercantForm.value;
+    this.formChanged = JSON.stringify(currentValues) !== JSON.stringify(this.originalFormValues);
+  }
+
+  isSubmitDisabled(): boolean {
+    return this.commercantForm.invalid || this.loading || !this.formChanged;
+  }
   onSubmit(): void {
     if (this.commercantForm.invalid) {
       Object.keys(this.commercantForm.controls).forEach(key => {
