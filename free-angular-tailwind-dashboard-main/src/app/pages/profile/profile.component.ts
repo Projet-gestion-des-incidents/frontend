@@ -130,7 +130,8 @@ registerLocaleData(localeFr);
 export class ProfileComponent implements OnInit {
   user!: User;
   loading = true;
-  
+  maxBirthDateISO: string = '';
+  minBirthDateISO: string = '';
   // Modals
   isInfoModalOpen = false;
   isPasswordModalOpen = false;
@@ -175,7 +176,12 @@ originalFormValues: any = {};
     private fb: FormBuilder,
     private userService: UserService,
         private otpService: OtpService
-  ) {}
+  ) {const today = new Date();
+  const minDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
+  this.maxBirthDateISO = minDate.toISOString().split('T')[0];
+  
+  // Date minimale (année 1900)
+  this.minBirthDateISO = '1900-01-01';}
 
   ngOnInit(): void {
     this.loadProfile();
@@ -243,12 +249,12 @@ originalFormValues: any = {};
     nom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
     prenom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
     email: ['', [Validators.required, Validators.email]],
-    phoneNumber: ['', [phoneNumberValidator]],
-    birthDate: ['', [birthDateValidator]],
+    phoneNumber: ['', [Validators.required,phoneNumberValidator]],
+    birthDate: ['', [Validators.required,birthDateValidator]],
     
     // Pour Commercant uniquement
     adresse: [''],
-    nomMagasin: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30), nomMagasinValidator]]
+    nomMagasin: ['', [Validators.required, Validators.minLength(2), Validators.maxLength(20), nomMagasinValidator]]
   });
   
   // Mettre à jour les validations en fonction du rôle
@@ -265,22 +271,41 @@ private updateValidationsForRole(): void {
   const nomControl = this.editForm.get('nom');
   const prenomControl = this.editForm.get('prenom');
   const nomMagasinControl = this.editForm.get('nomMagasin');
+  const phoneNumberControl = this.editForm.get('phoneNumber');
+  const birthDateControl = this.editForm.get('birthDate');
+  const adresseControl = this.editForm.get('adresse');
   
   if (this.user?.role === 'Commercant') {
     // Pour commerçant : nomMagasin requis, nom/prenom pas requis
     nomControl?.clearValidators();
     prenomControl?.clearValidators();
     nomMagasinControl?.setValidators([Validators.required, Validators.minLength(3), Validators.maxLength(30), nomMagasinValidator]);
+    
+    // ✅ Pour commerçant : téléphone et adresse sont requis
+    phoneNumberControl?.setValidators([Validators.required, phoneNumberValidator]);
+    adresseControl?.setValidators([Validators.required]);
+    // Date de naissance non requise pour commerçant
+    birthDateControl?.clearValidators();
+    birthDateControl?.setValidators([birthDateValidator]);
   } else {
     // Pour technicien/admin : nom/prenom requis
     nomControl?.setValidators([Validators.required, Validators.minLength(3), Validators.maxLength(30)]);
     prenomControl?.setValidators([Validators.required, Validators.minLength(3), Validators.maxLength(30)]);
     nomMagasinControl?.clearValidators();
+    
+    // Pour admin/technicien, téléphone et date de naissance sont requis
+    phoneNumberControl?.setValidators([Validators.required, phoneNumberValidator]);
+    birthDateControl?.setValidators([Validators.required, birthDateValidator]);
+    // Adresse optionnelle pour admin/technicien
+    adresseControl?.clearValidators();
   }
   
   nomControl?.updateValueAndValidity();
   prenomControl?.updateValueAndValidity();
   nomMagasinControl?.updateValueAndValidity();
+  phoneNumberControl?.updateValueAndValidity();
+  birthDateControl?.updateValueAndValidity();
+  adresseControl?.updateValueAndValidity();
 }
 
   passwordMatchValidator(group: FormGroup): { [key: string]: boolean } | null {
@@ -917,7 +942,7 @@ openCalendar(): void {
     dateInput.showPicker(); // Fonctionne dans les navigateurs modernes
   }
 }
-maxBirthDateISO: string = '';
+
 
 onBirthDateInputChange(event: any): void {
   const dateValue = event.target.value;
@@ -952,14 +977,46 @@ showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, mess
     message,
     autoCloseTimeout: null
   };
+
   
+   if (variant === 'error') {
+    this.scrollToTopOfModal();
+  }
   // ✅ Pour les erreurs, ne pas fermer automatiquement trop vite
-  if (variant === 'success') {
+  if (variant === 'success' || variant === 'error') {
     this.alert.autoCloseTimeout = setTimeout(() => {
       this.clearAlert();
     }, 5000);
   }
 }
+
+
+/**
+ * Fait défiler le contenu du modal vers le haut
+ */
+private scrollToTopOfModal(): void {
+  setTimeout(() => {
+    // Chercher le conteneur scrollable du modal
+    const modalContent = document.querySelector('.overflow-y-auto.max-h-\\[90vh\\]');
+    
+    if (modalContent) {
+      modalContent.scrollTo({
+        top: 0,
+        behavior: 'smooth'
+      });
+    } else {
+      // Fallback: chercher tout élément scrollable dans le modal
+      const scrollableElement = document.querySelector('.rounded-3xl.overflow-y-auto, .max-h-\\[90vh\\]');
+      if (scrollableElement) {
+        scrollableElement.scrollTo({
+          top: 0,
+          behavior: 'smooth'
+        });
+      }
+    }
+  }, 100); // Petit délai pour que l'alerte soit d'abord ajoutée au DOM
+}
+
 
   clearAlert(): void {
     if (this.alert.autoCloseTimeout) {

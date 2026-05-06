@@ -106,8 +106,8 @@ export class UpdateTechnicienComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       nom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
       prenom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
-      phoneNumber: ['', [Validators.pattern('^[0-9]{8}$')]],
-  birthDate: ['', [ birthDateValidator]]     });
+      phoneNumber: ['', [Validators.required,Validators.pattern('^[0-9]{8}$')]],
+  birthDate: ['', [ Validators.required,birthDateValidator]]     });
  // Calculer la date maximale (18 ans minimum)
     const today = new Date();
     const minDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());

@@ -413,9 +413,9 @@
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               <span *ngIf="editForm.get('nomMagasin')?.errors?.['required']">Le nom du magasin est requis</span>
-              <span *ngIf="editForm.get('nomMagasin')?.errors?.['minlength']">Minimum 3 caractères</span>
-              <span *ngIf="editForm.get('nomMagasin')?.errors?.['maxlength']">Maximum 30 caractères</span>
-              <span *ngIf="editForm.get('nomMagasin')?.errors?.['pattern']">Lettres et chiffres uniquement (pas d'espaces)</span>
+              <span *ngIf="editForm.get('nomMagasin')?.errors?.['minlength']">Minimum 2 caractères</span>
+              <span *ngIf="editForm.get('nomMagasin')?.errors?.['maxlength']">Maximum 20 caractères</span>
+              <span *ngIf="editForm.get('nomMagasin')?.errors?.['nomMagasinInvalid']">Lettres et chiffres uniquement, pas d'espaces</span>
             </div>
           </div>
           
@@ -444,10 +444,11 @@
           </div>
           
           <!-- Téléphone -->
-        <!-- Téléphone -->
+<!-- Téléphone -->
+<!-- Téléphone -->
 <div>
   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-    Téléphone
+    Téléphone <span class="text-red-500">*</span>
   </label>
   <div class="relative">
     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
@@ -459,21 +460,21 @@
       class="w-full pl-10 pr-4 py-3 rounded-xl border border-gray-300 bg-white text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
       [class.border-red-500]="editForm.get('phoneNumber')?.invalid && editForm.get('phoneNumber')?.touched" />
   </div>
-  <!-- ✅ Messages d'erreur pour téléphone -->
   <div *ngIf="editForm.get('phoneNumber')?.touched && editForm.get('phoneNumber')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
     </svg>
-    <span *ngIf="editForm.get('phoneNumber')?.errors?.['pattern']">Le téléphone doit contenir 8 chiffres</span>
-    <span *ngIf="editForm.get('phoneNumber')?.errors?.['invalidPhone']">Le téléphone doit contenir 8 chiffres</span>
+    <span *ngIf="editForm.get('phoneNumber')?.errors?.['required']">Le numéro de téléphone est requis</span>
+    <span *ngIf="editForm.get('phoneNumber')?.errors?.['pattern'] || editForm.get('phoneNumber')?.errors?.['invalidPhone']">Le téléphone doit contenir 8 chiffres</span>
   </div>
 </div>
           <!-- Date de naissance (Technicien/Admin uniquement) -->
-         <!-- Date de naissance (Technicien/Admin uniquement) -->
+<!-- Date de naissance (Technicien/Admin uniquement) -->
 <div *ngIf="user.role !== 'Commercant'">
   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-    Date de naissance
+    Date de naissance <span class="text-red-500">*</span>
   </label>
+  
   <div class="relative">
     <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
       <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -482,18 +483,30 @@
     </div>
     <input 
       type="date" 
-      id="birthDate" 
-      [value]="editForm.get('birthDate')?.value || ''" 
-      (change)="onBirthDateInputChange($event)" 
+      id="birthDate"
+      formControlName="birthDate"
       [max]="maxBirthDateISO"
+      [min]="minBirthDateISO"
       class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
-      [class.border-red-500]="editForm.get('birthDate')?.invalid && editForm.get('birthDate')?.touched" />
+      [class.border-red-500]="editForm.get('birthDate')?.invalid && editForm.get('birthDate')?.touched"
+    />
+    <button 
+      type="button"
+      (click)="openCalendar()"
+      class="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      title="Ouvrir le calendrier"
+    >
+      <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+      </svg>
+    </button>
   </div>
-  <!-- ✅ Messages d'erreur pour date de naissance -->
+  
   <div *ngIf="editForm.get('birthDate')?.touched && editForm.get('birthDate')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
     </svg>
+    <span *ngIf="editForm.get('birthDate')?.errors?.['required']">La date de naissance est requise</span>
     <span *ngIf="editForm.get('birthDate')?.errors?.['invalidDate']">Format de date invalide</span>
     <span *ngIf="editForm.get('birthDate')?.errors?.['futureDate']">La date ne peut pas être dans le futur</span>
     <span *ngIf="editForm.get('birthDate')?.errors?.['underAge']">Vous devez avoir au moins 18 ans</span>
@@ -502,24 +515,33 @@
   </div>
 </div>
           
-          <!-- Adresse (Commercant uniquement) -->
-          <div *ngIf="user.role === 'Commercant'" class="sm:col-span-2">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Adresse</label>
-            <div class="relative mb-3">
-              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-                <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                </svg>
-              </div>
-              <input type="text" formControlName="adresse" placeholder="Adresse du magasin"
-                class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all" />
-            </div>
-            
-            <div *ngIf="isInfoModalOpen && user.role === 'Commercant' && mapReady" class="mt-2 rounded-xl overflow-hidden border border-[#C5C6FF] dark:border-[#8788FF]/30" style="height: 300px;">
-              <app-map (locationSelected)="onLocationSelectedInModal($event)"></app-map>
-            </div>
-          </div>
+        <!-- Adresse (Commercant uniquement) -->
+<div *ngIf="user.role === 'Commercant'" class="sm:col-span-2">
+  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+    Adresse <span class="text-red-500">*</span>
+  </label>
+  <div class="relative mb-3">
+    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
+      <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
+      </svg>
+    </div>
+    <input type="text" formControlName="adresse" placeholder="Adresse du magasin"
+      class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+      [class.border-red-500]="editForm.get('adresse')?.invalid && editForm.get('adresse')?.touched" />
+  </div>
+  <div *ngIf="editForm.get('adresse')?.touched && editForm.get('adresse')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    <span *ngIf="editForm.get('adresse')?.errors?.['required']">L'adresse est requise</span>
+  </div>
+  
+  <div *ngIf="isInfoModalOpen && user.role === 'Commercant' && mapReady" class="mt-2 rounded-xl overflow-hidden border border-[#C5C6FF] dark:border-[#8788FF]/30" style="height: 300px;">
+    <app-map (locationSelected)="onLocationSelectedInModal($event)"></app-map>
+  </div>
+</div>
         </div>
         
         <!-- Boutons d'action -->

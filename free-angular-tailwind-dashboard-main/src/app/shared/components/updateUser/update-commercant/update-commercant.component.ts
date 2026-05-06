@@ -161,7 +161,7 @@ checkFormChanges(): void {
         this.showAlert('success', 'Succès', 'Commerçant mis à jour avec succès');
         setTimeout(() => {
           this.router.navigate(['/commercants']);
-        }, 2000);
+        }, 5000);
       },
       error: (error) => {
         console.error('Erreur mise à jour:', error);
@@ -210,7 +210,7 @@ openMapModal(): void {
     
     setTimeout(() => {
       this.mapAlert.show = false;
-    }, 4000);
+    }, 5000);
   }
 
   // ✅ Modifier closeMapModal
@@ -234,7 +234,7 @@ openMapModal(): void {
         
         setTimeout(() => {
           this.mapAlert.show = false;
-        }, 4000);
+        }, 5000);
         return;
       }
       

@@ -87,7 +87,7 @@ onInvalidLocation(message: string): void {
   
   setTimeout(() => {
     this.mapAlert.show = false;
-  }, 4000);
+  }, 5000);
 }
  openMapModal(): void {
   this.showMapModal = true;
@@ -143,7 +143,7 @@ onLocationSelectedInModal(location: any): void {
       // Auto-hide après 4 secondes
       setTimeout(() => {
         this.mapAlert.show = false;
-      }, 4000);
+      }, 5000);
       return;
     }
     
@@ -316,7 +316,7 @@ onLocationSelectedInModal(location: any): void {
     }
     this.alertTimeout = setTimeout(() => {
       this.clearAlert();
-    }, 8000);
+    }, 5000);
   }
 
   clearAlert() { 
