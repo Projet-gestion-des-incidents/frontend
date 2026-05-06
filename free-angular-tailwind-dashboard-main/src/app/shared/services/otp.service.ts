@@ -61,7 +61,20 @@ export class OtpService {
     };
   }
 // Confirmer le changement d'email avec OTP
+private lastRequestTime: number = 0;
+private lastRequestEmail: string = '';
+
 confirmEmailChange(newEmail: string, otpCode: string): Observable<ApiResponse<string>> {
+  // ✅ Vérifier qu'il ne s'agit pas d'une requête en double
+  const now = Date.now();
+  if (now - this.lastRequestTime < 1000 && this.lastRequestEmail === newEmail) {
+    console.warn('⚠️ Requête en double détectée, ignorée');
+    return throwError(() => new Error('Veuillez patienter avant de réessayer'));
+  }
+  
+  this.lastRequestTime = now;
+  this.lastRequestEmail = newEmail;
+  
   return this.http.post<ApiResponse<string>>(
     `${this.apiUrl}/confirm-email-change`,
     { newEmail, otpCode },

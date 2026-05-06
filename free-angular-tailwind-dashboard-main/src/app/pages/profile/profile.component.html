@@ -728,9 +728,15 @@
   </div>
 </app-modal>
 
+<!-- Dans le template, l'alerte OTP ne doit pas être dans le modal d'info -->
+<!-- Supprimez l'alerte du modal OTP car elle est maintenant dans le modal d'info -->
+
 <!-- Modal OTP pour confirmation -->
-<app-modal [isOpen]="showOtpModal" (close)="showOtpModal = false; otpCode = ''" className="max-w-md m-4">
+<!-- Modal OTP pour confirmation -->
+<app-modal [isOpen]="showOtpModal" (close)="onOtpModalClose()" className="max-w-md m-4">
   <div class="bg-white dark:bg-gray-800 rounded-2xl p-6">
+    
+    <!-- En-tête avec icon -->
     <div class="flex items-center gap-3 mb-4 pb-3 border-b border-gray-200 dark:border-gray-700">
       <div class="w-10 h-10 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/30 flex items-center justify-center">
         <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -749,6 +755,72 @@
       </div>
     </div>
 
+    <!-- ✅ Message d'information dans le modal OTP -->
+    <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
+      <div class="flex items-start gap-2">
+        <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <div>
+          <p class="text-sm font-medium text-blue-800 dark:text-blue-200">
+            Un code de vérification a été envoyé
+          </p>
+          <p class="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
+            {{ otpPurpose === 'email' 
+              ? 'Veuillez vérifier votre nouvelle adresse email (pensez à vos spams).' 
+              : 'Veuillez vérifier votre boîte email.' }}
+          </p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- ✅ Alerte pour les messages (succès/erreur) dans le modal OTP -->
+    <div *ngIf="alert.show && showOtpModal" class="mb-4">
+      <div class="rounded-xl border p-3 flex items-start justify-between"
+           [ngClass]="{
+             'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20': alert.variant === 'error',
+             'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20': alert.variant === 'success'
+           }">
+        <div class="flex items-start gap-2">
+          <div class="flex-shrink-0">
+            <div class="w-5 h-5 rounded-full flex items-center justify-center"
+                 [ngClass]="{
+                   'bg-red-100 text-red-600 dark:bg-red-800/50 dark:text-red-400': alert.variant === 'error',
+                   'bg-green-100 text-green-600 dark:bg-green-800/50 dark:text-green-400': alert.variant === 'success'
+                 }">
+              <svg *ngIf="alert.variant === 'error'" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              <svg *ngIf="alert.variant === 'success'" class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+              </svg>
+            </div>
+          </div>
+          <div>
+            <p class="text-sm font-medium"
+               [ngClass]="{
+                 'text-red-800 dark:text-red-200': alert.variant === 'error',
+                 'text-green-800 dark:text-green-200': alert.variant === 'success'
+               }">
+              {{ alert.title }}
+            </p>
+            <p class="text-sm"
+               [ngClass]="{
+                 'text-red-700 dark:text-red-300': alert.variant === 'error',
+                 'text-green-700 dark:text-green-300': alert.variant === 'success'
+               }">
+              {{ alert.message }}
+            </p>
+          </div>
+        </div>
+        <button (click)="clearAlert()" class="text-gray-400 hover:text-gray-600">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+
     <div class="space-y-4">
       <div>
         <app-label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -757,18 +829,18 @@
         <app-input-field 
           type="text"
           [value]="otpCode"
-          (valueChange)="otpCode = $event.toString()"
+          (valueChange)="onOtpCodeChange($event)"
           placeholder="000000"
           maxlength="6"
-          class="w-full text-center text-2xl tracking-widest"
+          class="w-full text-center text-2xl tracking-widest font-mono"
           autofocus
         />
       </div>
 
-      <div class="flex gap-3 pt-4">
+      <div class="flex gap-3 pt-2">
         <button 
           type="button"
-          (click)="showOtpModal = false; otpCode = ''"
+          (click)="onOtpModalClose()"
           class="flex-1 px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors">
           Annuler
         </button>

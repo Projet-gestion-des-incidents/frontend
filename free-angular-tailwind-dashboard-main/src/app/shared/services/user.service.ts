@@ -64,7 +64,10 @@ desactivateUser(id: string) {
 }
 
 
-
+// Dans user.service.ts
+logout(): void {
+  this.authService.logout();
+}
  
 
 // Dans user.service.ts, ajoutez cette méthode

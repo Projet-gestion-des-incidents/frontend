@@ -533,67 +533,58 @@ saveInfo(): void {
   serviceCall.subscribe({
     next: (response: any) => {
       this.saving = false;
-      // ✅ Log complet de la réponse
-      console.log('📥 Réponse API (type):', typeof response);
-      console.log('📥 Réponse API (contenu):', response);
-      console.log('📥 Réponse API (JSON string):', JSON.stringify(response, null, 2));
+      console.log('📥 Réponse API:', response);
       
-      // ✅ Vérifier si la réponse est un succès
-      // Cas 1: La réponse contient directement l'utilisateur (pas de wrapper)
-      if (response && (response.id || response.email) && !response.resultCode) {
-        console.log('✅ Cas 1: Succès - réponse directe');
-        this.showGlobalSuccess('Profil mis à jour avec succès');
-        this.user = { ...this.user, ...response };
+      // ✅ Cas OTP email - Changement d'email
+      if (response.resultCode === 42) {
+        // ✅ Fermer le modal d'info
         this.closeInfoModal();
-        return;
-      }
-      
-      // Cas 2: La réponse a un champ isSuccess ou success
-      if (response && (response.isSuccess === true || response.success === true)) {
-        console.log('✅ Cas 2: Succès - isSuccess/success = true');
-        this.showGlobalSuccess(response.message || 'Profil mis à jour avec succès');
-        if (response.data) {
-          this.user = { ...this.user, ...response.data };
-        }
-        this.closeInfoModal();
-        return;
-      }
-      
-      // Cas 3: resultCode === 0
-      if (response && response.resultCode === 0) {
-        console.log('✅ Cas 3: Succès - resultCode = 0');
-        this.showGlobalSuccess(response.message || 'Profil mis à jour avec succès');
-        if (response.data) {
-          this.user = { ...this.user, ...response.data };
-        }
-        this.closeInfoModal();
-        return;
-      }
-      
-      // Cas OTP email
-      if (response && response.resultCode === 42) {
-        console.log('🔐 Cas OTP Email');
+        
+        // ✅ Réinitialiser l'alerte
+        this.clearAlert();
+        
+        // ✅ Stocker le nouvel email
         this.pendingEmailChange = formValue.email;
         this.otpPurpose = 'email';
+        
+        // ✅ Ouvrir directement le modal OTP avec le message intégré
         this.showOtpModal = true;
-        this.closeInfoModal();
-        this.showAlert('info', 'Vérification requise', response.message || `Un code OTP a été envoyé à ${formValue.email}`);
         return;
       }
       
-      // Cas OTP password
-      if (response && response.resultCode === 43) {
-        console.log('🔐 Cas OTP Password');
+      // ✅ Cas OTP password - Changement de mot de passe
+      if (response.resultCode === 43) {
+        this.closeInfoModal();
+        this.clearAlert();
         this.otpPurpose = 'password';
         this.showOtpModal = true;
-        this.closeInfoModal();
-        this.showAlert('info', 'Vérification requise', response.message || `Un code OTP a été envoyé à ${this.user.email}`);
         return;
       }
       
-      // Si on arrive ici, c'est une erreur
-      console.error('❌ Échec de la mise à jour - Réponse non reconnue');
-      this.showAlert('error', 'Erreur', response?.message || response?.error || 'Erreur lors de la mise à jour');
+      // ✅ Succès sans OTP
+      if (response.resultCode === 0 || response.isSuccess === true) {
+        this.showGlobalSuccess(response.message || 'Profil mis à jour avec succès');
+        
+        if (response.data) {
+          this.user = { ...this.user, ...response.data };
+        } else {
+          this.user.nom = formValue.nom;
+          this.user.prenom = formValue.prenom;
+          this.user.email = formValue.email;
+          this.user.phoneNumber = formValue.phoneNumber;
+          if (formValue.birthDate) this.user.birthDate = formValue.birthDate;
+          if (formValue.adresse) this.user.adresse = formValue.adresse;
+          if (this.user.role === 'Commercant' && formValue.nomMagasin) {
+            this.user.nom = formValue.nomMagasin;
+          }
+          if (this.imageBase64 && this.imagePreview) this.user.image = this.imagePreview;
+        }
+        
+        this.closeInfoModal();
+      }
+      else if (response.resultCode !== 42 && response.resultCode !== 43) {
+        this.showAlert('error', 'Erreur', response.message || 'Erreur lors de la mise à jour');
+      }
     },
     error: (err: any) => {
       console.error('❌ Erreur HTTP:', err);
@@ -602,13 +593,42 @@ saveInfo(): void {
       let errorMessage = 'Erreur lors de la mise à jour';
       if (err.error?.message) {
         errorMessage = err.error.message;
-      } else if (err.message) {
-        errorMessage = err.message;
+        if (errorMessage.includes('email déjà utilisé')) {
+          errorMessage = 'Cet email est déjà utilisé par un autre compte';
+        } else if (errorMessage.includes('téléphone déjà utilisé')) {
+          errorMessage = 'Ce numéro de téléphone est déjà utilisé';
+        }
       }
       
       this.showAlert('error', 'Erreur de mise à jour', errorMessage);
     }
   });
+}
+
+/**
+ * Gère le changement du code OTP et efface l'alerte d'erreur
+ */
+onOtpCodeChange(value: any): void {
+  this.otpCode = value.toString();
+  if (this.alert.show && this.alert.variant === 'error' && this.showOtpModal) {
+    this.clearAlert();
+  }
+}
+
+/**
+ * Appelé quand le modal OTP est fermé
+ */
+/**
+ * Appelé quand le modal OTP est fermé
+ */
+onOtpModalClose(): void {
+  this.showOtpModal = false;
+  this.otpCode = '';
+  this.pendingEmailChange = '';
+  this.pendingPasswordChange = '';
+  this.otpPurpose = 'email';
+  this.otpLoading = false;
+  this.clearAlert();
 }
 
 private showGlobalSuccess(message: string): void {
@@ -799,61 +819,143 @@ changePassword(): void {
   });
 }
 confirmWithOtp(): void {
-  console.log('========== DÉBUT CONFIRM OTP ==========');
-  console.log('Purpose:', this.otpPurpose);
-  console.log('OTP Code saisi:', this.otpCode);
-  console.log('Pending Email:', this.pendingEmailChange);
-  console.log('Pending Password:', this.pendingPasswordChange ? '***' : 'null');
-  
   if (this.otpPurpose === 'email') {
+    this.otpLoading = true;
+    
+    // ✅ Nettoyer l'alerte précédente
+    this.clearAlert();
+    
     this.otpService.confirmEmailChange(this.pendingEmailChange, this.otpCode).subscribe({
       next: (response) => {
         this.otpLoading = false;
+        console.log('📥 Réponse confirmation email:', response);
+        
+        // ✅ Gestion des différents codes d'erreur
         if (response.resultCode === 0) {
           console.log('✅ Email changé avec succès');
-          this.showOtpModal = false;
           
-          // ✅ AFFICHER LE MESSAGE DE SUCCÈS EN DEHORS DU MODAL
-          this.showGlobalSuccess(response.message || 'Email modifié avec succès');
+          // ✅ Afficher le message de succès dans le modal OTP
+          this.alert = {
+            show: true,
+            variant: 'success',
+            title: 'Succès',
+            message: response.message || 'Email modifié avec succès. Vous allez être déconnecté dans 5 secondes.',
+            autoCloseTimeout: null
+          };
           
-          this.user.email = this.pendingEmailChange;
-          this.loadProfile();
+          // ✅ Fermer le modal OTP après 5 secondes et déconnecter
+          setTimeout(() => {
+            this.showOtpModal = false;
+            this.clearAlert();
+            
+            // ✅ Déconnexion après la fermeture du modal
+            setTimeout(() => {
+              this.userService.logout();
+            }, 500);
+          }, 5000);
+          
+        } else if (response.resultCode === 30) {
+          // Code OTP invalide
+          this.showAlertInOtpModal('error', 'Code invalide', 'Le code OTP que vous avez saisi est incorrect. Veuillez réessayer.');
+        } else if (response.resultCode === 31) {
+          // Code expiré
+          this.showAlertInOtpModal('error', 'Code expiré', 'Le code OTP a expiré. Veuillez renvoyer un nouveau code.');
+        } else if (response.resultCode === 32) {
+          // Code déjà utilisé
+          this.showAlertInOtpModal('error', 'Code déjà utilisé', 'Ce code OTP a déjà été utilisé. Veuillez demander un nouveau code.');
         } else {
-          // ✅ Les erreurs restent DANS le modal OTP
-          this.showAlert('error', 'Erreur', response.message || 'Code OTP invalide');
+          // Autre erreur
+          this.showAlertInOtpModal('error', 'Erreur', response.message || 'Une erreur est survenue lors de la vérification.');
         }
       },
       error: (err) => {
         this.otpLoading = false;
-        // ✅ Les erreurs restent DANS le modal OTP
-        this.showAlert('error', 'Erreur', err.error?.message || 'Erreur lors de la confirmation');
+        console.error('❌ Erreur confirmation email:', err);
+        
+        // ✅ Extraire le code d'erreur de la réponse
+        const errorResponse = err.error;
+        
+        if (errorResponse?.resultCode === 30) {
+          this.showAlertInOtpModal('error', 'Code invalide', 'Le code OTP que vous avez saisi est incorrect. Veuillez réessayer.');
+        } else if (errorResponse?.resultCode === 31) {
+          this.showAlertInOtpModal('error', 'Code expiré', 'Le code OTP a expiré. Veuillez renvoyer un nouveau code.');
+        } else if (errorResponse?.resultCode === 32) {
+          this.showAlertInOtpModal('error', 'Code déjà utilisé', 'Ce code OTP a déjà été utilisé. Veuillez demander un nouveau code.');
+        } else {
+          this.showAlertInOtpModal('error', 'Erreur', errorResponse?.message || 'Une erreur est survenue lors de la vérification.');
+        }
       }
     });
   } else {
+    // Changement de mot de passe
+    this.otpLoading = true;
+    this.clearAlert();
+    
     this.otpService.confirmPasswordChange(this.pendingPasswordChange, this.otpCode).subscribe({
       next: (response) => {
         this.otpLoading = false;
+        
         if (response.resultCode === 0) {
-          console.log('✅ Mot de passe changé avec succès');
-          this.showOtpModal = false;
+          this.showAlertInOtpModal('success', 'Succès', response.message || 'Mot de passe modifié avec succès.');
           
-          // ✅ AFFICHER LE MESSAGE DE SUCCÈS EN DEHORS DU MODAL
-          this.showGlobalSuccess(response.message || 'Mot de passe modifié avec succès');
-          
-          this.passwordForm.reset();
-          this.loadProfile();
+          setTimeout(() => {
+            this.showOtpModal = false;
+            this.clearAlert();
+            this.passwordForm.reset();
+          }, 3000);
+        } else if (response.resultCode === 30) {
+          this.showAlertInOtpModal('error', 'Code invalide', 'Le code OTP que vous avez saisi est incorrect. Veuillez réessayer.');
+        } else if (response.resultCode === 31) {
+          this.showAlertInOtpModal('error', 'Code expiré', 'Le code OTP a expiré. Veuillez renvoyer un nouveau code.');
         } else {
-          // ✅ Les erreurs restent DANS le modal OTP
-          this.showAlert('error', 'Erreur', response.message || 'Code OTP invalide');
+          this.showAlertInOtpModal('error', 'Erreur', response.message || 'Une erreur est survenue lors de la vérification.');
         }
       },
       error: (err) => {
         this.otpLoading = false;
-        // ✅ Les erreurs restent DANS le modal OTP
-        this.showAlert('error', 'Erreur', err.error?.message || 'Erreur lors de la confirmation');
+        const errorResponse = err.error;
+        
+        if (errorResponse?.resultCode === 30) {
+          this.showAlertInOtpModal('error', 'Code invalide', 'Le code OTP que vous avez saisi est incorrect. Veuillez réessayer.');
+        } else if (errorResponse?.resultCode === 31) {
+          this.showAlertInOtpModal('error', 'Code expiré', 'Le code OTP a expiré. Veuillez renvoyer un nouveau code.');
+        } else {
+          this.showAlertInOtpModal('error', 'Erreur', errorResponse?.message || 'Une erreur est survenue lors de la vérification.');
+        }
       }
     });
   }
+}
+
+/**
+ * Affiche une alerte spécifiquement dans le modal OTP
+ */
+private showAlertInOtpModal(variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string): void {
+  // ✅ Utiliser l'alerte existante mais avec affichage conditionnel dans le modal OTP
+  this.alert = {
+    show: true,
+    variant,
+    title,
+    message,
+    autoCloseTimeout: null
+  };
+  
+  // ✅ Fermeture automatique après 5 secondes pour les succès
+  if (variant === 'success' || variant === 'error') {
+    this.alert.autoCloseTimeout = setTimeout(() => {
+      this.clearAlert();
+    }, 10000);
+  }
+}
+
+// ✅ Ajouter cette méthode pour réinitialiser l'état OTP
+private resetOtpState(): void {
+  this.showOtpModal = false;
+  this.otpCode = '';
+  this.pendingEmailChange = '';
+  this.pendingPasswordChange = '';
+  this.otpPurpose = 'email';
+  this.otpLoading = false;
 }
 
 closeInfoModal(): void {
@@ -978,7 +1080,7 @@ showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, mess
     autoCloseTimeout: null
   };
 
-  
+
    if (variant === 'error') {
     this.scrollToTopOfModal();
   }
