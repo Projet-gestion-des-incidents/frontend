@@ -554,12 +554,18 @@ saveInfo(): void {
       
       // ✅ Cas OTP password - Changement de mot de passe
       if (response.resultCode === 43) {
-        this.closeInfoModal();
-        this.clearAlert();
-        this.otpPurpose = 'password';
-        this.showOtpModal = true;
-        return;
-      }
+  // ✅ Fermer le modal d'info
+  this.closeInfoModal();
+  this.clearAlert();
+  
+  // ✅ Stocker le nouveau mot de passe
+  this.pendingPasswordChange = this.passwordForm.value.newPassword;
+  this.otpPurpose = 'password';
+  
+  // ✅ Ouvrir directement le modal OTP (sans message, l'info est déjà dans le modal)
+  this.showOtpModal = true;
+  return;
+}
       
       // ✅ Succès sans OTP
       if (response.resultCode === 0 || response.isSuccess === true) {
@@ -775,7 +781,6 @@ changePassword(): void {
         this.otpPurpose = 'password';
         this.showOtpModal = true;
         this.closePasswordModal();
-        this.showAlert('info', 'Vérification requise', response.message || `Un code OTP a été envoyé à ${this.user.email}`);
       } 
       else if (response.resultCode === 0) {
         console.log('✅ Cas: Mot de passe changé avec succès');
@@ -785,7 +790,28 @@ changePassword(): void {
       }
       else {
         console.error('❌ Cas: Erreur serveur - Code:', response.resultCode);
-        this.showAlert('error', 'Erreur', response.message || 'Erreur lors du changement de mot de passe');
+        
+        // ✅ Messages d'erreur plus précis en fonction du code
+        let errorTitle = 'Erreur';
+        let errorMessage = response.message || 'Erreur lors du changement de mot de passe';
+        
+        // Analyser le message d'erreur pour être plus précis
+        if (errorMessage.toLowerCase().includes('mot de passe actuel') || 
+            errorMessage.toLowerCase().includes('current password') ||
+            errorMessage.toLowerCase().includes('incorrect')) {
+          errorTitle = 'Mot de passe incorrect';
+          errorMessage = 'Le mot de passe actuel que vous avez saisi est incorrect. Veuillez réessayer.';
+        } else if (errorMessage.toLowerCase().includes('identique') || 
+                   errorMessage.toLowerCase().includes('same as current')) {
+          errorTitle = 'Mot de passe identique';
+          errorMessage = 'Le nouveau mot de passe doit être différent du mot de passe actuel.';
+        } else if (errorMessage.toLowerCase().includes('faible') || 
+                   errorMessage.toLowerCase().includes('weak')) {
+          errorTitle = 'Mot de passe faible';
+          errorMessage = 'Le nouveau mot de passe n\'est pas assez sécurisé. Utilisez au moins 6 caractères avec lettres et chiffres.';
+        }
+        
+        this.showAlert('error', errorTitle, errorMessage);
       }
       console.log('========== FIN CHANGE PASSWORD ==========');
     },
@@ -798,22 +824,39 @@ changePassword(): void {
       });
       
       this.changingPassword = false;
+      let errorTitle = 'Erreur';
       let errorMessage = 'Erreur lors du changement de mot de passe';
       
-      if (err.error?.errors) {
-        // Afficher les erreurs de validation
+      // ✅ Analyser la réponse d'erreur pour être plus précis
+      if (err.error?.message) {
+        errorMessage = err.error.message;
+        
+        if (errorMessage.toLowerCase().includes('mot de passe actuel') || 
+            errorMessage.toLowerCase().includes('current password') ||
+            errorMessage.toLowerCase().includes('incorrect')) {
+          errorTitle = 'Mot de passe incorrect';
+          errorMessage = 'Le mot de passe actuel que vous avez saisi est incorrect. Veuillez réessayer.';
+        } else if (errorMessage.toLowerCase().includes('identique') || 
+                   errorMessage.toLowerCase().includes('same as current')) {
+          errorTitle = 'Mot de passe identique';
+          errorMessage = 'Le nouveau mot de passe doit être différent du mot de passe actuel.';
+        } else if (errorMessage.toLowerCase().includes('faible') || 
+                   errorMessage.toLowerCase().includes('weak')) {
+          errorTitle = 'Mot de passe faible';
+          errorMessage = 'Le nouveau mot de passe n\'est pas assez sécurisé. Utilisez au moins 6 caractères avec lettres et chiffres.';
+        }
+      } else if (err.error?.errors) {
         const validationErrors = Object.values(err.error.errors).flat();
         errorMessage = validationErrors.join(', ');
         console.log('Erreurs de validation:', validationErrors);
-      } else if (err.error?.message) {
-        errorMessage = err.error.message;
-        console.log('Message d\'erreur serveur:', errorMessage);
-        if (errorMessage.includes('incorrect')) {
-          errorMessage = 'Le mot de passe actuel est incorrect';
+        
+        if (errorMessage.toLowerCase().includes('current') || errorMessage.toLowerCase().includes('actuel')) {
+          errorTitle = 'Mot de passe incorrect';
+          errorMessage = 'Le mot de passe actuel que vous avez saisi est incorrect.';
         }
       }
       
-      this.showAlert('error', 'Erreur', errorMessage);
+      this.showAlert('error', errorTitle, errorMessage);
       console.log('========== FIN CHANGE PASSWORD (ERREUR) ==========');
     }
   });
@@ -887,7 +930,7 @@ confirmWithOtp(): void {
       }
     });
   } else {
-    // Changement de mot de passe
+    // ✅ Changement de mot de passe - AVEC DÉCONNEXION comme pour l'email
     this.otpLoading = true;
     this.clearAlert();
     
@@ -896,13 +939,26 @@ confirmWithOtp(): void {
         this.otpLoading = false;
         
         if (response.resultCode === 0) {
-          this.showAlertInOtpModal('success', 'Succès', response.message || 'Mot de passe modifié avec succès.');
+          // ✅ Afficher le message de succès dans le modal OTP
+          this.alert = {
+            show: true,
+            variant: 'success',
+            title: 'Succès',
+            message: response.message || 'Mot de passe modifié avec succès. Vous allez être déconnecté dans 10 secondes.',
+            autoCloseTimeout: null
+          };
           
+          // ✅ Fermer le modal OTP après 10 secondes et déconnecter
           setTimeout(() => {
             this.showOtpModal = false;
             this.clearAlert();
-            this.passwordForm.reset();
-          }, 3000);
+            
+            // ✅ Déconnexion après la fermeture du modal (comme pour l'email)
+            setTimeout(() => {
+              this.userService.logout();
+            }, 500);
+          }, 10000); // 10 secondes
+          
         } else if (response.resultCode === 30) {
           this.showAlertInOtpModal('error', 'Code invalide', 'Le code OTP que vous avez saisi est incorrect. Veuillez réessayer.');
         } else if (response.resultCode === 31) {
@@ -930,8 +986,16 @@ confirmWithOtp(): void {
 /**
  * Affiche une alerte spécifiquement dans le modal OTP
  */
+/**
+ * Affiche une alerte spécifiquement dans le modal OTP
+ */
 private showAlertInOtpModal(variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string): void {
-  // ✅ Utiliser l'alerte existante mais avec affichage conditionnel dans le modal OTP
+  // ✅ Nettoyer l'ancien timeout s'il existe
+  if (this.alert.autoCloseTimeout) {
+    clearTimeout(this.alert.autoCloseTimeout);
+  }
+  
+  // ✅ Afficher l'alerte
   this.alert = {
     show: true,
     variant,
@@ -940,14 +1004,13 @@ private showAlertInOtpModal(variant: 'success' | 'error' | 'warning' | 'info', t
     autoCloseTimeout: null
   };
   
-  // ✅ Fermeture automatique après 5 secondes pour les succès
-  if (variant === 'success' || variant === 'error') {
-    this.alert.autoCloseTimeout = setTimeout(() => {
-      this.clearAlert();
-    }, 10000);
-  }
+  // ✅ Durée : 10 secondes pour les erreurs ET les succès
+  let duration = 10000; // 10 secondes
+  
+  this.alert.autoCloseTimeout = setTimeout(() => {
+    this.clearAlert();
+  }, duration);
 }
-
 // ✅ Ajouter cette méthode pour réinitialiser l'état OTP
 private resetOtpState(): void {
   this.showOtpModal = false;

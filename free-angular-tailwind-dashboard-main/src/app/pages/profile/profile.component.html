@@ -728,10 +728,6 @@
   </div>
 </app-modal>
 
-<!-- Dans le template, l'alerte OTP ne doit pas être dans le modal d'info -->
-<!-- Supprimez l'alerte du modal OTP car elle est maintenant dans le modal d'info -->
-
-<!-- Modal OTP pour confirmation -->
 <!-- Modal OTP pour confirmation -->
 <app-modal [isOpen]="showOtpModal" (close)="onOtpModalClose()" className="max-w-md m-4">
   <div class="bg-white dark:bg-gray-800 rounded-2xl p-6">
@@ -755,7 +751,7 @@
       </div>
     </div>
 
-    <!-- ✅ Message d'information dans le modal OTP -->
+    <!-- ✅ Message d'information unique dans le modal OTP (identique pour email et mot de passe) -->
     <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
       <div class="flex items-start gap-2">
         <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -767,7 +763,7 @@
           </p>
           <p class="text-xs text-blue-700 dark:text-blue-300 mt-0.5">
             {{ otpPurpose === 'email' 
-              ? 'Veuillez vérifier votre nouvelle adresse email (pensez à vos spams).' 
+              ? 'Veuillez vérifier votre NOUVELLE adresse email (pensez à vos spams).' 
               : 'Veuillez vérifier votre boîte email.' }}
           </p>
         </div>
