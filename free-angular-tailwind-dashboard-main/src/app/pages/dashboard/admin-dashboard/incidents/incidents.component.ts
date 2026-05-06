@@ -594,9 +594,9 @@ initPannesParModeleChart() {
   
   // Map des couleurs pastel pour chaque modèle
   const modeleColors: { [key: string]: string } = {
-    'Ingenico': '#67e8f9',  // cyan-300
-    'Verifone': '#86efac',  // green-300  
-    'PAX': '#fde047'        // yellow-300
+    'Ingenico': '#FCA5A5',  // cyan-300
+    'Verifone': '#A7F3D0',  // green-300  
+    'PAX': '#FDE047'        // yellow-300
   };
   
   // Utiliser les couleurs pastel pour chaque modèle
