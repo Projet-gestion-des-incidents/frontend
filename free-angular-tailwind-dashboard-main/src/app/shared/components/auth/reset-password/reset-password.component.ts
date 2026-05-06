@@ -156,7 +156,7 @@ onSubmit(): void {
           
           setTimeout(() => {
             this.router.navigate(['/signin']);
-          }, 2000);
+          }, 5000);
         } else {
           // ✅ Utiliser le handler pour un message plus clair
           this.errorMessage = this.handleErrorMessage(response?.message || 'Une erreur est survenue lors de la réinitialisation.');

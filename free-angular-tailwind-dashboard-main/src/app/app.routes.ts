@@ -52,6 +52,11 @@ import { ArchivesComponent } from './pages/archives/archives.component';
 
 export const routes: Routes = [
   {
+    path: '',
+    redirectTo: '/signin',
+    pathMatch: 'full'
+  },
+  {
     path:'',
     component:AppLayoutComponent,
     children:[
@@ -307,6 +312,7 @@ export const routes: Routes = [
     path: 'reset-password', 
     component: ResetPasswordComponent 
   },
+  
   {
     path:'signin',
     component:SignInComponent,

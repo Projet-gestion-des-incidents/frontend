@@ -98,10 +98,10 @@ export class SigninFormComponent implements OnDestroy {
       this.router.navigate(['/admin-dashboard']);
       break;
     case 'Technicien':
-      this.router.navigate(['/technicien-dashboard']);
+      this.router.navigate(['/tickets']);
       break;
     case 'Commercant':
-      this.router.navigate(['/commercant-dashboard']);
+      this.router.navigate(['/incidents']);
       break;
     
   }
