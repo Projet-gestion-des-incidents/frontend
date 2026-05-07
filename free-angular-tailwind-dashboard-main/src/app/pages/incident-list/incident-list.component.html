@@ -426,7 +426,7 @@
               {{ (selectedSeverite !== undefined ? 1 : 0) + (selectedStatut !== undefined ? 1 : 0) + (selectedDateDetection ? 1 : 0) + (selectedDateResolution ? 1 : 0) }}
             </span>
           </button>
-<div *ngIf="selectedIncidents.size > 0 && userRole === 'Admin'" class="flex items-center gap-2">
+<div *ngIf="selectedIncidents.size > 0" class="flex items-center gap-2">
   <span class="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-lg">
     <ng-container *ngIf="globalSelectionMode">
       {{ totalCount }} sélectionné(s)
@@ -617,7 +617,7 @@
     <table class="min-w-full">
       <thead>
   <tr class="border-y border-gray-100 bg-gray-50 dark:border-gray-800 dark:bg-gray-900">
-    <th *ngIf="userRole === 'Admin'" class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 w-10">
+    <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400 w-10">
 
 </th>
           <th class="px-6 py-4 text-left text-xs font-medium text-gray-500 uppercase tracking-wider dark:text-gray-400">
@@ -642,7 +642,7 @@
       <tbody class="divide-y divide-gray-100 dark:divide-gray-800">
         <tr *ngFor="let incident of filteredIncidents" class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors group">
           <!-- Checkbox de sélection -->
-<td *ngIf="userRole === 'Admin'" class="px-6 py-4">
+<td  class="px-6 py-4">
   <app-checkbox
     [checked]="isSelected(incident.id)"
     [disabled]="!canSelectIncident(incident)"
@@ -846,7 +846,7 @@
         <p class="text-xs text-gray-500 mb-2 font-medium">Incidents concernés :</p>
         <ul class="space-y-1">
           <li *ngFor="let incident of confirmArchives" class="text-sm text-gray-700 dark:text-gray-300">
-            • {{ incident.codeIncident }} - {{ incident.statutIncidentLibelle || 'Fermé' }}
+            • {{ incident.codeIncident }}
           </li>
         </ul>
       </div>

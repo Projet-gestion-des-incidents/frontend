@@ -42,7 +42,16 @@ export class TicketsComponent implements OnInit {
   tickets: any[] = [];
   filteredTickets: any[] = [];
   searchTerm: string = '';
-  
+  // Ajoutez ces propriétés avec les autres déclarations
+showMultiArchiveModal: boolean = false;
+showMultiDeleteModal: boolean = false;
+confirmArchiveTickets: TicketDTO[] = [];
+confirmDeleteTickets: TicketDTO[] = [];
+bulkArchiving: boolean = false;
+bulkDeletingSelected: boolean = false;
+pendingArchiveIds: string[] = [];
+pendingDeleteIds: string[] = [];
+cachedSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
   // Gestion des rôles
   userRole: string | null = null;
   isAdmin: boolean = false;
@@ -82,7 +91,7 @@ export class TicketsComponent implements OnInit {
   deletingSelected: boolean = false;
   
   // Sélection multiple
-  selectedTickets: string[] = [];
+selectedTickets: Set<string> = new Set<string>();
 
   constructor(
     private ticketService: TicketService,
@@ -136,8 +145,387 @@ cancelArchive(): void {
   this.ticketToArchive = null;
   this.archiving = false;
 }
+// ========== GESTION DE LA SÉLECTION PAR STATUT ==========
 
+/**
+ * Vérifie si un ticket peut être sélectionné
+ * - Admin: suit la logique de type (si on a commencé avec des supprimables, on ne peut prendre que des supprimables)
+ * - Technicien: ne peut sélectionner que les tickets résolus (archivables)
+ */
+canSelectTicket(ticket: any): boolean {
+  // ✅ Toujours désactiver les tickets "En cours" quel que soit le contexte
+  if (ticket.statutTicketLibelle === 'En cours') {
+    return false;
+  }
+  
+  // Technicien: ne peut sélectionner que les tickets résolus
+  if (this.isTechnicien) {
+    return ticket.statutTicketLibelle === 'Résolu';
+  }
+  
+  // Admin: logique de type
+  if (this.isAdmin) {
+    // Si aucune sélection en cours, tout est sélectionnable (sauf En cours déjà filtré)
+    if (this.selectedTickets.size === 0 && this.currentSelectionType === null) {
+      return true;
+    }
+    
+    const isArchivable = ticket.statutTicketLibelle === 'Résolu';
+    const isDeletable = ticket.statutTicketLibelle === 'Assigné' || ticket.statutTicketLibelle === 'Non assigné';
+    
+    // Cas spécial: ticket déjà sélectionné, toujours permettre la désélection
+    if (this.isSelected(ticket.id)) {
+      return true;
+    }
+    
+    // Si on a commencé par des tickets archivables, on ne peut sélectionner que des archivables
+    if (this.currentSelectionType === 'archivable' && !isArchivable) {
+      return false;
+    }
+    
+    // Si on a commencé par des tickets supprimables, on ne peut sélectionner que des supprimables (Assigné ou Non assigné)
+    if (this.currentSelectionType === 'deletable' && !isDeletable) {
+      return false;
+    }
+    
+    return true;
+  }
+  
+  return false;
+}
+currentSelectionType: 'archivable' | 'deletable' | null = null;
+
+/**
+ * Met à jour les statistiques de la sélection avec le rôle pris en compte
+ */
+// Ajoutez cette propriété avec les autres
+globalSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
+
+// Modifiez updateSelectionStats pour qu'elle ne soit utilisée que pour mettre à jour les stats
+// et non pour afficher le compteur sur le bouton
+updateSelectionStats(): void {
+  let archivable = 0;
+  let deletable = 0;
+  let other = 0;
+  
+  // ✅ Calculer les stats pour la page courante
+  this.selectedTickets.forEach(id => {
+    const ticket = this.tickets.find(t => t.id === id);
+    if (ticket) {
+      if (ticket.statutTicketLibelle === 'Résolu') {
+        archivable++;
+      } else if (this.isAdmin && ticket.statutTicketLibelle === 'Assigné') {
+        deletable++;
+      } else {
+        other++;
+      }
+    }
+  });
+  
+  this.cachedSelectionStats = { archivable, deletable, other, total: this.selectedTickets.size };
+}
+
+// Ajoutez cette méthode pour calculer les stats globales
+calculateGlobalSelectionStats(): void {
+  if (this.selectedTickets.size === 0) {
+    this.globalSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
+    return;
+  }
+  
+  const params: any = {
+    page: 1,
+    pageSize: this.totalCount,
+    searchTerm: this.searchTerm || null,
+    statut: this.selectedStatut ?? null,
+    priorite: this.selectedPriorite ?? null,
+    dateDebut: this.tempFilters.dateDebut || null
+  };
+  
+  this.ticketService.getTicketsPaged(params).subscribe({
+    next: (res) => {
+      const allTickets = res.data.items;
+      let archivable = 0;
+      let deletable = 0;
+      let other = 0;
+      
+      this.selectedTickets.forEach(id => {
+        const ticket = allTickets.find((t: any) => t.id === id);
+        if (ticket) {
+          if (ticket.statutTicketLibelle === 'Résolu') {
+            archivable++;
+          } else if (this.isAdmin && ticket.statutTicketLibelle === 'Assigné') {
+            deletable++;
+          } else {
+            other++;
+          }
+        }
+      });
+      
+      this.globalSelectionStats = { archivable, deletable, other, total: this.selectedTickets.size };
+    },
+    error: (err) => {
+      console.error('Erreur calcul stats globales:', err);
+      this.globalSelectionStats = { ...this.cachedSelectionStats };
+    }
+  });
+}
 // Dans tickets.component.ts, modifiez la méthode confirmArchive :
+// ========== GESTION DE L'ARCHIVAGE MULTIPLE ==========
+
+/**
+ * Ouvre la modale d'archivage multiple
+ */
+confirmArchiveMultiple(): void {
+  if (this.selectedTickets.size === 0 ) return;
+  
+  this.loading = true;
+  
+  // Récupérer les tickets sélectionnés depuis l'API pour avoir toutes les infos
+  const params: any = {
+    page: 1,
+    pageSize: this.totalCount,
+    searchTerm: this.searchTerm || null,
+    statut: this.selectedStatut ?? null,
+    priorite: this.selectedPriorite ?? null,
+    dateDebut: this.tempFilters.dateDebut || null
+  };
+  
+  this.ticketService.getTicketsPaged(params).subscribe({
+    next: (res) => {
+      const allTickets = res.data.items;
+      // ✅ Ajouter le type explicite pour le paramètre 't'
+      this.confirmArchiveTickets = allTickets.filter((t: TicketDTO) => 
+        this.selectedTickets.has(t.id) && 
+        t.statutTicketLibelle === 'Résolu'
+      );
+      
+      this.pendingArchiveIds = this.confirmArchiveTickets.map((t: TicketDTO) => t.id);
+      this.showMultiArchiveModal = true;
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('Erreur chargement tickets pour archivage:', err);
+      this.loading = false;
+      // Fallback: utiliser les tickets de la page courante
+      this.confirmArchiveTickets = this.tickets.filter((t: any) => 
+        this.selectedTickets.has(t.id) && 
+        t.statutTicketLibelle === 'Résolu'
+      );
+      this.pendingArchiveIds = this.confirmArchiveTickets.map((t: any) => t.id);
+      this.showMultiArchiveModal = true;
+    }
+  });
+}
+
+/**
+ * Exécute l'archivage multiple
+ */
+executeMultiArchive(): void {
+  if (this.pendingArchiveIds.length === 0) return;
+  
+  this.bulkArchiving = true;
+  let completed = 0;
+  const total = this.pendingArchiveIds.length;
+  let successCount = 0;
+  
+  this.pendingArchiveIds.forEach(id => {
+    this.ticketService.archiverTicket(id).subscribe({
+      next: (response) => {
+        if (response.isSuccess) {
+          const index = this.tickets.findIndex(t => t.id === id);
+          if (index !== -1) this.tickets.splice(index, 1);
+          
+          this.selectedTickets.delete(id);  // utiliser delete
+          successCount++;
+        }
+        completed++;
+        
+        if (completed === total) {
+          this.bulkArchiving = false;
+          this.showMultiArchiveModal = false;
+          this.pendingArchiveIds = [];
+          this.confirmArchiveTickets = [];
+          
+          this.totalCount = this.tickets.length;
+          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+          
+          this.updateSelectionStats();
+          
+          if (successCount === total) {
+            this.showAlert('success', 'Succès', `${total} ticket(s) archivé(s) avec succès.`);
+          } else if (successCount > 0) {
+            this.showAlert('warning', 'Archivage partiel', `${successCount} ticket(s) archivé(s), ${total - successCount} échec(s).`);
+          }
+          this.loadTickets();
+        }
+      },
+      error: (err) => {
+        console.error(`Erreur archivage ${id}:`, err);
+        completed++;
+        if (completed === total) {
+          this.bulkArchiving = false;
+          this.showMultiArchiveModal = false;
+          this.pendingArchiveIds = [];
+          this.confirmArchiveTickets = [];
+          this.updateSelectionStats();
+          this.showAlert('error', 'Erreur', `${successCount}/${total} ticket(s) archivé(s).`);
+          this.loadTickets();
+        }
+      }
+    });
+  });
+}
+/**
+ * Annule l'archivage multiple
+ */
+cancelMultiArchive(): void {
+  this.showMultiArchiveModal = false;
+  this.confirmArchiveTickets = [];
+  this.pendingArchiveIds = [];
+  this.bulkArchiving = false;
+}
+
+// ========== GESTION DE LA SUPPRESSION MULTIPLE ==========
+
+/**
+ * Ouvre la modale de suppression multiple (Admin uniquement)
+ */
+confirmDeleteMultiple(): void {
+  if (this.selectedTickets.size === 0) return;
+  
+  this.loading = true;
+  
+  const params: any = {
+    page: 1,
+    pageSize: this.totalCount,
+    searchTerm: this.searchTerm || null,
+    statut: this.selectedStatut ?? null,
+    priorite: this.selectedPriorite ?? null,
+    dateDebut: this.tempFilters.dateDebut || null
+  };
+  
+  this.ticketService.getTicketsPaged(params).subscribe({
+    next: (res) => {
+      const allTickets = res.data.items;
+      // ✅ Ne garder que les tickets avec statut "Assigné"
+      this.confirmDeleteTickets = allTickets.filter((t: TicketDTO) => 
+        this.selectedTickets.has(t.id) && 
+        t.statutTicketLibelle === 'Assigné'
+      );
+      
+      this.pendingDeleteIds = this.confirmDeleteTickets.map((t: TicketDTO) => t.id);
+      this.showMultiDeleteModal = true;
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('Erreur chargement tickets pour suppression:', err);
+      this.loading = false;
+      this.confirmDeleteTickets = this.tickets.filter((t: any) => 
+        this.selectedTickets.has(t.id) && 
+        t.statutTicketLibelle === 'Assigné'
+      );
+      this.pendingDeleteIds = this.confirmDeleteTickets.map((t: any) => t.id);
+      this.showMultiDeleteModal = true;
+    }
+  });
+}
+/**
+ * Exécute la suppression multiple (Admin uniquement)
+ */
+executeMultiDelete(): void {
+  if (this.pendingDeleteIds.length === 0) return;
+  
+  this.bulkDeletingSelected = true;
+  let completed = 0;
+  const total = this.pendingDeleteIds.length;
+  let successCount = 0;
+  
+  this.pendingDeleteIds.forEach(id => {
+    this.ticketService.deleteTicket(id).subscribe({
+      next: (response) => {
+        if (response.isSuccess) {
+          const index = this.tickets.findIndex(t => t.id === id);
+          if (index !== -1) this.tickets.splice(index, 1);
+          
+          // ✅ Utiliser delete sur Set
+          this.selectedTickets.delete(id);
+          successCount++;
+        }
+        completed++;
+        
+        if (completed === total) {
+          this.bulkDeletingSelected = false;
+          this.showMultiDeleteModal = false;
+          this.pendingDeleteIds = [];
+          this.confirmDeleteTickets = [];
+          
+          this.totalCount = this.tickets.length;
+          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+          
+          this.updateSelectionStats();
+          
+          if (this.selectedTickets.size === 0) {
+            this.currentSelectionType = null;
+          }
+          
+          if (successCount === total) {
+            this.showAlert('success', 'Succès', `${total} ticket(s) supprimé(s) avec succès.`);
+          } else if (successCount > 0) {
+            this.showAlert('warning', 'Suppression partielle', `${successCount} ticket(s) supprimé(s), ${total - successCount} échec(s).`);
+          } else {
+            this.showAlert('error', 'Échec', `Aucun ticket n'a pu être supprimé.`);
+          }
+          this.loadTickets();
+        }
+      },
+      error: (err) => {
+        console.error(`Erreur suppression ${id}:`, err);
+        completed++;
+        if (completed === total) {
+          this.bulkDeletingSelected = false;
+          this.showMultiDeleteModal = false;
+          this.pendingDeleteIds = [];
+          this.confirmDeleteTickets = [];
+          this.updateSelectionStats();
+          this.showAlert('error', 'Erreur', `${successCount}/${total} ticket(s) supprimé(s).`);
+          this.loadTickets();
+        }
+      }
+    });
+  });
+}
+
+/**
+ * Annule la suppression multiple
+ */
+cancelMultiDelete(): void {
+  this.showMultiDeleteModal = false;
+  this.confirmDeleteTickets = [];
+  this.pendingDeleteIds = [];
+  this.bulkDeletingSelected = false;
+}
+
+/**
+ * Action principale selon le rôle et la sélection
+ */
+onBulkAction(): void {
+  this.updateSelectionStats();
+  
+  if (this.cachedSelectionStats.archivable > 0 && this.cachedSelectionStats.deletable === 0) {
+    // Uniquement des tickets résolus → Archiver
+    this.confirmArchiveMultiple();
+  } else if (this.isAdmin && this.cachedSelectionStats.deletable > 0 && this.cachedSelectionStats.archivable === 0) {
+    // Admin et uniquement des tickets non résolus → Supprimer
+    this.confirmDeleteMultiple();
+  } else if (this.isAdmin && this.cachedSelectionStats.deletable > 0 && this.cachedSelectionStats.archivable > 0) {
+    // Mixte → message d'erreur
+    this.showAlert('warning', 'Action impossible', 
+      `Vous ne pouvez pas mélanger des tickets à supprimer (${this.cachedSelectionStats.deletable}) et à archiver (${this.cachedSelectionStats.archivable}) dans la même sélection.`);
+  } else if (!this.isAdmin && this.cachedSelectionStats.archivable === 0) {
+    this.showAlert('warning', 'Action impossible', 'Seuls les tickets résolus peuvent être archivés.');
+  }
+}
+
 
 confirmArchive(): void {
   if (!this.ticketToArchive) return;
@@ -146,24 +534,19 @@ confirmArchive(): void {
   
   this.ticketService.archiverTicket(this.ticketToArchive.id).subscribe({
     next: (response) => {
-      console.log('📥 Réponse complète:', response);
-      
       if (response.isSuccess) {
         this.showAlert('success', 'Succès', `Le ticket "${this.ticketToArchive!.referenceTicket}" a été archivé avec succès.`);
         
-        // ✅ Recharger les tickets pour mettre à jour la liste
         this.loadTickets();
         
-        // ✅ Optionnel: Afficher un message temporaire
         this.successMessage = `Ticket "${this.ticketToArchive!.referenceTicket}" archivé avec succès.`;
         setTimeout(() => {
           this.successMessage = '';
         }, 3000);
         
-        // Désélectionner si sélectionné
-        this.selectedTickets = this.selectedTickets.filter(id => id !== this.ticketToArchive!.id);
+        // ✅ Utiliser delete sur Set
+        this.selectedTickets.delete(this.ticketToArchive!.id);
       } else {
-        // Afficher le message d'erreur détaillé
         const errorMessage = response.message || 'Impossible d\'archiver le ticket.';
         this.showAlert('error', 'Erreur', errorMessage);
       }
@@ -171,8 +554,6 @@ confirmArchive(): void {
     },
     error: (err) => {
       console.error('❌ Erreur complète:', err);
-      
-      // Extraire le message d'erreur du backend
       let errorMessage = 'Erreur lors de l\'archivage';
       
       if (err.error?.message) {
@@ -442,131 +823,204 @@ onTicketDateChange(event: Event): void {
    * - Admin: voit tous les tickets via getTicketsPaged()
    * - Technicien: voit seulement ses tickets assignés via getMesTicketsAssignes()
    */
-  loadTickets() {
-    if (!this.userRole) {
-      console.log('⏳ En attente du chargement du rôle...');
-      return;
-    }
+loadTickets() {
+  if (!this.userRole) {
+    console.log('⏳ En attente du chargement du rôle...');
+    return;
+  }
 
-    this.loading = true;
-    this.error = null;
+  this.loading = true;
+  this.error = null;
 
-    // ADMIN: voir tous les tickets
-    if (this.isAdmin) {
-      console.log('👑 Admin: Chargement de tous les tickets');
-      const request = {
-        page: this.currentPage,
-        pageSize: this.pageSize,
-        searchTerm: this.searchTerm || null,
-        statut: this.selectedStatut ?? null,
-        priorite: this.selectedPriorite ?? null,
-        dateDebut: this.tempFilters.dateDebut || null,
-        sortBy: "date",
-        sortDescending: true
-      };
+  // Sauvegarder les IDs sélectionnés avant chargement
+  const previousSelectedIds = Array.from(this.selectedTickets);
+  const previousSelectionType = this.currentSelectionType;
 
-      console.log("📤 Request envoyée:", request);
+  // ADMIN: voir tous les tickets
+  if (this.isAdmin) {
+    console.log('👑 Admin: Chargement de tous les tickets');
+    const request = {
+      page: this.currentPage,
+      pageSize: this.pageSize,
+      searchTerm: this.searchTerm || null,
+      statut: this.selectedStatut ?? null,
+      priorite: this.selectedPriorite ?? null,
+      dateDebut: this.tempFilters.dateDebut || null,
+      sortBy: "date",
+      sortDescending: true
+    };
 
-      this.ticketService.getTicketsPaged(request).subscribe({
-        next: (res) => {
-          const paged = res.data;
-          this.tickets = paged.items;
-          this.filteredTickets = paged.items;
-          this.totalCount = paged.totalCount;
-          this.totalPages = paged.totalPages;
-          this.currentPage = paged.page;
-          
-          console.log(`✅ ${this.tickets.length} tickets chargés pour l'admin`);
-          
-          // Nettoyer les sélections si on change de page
-          this.selectedTickets = [];
-          this.loading = false;
-        },
-        error: (err) => {
-          console.error("❌ Erreur:", err);
-          this.error = "Impossible de charger les tickets";
-          this.loading = false;
-        }
-      });
-    }
-    
-else if (this.isTechnicien) {
-  console.log('🔧 Technicien: Chargement de mes tickets assignés avec pagination');
-  
-  const request = {
-    page: this.currentPage,
-    pageSize: this.pageSize,
-    searchTerm: this.searchTerm || null,
-    statut: this.selectedStatut ?? null,
-    priorite: this.selectedPriorite ?? null,
-    dateDebut: this.tempFilters.dateDebut || null,
-    sortBy: "date",
-    sortDescending: true
-  };
-
-  console.log("📤 Request technicien envoyée:", request);
-
-  this.ticketService.getMesTicketsAssignes(request).subscribe({
-    next: (res) => {
-      if (res.isSuccess && res.data) {
+    this.ticketService.getTicketsPaged(request).subscribe({
+      next: (res) => {
         const paged = res.data;
-        // ✅ Utiliser les noms camelCase (items, totalCount, page)
-        this.tickets = paged.items || [];
-        this.filteredTickets = this.tickets;
-        this.totalCount = paged.totalCount || 0;
-        // Calculer totalPages à partir de totalCount et pageSize
-        this.totalPages = Math.ceil(this.totalCount / this.pageSize);
-        this.currentPage = paged.page || 1;
+        this.tickets = paged.items;
+        this.filteredTickets = paged.items;
+        this.totalCount = paged.totalCount;
+        this.totalPages = paged.totalPages;
+        this.currentPage = paged.page;
+        
+        // ✅ RESTAURER TOUTES les sélections (ne pas filtrer par la page courante)
+        // On garde toutes les sélections, même celles qui ne sont pas dans la page courante
+        // Car elles seront utilisées pour l'action globale
+        this.selectedTickets.clear();
+        previousSelectedIds.forEach(id => this.selectedTickets.add(id));
+        this.currentSelectionType = previousSelectionType;
+        
+        // Mettre à jour les stats
+        this.updateSelectionStats();
+          this.calculateGlobalSelectionStats(); // ✅ Ajouter cette ligne
+
+        console.log(`✅ ${this.tickets.length} tickets chargés pour l'admin`);
+        console.log(`📌 ${this.selectedTickets.size} tickets sélectionnés au total`);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error("❌ Erreur:", err);
+        this.error = "Impossible de charger les tickets";
+        this.loading = false;
+      }
+    });
+  }
+  
+  else if (this.isTechnicien) {
+    // Même principe pour le technicien
+    console.log('🔧 Technicien: Chargement de mes tickets assignés avec pagination');
+    
+    const request = {
+      page: this.currentPage,
+      pageSize: this.pageSize,
+      searchTerm: this.searchTerm || null,
+      statut: this.selectedStatut ?? null,
+      priorite: this.selectedPriorite ?? null,
+      dateDebut: this.tempFilters.dateDebut || null,
+      sortBy: "date",
+      sortDescending: true
+    };
+
+    this.ticketService.getMesTicketsAssignes(request).subscribe({
+      next: (res) => {
+        if (res.isSuccess && res.data) {
+          const paged = res.data;
+          this.tickets = paged.items || [];
+          this.filteredTickets = this.tickets;
+          this.totalCount = paged.totalCount || 0;
+          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+          this.currentPage = paged.page || 1;
+        } else {
+          this.tickets = [];
+          this.totalCount = 0;
+          this.totalPages = 1;
+        }
+        
+        // ✅ RESTAURER TOUTES les sélections
+        this.selectedTickets.clear();
+        previousSelectedIds.forEach(id => this.selectedTickets.add(id));
+        this.currentSelectionType = previousSelectionType;
+        
+        this.updateSelectionStats();
         
         console.log(`✅ ${this.tickets.length} tickets assignés chargés pour le technicien`);
-      } else {
-        this.tickets = [];
-        this.totalCount = 0;
-        this.totalPages = 1;
+        console.log(`📌 ${this.selectedTickets.size} tickets sélectionnés au total`);
+        this.loading = false;
+      },
+      error: (err) => {
+        console.error("❌ Erreur chargement tickets assignés:", err);
+        this.error = "Impossible de charger vos tickets assignés";
+        this.loading = false;
+      }
+    });
+  }
+}
+
+ // ========== GESTION DE LA SÉLECTION MULTIPLE ==========
+
+toggleSelection(ticketId: string, checked: boolean, ticket?: any): void {
+  console.log('🖱️ toggleSelection appelé:', { ticketId, checked, selectedBefore: this.selectedTickets.size });
+  
+  const ticketObj = ticket || this.tickets.find(t => t.id === ticketId);
+  if (!ticketObj) return;
+  
+  if (checked && !this.canSelectTicket(ticketObj)) {
+    const message = this.currentSelectionType === 'archivable' 
+      ? 'Vous avez déjà sélectionné des tickets résolus. Vous ne pouvez sélectionner que des tickets résolus.'
+      : 'Vous avez déjà sélectionné des tickets supprimables (Assignés). Vous ne pouvez sélectionner que des tickets Assignés.';
+    this.showAlert('warning', 'Sélection impossible', message);
+    return;
+  }
+  
+  if (checked) {
+    if (this.selectedTickets.size === 0 && this.currentSelectionType === null) {
+      const isArchivable = ticketObj.statutTicketLibelle === 'Résolu';
+      this.currentSelectionType = isArchivable ? 'archivable' : 'deletable';
+      console.log('🎯 Type de sélection défini:', this.currentSelectionType);
+    }
+    this.selectedTickets.add(ticketId);
+    console.log('✅ Ticket ajouté:', ticketId, 'Total:', this.selectedTickets.size);
+  } else {
+    this.selectedTickets.delete(ticketId);
+    console.log('❌ Ticket retiré:', ticketId, 'Total:', this.selectedTickets.size);
+    
+    if (this.selectedTickets.size === 0) {
+      this.currentSelectionType = null;
+      console.log('🔄 Type de sélection réinitialisé');
+    }
+  }
+  
+  this.updateSelectionStats();
+  this.calculateGlobalSelectionStats();
+}
+
+clearSelection(): void {
+  this.selectedTickets.clear();
+  this.currentSelectionType = null;
+  this.cachedSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
+  this.globalSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
+  this.updateSelectionStats();
+}
+
+toggleAllSelection(checked: boolean): void {
+  if (checked) {
+    if (this.isTechnicien) {
+      const resolvables = this.tickets.filter(t => t.statutTicketLibelle === 'Résolu');
+      if (resolvables.length === 0) {
+        this.showAlert('warning', 'Aucun ticket disponible', 'Aucun ticket résolu à sélectionner.');
+        return;
+      }
+      this.currentSelectionType = 'archivable';
+      resolvables.forEach(t => this.selectedTickets.add(t.id));
+    } else if (this.isAdmin) {
+      const hasArchivable = this.tickets.some(t => t.statutTicketLibelle === 'Résolu');
+      const hasDeletable = this.tickets.some(t => t.statutTicketLibelle !== 'Résolu');
+      
+      if (hasArchivable && hasDeletable) {
+        this.showAlert('warning', 'Sélection impossible', 
+          'Cette page contient des tickets de types différents (résolus et non résolus). Veuillez filtrer pour sélectionner tous les tickets.');
+        return;
       }
       
-      this.selectedTickets = [];
-      this.loading = false;
-    },
-    error: (err) => {
-      console.error("❌ Erreur chargement tickets assignés:", err);
-      this.error = "Impossible de charger vos tickets assignés";
-      this.loading = false;
+      this.currentSelectionType = hasArchivable ? 'archivable' : 'deletable';
+      this.tickets.forEach(t => this.selectedTickets.add(t.id));
     }
-  });
-}
+  } else {
+    this.selectedTickets.clear();
+    this.currentSelectionType = null;
   }
-
-  // ========== GESTION DE LA SÉLECTION MULTIPLE ==========
   
-  toggleSelection(ticketId: string, checked: boolean): void {
-    if (checked) {
-      this.selectedTickets.push(ticketId);
-    } else {
-      this.selectedTickets = this.selectedTickets.filter(id => id !== ticketId);
-    }
-  }
+  this.updateSelectionStats();
+  // ✅ Recalculer les stats globales
+  this.calculateGlobalSelectionStats();
+}
+isSelected(ticketId: string): boolean {
+  return this.selectedTickets.has(ticketId);
+}
 
-  toggleAllSelection(checked: boolean): void {
-    if (checked) {
-      this.selectedTickets = this.tickets.map(t => t.id);
-    } else {
-      this.selectedTickets = [];
-    }
-  }
+isAllSelected(): boolean {
+  return this.tickets.length > 0 && this.selectedTickets.size === this.tickets.length;
+}
 
-  isSelected(ticketId: string): boolean {
-    return this.selectedTickets.includes(ticketId);
-  }
-
-  isAllSelected(): boolean {
-    return this.tickets.length > 0 && this.selectedTickets.length === this.tickets.length;
-  }
-
-  isIndeterminate(): boolean {
-    return this.selectedTickets.length > 0 && this.selectedTickets.length < this.tickets.length;
-  }
-
+isIndeterminate(): boolean {
+  return this.selectedTickets.size > 0 && this.selectedTickets.size < this.tickets.length;
+}
   // ========== GESTION DE LA SUPPRESSION ==========
 
   deleteTicket(ticket: TicketDTO) {
@@ -574,12 +1028,25 @@ else if (this.isTechnicien) {
     this.ticketsToDelete = null;
   }
 
-  deleteSelectedTickets(): void {
-    if (this.selectedTickets.length === 0) return;
-    
-    this.ticketsToDelete = [...this.selectedTickets];
-    this.confirmTicket = null;
+deleteSelectedTickets(): void {
+  if (this.selectedTickets.size === 0) return;
+  
+  // Vérifier si tous les tickets sélectionnés sont archivables ou supprimables
+  this.updateSelectionStats();
+  
+  if (this.cachedSelectionStats.deletable > 0 && this.cachedSelectionStats.archivable === 0) {
+    // Uniquement des tickets supprimables
+    this.confirmDeleteMultiple();
+  } else if (this.cachedSelectionStats.archivable > 0 && this.cachedSelectionStats.deletable === 0) {
+    // Uniquement des tickets archivables
+    this.confirmArchiveMultiple();
+  } else if (this.cachedSelectionStats.deletable > 0 && this.cachedSelectionStats.archivable > 0) {
+    this.showAlert('warning', 'Action impossible', 
+      `Vous ne pouvez pas mélanger des tickets à supprimer (${this.cachedSelectionStats.deletable}) et à archiver (${this.cachedSelectionStats.archivable}) dans la même sélection.`);
+  } else {
+    this.showAlert('info', 'Aucune action', 'Aucun ticket sélectionné ne peut être supprimé ou archivé.');
   }
+}
 
   confirmDelete() {
     // Cas suppression multiple
@@ -618,7 +1085,7 @@ else if (this.isTechnicien) {
             this.showAlert('error', 'Échec', `Impossible de supprimer les tickets sélectionnés.`);
           }
           
-          this.selectedTickets = [];
+this.selectedTickets.clear();
           this.ticketsToDelete = null;
           this.loadTickets();
         })
@@ -637,7 +1104,7 @@ else if (this.isTechnicien) {
           if (response.isSuccess) {
             this.showAlert('success', 'Ticket supprimé', `Le ticket "${this.confirmTicket!.titreTicket}" a été supprimé.`);
             
-            this.selectedTickets = this.selectedTickets.filter(id => id !== this.confirmTicket!.id);
+this.selectedTickets.delete(this.confirmTicket!.id);
             this.confirmTicket = null;
             this.loadTickets();
           } else {

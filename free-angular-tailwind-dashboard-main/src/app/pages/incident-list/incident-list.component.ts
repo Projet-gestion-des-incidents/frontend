@@ -1312,7 +1312,11 @@ confirmArchiveMultiple(): void {
   // Afficher un indicateur de chargement
   this.loading = true;
   
-  // Récupérer TOUS les incidents sélectionnés via l'API
+  // ✅ Utiliser la bonne API selon le rôle
+  const searchMethod = this.userRole === 'Admin' 
+    ? this.incidentService.searchIncidents.bind(this.incidentService)
+    : this.incidentService.searchMyIncidents.bind(this.incidentService);
+  
   const params: any = {
     Page: 1,
     PageSize: this.totalCount,
@@ -1334,7 +1338,18 @@ confirmArchiveMultiple(): void {
   if (this.selectedDateDetection) params.DateDetection = this.selectedDateDetection;
   if (this.selectedDateResolution) params.DateResolution = this.selectedDateResolution;
   
-  this.incidentService.searchIncidents(params).subscribe({
+  // Pour le commerçant, ajouter le filtre de statut en string
+  if (this.userRole !== 'Admin' && this.selectedStatut != null) {
+    let statutString = '';
+    switch(this.selectedStatut) {
+      case StatutIncident.NonTraite: statutString = 'NonTraite'; break;
+      case StatutIncident.EnCours: statutString = 'EnCours'; break;
+      case StatutIncident.Ferme: statutString = 'Ferme'; break;
+    }
+    if (statutString) params.StatutIncident = statutString;
+  }
+  
+  searchMethod(params).subscribe({
     next: (response: any) => {
       let allIncidents: any[] = [];
       if (response?.data?.items) allIncidents = response.data.items;
