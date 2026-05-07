@@ -1,21 +1,27 @@
-// ajout-tpe.component.ts - Version corrigée
+// ajout-tpe.component.ts - Version avec méthodes
 
 import { Component, OnInit } from '@angular/core';
-import { FormBuilder, FormGroup, Validators, FormArray, ReactiveFormsModule, AbstractControl } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ButtonComponent } from '../../../shared/components/ui/button/button.component';
 import { InputFieldComponent } from '../../../shared/components/form/input/input-field.component';
-import { SelectComponent } from '../../../shared/components/form/select/select.component';
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
 import { TPEService } from '../../../shared/services/tpe.service';
-import { forkJoin, Observable, of } from 'rxjs';
-import { catchError, finalize } from 'rxjs/operators';
 import { Router, RouterModule } from '@angular/router';
 import { UserService } from '../../../shared/services/user.service';
 
 @Component({
   selector: 'app-ajout-tpe',
-  imports: [CommonModule, ReactiveFormsModule, RouterModule, ButtonComponent, InputFieldComponent, SelectComponent, AlertComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    FormsModule,
+    RouterModule,
+    ButtonComponent,
+    InputFieldComponent,
+    AlertComponent
+  ],
   templateUrl: './ajout-tpe.component.html'
 })
 export class AjoutTPEComponent implements OnInit {
@@ -24,70 +30,75 @@ export class AjoutTPEComponent implements OnInit {
 
   alert = { show: false, variant: 'error' as 'error' | 'success', title: '', message: '' };
   commercants: { id: string; nomMagasin: string }[] = [];
-  commercantOptions: { value: string; label: string }[] = [];
-  
-  modeleOptions = [
-    { value: 1, label: 'Ingenico' },
-    { value: 2, label: 'Verifone' },
-    { value: 3, label: 'PAX' }
-  ];
 
-  selectedModele: number = 1;
-  nbTPE: number = 1;
+  // ✅ Compteurs par modèle
+  quantites = {
+    ingenico: 0,
+    verifone: 0,
+    pax: 0
+  };
 
   constructor(
-    private fb: FormBuilder, 
-    private tpeService: TPEService, 
-    private userService: UserService, 
+    private fb: FormBuilder,
+    private tpeService: TPEService,
+    private userService: UserService,
     private router: Router
   ) {
     this.tpeForm = this.fb.group({
-      commercantId: ['', Validators.required],
-      tpes: this.fb.array([])
+      commercantId: ['', Validators.required]
     });
   }
 
   ngOnInit(): void {
     this.loadCommercants();
-    this.generateTPEs();
   }
 
-  get tpes(): FormArray {
-    return this.tpeForm.get('tpes') as FormArray;
+  // ✅ Méthodes pour incrémenter/décrémenter les quantités
+  incrementIngenico(): void {
+    this.quantites.ingenico++;
   }
 
-  generateTPEs(): void {
-    while (this.tpes.length) {
-      this.tpes.removeAt(0);
-    }
-
-    for (let i = 0; i < this.nbTPE; i++) {
-      this.tpes.push(this.fb.group({
-        modele: [this.selectedModele, Validators.required]
-      }));
+  decrementIngenico(): void {
+    if (this.quantites.ingenico > 0) {
+      this.quantites.ingenico--;
     }
   }
 
-  onNbTPEChange(event: any): void {
-    this.nbTPE = parseInt(event.target.value, 10);
-    this.generateTPEs();
+  incrementVerifone(): void {
+    this.quantites.verifone++;
   }
 
-  onModeleChange(event: any): void {
-    this.selectedModele = parseInt(event.target.value, 10);
-    if (this.tpes.length > 0) {
-      for (let i = 0; i < this.tpes.length; i++) {
-        this.tpes.at(i).get('modele')?.setValue(this.selectedModele);
-      }
+  decrementVerifone(): void {
+    if (this.quantites.verifone > 0) {
+      this.quantites.verifone--;
     }
+  }
+
+  incrementPax(): void {
+    this.quantites.pax++;
+  }
+
+  decrementPax(): void {
+    if (this.quantites.pax > 0) {
+      this.quantites.pax--;
+    }
+  }
+
+  // ✅ Méthode pour mettre à jour via l'input
+  updateIngenico(value: number): void {
+    this.quantites.ingenico = Math.max(0, value || 0);
+  }
+
+  updateVerifone(value: number): void {
+    this.quantites.verifone = Math.max(0, value || 0);
+  }
+
+  updatePax(value: number): void {
+    this.quantites.pax = Math.max(0, value || 0);
   }
 
   cancel() {
     this.router.navigate(['/tpes']);
-  }
-
-  removeTPE(index: number) {
-    this.tpes.removeAt(index);
   }
 
   loadCommercants(): void {
@@ -105,106 +116,113 @@ export class AjoutTPEComponent implements OnInit {
     });
   }
 
- // Dans ajout-tpe.component.ts
-onSubmit() {
-  this.clearAlert();
-
-  if (!this.tpeForm.value.commercantId) {
-    this.showError('Veuillez sélectionner un commerçant.');
-    return;
+  getTotalTPEs(): number {
+    return this.quantites.ingenico + this.quantites.verifone + this.quantites.pax;
   }
 
-  if (this.tpes.length === 0) {
-    this.showError('Veuillez ajouter au moins un TPE.');
-    return;
+  resetQuantites(): void {
+    this.quantites = {
+      ingenico: 0,
+      verifone: 0,
+      pax: 0
+    };
   }
 
-  this.loading = true;
-  const commercantId = this.tpeForm.value.commercantId;
-  const tpeArray = this.tpes.value;
+  hasAtLeastOneTPE(): boolean {
+    return this.getTotalTPEs() > 0;
+  }
 
-  this.createTPEsSequentially(commercantId, tpeArray);
-}
+  onSubmit() {
+    this.clearAlert();
 
-createTPEsSequentially(commercantId: string, tpeArray: any[]): void {
-  let currentIndex = 0;
-  const total = tpeArray.length;
-  let successCount = 0;
-  const errors: string[] = [];
-
-  const createNext = () => {
-    if (currentIndex >= total) {
-      this.loading = false;
-      
-      if (successCount === total) {
-        this.showSuccess(`${successCount} TPE(s) ajouté(s) avec succès.`);
-        setTimeout(() => this.router.navigate(['/tpes']), 1500);
-      } else if (successCount > 0) {
-        this.showError(`${successCount}/${total} TPE(s) créés. ${errors.join(', ')}`);
-      } else {
-        this.showError('Erreur lors de la création des TPEs.');
-      }
-      
-      this.tpeForm.reset();
-      this.tpes.clear();
-      this.generateTPEs();
+    if (!this.tpeForm.value.commercantId) {
+      this.showError('Veuillez sélectionner un commerçant.');
       return;
     }
+
+    if (!this.hasAtLeastOneTPE()) {
+      this.showError('Veuillez indiquer au moins un TPE à créer.');
+      return;
+    }
+
+    this.loading = true;
+    const commercantId = this.tpeForm.value.commercantId;
     
-    const tpe = tpeArray[currentIndex];
-    this.tpeService.createTPE({
-      commercantId: commercantId,
-      modele: tpe.modele
-    }).subscribe({
-      next: (response) => {
-        if (response?.isSuccess !== false) {
-          successCount++;
-        } else {
-          errors.push(`TPE ${currentIndex + 1}: ${response?.message || 'Échec'}`);
-        }
-        currentIndex++;
-        createNext();
-      },
-      error: (err) => {
-        errors.push(`TPE ${currentIndex + 1}: ${err.error?.message || err.message}`);
-        currentIndex++;
-        createNext();
-      }
-    });
-  };
-  
-  createNext();
-}
+    const tpesToCreate: { modele: number }[] = [];
+    
+    for (let i = 0; i < this.quantites.ingenico; i++) {
+      tpesToCreate.push({ modele: 1 });
+    }
+    
+    for (let i = 0; i < this.quantites.verifone; i++) {
+      tpesToCreate.push({ modele: 2 });
+    }
+    
+    for (let i = 0; i < this.quantites.pax; i++) {
+      tpesToCreate.push({ modele: 3 });
+    }
 
-  
-
-  // Validation des erreurs du formulaire
-  private getFormValidationErrors(formGroup: FormGroup): string[] {
-    const messages: string[] = [];
-
-    Object.keys(formGroup.controls).forEach(key => {
-      const control = formGroup.get(key);
-
-      if (control instanceof FormArray) {
-        control.controls.forEach((tpeControl: AbstractControl, index: number) => {
-          const tpeGroup = tpeControl as FormGroup;
-          const modele = tpeGroup.get('modele');
-
-          if (modele?.errors?.['required']) {
-            messages.push(`Le modèle du TPE ${index + 1} est obligatoire.`);
-          }
-        });
-      } else if (control && control.invalid) {
-        if (key === 'commercantId' && control.errors?.['required']) {
-          messages.push('Veuillez sélectionner un commerçant.');
-        }
-      }
-    });
-
-    return messages;
+    this.createTPEsSequentially(commercantId, tpesToCreate);
   }
 
-  private alertTimeout: any;
+  createTPEsSequentially(commercantId: string, tpeArray: { modele: number }[]): void {
+    let currentIndex = 0;
+    const total = tpeArray.length;
+    let successCount = 0;
+    const errors: string[] = [];
+
+    const createNext = () => {
+      if (currentIndex >= total) {
+        this.loading = false;
+
+        if (successCount === total) {
+          this.showSuccess(`${successCount} TPE(s) ajouté(s) avec succès.`);
+          this.resetQuantites();
+          this.tpeForm.get('commercantId')?.reset();
+          setTimeout(() => this.router.navigate(['/tpes']), 5000);
+        } else if (successCount > 0) {
+          this.showError(`${successCount}/${total} TPE(s) créés. ${errors.join(', ')}`);
+        } else {
+          this.showError('Erreur lors de la création des TPEs.');
+        }
+        return;
+      }
+
+      const tpe = tpeArray[currentIndex];
+      const modeleLabel = this.getModeleLabel(tpe.modele);
+      
+      this.tpeService.createTPE({
+        commercantId: commercantId,
+        modele: tpe.modele
+      }).subscribe({
+        next: (response) => {
+          if (response?.isSuccess !== false) {
+            successCount++;
+          } else {
+            errors.push(`${modeleLabel}: ${response?.message || 'Échec'}`);
+          }
+          currentIndex++;
+          createNext();
+        },
+        error: (err) => {
+          errors.push(`${modeleLabel}: ${err.error?.message || err.message}`);
+          currentIndex++;
+          createNext();
+        }
+      });
+    };
+
+    createNext();
+  }
+
+  private getModeleLabel(modele: number): string {
+    switch (modele) {
+      case 1: return 'Ingenico';
+      case 2: return 'Verifone';
+      case 3: return 'PAX';
+      default: return 'Inconnu';
+    }
+  }
 
   private showSuccess(message: string) {
     this.alert = { show: true, variant: 'success', title: 'Succès', message };
@@ -229,7 +247,8 @@ createTPEsSequentially(commercantId: string, tpeArray: any[]): void {
     this.alert.show = false;
     if (this.alertTimeout) {
       clearTimeout(this.alertTimeout);
-      this.alertTimeout = null;
     }
   }
+
+  private alertTimeout: any;
 }
