@@ -10,6 +10,7 @@ import { AlertComponent } from '../../../shared/components/ui/alert/alert.compon
 import { AvatarTextComponent } from '../../../shared/components/ui/avatar/avatar-text.component';
 import { PagedResponse } from '../../../shared/models/PagedResponse.model';
 import { CheckboxComponent } from '../../../shared/components/form/input/checkbox.component';
+import { DashboardAdminService, TPEDashboardDTO } from '../../../shared/services/dashboard-admin.service';
 
 @Component({
   selector: 'app-tpe-list',
@@ -68,15 +69,42 @@ bulkDeleting = false;  // État de suppression en cours
 
   constructor(
     private tpeService: TPEService,
-    private userService: UserService
+    private userService: UserService,
+    private dashboardAdminService: DashboardAdminService
   ) {}
+// Ajoutez cette méthode pour calculer les statistiques par modèle
+getModeleStats(modele: string): { nombreTPEs: number; nombreIncidents: number; tauxPanne: number; pourcentage: number } {
+  if (!this.tpeDashboard || !this.tpeDashboard.pannesParModele) {
+    return { nombreTPEs: 0, nombreIncidents: 0, tauxPanne: 0, pourcentage: 0 };
+  }
+  
+  const data = this.tpeDashboard.pannesParModele.find(m => m.modele === modele);
+  const totalTPEs = this.tpeDashboard.overview.totalTPEs;
+  
+  if (!data) {
+    return { nombreTPEs: 0, nombreIncidents: 0, tauxPanne: 0, pourcentage: 0 };
+  }
+  
+  // Calcul du pourcentage par rapport au total des TPEs
+  const pourcentage = totalTPEs > 0 ? Math.round((data.nombreTPEs / totalTPEs) * 100) : 0;
+  
+  return {
+    nombreTPEs: data.nombreTPEs,
+    nombreIncidents: data.nombreIncidents,
+    tauxPanne: data.tauxPanne,
+    pourcentage: pourcentage
+  };
+}
 
+// Ajoutez Math dans le template si nécessaire (dans le constructeur ou au début de la classe)
+Math = Math;
   ngOnInit(): void {
     this.userService.getMyProfile().subscribe({
       next: (user) => {
         this.userRole = user.role;
         if (this.userRole === 'Admin') {
           this.loadCommercants();
+           this.loadTPEDashboard();
         }
         this.loadTPEs();
       },
@@ -208,6 +236,25 @@ confirmDeleteMultiple(): void {
   });
 }
 // Ajoutez cette méthode après la méthode clearSelection() ou à côté
+tpeDashboard: TPEDashboardDTO | null = null;
+loadingDashboard = false;
+loadTPEDashboard(): void {
+  this.loadingDashboard = true;
+  
+  this.dashboardAdminService.getTPEDashboard().subscribe({
+    next: (response) => {
+      if (response && response.data) {
+        this.tpeDashboard = response.data;
+        console.log('Dashboard TPE chargé:', this.tpeDashboard);
+      }
+      this.loadingDashboard = false;
+    },
+    error: (err) => {
+      console.error('Erreur chargement dashboard TPE:', err);
+      this.loadingDashboard = false;
+    }
+  });
+}
 
 // Désélectionner tous les TPEs
 deselectAll(): void {

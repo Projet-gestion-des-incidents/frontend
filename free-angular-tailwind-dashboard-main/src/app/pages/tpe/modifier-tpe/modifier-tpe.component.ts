@@ -43,8 +43,11 @@ export class ModifierTpeComponent implements OnInit {
     { value: 3, label: 'PAX' }
   ];
 
-  // ✅ Option pour "Non assigné" (désassigner le TPE)
   nonAssigneOption = { value: '', label: 'Non assigné' };
+
+  // Variables pour suivre l'état initial
+  initialValues: any = null;
+  hasChanges: boolean = false;
 
   constructor(
     private fb: FormBuilder,
@@ -57,14 +60,39 @@ export class ModifierTpeComponent implements OnInit {
   ngOnInit(): void {
     this.tpeId = this.route.snapshot.paramMap.get('id')!;
 
-    // ✅ Formulaire sans numSerie (généré automatiquement par le backend)
     this.form = this.fb.group({
       modele: ['', Validators.required],
-      commercantId: ['']  // Peut être null (désassigner)
+      commercantId: ['']
+    });
+
+    // S'abonner aux changements du formulaire
+    this.form.valueChanges.subscribe(() => {
+      this.checkForChanges();
     });
 
     this.loadCommercants();
     this.loadTPE();
+  }
+
+  // Vérifier si des changements ont été effectués
+  checkForChanges(): void {
+    if (!this.initialValues) {
+      this.hasChanges = false;
+      return;
+    }
+
+    const currentValues = {
+      modele: this.form.get('modele')?.value,
+      commercantId: this.form.get('commercantId')?.value
+    };
+
+    const currentCommercantId = currentValues.commercantId === '' ? null : currentValues.commercantId;
+    const initialCommercantId = this.initialValues.commercantId === '' ? null : this.initialValues.commercantId;
+
+    this.hasChanges = (
+      currentValues.modele !== this.initialValues.modele ||
+      currentCommercantId !== initialCommercantId
+    );
   }
 
   loadCommercants() {
@@ -72,9 +100,9 @@ export class ModifierTpeComponent implements OnInit {
       next: (users) => {
         this.commercants = users.map(u => ({
           id: u.id,
-          nomMagasin: u.nomMagasin        }));
+          nomMagasin: u.nomMagasin
+        }));
 
-        // ✅ Ajouter l'option "Non assigné" en premier
         this.commercantOptions = [
           this.nonAssigneOption,
           ...this.commercants.map(c => ({
@@ -87,30 +115,34 @@ export class ModifierTpeComponent implements OnInit {
     });
   }
 
-// Ajouter cette propriété
-tpeToDisplay: any = null;
+  tpeToDisplay: any = null;
 
-// Modifier loadTPE
-loadTPE() {
-  this.tpeService.getTPEById(this.tpeId).subscribe({
-    next: (res: any) => {
-      const tpe = res.data;
-      this.tpeToDisplay = tpe; // ✅ Stocker pour afficher le numéro de série
-      
-      const modeleMap: any = {
-        'Ingenico': 1,
-        'Verifone': 2,
-        'PAX': 3
-      };
-      
-      this.form.patchValue({
-        modele: modeleMap[tpe.modele],
-        commercantId: tpe.commercantId || ''
-      });
-    },
-    error: () => this.showError('Impossible de charger le TPE')
-  });
-}
+  loadTPE() {
+    this.tpeService.getTPEById(this.tpeId).subscribe({
+      next: (res: any) => {
+        const tpe = res.data;
+        this.tpeToDisplay = tpe;
+        
+        const modeleMap: any = {
+          'Ingenico': 1,
+          'Verifone': 2,
+          'PAX': 3
+        };
+        
+        const formValues = {
+          modele: modeleMap[tpe.modele],
+          commercantId: tpe.commercantId || ''
+        };
+        
+        // Stocker les valeurs initiales
+        this.initialValues = { ...formValues };
+        
+        this.form.patchValue(formValues);
+        this.hasChanges = false;
+      },
+      error: () => this.showError('Impossible de charger le TPE')
+    });
+  }
 
   submit() {
     if (this.form.invalid) {
@@ -121,17 +153,21 @@ loadTPE() {
       return;
     }
 
+    // ✅ Vérifier si des modifications ont été faites
+    if (!this.hasChanges) {
+      this.showInfo('Aucune modification détectée');
+      return;
+    }
+
     this.loading = true;
     this.clearAlert();
 
     const formValue = this.form.value;
     
-    // ✅ Construction du payload
     const payload: any = {
       modele: Number(formValue.modele)
     };
     
-    // ✅ Si commercantId est une chaîne vide, envoyer null (désassigner)
     payload.commercantId = formValue.commercantId === '' ? null : formValue.commercantId;
 
     this.tpeService.updateTPE(this.tpeId, payload).subscribe({
@@ -139,9 +175,17 @@ loadTPE() {
         this.loading = false;
         const message = response.data?.message || 'TPE modifié avec succès';
         this.showSuccess(message);
+        
+        // Mettre à jour les valeurs initiales après succès
+        this.initialValues = {
+          modele: formValue.modele,
+          commercantId: formValue.commercantId
+        };
+        this.hasChanges = false;
+        
         setTimeout(() => {
           this.router.navigate(['/tpes']);
-        }, 1500);
+        }, 5000);
       },
       error: (err) => {
         this.loading = false;
@@ -155,6 +199,7 @@ loadTPE() {
   }
 
   cancel() {
+    // ✅ Redirection directe sans confirmation
     this.router.navigate(['/tpes']);
   }
 
@@ -165,6 +210,11 @@ loadTPE() {
 
   private showError(message: string) {
     this.alert = { show: true, variant: 'error', title: 'Erreur', message };
+    this.scheduleAlertClear();
+  }
+
+  private showInfo(message: string) {
+    this.alert = { show: true, variant: 'success', title: 'Information', message };
     this.scheduleAlertClear();
   }
 
