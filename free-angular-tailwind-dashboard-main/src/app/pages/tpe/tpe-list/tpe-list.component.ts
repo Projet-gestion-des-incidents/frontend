@@ -9,11 +9,12 @@ import { BadgeColor, BadgeComponent } from '../../../shared/components/ui/badge/
 import { AlertComponent } from '../../../shared/components/ui/alert/alert.component';
 import { AvatarTextComponent } from '../../../shared/components/ui/avatar/avatar-text.component';
 import { PagedResponse } from '../../../shared/models/PagedResponse.model';
+import { CheckboxComponent } from '../../../shared/components/form/input/checkbox.component';
 
 @Component({
   selector: 'app-tpe-list',
   standalone: true,
-  imports: [ButtonComponent, CommonModule, FormsModule, AvatarTextComponent, RouterModule, BadgeComponent, AlertComponent],
+  imports: [ButtonComponent,CheckboxComponent, CommonModule, FormsModule, AvatarTextComponent, RouterModule, BadgeComponent, AlertComponent],
   templateUrl: './tpe-list.component.html',
 })
 export class TpeListComponent implements OnInit {
@@ -36,7 +37,11 @@ selectedDetectionDateObj: Date | null = null;
   pageSize = 6;
   totalPages = 1;
   totalCount = 0;
-  
+  // Ajoutez ces propriétés avec les autres déclarations
+selectedTPEs: Set<string> = new Set<string>();  // IDs des TPEs sélectionnés
+showMultiDeleteModal = false;  // Pour la modale de suppression multiple
+confirmTPEs: any[] = [];  // TPEs à supprimer en masse
+bulkDeleting = false;  // État de suppression en cours
   // Filtres
   searchTerm = '';
   selectedModele = '';
@@ -93,6 +98,269 @@ tempFilters = {
 
 showFilters = false;
 
+// Ajoutez ces propriétés
+globalSelectionMode: boolean = false;  // Mode sélection globale activé
+
+// Modifier toggleAllSelection
+toggleAllSelection(checked: boolean): void {
+  if (checked) {
+    // Sélectionner TOUS les TPEs de TOUTES les pages
+    this.selectAllTPEsAcrossPages();
+  } else {
+    this.globalSelectionMode = false;
+    this.selectedTPEs.clear();
+  }
+}
+
+selectAllTPEsAcrossPages(): void {
+  // ✅ Ne pas afficher d'alerte
+  this.globalSelectionMode = true;
+  this.selectedTPEs.clear(); // Optionnel: vider la sélection locale
+  // ❌ Supprimez ou commentez l'alerte
+}
+
+// Vérifier si un TPE est sélectionné (pour l'affichage du checkmark)
+isSelected(tpeId: string): boolean {
+  // En mode global, tout est sélectionné
+  if (this.globalSelectionMode) return true;
+  return this.selectedTPEs.has(tpeId);
+}
+
+// Vérifier si tous les TPEs sont sélectionnés
+isAllSelected(): boolean {
+  return this.globalSelectionMode || (this.tpes.length > 0 && this.selectedTPEs.size === this.tpes.length);
+}
+
+// Vérifier si la sélection est partielle
+isIndeterminate(): boolean {
+  if (this.globalSelectionMode) return false;
+  return this.selectedTPEs.size > 0 && this.selectedTPEs.size < this.tpes.length;
+}
+
+// Sélection individuelle (désactive le mode global)
+toggleSelection(tpeId: string, checked: boolean): void {
+  // Si on modifie une sélection individuelle, on désactive le mode global
+  if (this.globalSelectionMode) {
+    this.globalSelectionMode = false;
+    // Pré-sélectionner tous les IDs de la page courante
+    this.tpes.forEach(tpe => this.selectedTPEs.add(tpe.id));
+  }
+  
+  if (checked) {
+    this.selectedTPEs.add(tpeId);
+  } else {
+    this.selectedTPEs.delete(tpeId);
+    // Si on désélectionne un élément, le mode global n'est plus valide
+    if (this.globalSelectionMode) {
+      this.globalSelectionMode = false;
+    }
+  }
+}
+
+confirmDeleteMultiple(): void {
+  if (this.globalSelectionMode) {
+    // En mode global, demande confirmation pour supprimer TOUS
+    const confirmMessage = ` ATTENTION : Vous allez supprimer TOUS les ${this.totalCount} TPE(s) (toutes pages confondues).\n\nCette action est irréversible.\n\nConfirmez-vous ?`;
+    
+    if (confirm(confirmMessage)) {
+      this.deleteAllTPEs();
+    }
+    return;
+  }
+  
+  if (this.selectedTPEs.size === 0) return;
+  
+  // ✅ Récupérer les IDs sélectionnés
+  const selectedIds = Array.from(this.selectedTPEs);
+  
+  // ✅ Charger les détails des TPEs à supprimer pour les afficher dans la modale
+  this.loading = true;
+  
+  const params: any = {
+    page: 1,
+    pageSize: this.totalCount, // Récupérer TOUS
+    searchTerm: this.searchTerm,
+    modele: this.selectedModele || undefined,
+    commercantId: this.selectedCommercantId || undefined,
+    createdAt: this.selectedCreatedAt || undefined,
+    updatedAt: this.selectedUpdatedAt || undefined
+  };
+  
+  this.tpeService.getPagedTPEs(params).subscribe({
+    next: (response) => {
+      // Filtrer pour ne garder que les TPEs sélectionnés
+      this.confirmTPEs = response.data.filter(tpe => selectedIds.includes(tpe.id));
+      
+      this.pendingDeleteIds = selectedIds;
+      this.pendingDeleteCount = this.confirmTPEs.length;
+      this.showMultiDeleteModal = true;
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('Erreur chargement TPEs pour confirmation:', err);
+      this.loading = false;
+      // Fallback : afficher la modale sans les détails
+      this.confirmTPEs = [];
+      this.pendingDeleteIds = selectedIds;
+      this.pendingDeleteCount = selectedIds.length;
+      this.showMultiDeleteModal = true;
+    }
+  });
+}
+// Ajoutez cette méthode après la méthode clearSelection() ou à côté
+
+// Désélectionner tous les TPEs
+deselectAll(): void {
+  this.selectedTPEs.clear();
+  this.globalSelectionMode = false;
+}
+// Ajoutez ces propriétés
+pendingDeleteIds: string[] = [];
+pendingDeleteCount: number = 0;
+
+// Modifiez executeMultiDelete pour supprimer par IDs (pas par objets)
+executeMultiDelete(): void {
+  if (this.pendingDeleteIds.length === 0) return;
+
+  this.bulkDeleting = true;
+  let completed = 0;
+  const total = this.pendingDeleteIds.length;
+  let successCount = 0;
+
+  this.pendingDeleteIds.forEach(id => {
+    this.tpeService.deleteTPE(id).subscribe({
+      next: () => {
+        // Retirer des listes locales si présent
+        const index = this.tpes.findIndex(t => t.id === id);
+        if (index !== -1) this.tpes.splice(index, 1);
+        
+        this.selectedTPEs.delete(id);
+        successCount++;
+        completed++;
+        
+        if (completed === total) {
+          this.bulkDeleting = false;
+          this.showMultiDeleteModal = false;
+          this.pendingDeleteIds = [];
+          
+          // Mettre à jour les compteurs
+          this.totalCount = this.tpes.length;
+          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+          if (this.currentPage > this.totalPages && this.totalPages > 0) {
+            this.currentPage = this.totalPages;
+          }
+          
+          if (successCount === total) {
+  this.showAlert('success', 'Succès', `${total} TPE(s) supprimé(s) avec succès.`);
+} else if (successCount > 0) {
+  this.showAlert('warning', 'Suppression partielle', `${successCount} TPE(s) supprimé(s), ${total - successCount} échec(s).`);
+} else {
+  this.showAlert('error', 'Échec', `Aucun TPE n'a pu être supprimé.`);
+}
+          
+          // Recharger la page courante
+          this.loadTPEs();
+        }
+      },
+      error: (err) => {
+        console.error(`Erreur suppression TPE ${id}:`, err);
+        completed++;
+        if (completed === total) {
+          this.bulkDeleting = false;
+          this.showMultiDeleteModal = false;
+          this.pendingDeleteIds = [];
+          this.showAlert('error', 'Erreur', `${successCount}/${total} TPE(s) supprimé(s).`);
+          this.loadTPEs();
+        }
+      }
+    });
+  });
+}
+
+// Supprimer tous les TPEs (toutes pages)
+deleteAllTPEs(): void {
+  this.bulkDeleting = true;
+  
+  // Récupérer tous les IDs (une seule requête)
+  const params: any = {
+    page: 1,
+    pageSize: this.totalCount, // Récupérer TOUS
+    searchTerm: this.searchTerm,
+    modele: this.selectedModele || undefined,
+    commercantId: this.selectedCommercantId || undefined,
+    createdAt: this.selectedCreatedAt || undefined,
+    updatedAt: this.selectedUpdatedAt || undefined
+  };
+  
+  this.tpeService.getPagedTPEs(params).subscribe({
+    next: (response) => {
+      const allTPEs = response.data;
+      const totalToDelete = allTPEs.length;
+      let deleted = 0;
+      let errors = 0;
+      
+      // Supprimer un par un
+      allTPEs.forEach(tpe => {
+        this.tpeService.deleteTPE(tpe.id).subscribe({
+          next: () => {
+            deleted++;
+            if (deleted + errors === totalToDelete) {
+              this.finishBulkDelete(deleted, errors, totalToDelete);
+            }
+          },
+          error: (err) => {
+            console.error(`Erreur suppression TPE ${tpe.id}:`, err);
+            errors++;
+            if (deleted + errors === totalToDelete) {
+              this.finishBulkDelete(deleted, errors, totalToDelete);
+            }
+          }
+        });
+      });
+    },
+    error: (err) => {
+      console.error('Erreur récupération TPEs:', err);
+      this.bulkDeleting = false;
+      this.showAlert('error', 'Erreur', 'Impossible de récupérer la liste des TPEs');
+    }
+  });
+}
+
+// Terminer la suppression en masse
+finishBulkDelete(deleted: number, errors: number, total: number): void {
+  this.bulkDeleting = false;
+  this.globalSelectionMode = false;
+  this.selectedTPEs.clear();
+  
+  if (errors === 0) {
+    this.showAlert('success', 'Succès', `${deleted} TPE(s) supprimé(s) avec succès.`);
+  } else {
+    this.showAlert('warning', 'Suppression partielle', `${deleted} TPE(s) supprimé(s), ${errors} échec(s).`);
+  }
+  
+  this.loadTPEs(); // Recharger la liste
+}
+
+
+// Annuler la sélection
+clearSelection(): void {
+  this.selectedTPEs.clear();
+}
+
+
+cancelMultiDelete(): void {
+  this.showMultiDeleteModal = false;
+  this.confirmTPEs = [];
+  this.pendingDeleteIds = [];
+  this.bulkDeleting = false;
+}
+
+
+
+  showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string) {
+    this.alert = { show: true, variant, title, message };
+    setTimeout(() => (this.alert.show = false), 5000);
+  }
 
 // ✅ Ajouter ces propriétés pour les dates
 selectedCreatedAt = '';
@@ -433,23 +701,13 @@ confirmDelete() {
   
   this.tpeService.deleteTPE(this.tpeToDeleteId).subscribe({
     next: () => {
-      this.alert = {
-        show: true,
-        variant: 'success',
-        title: 'Succès',
-        message: 'TPE supprimé avec succès'
-      };
+      this.showAlert('success', 'Succès', 'TPE supprimé avec succès');
       this.loadTPEs();
       this.cancelDelete();
       this.deleting = false;
     },
     error: (err) => {
-      this.alert = {
-        show: true,
-        variant: 'error',
-        title: 'Erreur',
-        message: err.error?.message || 'Erreur lors de la suppression du TPE'
-      };
+      this.showAlert('error', 'Erreur', err.error?.message || 'Erreur lors de la suppression du TPE');
       this.cancelDelete();
       this.deleting = false;
     }

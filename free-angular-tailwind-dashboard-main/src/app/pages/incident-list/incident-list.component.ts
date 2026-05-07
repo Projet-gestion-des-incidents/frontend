@@ -132,21 +132,22 @@ cancelArchive(): void {
   this.archiving = false;
 }
 
-/**
- * Confirme et exécute l'archivage
- */
 confirmArchive(): void {
   if (!this.incidentToArchive) return;
   
   this.archiving = true;
   
-  this.incidentService.archiverIncident(this.incidentToArchive.id).subscribe({
+  // Sauvegarder l'ID avant l'archivage
+  const incidentId = this.incidentToArchive.id;
+  const isFerme = this.getStatutNumber(this.incidentToArchive.statutIncident) === StatutIncident.Ferme;
+  
+  this.incidentService.archiverIncident(incidentId).subscribe({
     next: (response) => {
       if (response.isSuccess) {
         this.showAlert('success', 'Succès', `L'incident "${this.incidentToArchive!.codeIncident}" a été archivé.`);
         
         // Retirer l'incident de la liste actuelle
-        const index = this.filteredIncidents.findIndex(i => i.id === this.incidentToArchive!.id);
+        const index = this.filteredIncidents.findIndex(i => i.id === incidentId);
         if (index !== -1) {
           this.filteredIncidents.splice(index, 1);
           this.incidents.splice(index, 1);
@@ -154,8 +155,22 @@ confirmArchive(): void {
           this.totalPages = Math.ceil(this.totalCount / this.pageSize);
         }
         
-        // Désélectionner si sélectionné
-        this.selectedIncidents.delete(this.incidentToArchive!.id);
+        // Désélectionner et mettre à jour les stats
+        if (this.selectedIncidents.has(incidentId)) {
+          this.selectedIncidents.delete(incidentId);
+          if (isFerme) {
+            this.cachedSelectionStats.archivable--;
+          } else {
+            this.cachedSelectionStats.deletable--;
+          }
+          this.cachedSelectionStats.total--;
+        }
+        
+        // Si plus d'éléments sélectionnés, réinitialiser le type global
+        if (this.selectedIncidents.size === 0) {
+          this.currentSelectionType = null;
+          this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+        }
       } else {
         this.showAlert('error', 'Erreur', response.message || 'Impossible d\'archiver l\'incident.');
       }
@@ -811,7 +826,14 @@ cancelDelete() {
   }
 
 
-
+  globalSelectionMode: boolean = false;  // Mode sélection globale activé
+  pendingDeleteIds: string[] = [];
+  pendingArchiveIds: string[] = [];
+  pendingDeleteCount: number = 0;
+  pendingArchiveCount: number = 0;
+  showMultiArchiveModal: boolean = false;  // Pour la modale d'archivage multiple
+  confirmArchives: any[] = [];  // Incidents à archiver en masse
+  bulkArchiving: boolean = false;
   // Navigation
   viewIncidentDetails(id: string): void {
     this.router.navigate(['/incidents', id]);
@@ -900,68 +922,535 @@ selectedIncidents: Set<string> = new Set<string>();  // IDs des incidents sélec
 showMultiDeleteModal = false;  // Pour la modale de suppression multiple
 confirmIncidents: Incident[] = [];  // Incidents à supprimer en masse
 bulkDeleting = false;  // État de suppression en cours
+  // Désélectionner tous
+  deselectAll(): void {
+    const totalSelected = this.globalSelectionMode ? this.totalCount : this.selectedIncidents.size;
+    this.selectedIncidents.clear();
+    this.globalSelectionMode = false;
+  this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+  this.currentSelectionType = null
+  }
 
-// Méthodes de sélection
 toggleSelection(incidentId: string, checked: boolean): void {
+  const incident = this.filteredIncidents.find(i => i.id === incidentId);
+  if (!incident) return;
+
+  const incidentStatut = this.getStatutNumber(incident.statutIncident);
+  const isFerme = incidentStatut === StatutIncident.Ferme;
+  const isNonFerme = incidentStatut === StatutIncident.NonTraite || incidentStatut === StatutIncident.EnCours;
+
   if (checked) {
+    // Si c'est le premier élément sélectionné, définir le type global
+    if (this.selectedIncidents.size === 0 && !this.globalSelectionMode) {
+      this.selectedIncidents.add(incidentId);
+      // Définir le type global
+      if (isFerme) {
+        this.currentSelectionType = 'ferme';
+      } else if (isNonFerme) {
+        this.currentSelectionType = 'nonFerme';
+      }
+      // Mettre à jour les stats en cache
+      if (isFerme) {
+        this.cachedSelectionStats = { ...this.cachedSelectionStats, archivable: this.cachedSelectionStats.archivable + 1, total: this.cachedSelectionStats.total + 1 };
+      } else if (isNonFerme) {
+        this.cachedSelectionStats = { ...this.cachedSelectionStats, deletable: this.cachedSelectionStats.deletable + 1, total: this.cachedSelectionStats.total + 1 };
+      }
+      return;
+    }
+
+    // Vérifier la compatibilité avec le type global
+    if (this.currentSelectionType === 'ferme' && !isFerme) {
+      this.showAlert('warning', 'Sélection impossible', 
+        'Vous avez déjà sélectionné des incidents fermés. Vous ne pouvez sélectionner que des incidents fermés.');
+      return;
+    }
+    
+    if (this.currentSelectionType === 'nonFerme' && !isNonFerme) {
+      this.showAlert('warning', 'Sélection impossible', 
+        'Vous avez déjà sélectionné des incidents à traiter (Non traités ou En cours). Vous ne pouvez sélectionner que des incidents du même type.');
+      return;
+    }
+
     this.selectedIncidents.add(incidentId);
+    // Mettre à jour les stats en cache
+    if (isFerme) {
+      this.cachedSelectionStats.archivable++;
+    } else if (isNonFerme) {
+      this.cachedSelectionStats.deletable++;
+    } else {
+      this.cachedSelectionStats.other++;
+    }
+    this.cachedSelectionStats.total++;
+    
+    // Si c'était le mode global, désactiver
+    if (this.globalSelectionMode) {
+      this.globalSelectionMode = false;
+    }
   } else {
     this.selectedIncidents.delete(incidentId);
+    if (this.globalSelectionMode) this.globalSelectionMode = false;
+    
+    // Mettre à jour les stats en cache
+    if (isFerme) {
+      this.cachedSelectionStats.archivable--;
+    } else if (isNonFerme) {
+      this.cachedSelectionStats.deletable--;
+    } else {
+      this.cachedSelectionStats.other--;
+    }
+    this.cachedSelectionStats.total--;
+    
+    // Si plus d'éléments sélectionnés, réinitialiser le type global
+    if (this.selectedIncidents.size === 0) {
+      this.currentSelectionType = null;
+    }
   }
 }
 
-// Sélectionner/Désélectionner tous les incidents de la page
+// Ajoutez cette propriété avec les autres
+cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+private getCurrentSelectionType(): 'ferme' | 'nonFerme' | null {
+  if (this.selectedIncidents.size === 0) return null;
+  
+  let hasFerme = false;
+  let hasNonFerme = false;
+  
+  for (const id of this.selectedIncidents) {
+    const incident = this.filteredIncidents.find(i => i.id === id);
+    if (incident) {
+      const statut = this.getStatutNumber(incident.statutIncident);
+      if (statut === StatutIncident.Ferme) {
+        hasFerme = true;
+      } else if (statut === StatutIncident.NonTraite || statut === StatutIncident.EnCours) {
+        hasNonFerme = true;
+      }
+    }
+  }
+  
+  if (hasFerme && !hasNonFerme) return 'ferme';
+  if (hasNonFerme && !hasFerme) return 'nonFerme';
+  return null; // Mixte ou vide
+}
+
+// Modifiez toggleAllSelection pour respecter la logique
 toggleAllSelection(checked: boolean): void {
   if (checked) {
-    this.filteredIncidents.forEach(incident => 
-      this.selectedIncidents.add(incident.id)
-    );
+    // Vérifier si tous les incidents ont le même type avant de tout sélectionner
+    const hasFerme = this.filteredIncidents.some(i => this.getStatutNumber(i.statutIncident) === StatutIncident.Ferme);
+    const hasNonFerme = this.filteredIncidents.some(i => {
+      const statut = this.getStatutNumber(i.statutIncident);
+      return statut === StatutIncident.NonTraite || statut === StatutIncident.EnCours;
+    });
+    
+    if (hasFerme && hasNonFerme) {
+      this.showAlert('warning', 'Sélection impossible', 
+        'Cette page contient des incidents de types différents (fermés et non fermés). Veuillez filtrer pour sélectionner tous les incidents.');
+      return;
+    }
+    
+    this.selectAllIncidentsAcrossPages();
   } else {
+    this.globalSelectionMode = false;
     this.selectedIncidents.clear();
   }
 }
 
-// Vérifier si un incident est sélectionné
-isSelected(incidentId: string): boolean {
-  return this.selectedIncidents.has(incidentId);
+// Modifiez selectAllIncidentsAcrossPages pour filtrer par type si nécessaire
+selectAllIncidentsAcrossPages(): void {
+  this.loading = true;
+  
+  const params: any = {
+    Page: 1,
+    PageSize: this.totalCount,
+    SearchTerm: this.searchTerm || '',
+    SortBy: 'DateDetection',
+    SortDescending: true
+  };
+  
+  if (this.selectedSeverite != null) params.SeveriteIncident = this.selectedSeverite;
+  
+  // Utiliser le type global existant ou déterminer le type
+  let typeToSelect = this.currentSelectionType;
+  
+  if (typeToSelect === 'ferme') {
+    params.StatutLibelle = 'Fermé';
+  } else if (typeToSelect === 'nonFerme') {
+    // Ne pas filtrer par statut, on va filtrer manuellement après
+  } else {
+    // Pas de type défini, vérifier les incidents de la page
+    const hasFerme = this.filteredIncidents.some(i => this.getStatutNumber(i.statutIncident) === StatutIncident.Ferme);
+    const hasNonFerme = this.filteredIncidents.some(i => {
+      const statut = this.getStatutNumber(i.statutIncident);
+      return statut === StatutIncident.NonTraite || statut === StatutIncident.EnCours;
+    });
+    
+    if (hasFerme && hasNonFerme) {
+      this.showAlert('warning', 'Sélection impossible', 
+        'Cette page contient des incidents de types différents. Veuillez filtrer pour sélectionner tous les incidents.');
+      this.loading = false;
+      return;
+    }
+    
+    if (hasFerme) {
+      typeToSelect = 'ferme';
+    } else if (hasNonFerme) {
+      typeToSelect = 'nonFerme';
+    }
+  }
+  
+  if (this.selectedDateDetection) params.DateDetection = this.selectedDateDetection;
+  if (this.selectedDateResolution) params.DateResolution = this.selectedDateResolution;
+  
+  this.incidentService.searchIncidents(params).subscribe({
+    next: (response: any) => {
+      let allIncidents: any[] = [];
+      if (response?.data?.items) allIncidents = response.data.items;
+      else if (response?.items) allIncidents = response.items;
+      else if (Array.isArray(response)) allIncidents = response;
+      
+      // Filtrer selon le type
+      if (typeToSelect === 'ferme') {
+        allIncidents = allIncidents.filter(i => this.getStatutNumber(i.statutIncident) === StatutIncident.Ferme);
+        this.currentSelectionType = 'ferme';
+      } else if (typeToSelect === 'nonFerme') {
+        allIncidents = allIncidents.filter(i => {
+          const statut = this.getStatutNumber(i.statutIncident);
+          return statut === StatutIncident.NonTraite || statut === StatutIncident.EnCours;
+        });
+        this.currentSelectionType = 'nonFerme';
+      }
+      
+      this.selectedIncidents.clear();
+      this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+      
+      allIncidents.forEach(incident => {
+        this.selectedIncidents.add(incident.id);
+        const statut = this.getStatutNumber(incident.statutIncident);
+        if (statut === StatutIncident.Ferme) {
+          this.cachedSelectionStats.archivable++;
+        } else if (statut === StatutIncident.NonTraite || statut === StatutIncident.EnCours) {
+          this.cachedSelectionStats.deletable++;
+        } else {
+          this.cachedSelectionStats.other++;
+        }
+        this.cachedSelectionStats.total++;
+      });
+      
+      this.globalSelectionMode = true;
+      this.loading = false;
+      this.showAlert('success', 'Succès', `${this.selectedIncidents.size} incident(s) sélectionné(s) (toutes pages).`);
+    },
+    error: (err) => {
+      console.error('Erreur sélection tous les incidents:', err);
+      this.loading = false;
+      this.showAlert('error', 'Erreur', 'Impossible de sélectionner tous les incidents');
+    }
+  });
 }
+currentSelectionType: 'ferme' | 'nonFerme' | null = null;
 
-// Vérifier si tous les incidents sont sélectionnés
-isAllSelected(): boolean {
-  return this.filteredIncidents.length > 0 && 
-         this.selectedIncidents.size === this.filteredIncidents.length;
+canSelectIncident(incident: any): boolean {
+  // Si aucune sélection existante, tout est sélectionnable
+  if (this.selectedIncidents.size === 0 && !this.globalSelectionMode && this.currentSelectionType === null) {
+    return true;
+  }
+  
+  const incidentStatut = this.getStatutNumber(incident.statutIncident);
+  const isFerme = incidentStatut === StatutIncident.Ferme;
+  
+  // Utiliser le type global stocké
+  if (this.currentSelectionType === 'ferme' && !isFerme) return false;
+  if (this.currentSelectionType === 'nonFerme' && isFerme) return false;
+  
+  return true;
 }
+  // Vérifier si un incident est sélectionné
+  isSelected(incidentId: string): boolean {
+    if (this.globalSelectionMode) return true;
+    return this.selectedIncidents.has(incidentId);
+  }
 
-// Vérifier si la sélection est partielle (indéterminée)
-isIndeterminate(): boolean {
-  return this.selectedIncidents.size > 0 && 
-         this.selectedIncidents.size < this.filteredIncidents.length;
-}
+  // Vérifier si tous les incidents sont sélectionnés
+  isAllSelected(): boolean {
+    return this.globalSelectionMode || (this.filteredIncidents.length > 0 && 
+           this.selectedIncidents.size === this.filteredIncidents.length);
+  }
 
-// Annuler la sélection
-clearSelection(): void {
-  this.selectedIncidents.clear();
-}
+  // Vérifier si la sélection est partielle
+  isIndeterminate(): boolean {
+    if (this.globalSelectionMode) return false;
+    return this.selectedIncidents.size > 0 && 
+           this.selectedIncidents.size < this.filteredIncidents.length;
+  }
 
-// Confirmer la suppression multiple
+
+  getSelectionStats(): { deletable: number, archivable: number, other: number } {
+    let deletable = 0;  // Non traités ou En cours
+    let archivable = 0; // Fermés
+    let other = 0;
+    
+    const selectedIds = Array.from(this.selectedIncidents);
+    
+    selectedIds.forEach(id => {
+      const incident = this.filteredIncidents.find(i => i.id === id);
+      if (incident) {
+        const statutValue = typeof incident.statutIncident === 'number' 
+          ? incident.statutIncident 
+          : this.getStatutNumber(incident.statutIncident);
+        
+        if (statutValue === StatutIncident.Ferme) {
+          archivable++;
+        } else if (statutValue === StatutIncident.NonTraite || statutValue === StatutIncident.EnCours) {
+          deletable++;
+        } else {
+          other++;
+        }
+      }
+    });
+    
+    return { deletable, archivable, other };
+  }
+
+  // Helper pour convertir le statut en nombre
+  private getStatutNumber(statut: any): number {
+    if (typeof statut === 'number') return statut;
+    if (typeof statut === 'string') {
+      const s = statut.toLowerCase();
+      if (s.includes('fermé') || s.includes('ferme') || s.includes('resolu')) return StatutIncident.Ferme;
+      if (s.includes('cours')) return StatutIncident.EnCours;
+    }
+    return StatutIncident.NonTraite;
+  }
+
+  // Action principale du bouton (Supprimer ou Archiver selon la sélection)
+  onBulkAction(): void {
+    const stats = this.getSelectionStats();
+    
+    if (stats.archivable > 0 && stats.deletable === 0) {
+      // Uniquement des incidents fermés → Archiver
+      this.confirmArchiveMultiple();
+    } else if (stats.deletable > 0 && stats.archivable === 0) {
+      // Uniquement des incidents non fermés → Supprimer
+      this.confirmDeleteMultiple();
+    } else if (stats.deletable > 0 && stats.archivable > 0) {
+      // Mixte → Afficher un message d'erreur
+      this.showAlert('warning', 'Action impossible', 
+        `Vous ne pouvez pas mélanger des incidents à supprimer (${stats.deletable}) et à archiver (${stats.archivable}) dans la même sélection.`);
+    } else {
+      this.showAlert('info', 'Aucune action', 'Aucun incident sélectionné ne peut être supprimé ou archivé.');
+    }
+  }
 confirmDeleteMultiple(): void {
   if (this.selectedIncidents.size === 0) return;
   
   const selectedIds = Array.from(this.selectedIncidents);
-  this.confirmIncidents = this.filteredIncidents.filter(incident => 
-    selectedIds.includes(incident.id)
-  );
-  this.showMultiDeleteModal = true;
+  
+  // Afficher un indicateur de chargement
+  this.loading = true;
+  
+  // Récupérer TOUS les incidents sélectionnés via l'API
+  const params: any = {
+    Page: 1,
+    PageSize: this.totalCount, // Récupérer TOUS
+    SearchTerm: this.searchTerm || '',
+    SortBy: 'DateDetection',
+    SortDescending: true
+  };
+  
+  // Ajouter les filtres actuels pour correspondre à la sélection globale
+  if (this.selectedSeverite != null) params.SeveriteIncident = this.selectedSeverite;
+  if (this.selectedStatut != null) {
+    let statutLibelle = '';
+    switch(this.selectedStatut) {
+      case StatutIncident.NonTraite: statutLibelle = 'Non traité'; break;
+      case StatutIncident.EnCours: statutLibelle = 'En cours'; break;
+      case StatutIncident.Ferme: statutLibelle = 'Fermé'; break;
+    }
+    if (statutLibelle) params.StatutLibelle = statutLibelle;
+  }
+  if (this.selectedDateDetection) params.DateDetection = this.selectedDateDetection;
+  if (this.selectedDateResolution) params.DateResolution = this.selectedDateResolution;
+  
+  this.incidentService.searchIncidents(params).subscribe({
+    next: (response: any) => {
+      let allIncidents: any[] = [];
+      if (response?.data?.items) allIncidents = response.data.items;
+      else if (response?.items) allIncidents = response.items;
+      else if (Array.isArray(response)) allIncidents = response;
+      
+      // Filtrer pour ne garder que les incidents non fermés qui sont sélectionnés
+      this.confirmIncidents = allIncidents.filter(incident => {
+        const statutValue = this.getStatutNumber(incident.statutIncident);
+        return selectedIds.includes(incident.id) && statutValue !== StatutIncident.Ferme;
+      });
+      
+      this.pendingDeleteIds = this.confirmIncidents.map(i => i.id);
+      this.pendingDeleteCount = this.confirmIncidents.length;
+      this.showMultiDeleteModal = true;
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('Erreur chargement incidents pour suppression:', err);
+      this.loading = false;
+      // Fallback: utiliser les incidents de la page courante
+      this.confirmIncidents = this.filteredIncidents.filter(incident => {
+        const statutValue = this.getStatutNumber(incident.statutIncident);
+        return selectedIds.includes(incident.id) && statutValue !== StatutIncident.Ferme;
+      });
+      this.pendingDeleteIds = this.confirmIncidents.map(i => i.id);
+      this.pendingDeleteCount = this.confirmIncidents.length;
+      this.showMultiDeleteModal = true;
+    }
+  });
 }
 
-// Annuler la suppression multiple
+confirmArchiveMultiple(): void {
+  if (this.selectedIncidents.size === 0) return;
+  
+  const selectedIds = Array.from(this.selectedIncidents);
+  
+  // Afficher un indicateur de chargement
+  this.loading = true;
+  
+  // Récupérer TOUS les incidents sélectionnés via l'API
+  const params: any = {
+    Page: 1,
+    PageSize: this.totalCount,
+    SearchTerm: this.searchTerm || '',
+    SortBy: 'DateDetection',
+    SortDescending: true
+  };
+  
+  if (this.selectedSeverite != null) params.SeveriteIncident = this.selectedSeverite;
+  if (this.selectedStatut != null) {
+    let statutLibelle = '';
+    switch(this.selectedStatut) {
+      case StatutIncident.NonTraite: statutLibelle = 'Non traité'; break;
+      case StatutIncident.EnCours: statutLibelle = 'En cours'; break;
+      case StatutIncident.Ferme: statutLibelle = 'Fermé'; break;
+    }
+    if (statutLibelle) params.StatutLibelle = statutLibelle;
+  }
+  if (this.selectedDateDetection) params.DateDetection = this.selectedDateDetection;
+  if (this.selectedDateResolution) params.DateResolution = this.selectedDateResolution;
+  
+  this.incidentService.searchIncidents(params).subscribe({
+    next: (response: any) => {
+      let allIncidents: any[] = [];
+      if (response?.data?.items) allIncidents = response.data.items;
+      else if (response?.items) allIncidents = response.items;
+      else if (Array.isArray(response)) allIncidents = response;
+      
+      // Filtrer pour ne garder que les incidents fermés qui sont sélectionnés
+      this.confirmArchives = allIncidents.filter(incident => {
+        const statutValue = this.getStatutNumber(incident.statutIncident);
+        return selectedIds.includes(incident.id) && statutValue === StatutIncident.Ferme;
+      });
+      
+      this.pendingArchiveIds = this.confirmArchives.map(i => i.id);
+      this.pendingArchiveCount = this.confirmArchives.length;
+      this.showMultiArchiveModal = true;
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('Erreur chargement incidents pour archivage:', err);
+      this.loading = false;
+      // Fallback: utiliser les incidents de la page courante
+      this.confirmArchives = this.filteredIncidents.filter(incident => {
+        const statutValue = this.getStatutNumber(incident.statutIncident);
+        return selectedIds.includes(incident.id) && statutValue === StatutIncident.Ferme;
+      });
+      this.pendingArchiveIds = this.confirmArchives.map(i => i.id);
+      this.pendingArchiveCount = this.confirmArchives.length;
+      this.showMultiArchiveModal = true;
+    }
+  });
+}
+
+executeMultiArchive(): void {
+  if (this.pendingArchiveIds.length === 0) return;
+  
+  this.bulkArchiving = true;
+  let completed = 0;
+  const total = this.pendingArchiveIds.length;
+  let successCount = 0;
+  
+  this.pendingArchiveIds.forEach(id => {
+    this.incidentService.archiverIncident(id).subscribe({
+      next: (response) => {
+        if (response.isSuccess) {
+          const index = this.filteredIncidents.findIndex(i => i.id === id);
+          if (index !== -1) this.filteredIncidents.splice(index, 1);
+          this.selectedIncidents.delete(id);
+          
+          // ✅ Décrémenter les stats en cache
+          this.cachedSelectionStats.archivable--;
+          this.cachedSelectionStats.total--;
+          
+          successCount++;
+        }
+        completed++;
+        
+        if (completed === total) {
+          this.bulkArchiving = false;
+          this.showMultiArchiveModal = false;
+          this.pendingArchiveIds = [];
+          this.confirmArchives = [];
+          
+          // ✅ Mettre à jour totalCount et totalPages
+          this.totalCount = this.filteredIncidents.length;
+          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+          
+          // ✅ Si plus d'éléments sélectionnés, tout réinitialiser
+          if (this.selectedIncidents.size === 0) {
+            this.currentSelectionType = null;
+            this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+          }
+          
+          if (successCount === total) {
+            this.showAlert('success', 'Succès', `${total} incident(s) archivé(s) avec succès.`);
+          } else if (successCount > 0) {
+            this.showAlert('warning', 'Archivage partiel', `${successCount} incident(s) archivé(s), ${total - successCount} échec(s).`);
+          }
+          this.loadIncidents();
+        }
+      },
+      error: (err) => {
+        console.error(`Erreur archivage ${id}:`, err);
+        completed++;
+        if (completed === total) {
+          this.bulkArchiving = false;
+          this.showMultiArchiveModal = false;
+          this.pendingArchiveIds = [];
+          this.confirmArchives = [];
+          this.showAlert('error', 'Erreur', `${successCount}/${total} incident(s) archivé(s).`);
+          this.loadIncidents();
+        }
+      }
+    });
+  });
+}
+
+clearSelection(): void {
+  this.selectedIncidents.clear();
+  this.globalSelectionMode = false;
+  this.currentSelectionType = null;
+  this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+}
+
 cancelMultiDelete(): void {
   this.showMultiDeleteModal = false;
   this.confirmIncidents = [];
   this.bulkDeleting = false;
 }
 
-// Exécuter la suppression multiple
+cancelMultiArchive(): void {
+  this.showMultiArchiveModal = false;
+  this.confirmArchives = [];
+  this.pendingArchiveIds = [];
+  this.bulkArchiving = false;
+}
+
 executeMultiDelete(): void {
   if (this.confirmIncidents.length === 0) return;
 
@@ -980,6 +1469,11 @@ executeMultiDelete(): void {
         if (indexAll !== -1) this.incidents.splice(indexAll, 1);
         
         this.selectedIncidents.delete(incident.id);
+        
+        // ✅ Décrémenter les stats en cache
+        this.cachedSelectionStats.deletable--;
+        this.cachedSelectionStats.total--;
+        
         successCount++;
         completed++;
         
@@ -992,6 +1486,12 @@ executeMultiDelete(): void {
           this.totalPages = Math.ceil(this.totalCount / this.pageSize);
           if (this.currentPage > this.totalPages && this.totalPages > 0) {
             this.currentPage = this.totalPages;
+          }
+          
+          // ✅ Si plus d'éléments sélectionnés, tout réinitialiser
+          if (this.selectedIncidents.size === 0) {
+            this.currentSelectionType = null;
+            this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
           }
           
           if (successCount === total) {

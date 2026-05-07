@@ -81,6 +81,8 @@ export interface TicketDashboardDTO {
     prenom: string;
     nomComplet: string;
     ticketsResolus: number;
+      ticketsResolusAvantDateLimite: number;   // ✅ AJOUTÉ
+    ticketsResolusApresDateLimite: number;   // ✅ AJOUTÉ
     ticketsEnCours: number;
     ticketsAssignes: number;
     ticketsTotal: number;
@@ -99,6 +101,8 @@ export interface TicketDashboardDTO {
     ticketsResolus: number;
     totalTicketsTechnicien: number;
     pourcentageAssignation: number;
+          ticketsResolusAvantDateLimite: number;   // ✅ AJOUTÉ
+    ticketsResolusApresDateLimite: number;   // ✅ AJOUTÉ
     tauxResolution: number;
   }>;
   assignationGlobale?: {

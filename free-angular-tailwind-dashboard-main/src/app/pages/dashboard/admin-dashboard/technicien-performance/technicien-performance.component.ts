@@ -1,4 +1,3 @@
-// technicien-performance.component.ts
 import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { DashboardAdminService, TicketDashboardDTO } from '../../../../shared/services/dashboard-admin.service';
@@ -52,45 +51,59 @@ export class TechnicienPerformanceComponent implements OnInit {
     this.showExportModal = false;
   }
 
-  exportData() {
-    if (!this.ticketData) return;
-    
-    const techniciansData = this.ticketData.topTechniciens.map(tech => ({
-      'Technicien': `${tech.prenom} ${tech.nom}`,
-      'Tickets assignés': tech.ticketsAssignes,
-      'Tickets en cours': tech.ticketsEnCours,
-      'Tickets résolus': tech.ticketsResolus,
-      'Total tickets': tech.ticketsTotal,
-      'Taux de résolution': `${tech.tauxResolution}%`,
-      'Performance': this.getPerformanceLabel(tech.tauxResolution)
-    }));
-    
-    // ✅ Export avec couleurs et première colonne en gras
-    this.exportExcelService.exportToExcelWithColors({
-      filename: `performance_techniciens_${this.getCurrentDate()}`,
-      sheetName: 'Performance Techniciens',
-      data: techniciansData,
-      boldFirstColumn: true,  // ✅ Met la colonne Technicien en gras
-      colorRules: [
-        {
-          column: 'Taux de résolution',
-          getRowColor: (value: string) => {
-            const taux = parseFloat(value);
-            if (taux >= 70) {
-              return { bgColor: 'D1FAE5', fontColor: '065F46' };
-            }
-            if (taux >= 50 && taux < 70) {
-              return { bgColor: 'FEF3C7', fontColor: '92400E' };
-            }
-            return { bgColor: 'FEE2E2', fontColor: '991B1B' };
-          }
+ exportData() {
+  if (!this.ticketData) return;
+  
+  // ✅ Utiliser assignationParTechnicien (contient les nouvelles propriétés)
+  const techniciansData = (this.ticketData.assignationParTechnicien || []).map(tech => ({
+    'Technicien': `${tech.prenom} ${tech.nom}`,
+    'Tickets assignés': tech.ticketsAssignes,
+    'Tickets en cours': tech.ticketsEnCours,
+    'Tickets résolus': tech.ticketsResolus,
+    'Total tickets': tech.totalTicketsTechnicien,
+    'Résolus avant délai': tech.ticketsResolusAvantDateLimite || 0,
+    'Résolus après délai': tech.ticketsResolusApresDateLimite || 0,
+    'Taux de résolution': `${tech.tauxResolution}%`,
+    'Performance': this.getPerformanceLabel(tech.tauxResolution)
+  }));
+  
+  this.exportExcelService.exportToExcelWithColors({
+    filename: `performance_techniciens_${this.getCurrentDate()}`,
+    sheetName: 'Performance Techniciens',
+    data: techniciansData,
+    boldFirstColumn: true,
+    colorRules: [
+      {
+        column: 'Taux de résolution',
+        getRowColor: (value: string) => {
+          const taux = parseFloat(value);
+          if (taux >= 70) return { bgColor: 'D1FAE5', fontColor: '065F46' };
+          if (taux >= 50 && taux < 70) return { bgColor: 'FEF3C7', fontColor: '92400E' };
+          return { bgColor: 'FEE2E2', fontColor: '991B1B' };
         }
-      ]
-    });
-    
-    this.closeExportModal();
-  }
+      },
+      {
+        column: 'Taux respect délai',
+        getRowColor: (value: string) => {
+          const taux = parseFloat(value);
+          if (taux >= 80) return { bgColor: 'D1FAE5', fontColor: '065F46' };
+          if (taux >= 50 && taux < 80) return { bgColor: 'FEF3C7', fontColor: '92400E' };
+          return { bgColor: 'FEE2E2', fontColor: '991B1B' };
+        }
+      }
+    ]
+  });
+  
+  this.closeExportModal();
+}
+// technicien-performance.component.ts
 
+get activeTechnicians() {
+  if (!this.ticketData?.assignationParTechnicien) return [];
+  return this.ticketData.assignationParTechnicien
+    .filter(tech => tech.totalTicketsTechnicien > 0)
+    .sort((a, b) => b.totalTicketsTechnicien - a.totalTicketsTechnicien);
+}
   private getPerformanceLabel(taux: number): string {
     if (taux >= 70) return 'Excellent';
     if (taux >= 50) return 'Bon';
