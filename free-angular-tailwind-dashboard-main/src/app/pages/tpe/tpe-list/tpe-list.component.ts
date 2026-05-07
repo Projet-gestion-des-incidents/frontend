@@ -32,7 +32,9 @@ tempCommercantFilters = {
 // Pour la date de création (calendrier)
 selectedCreatedAtForCommercant = '';
 selectedDetectionDateObj: Date | null = null;
-  
+  showDeleteAllModal = false;  // Pour la modale de suppression totale
+deleteAllCount = 0;          // Nombre de TPEs à supprimer
+deleteAllLoading = false;
   // Pagination
   currentPage = 1;
   pageSize = 6;
@@ -140,34 +142,46 @@ toggleAllSelection(checked: boolean): void {
   }
 }
 
+// ✅ Optimisation : Sélectionner TOUS les TPEs SANS charger tous les détails
 selectAllTPEsAcrossPages(): void {
-  // ✅ Récupérer TOUS les TPEs (toutes pages) via l'API
+  // 1. On active le mode global immédiatement (UI réactive)
+  this.globalSelectionMode = true;
+  
+  // 2. On vide la sélection locale car on est en mode global
+  this.selectedTPEs.clear();
+  
+  // 3. Optionnel : Afficher un indicateur de chargement
   this.loading = true;
   
+  // 4. On récupère UNIQUEMENT les IDs des TPEs (pas tous les détails)
+  //    Via une requête légère qui ne retourne que les IDs
   const params: any = {
     page: 1,
-    pageSize: this.totalCount, // Récupérer TOUS
+    pageSize: this.totalCount,
     searchTerm: this.searchTerm,
     modele: this.selectedModele || undefined,
     commercantId: this.selectedCommercantId || undefined,
     createdAt: this.selectedCreatedAt || undefined,
-    updatedAt: this.selectedUpdatedAt || undefined
+    updatedAt: this.selectedUpdatedAt || undefined,
+    // ✅ AJOUTER un paramètre pour ne récupérer que les IDs
+    onlyIds: true  // Si votre API supporte ce paramètre
   };
   
   this.tpeService.getPagedTPEs(params).subscribe({
     next: (response) => {
       const allTPEs = response.data;
+      // On ne stocke que les IDs (pas tous les objets)
       this.selectedTPEs.clear();
       allTPEs.forEach(tpe => {
         this.selectedTPEs.add(tpe.id);
       });
-      this.globalSelectionMode = true;
       this.loading = false;
     },
     error: (err) => {
       console.error('Erreur sélection tous les TPEs:', err);
       this.loading = false;
-      this.showAlert('error', 'Erreur', 'Impossible de sélectionner tous les TPEs');
+      // Fallback: mode global sans IDs (toujours utilisable)
+      // this.selectedTPEs reste vide, mais globalSelectionMode = true
     }
   });
 }
@@ -207,26 +221,19 @@ toggleSelection(tpeId: string, checked: boolean): void {
 
 confirmDeleteMultiple(): void {
   if (this.globalSelectionMode) {
-    // En mode global, demande confirmation pour supprimer TOUS
-    const confirmMessage = ` ATTENTION : Vous allez supprimer TOUS les ${this.totalCount} TPE(s) (toutes pages confondues).\n\nCette action est irréversible.\n\nConfirmez-vous ?`;
-    
-    if (confirm(confirmMessage)) {
-      this.deleteAllTPEs();
-    }
+    // ✅ Au lieu de confirm() JavaScript, on ouvre la modale
+    this.deleteAllCount = this.totalCount;
+    this.showDeleteAllModal = true;
     return;
   }
   
   if (this.selectedTPEs.size === 0) return;
   
-  // ✅ Récupérer les IDs sélectionnés
   const selectedIds = Array.from(this.selectedTPEs);
-  
-  // ✅ Charger les détails des TPEs à supprimer pour les afficher dans la modale
-  this.loading = true;
   
   const params: any = {
     page: 1,
-    pageSize: this.totalCount, // Récupérer TOUS
+    pageSize: this.totalCount,
     searchTerm: this.searchTerm,
     modele: this.selectedModele || undefined,
     commercantId: this.selectedCommercantId || undefined,
@@ -236,24 +243,87 @@ confirmDeleteMultiple(): void {
   
   this.tpeService.getPagedTPEs(params).subscribe({
     next: (response) => {
-      // Filtrer pour ne garder que les TPEs sélectionnés
       this.confirmTPEs = response.data.filter(tpe => selectedIds.includes(tpe.id));
-      
       this.pendingDeleteIds = selectedIds;
       this.pendingDeleteCount = this.confirmTPEs.length;
       this.showMultiDeleteModal = true;
-      this.loading = false;
     },
     error: (err) => {
       console.error('Erreur chargement TPEs pour confirmation:', err);
-      this.loading = false;
-      // Fallback : afficher la modale sans les détails
       this.confirmTPEs = [];
       this.pendingDeleteIds = selectedIds;
       this.pendingDeleteCount = selectedIds.length;
       this.showMultiDeleteModal = true;
     }
   });
+}
+
+
+executeDeleteAll(): void {
+  this.deleteAllLoading = true;
+  
+  const params: any = {
+    page: 1,
+    pageSize: this.totalCount,
+    searchTerm: this.searchTerm,
+    modele: this.selectedModele || undefined,
+    commercantId: this.selectedCommercantId || undefined,
+    createdAt: this.selectedCreatedAt || undefined,
+    updatedAt: this.selectedUpdatedAt || undefined
+  };
+  
+  this.tpeService.getPagedTPEs(params).subscribe({
+    next: (response) => {
+      const allTPEs = response.data;
+      const totalToDelete = allTPEs.length;
+      let deleted = 0;
+      let errors = 0;
+      
+      allTPEs.forEach(tpe => {
+        this.tpeService.deleteTPE(tpe.id).subscribe({
+          next: () => {
+            deleted++;
+            if (deleted + errors === totalToDelete) {
+              this.finishDeleteAll(deleted, errors);
+            }
+          },
+          error: (err) => {
+            console.error(`Erreur suppression TPE ${tpe.id}:`, err);
+            errors++;
+            if (deleted + errors === totalToDelete) {
+              this.finishDeleteAll(deleted, errors);
+            }
+          }
+        });
+      });
+    },
+    error: (err) => {
+      console.error('Erreur récupération TPEs:', err);
+      this.deleteAllLoading = false;
+      this.showDeleteAllModal = false;
+      this.showAlert('error', 'Erreur', 'Impossible de récupérer la liste des TPEs');
+    }
+  });
+}
+
+finishDeleteAll(deleted: number, errors: number): void {
+  this.deleteAllLoading = false;
+  this.showDeleteAllModal = false;
+  this.globalSelectionMode = false;
+  this.selectedTPEs.clear();
+  
+  if (errors === 0) {
+    this.showAlert('success', 'Succès', `${deleted} TPE(s) supprimé(s) avec succès.`);
+  } else {
+    this.showAlert('warning', 'Suppression partielle', `${deleted} TPE(s) supprimé(s), ${errors} échec(s).`);
+  }
+  
+  this.loadTPEs();
+}
+
+cancelDeleteAll(): void {
+  this.showDeleteAllModal = false;
+  this.deleteAllLoading = false;
 }
 // Ajoutez cette méthode après la méthode clearSelection() ou à côté
 tpeDashboard: TPEDashboardDTO | null = null;
