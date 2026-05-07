@@ -141,12 +141,36 @@ toggleAllSelection(checked: boolean): void {
 }
 
 selectAllTPEsAcrossPages(): void {
-  // ✅ Ne pas afficher d'alerte
-  this.globalSelectionMode = true;
-  this.selectedTPEs.clear(); // Optionnel: vider la sélection locale
-  // ❌ Supprimez ou commentez l'alerte
+  // ✅ Récupérer TOUS les TPEs (toutes pages) via l'API
+  this.loading = true;
+  
+  const params: any = {
+    page: 1,
+    pageSize: this.totalCount, // Récupérer TOUS
+    searchTerm: this.searchTerm,
+    modele: this.selectedModele || undefined,
+    commercantId: this.selectedCommercantId || undefined,
+    createdAt: this.selectedCreatedAt || undefined,
+    updatedAt: this.selectedUpdatedAt || undefined
+  };
+  
+  this.tpeService.getPagedTPEs(params).subscribe({
+    next: (response) => {
+      const allTPEs = response.data;
+      this.selectedTPEs.clear();
+      allTPEs.forEach(tpe => {
+        this.selectedTPEs.add(tpe.id);
+      });
+      this.globalSelectionMode = true;
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error('Erreur sélection tous les TPEs:', err);
+      this.loading = false;
+      this.showAlert('error', 'Erreur', 'Impossible de sélectionner tous les TPEs');
+    }
+  });
 }
-
 // Vérifier si un TPE est sélectionné (pour l'affichage du checkmark)
 isSelected(tpeId: string): boolean {
   // En mode global, tout est sélectionné
@@ -170,18 +194,14 @@ toggleSelection(tpeId: string, checked: boolean): void {
   // Si on modifie une sélection individuelle, on désactive le mode global
   if (this.globalSelectionMode) {
     this.globalSelectionMode = false;
-    // Pré-sélectionner tous les IDs de la page courante
-    this.tpes.forEach(tpe => this.selectedTPEs.add(tpe.id));
+    // ✅ IMPORTANT: Ne pas toucher à selectedTPEs
+    // Les IDs déjà sélectionnés restent pour refléter la réalité
   }
   
   if (checked) {
     this.selectedTPEs.add(tpeId);
   } else {
     this.selectedTPEs.delete(tpeId);
-    // Si on désélectionne un élément, le mode global n'est plus valide
-    if (this.globalSelectionMode) {
-      this.globalSelectionMode = false;
-    }
   }
 }
 
