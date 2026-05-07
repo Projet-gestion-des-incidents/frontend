@@ -704,17 +704,12 @@ loadTPEs(): void {
 
 getBadgeClasses(modele: string): string {
   const map: Record<string, string> = {
-    // Ingenico - Bleu lavande (nuance bleutée proche du violet)
-    'Ingenico': 'bg-[#B2B3FF] text-[#0C144E]',
-    
-    // Verifone - Digital Purple (violet signature)
-    'Verifone': 'bg-[#8788FF] text-white',
-    
-    // PAX - Rose mauve (nuance rosée proche du violet)
-    'PAX': 'bg-[#D4B8FF] text-[#0C144E]'
+    'Ingenico': 'bg-cyan-100 text-cyan-700 dark:bg-cyan-900/30 dark:text-cyan-400',
+    'Verifone': 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400',
+    'PAX': 'bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400'
   };
   const key = modele?.trim() || '';
-  return map[key] ?? 'bg-[#ECECFF] text-[#0C144E]';
+  return map[key] ?? 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400';
 }
   canManage(): boolean {
     return this.userRole === 'Admin';
