@@ -12,7 +12,7 @@ import { AlertComponent } from '../../shared/components/ui/alert/alert.component
 import { TicketDTO } from '../../shared/models/Ticket.models';
 import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
 import { CheckboxComponent } from '../../shared/components/form/input/checkbox.component';
-import { forkJoin, of } from 'rxjs';
+import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, finalize, tap } from 'rxjs/operators';
 
 @Component({
@@ -153,37 +153,40 @@ cancelArchive(): void {
  * - Technicien: ne peut sélectionner que les tickets résolus (archivables)
  */
 canSelectTicket(ticket: any): boolean {
-  // ✅ Toujours désactiver les tickets "En cours" quel que soit le contexte
+  // ✅ 1. Règle ABSOLUE : les tickets "En cours" ne sont JAMAIS sélectionnables (pour tout le monde)
   if (ticket.statutTicketLibelle === 'En cours') {
     return false;
   }
   
-  // Technicien: ne peut sélectionner que les tickets résolus
+  // ✅ 2. Technicien: ne peut sélectionner que les tickets résolus
   if (this.isTechnicien) {
-    return ticket.statutTicketLibelle === 'Résolu';
+    if (this.selectedTickets.size === 0 && this.currentSelectionType === null) {
+      return ticket.statutTicketLibelle === 'Résolu';
+    }
+    if (this.currentSelectionType === 'archivable') {
+      return ticket.statutTicketLibelle === 'Résolu';
+    }
+    return false;
   }
   
-  // Admin: logique de type
+  // ✅ 3. Admin: logique de type
   if (this.isAdmin) {
-    // Si aucune sélection en cours, tout est sélectionnable (sauf En cours déjà filtré)
     if (this.selectedTickets.size === 0 && this.currentSelectionType === null) {
+      // Les tickets "En cours" sont déjà exclus, donc OK
       return true;
     }
     
     const isArchivable = ticket.statutTicketLibelle === 'Résolu';
     const isDeletable = ticket.statutTicketLibelle === 'Assigné' || ticket.statutTicketLibelle === 'Non assigné';
     
-    // Cas spécial: ticket déjà sélectionné, toujours permettre la désélection
     if (this.isSelected(ticket.id)) {
       return true;
     }
     
-    // Si on a commencé par des tickets archivables, on ne peut sélectionner que des archivables
     if (this.currentSelectionType === 'archivable' && !isArchivable) {
       return false;
     }
     
-    // Si on a commencé par des tickets supprimables, on ne peut sélectionner que des supprimables (Assigné ou Non assigné)
     if (this.currentSelectionType === 'deletable' && !isDeletable) {
       return false;
     }
@@ -232,28 +235,58 @@ calculateGlobalSelectionStats(): void {
     return;
   }
   
-  const params: any = {
-    page: 1,
-    pageSize: this.totalCount,
-    searchTerm: this.searchTerm || null,
-    statut: this.selectedStatut ?? null,
-    priorite: this.selectedPriorite ?? null,
-    dateDebut: this.tempFilters.dateDebut || null
-  };
+  // ✅ Utiliser la bonne API selon le rôle
+  let request$: Observable<any>;
   
-  this.ticketService.getTicketsPaged(params).subscribe({
-    next: (res) => {
-      const allTickets = res.data.items;
+  if (this.isAdmin) {
+    const params: any = {
+      page: 1,
+      pageSize: this.totalCount,
+      searchTerm: this.searchTerm || null,
+      statut: this.selectedStatut ?? null,
+      priorite: this.selectedPriorite ?? null,
+      dateDebut: this.tempFilters.dateDebut || null
+    };
+    request$ = this.ticketService.getTicketsPaged(params);
+  } else if (this.isTechnicien) {
+    const params: any = {
+      page: 1,
+      pageSize: this.totalCount,
+      searchTerm: this.searchTerm || null,
+      statut: this.selectedStatut ?? null,
+      priorite: this.selectedPriorite ?? null,
+      dateDebut: this.tempFilters.dateDebut || null,
+      sortBy: "date",
+      sortDescending: true
+    };
+    request$ = this.ticketService.getMesTicketsAssignes(params);
+  } else {
+    return;
+  }
+  
+  request$.subscribe({
+    next: (res: any) => {  // ✅ Ajouter le type 'any'
+      let allTickets: any[] = [];
+      if (res.data?.items) {
+        allTickets = res.data.items;
+      } else if (res.items) {
+        allTickets = res.items;
+      } else if (Array.isArray(res)) {
+        allTickets = res;
+      } else if (res.data && Array.isArray(res.data)) {
+        allTickets = res.data;
+      }
+      
       let archivable = 0;
       let deletable = 0;
       let other = 0;
       
-      this.selectedTickets.forEach(id => {
+      this.selectedTickets.forEach((id: string) => {  // ✅ Ajouter le type
         const ticket = allTickets.find((t: any) => t.id === id);
         if (ticket) {
           if (ticket.statutTicketLibelle === 'Résolu') {
             archivable++;
-          } else if (this.isAdmin && ticket.statutTicketLibelle === 'Assigné') {
+          } else if (this.isAdmin && (ticket.statutTicketLibelle === 'Assigné' || ticket.statutTicketLibelle === 'Non assigné')) {
             deletable++;
           } else {
             other++;
@@ -263,7 +296,7 @@ calculateGlobalSelectionStats(): void {
       
       this.globalSelectionStats = { archivable, deletable, other, total: this.selectedTickets.size };
     },
-    error: (err) => {
+    error: (err: any) => {  // ✅ Ajouter le type 'any'
       console.error('Erreur calcul stats globales:', err);
       this.globalSelectionStats = { ...this.cachedSelectionStats };
     }
@@ -276,11 +309,11 @@ calculateGlobalSelectionStats(): void {
  * Ouvre la modale d'archivage multiple
  */
 confirmArchiveMultiple(): void {
-  if (this.selectedTickets.size === 0 ) return;
+  if (this.selectedTickets.size === 0) return;
   
   this.loading = true;
   
-  // Récupérer les tickets sélectionnés depuis l'API pour avoir toutes les infos
+  // ✅ Utiliser la bonne API selon le rôle
   const params: any = {
     page: 1,
     pageSize: this.totalCount,
@@ -290,10 +323,36 @@ confirmArchiveMultiple(): void {
     dateDebut: this.tempFilters.dateDebut || null
   };
   
-  this.ticketService.getTicketsPaged(params).subscribe({
-    next: (res) => {
-      const allTickets = res.data.items;
-      // ✅ Ajouter le type explicite pour le paramètre 't'
+  // ✅ Déterminer quelle API utiliser
+  let request$;
+  if (this.isAdmin) {
+    request$ = this.ticketService.getTicketsPaged(params);
+  } else if (this.isTechnicien) {
+    const technicienParams = {
+      ...params,
+      sortBy: "date",
+      sortDescending: true
+    };
+    request$ = this.ticketService.getMesTicketsAssignes(technicienParams);
+  } else {
+    this.loading = false;
+    return;
+  }
+  
+  request$.subscribe({
+    next: (res: any) => {
+      let allTickets: any[] = [];
+      if (res.data?.items) {
+        allTickets = res.data.items;
+      } else if (res.items) {
+        allTickets = res.items;
+      } else if (Array.isArray(res)) {
+        allTickets = res;
+      } else if (res.data && Array.isArray(res.data)) {
+        allTickets = res.data;
+      }
+      
+      // ✅ Filtrer pour ne garder que les tickets résolus sélectionnés
       this.confirmArchiveTickets = allTickets.filter((t: TicketDTO) => 
         this.selectedTickets.has(t.id) && 
         t.statutTicketLibelle === 'Résolu'
@@ -303,7 +362,7 @@ confirmArchiveMultiple(): void {
       this.showMultiArchiveModal = true;
       this.loading = false;
     },
-    error: (err) => {
+    error: (err: any) => {
       console.error('Erreur chargement tickets pour archivage:', err);
       this.loading = false;
       // Fallback: utiliser les tickets de la page courante
@@ -882,54 +941,60 @@ loadTickets() {
     });
   }
   
-  else if (this.isTechnicien) {
-    // Même principe pour le technicien
-    console.log('🔧 Technicien: Chargement de mes tickets assignés avec pagination');
-    
-    const request = {
-      page: this.currentPage,
-      pageSize: this.pageSize,
-      searchTerm: this.searchTerm || null,
-      statut: this.selectedStatut ?? null,
-      priorite: this.selectedPriorite ?? null,
-      dateDebut: this.tempFilters.dateDebut || null,
-      sortBy: "date",
-      sortDescending: true
-    };
+else if (this.isTechnicien) {
+  console.log('🔧 Technicien: Chargement de mes tickets assignés avec pagination');
+  
+  const request = {
+    page: this.currentPage,
+    pageSize: this.pageSize,
+    searchTerm: this.searchTerm || null,
+    statut: this.selectedStatut ?? null,
+    priorite: this.selectedPriorite ?? null,
+    dateDebut: this.tempFilters.dateDebut || null,
+    sortBy: "date",
+    sortDescending: true
+  };
 
-    this.ticketService.getMesTicketsAssignes(request).subscribe({
-      next: (res) => {
-        if (res.isSuccess && res.data) {
-          const paged = res.data;
-          this.tickets = paged.items || [];
-          this.filteredTickets = this.tickets;
-          this.totalCount = paged.totalCount || 0;
-          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
-          this.currentPage = paged.page || 1;
-        } else {
-          this.tickets = [];
-          this.totalCount = 0;
-          this.totalPages = 1;
-        }
-        
-        // ✅ RESTAURER TOUTES les sélections
-        this.selectedTickets.clear();
-        previousSelectedIds.forEach(id => this.selectedTickets.add(id));
-        this.currentSelectionType = previousSelectionType;
-        
-        this.updateSelectionStats();
-        
-        console.log(`✅ ${this.tickets.length} tickets assignés chargés pour le technicien`);
-        console.log(`📌 ${this.selectedTickets.size} tickets sélectionnés au total`);
-        this.loading = false;
-      },
-      error: (err) => {
-        console.error("❌ Erreur chargement tickets assignés:", err);
-        this.error = "Impossible de charger vos tickets assignés";
-        this.loading = false;
+  this.ticketService.getMesTicketsAssignes(request).subscribe({
+    next: (res) => {
+      if (res.isSuccess && res.data) {
+        const paged = res.data;
+        this.tickets = paged.items || [];
+        this.filteredTickets = this.tickets;
+        this.totalCount = paged.totalCount || 0;
+        this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+        this.currentPage = paged.page || 1;
+      } else {
+        this.tickets = [];
+        this.totalCount = 0;
+        this.totalPages = 1;
       }
-    });
-  }
+      
+      // ✅ RESTAURER TOUTES les sélections
+      this.selectedTickets.clear();
+      previousSelectedIds.forEach(id => {
+        // Vérifier si le ticket existe encore (non archivé/supprimé)
+        const exists = this.tickets.some(t => t.id === id) || 
+                       (this.totalCount > 0 && true); // Si le ticket n'est pas dans la page courante, on le garde quand même
+        // Pour le technicien, on garde toutes les sélections car l'action est globale
+        this.selectedTickets.add(id);
+      });
+      this.currentSelectionType = previousSelectionType;
+      
+      this.updateSelectionStats();
+      this.calculateGlobalSelectionStats();
+      
+      console.log(`✅ ${this.tickets.length} tickets assignés chargés pour le technicien`);
+      console.log(`📌 ${this.selectedTickets.size} tickets sélectionnés au total`);
+      this.loading = false;
+    },
+    error: (err) => {
+      console.error("❌ Erreur chargement tickets assignés:", err);
+      this.error = "Impossible de charger vos tickets assignés";
+      this.loading = false;
+    }
+  });
+}
 }
 
  // ========== GESTION DE LA SÉLECTION MULTIPLE ==========
@@ -939,6 +1004,12 @@ toggleSelection(ticketId: string, checked: boolean, ticket?: any): void {
   
   const ticketObj = ticket || this.tickets.find(t => t.id === ticketId);
   if (!ticketObj) return;
+  
+  // ✅ Pour le technicien, ne permettre que la sélection de tickets résolus
+  if (this.isTechnicien && ticketObj.statutTicketLibelle !== 'Résolu') {
+    this.showAlert('warning', 'Sélection impossible', 'En tant que technicien, vous ne pouvez sélectionner que des tickets résolus pour les archiver.');
+    return;
+  }
   
   if (checked && !this.canSelectTicket(ticketObj)) {
     const message = this.currentSelectionType === 'archivable' 
