@@ -258,10 +258,8 @@ isTicketIndeterminate(): boolean {
 openMultiRestoreTicketModal(): void {
   if (this.globalTicketSelectionMode) {
     // Mode global: restaurer tous les tickets de toutes les pages
-    const confirmMessage = `⚠️ ATTENTION : Vous allez restaurer TOUS les ${this.ticketsTotalCount} ticket(s) archivés.\n\nConfirmez-vous ?`;
-    if (confirm(confirmMessage)) {
-      this.restoreAllTickets();
-    }
+   this.showMultiRestoreTicketModal = true;
+    this.confirmRestoreTickets = []; // Vide car on va restaurer tous
     return;
   }
   
@@ -399,10 +397,9 @@ isIncidentIndeterminate(): boolean {
 
 openMultiRestoreIncidentModal(): void {
   if (this.globalIncidentSelectionMode) {
-    const confirmMessage = `⚠️ ATTENTION : Vous allez restaurer TOUS les ${this.incidentsTotalCount} incident(s) archivés.\n\nConfirmez-vous ?`;
-    if (confirm(confirmMessage)) {
-      this.restoreAllIncidents();
-    }
+    // ✅ OUVERTURE DE LA MODALE au lieu de confirm()
+    this.showMultiRestoreIncidentModal = true;
+    this.confirmRestoreIncidents = []; // Vide car on va restaurer tous
     return;
   }
   
@@ -703,6 +700,14 @@ cancelMultiRestoreTicket(): void {
 }
 
 confirmMultiRestoreTicket(): void {
+  // 👉 CAS 1: Mode global (tous les tickets)
+  if (this.globalTicketSelectionMode && this.confirmRestoreTickets.length === 0) {
+    this.restoreAllTickets();
+    this.showMultiRestoreTicketModal = false;
+    return;
+  }
+  
+  // 👉 CAS 2: Sélection multiple normale
   if (this.confirmRestoreTickets.length === 0) return;
   
   this.bulkRestoring = true;
@@ -713,9 +718,7 @@ confirmMultiRestoreTicket(): void {
   this.confirmRestoreTickets.forEach(ticket => {
     this.ticketService.restaurerTicket(ticket.id).subscribe({
       next: (response) => {
-        if (response.isSuccess) {
-          successCount++;
-        }
+        if (response.isSuccess) successCount++;
         completed++;
         
         if (completed === total) {
@@ -723,6 +726,7 @@ confirmMultiRestoreTicket(): void {
           this.showMultiRestoreTicketModal = false;
           this.selectedTickets.clear();
           this.confirmRestoreTickets = [];
+          this.globalTicketSelectionMode = false; // Reset global mode
           
           if (successCount === total) {
             this.showAlert('success', 'Succès', `${total} ticket(s) restauré(s) avec succès.`);
@@ -742,6 +746,7 @@ confirmMultiRestoreTicket(): void {
           this.showMultiRestoreTicketModal = false;
           this.selectedTickets.clear();
           this.confirmRestoreTickets = [];
+          this.globalTicketSelectionMode = false; // Reset global mode
           this.showAlert('error', 'Erreur', `${successCount}/${total} ticket(s) restauré(s).`);
           this.loadArchivedTickets();
         }
@@ -760,6 +765,14 @@ cancelMultiRestoreIncident(): void {
 }
 
 confirmMultiRestoreIncident(): void {
+  // 👉 CAS 1: Mode global (tous les incidents)
+  if (this.globalIncidentSelectionMode && this.confirmRestoreIncidents.length === 0) {
+    this.restoreAllIncidents();
+    this.showMultiRestoreIncidentModal = false;
+    return;
+  }
+  
+  // 👉 CAS 2: Sélection multiple normale
   if (this.confirmRestoreIncidents.length === 0) return;
   
   this.bulkRestoringIncidents = true;
@@ -770,9 +783,7 @@ confirmMultiRestoreIncident(): void {
   this.confirmRestoreIncidents.forEach(incident => {
     this.incidentService.restaurerIncident(incident.id).subscribe({
       next: (response) => {
-        if (response.isSuccess) {
-          successCount++;
-        }
+        if (response.isSuccess) successCount++;
         completed++;
         
         if (completed === total) {
@@ -780,6 +791,7 @@ confirmMultiRestoreIncident(): void {
           this.showMultiRestoreIncidentModal = false;
           this.selectedIncidents.clear();
           this.confirmRestoreIncidents = [];
+          this.globalIncidentSelectionMode = false; // Reset global mode
           
           if (successCount === total) {
             this.showAlert('success', 'Succès', `${total} incident(s) restauré(s) avec succès.`);
@@ -799,6 +811,7 @@ confirmMultiRestoreIncident(): void {
           this.showMultiRestoreIncidentModal = false;
           this.selectedIncidents.clear();
           this.confirmRestoreIncidents = [];
+          this.globalIncidentSelectionMode = false; // Reset global mode
           this.showAlert('error', 'Erreur', `${successCount}/${total} incident(s) restauré(s).`);
           this.loadArchivedIncidents();
         }
