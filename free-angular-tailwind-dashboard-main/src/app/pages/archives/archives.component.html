@@ -275,7 +275,13 @@
 </div>
   <!-- Liste des tickets archivés -->
   <div *ngIf="activeTab === 'tickets' && !loadingTickets && userRole !== 'Commercant'">
-  
+   <div *ngIf="archivedTickets.length === 0" class="text-center py-16 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700">
+    <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+    <p class="text-gray-500 dark:text-gray-400 text-lg font-medium">Aucun ticket archivé</p>
+    <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Les tickets résolus que vous archivez apparaîtront ici</p>
+  </div>
 <div *ngIf="archivedTickets.length > 0" class="space-y-4">
   
 <!-- Barre d'actions avec sélection multiple -->
