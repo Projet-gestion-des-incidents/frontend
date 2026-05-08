@@ -120,20 +120,77 @@
     <div class="animate-spin rounded-full h-10 w-10 border-4 border-[#C5C6FF] border-t-[#8788FF]"></div>
   </div>
 
-  <!-- Liste des incidents archivés -->
-  <div *ngIf="activeTab === 'incidents' && !loadingIncidents && userRole !== 'Technicien'">
-    <div *ngIf="archivedIncidents.length === 0" class="text-center py-16 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700">
-      <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
-      </svg>
-      <p class="text-gray-500 dark:text-gray-400 text-lg font-medium">Aucun incident archivé</p>
-      <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Les incidents résolus que vous archivez apparaîtront ici</p>
-    </div>
+<!-- Liste des incidents archivés -->
+<div *ngIf="activeTab === 'incidents' && !loadingIncidents && userRole !== 'Technicien'">
 
-    <div *ngIf="archivedIncidents.length > 0" class="space-y-4">
-      <div *ngFor="let incident of archivedIncidents" 
-           class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-all">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+  <div *ngIf="archivedIncidents.length === 0" class="text-center py-16 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700">
+    <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+    </svg>
+    <p class="text-gray-500 dark:text-gray-400 text-lg font-medium">Aucun incident archivé</p>
+    <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Les incidents résolus que vous archivez apparaîtront ici</p>
+  </div>
+
+  <div *ngIf="archivedIncidents.length > 0" class="space-y-4">
+    
+<!-- Barre d'actions avec sélection multiple pour incidents -->
+<div *ngIf="selectedIncidents.size > 0 || globalIncidentSelectionMode" class="flex items-center justify-between p-3 bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 rounded-xl border border-[#C5C6FF] dark:border-[#8788FF]/30">
+  <div class="flex items-center gap-2">
+    <span class="text-sm font-medium text-[#0C144E] dark:text-white">
+      <ng-container *ngIf="globalIncidentSelectionMode">
+        {{ incidentsTotalCount }} incident(s) sélectionné(s) (toutes pages)
+      </ng-container>
+      <ng-container *ngIf="!globalIncidentSelectionMode">
+        {{ selectedIncidents.size }} incident(s) sélectionné(s)
+      </ng-container>
+    </span>
+    <button
+      (click)="clearIncidentSelection()"
+      class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
+    >
+      Désélectionner
+    </button>
+    <button
+      (click)="openMultiRestoreIncidentModal()"
+      class="px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-lg hover:from-[#787AEA] hover:to-[#0C144E] transition-colors"
+    >
+      Restaurer 
+      (<ng-container *ngIf="globalIncidentSelectionMode">{{ incidentsTotalCount }}</ng-container>
+       <ng-container *ngIf="!globalIncidentSelectionMode">{{ selectedIncidents.size }}</ng-container>)
+    </button>
+  </div>
+</div>
+
+<!-- Bouton Sélectionner tout pour incidents (CORRIGÉ) -->
+<div class="flex items-center gap-3 px-4 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+  <button
+    (click)="toggleAllIncidentsSelection(selectedIncidents.size === 0 && !globalIncidentSelectionMode)"
+    class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium transition-all duration-200 rounded-lg"
+    [ngClass]="{
+      'text-[#8788FF] bg-[#ECECFF] hover:bg-[#C5C6FF] dark:bg-[#0C144E]/30 dark:text-[#B2B3FF] dark:hover:bg-[#0C144E]/50': selectedIncidents.size === 0 && !globalIncidentSelectionMode
+    }"
+  >
+    <span *ngIf="selectedIncidents.size === 0 && !globalIncidentSelectionMode">Sélectionner tout</span>
+  </button>
+</div>
+    <!-- Liste des incidents avec checkbox -->
+    <div *ngFor="let incident of archivedIncidents" 
+         class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-all"
+         [class.bg-[#ECECFF]]="isIncidentSelected(incident.id)"
+         [class.dark:bg-[#0C144E]/30]="isIncidentSelected(incident.id)">
+      
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        
+        <!-- Partie gauche avec checkbox et infos -->
+        <div class="flex items-start gap-3 flex-1">
+          <!-- Checkbox individuelle -->
+          <app-checkbox
+            [checked]="isIncidentSelected(incident.id)"
+            (checkedChange)="toggleIncidentSelection(incident.id, $event)"
+            class="mt-1"
+          ></app-checkbox>
+          
+          <!-- Informations de l'incident -->
           <div class="flex-1">
             <div class="flex items-center gap-2 flex-wrap mb-2">
               <span class="font-mono font-semibold text-gray-900 dark:text-white">{{ incident.codeIncident }}</span>
@@ -157,146 +214,206 @@
               </span>
             </div>
           </div>
-          <div class="flex items-center gap-2">
+        </div>
+        
+        <!-- Bouton de restauration individuel -->
+        <div class="flex items-center gap-2">
+          <button
+            (click)="openRestoreIncidentModal(incident)"
+            class="p-2 text-gray-400 hover:text-green-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+            title="Restaurer l'incident">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pagination incidents -->
+    <div *ngIf="incidentsTotalPages > 1" class="flex items-center justify-between mt-6">
+      <button
+        (click)="onIncidentsPageChange(incidentsCurrentPage - 1)"
+        [disabled]="incidentsCurrentPage === 1"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors hover:border-[#8788FF]">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
+        </svg>
+        Précédent
+      </button>
+      
+      <ul class="hidden items-center gap-1 sm:flex">
+        <li *ngFor="let page of getPageNumbers(incidentsTotalPages, incidentsCurrentPage)">
+          <ng-container *ngIf="page !== -1; else ellipsis">
             <button
-              (click)="openRestoreIncidentModal(incident)"
-              class="p-2 text-gray-400 hover:text-green-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
-              title="Restaurer l'incident">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
+              (click)="onIncidentsPageChange(page)"
+              class="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-colors"
+              [ngClass]="{
+                'bg-gradient-to-r from-[#8788FF] to-[#787AEA] text-white': incidentsCurrentPage === page,
+                'text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800': incidentsCurrentPage !== page
+              }">
+              {{ page }}
             </button>
+          </ng-container>
+          <ng-template #ellipsis>
+            <span class="flex h-9 w-9 items-center justify-center text-gray-500">...</span>
+          </ng-template>
+        </li>
+      </ul>
+      
+      <button
+        (click)="onIncidentsPageChange(incidentsCurrentPage + 1)"
+        [disabled]="incidentsCurrentPage === incidentsTotalPages"
+        class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors hover:border-[#8788FF]">
+        Suivant
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+  <!-- Liste des tickets archivés -->
+  <div *ngIf="activeTab === 'tickets' && !loadingTickets && userRole !== 'Commercant'">
+  
+<div *ngIf="archivedTickets.length > 0" class="space-y-4">
+  
+<!-- Barre d'actions avec sélection multiple -->
+<div *ngIf="selectedTickets.size > 0 || globalTicketSelectionMode" class="flex items-center justify-between p-3 bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 rounded-xl border border-[#C5C6FF] dark:border-[#8788FF]/30">
+  <div class="flex items-center gap-2">
+    <span class="text-sm font-medium text-[#0C144E] dark:text-white">
+      <ng-container *ngIf="globalTicketSelectionMode">
+        {{ ticketsTotalCount }} ticket(s) sélectionné(s) 
+      </ng-container>
+      <ng-container *ngIf="!globalTicketSelectionMode">
+        {{ selectedTickets.size }} ticket(s) sélectionné(s)
+      </ng-container>
+    </span>
+    <button
+      (click)="clearTicketSelection()"
+      class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
+    >
+      Désélectionner
+    </button>
+    <button
+      (click)="openMultiRestoreTicketModal()"
+      class="px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-lg hover:from-[#787AEA] hover:to-[#0C144E] transition-colors"
+    >
+      Restaurer 
+      (<ng-container *ngIf="globalTicketSelectionMode">{{ ticketsTotalCount }}</ng-container>
+       <ng-container *ngIf="!globalTicketSelectionMode">{{ selectedTickets.size }}</ng-container>)
+    </button>
+  </div>
+</div>
+<div class="flex items-center gap-3 px-4 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
+  <!-- Bouton Sélectionner tout / Désélectionner tout -->
+  <button
+    (click)="toggleAllTicketSelection(selectedTickets.size === 0 && !globalTicketSelectionMode)"
+    class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium transition-all duration-200 rounded-lg"
+    [ngClass]="{
+      'text-[#8788FF] bg-[#ECECFF] hover:bg-[#C5C6FF] dark:bg-[#0C144E]/30 dark:text-[#B2B3FF] dark:hover:bg-[#0C144E]/50': selectedTickets.size === 0 && !globalTicketSelectionMode,
+    }"
+  >
+
+    <span *ngIf="selectedTickets.size === 0 && !globalTicketSelectionMode">Sélectionner tout</span>
+  </button>
+  
+
+</div>
+
+
+   
+  <!-- Liste des tickets -->
+  <div *ngFor="let ticket of archivedTickets" 
+       class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-all"
+       [class.bg-[#ECECFF]]="isTicketSelected(ticket.id)"
+       [class.dark:bg-[#0C144E]/30]="isTicketSelected(ticket.id)">
+    
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+      
+      <!-- Partie gauche avec checkbox et infos -->
+      <div class="flex items-start gap-3 flex-1">
+        <!-- Checkbox individuelle -->
+        <app-checkbox
+          [checked]="isTicketSelected(ticket.id)"
+          (checkedChange)="toggleTicketSelection(ticket.id, $event)"
+          class="mt-1"
+        ></app-checkbox>
+        
+        <!-- Informations du ticket -->
+        <div class="flex-1">
+          <div class="flex items-center gap-2 flex-wrap mb-2">
+            <span class="font-mono font-semibold text-gray-900 dark:text-white">{{ ticket.referenceTicket }}</span>
+          </div>
+          <p class="text-sm font-medium text-gray-900 dark:text-white">{{ ticket.titreTicket }}</p>
+          <div class="flex flex-wrap items-center gap-4 mt-2 text-xs text-gray-500">
+            <span class="flex items-center gap-1">
+              <svg class="w-3 h-3 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+              </svg>
+              {{ formatDate(ticket.dateCreation) }}
+            </span>
           </div>
         </div>
       </div>
-
-      <!-- Pagination incidents -->
-      <div *ngIf="incidentsTotalPages > 1" class="flex items-center justify-between mt-6">
+      
+      <!-- Bouton de restauration individuel -->
+      <div class="flex items-center gap-2">
         <button
-          (click)="onIncidentsPageChange(incidentsCurrentPage - 1)"
-          [disabled]="incidentsCurrentPage === 1"
-          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors hover:border-[#8788FF]">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-          </svg>
-          Précédent
-        </button>
-        
-        <ul class="hidden items-center gap-1 sm:flex">
-          <li *ngFor="let page of getPageNumbers(incidentsTotalPages, incidentsCurrentPage)">
-            <ng-container *ngIf="page !== -1; else ellipsis">
-              <button
-                (click)="onIncidentsPageChange(page)"
-                class="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-colors"
-                [ngClass]="{
-                  'bg-gradient-to-r from-[#8788FF] to-[#787AEA] text-white': incidentsCurrentPage === page,
-                  'text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800': incidentsCurrentPage !== page
-                }">
-                {{ page }}
-              </button>
-            </ng-container>
-            <ng-template #ellipsis>
-              <span class="flex h-9 w-9 items-center justify-center text-gray-500">...</span>
-            </ng-template>
-          </li>
-        </ul>
-        
-        <button
-          (click)="onIncidentsPageChange(incidentsCurrentPage + 1)"
-          [disabled]="incidentsCurrentPage === incidentsTotalPages"
-          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors hover:border-[#8788FF]">
-          Suivant
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+          (click)="openRestoreTicketModal(ticket)"
+          class="p-2 text-gray-400 hover:text-green-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
+          title="Restaurer le ticket"
+        >
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
         </button>
       </div>
     </div>
   </div>
 
-  <!-- Liste des tickets archivés -->
-  <div *ngIf="activeTab === 'tickets' && !loadingTickets && userRole !== 'Commercant'">
-    <div *ngIf="archivedTickets.length === 0" class="text-center py-16 bg-gray-50 dark:bg-gray-800/50 rounded-2xl border border-gray-200 dark:border-gray-700">
-      <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
+  <!-- Pagination tickets -->
+  <div *ngIf="ticketsTotalPages > 1" class="flex items-center justify-between mt-6">
+    <button
+      (click)="onTicketsPageChange(ticketsCurrentPage - 1)"
+      [disabled]="ticketsCurrentPage === 1"
+      class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors hover:border-[#8788FF]">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
       </svg>
-      <p class="text-gray-500 dark:text-gray-400 text-lg font-medium">Aucun ticket archivé</p>
-      <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Les tickets résolus que vous archivez apparaîtront ici</p>
-    </div>
-
-    <div *ngIf="archivedTickets.length > 0" class="space-y-4">
-      <div *ngFor="let ticket of archivedTickets" 
-           class="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-4 hover:shadow-md transition-all">
-        <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div class="flex-1">
-            <div class="flex items-center gap-2 flex-wrap mb-2">
-              <span class="font-mono font-semibold text-gray-900 dark:text-white">{{ ticket.referenceTicket }}</span>
-            </div>
-            <p class="text-sm font-medium text-gray-900 dark:text-white">{{ ticket.titreTicket }}</p>
-            <div class="flex flex-wrap items-center gap-4 mt-2 text-xs text-gray-500">
-              <span class="flex items-center gap-1">
-                <svg class="w-3 h-3 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-                {{ formatDate(ticket.dateCreation) }}
-              </span>
-            </div>
-          </div>
-          <div class="flex items-center gap-2">
-            <button
-              (click)="openRestoreTicketModal(ticket)"
-              class="p-2 text-gray-400 hover:text-green-600 rounded-lg hover:bg-green-50 dark:hover:bg-green-900/20 transition-colors"
-              title="Restaurer le ticket">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pagination tickets -->
-      <div *ngIf="ticketsTotalPages > 1" class="flex items-center justify-between mt-6">
-        <button
-          (click)="onTicketsPageChange(ticketsCurrentPage - 1)"
-          [disabled]="ticketsCurrentPage === 1"
-          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors hover:border-[#8788FF]">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path>
-          </svg>
-          Précédent
-        </button>
-        
-        <ul class="hidden items-center gap-1 sm:flex">
-          <li *ngFor="let page of getPageNumbers(ticketsTotalPages, ticketsCurrentPage)">
-            <ng-container *ngIf="page !== -1; else ellipsis">
-              <button
-                (click)="onTicketsPageChange(page)"
-                class="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-colors"
-                [ngClass]="{
-                  'bg-gradient-to-r from-[#8788FF] to-[#787AEA] text-white': ticketsCurrentPage === page,
-                  'text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800': ticketsCurrentPage !== page
-                }">
-                {{ page }}
-              </button>
-            </ng-container>
-            <ng-template #ellipsis>
-              <span class="flex h-9 w-9 items-center justify-center text-gray-500">...</span>
-            </ng-template>
-          </li>
-        </ul>
-        
-        <button
-          (click)="onTicketsPageChange(ticketsCurrentPage + 1)"
-          [disabled]="ticketsCurrentPage === ticketsTotalPages"
-          class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors hover:border-[#8788FF]">
-          Suivant
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
-          </svg>
-        </button>
-      </div>
-    </div>
+      Précédent
+    </button>
+    
+    <ul class="hidden items-center gap-1 sm:flex">
+      <li *ngFor="let page of getPageNumbers(ticketsTotalPages, ticketsCurrentPage)">
+        <ng-container *ngIf="page !== -1; else ellipsis">
+          <button
+            (click)="onTicketsPageChange(page)"
+            class="flex h-9 w-9 items-center justify-center rounded-lg text-sm font-medium transition-colors"
+            [ngClass]="{
+              'bg-gradient-to-r from-[#8788FF] to-[#787AEA] text-white': ticketsCurrentPage === page,
+              'text-gray-700 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800': ticketsCurrentPage !== page
+            }">
+            {{ page }}
+          </button>
+        </ng-container>
+        <ng-template #ellipsis>
+          <span class="flex h-9 w-9 items-center justify-center text-gray-500">...</span>
+        </ng-template>
+      </li>
+    </ul>
+    
+    <button
+      (click)="onTicketsPageChange(ticketsCurrentPage + 1)"
+      [disabled]="ticketsCurrentPage === ticketsTotalPages"
+      class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed dark:bg-gray-800 dark:text-gray-400 dark:border-gray-600 dark:hover:bg-gray-700 transition-colors hover:border-[#8788FF]">
+      Suivant
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path>
+      </svg>
+    </button>
+  </div>
+</div>
   </div>
 
   <!-- Modale de confirmation restauration incident -->
@@ -444,6 +561,322 @@
       </div>
     </div>
   </div>
+  <!-- Modale de confirmation restauration multiple tickets -->
+<div *ngIf="showMultiRestoreTicketModal" 
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300"
+     (click)="cancelMultiRestoreTicket()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
+       (click)="$event.stopPropagation()">
+    
+    <!-- En-tête -->
+    <div class="bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 px-6 py-4 border-b border-[#C5C6FF] dark:border-[#8788FF]/30">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/50 flex items-center justify-center shadow-inner">
+          <svg class="w-6 h-6 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-[#0C144E] dark:text-white">Confirmer la restauration multiple</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Restaurer plusieurs tickets dans la liste active</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Corps -->
+    <div class="p-6">
+      <p class="text-gray-600 dark:text-gray-300 text-center">
+        Êtes-vous sûr de vouloir restaurer 
+        <strong class="text-[#8788FF]">{{ confirmRestoreTickets.length }} ticket(s)</strong> ?
+      </p>
+      
+      <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 max-h-48 overflow-y-auto mt-4">
+        <p class="text-xs text-gray-500 mb-2 font-medium">Tickets concernés :</p>
+        <ul class="space-y-1">
+          <li *ngFor="let ticket of confirmRestoreTickets" class="text-sm text-gray-700 dark:text-gray-300">
+            • {{ ticket.referenceTicket }} - {{ ticket.titreTicket }}
+          </li>
+        </ul>
+      </div>
+      
+      <div class="bg-[#ECECFF] dark:bg-[#0C144E]/20 border border-[#C5C6FF] dark:border-[#8788FF]/30 rounded-lg p-4">
+        <div class="flex gap-2">
+          <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-[#0C144E] dark:text-white/90">
+              Action réversible
+            </p>
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+              Les tickets seront déplacés dans la liste des tickets actifs.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Pied de page -->
+    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+      <button (click)="cancelMultiRestoreTicket()" 
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+        Annuler
+      </button>
+      <button (click)="confirmMultiRestoreTicket()" 
+              [disabled]="bulkRestoring"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-xl hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+        <span *ngIf="!bulkRestoring" class="flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Restaurer ({{ confirmRestoreTickets.length }})
+        </span>
+        <span *ngIf="bulkRestoring" class="flex items-center justify-center gap-2">
+          <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+          Restauration...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale de confirmation restauration TOUS les tickets -->
+<div *ngIf="globalTicketSelectionMode && showMultiRestoreTicketModal" 
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300"
+     (click)="cancelMultiRestoreTicket()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
+       (click)="$event.stopPropagation()">
+    
+    <!-- En-tête -->
+    <div class="bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/20 px-6 py-4 border-b border-amber-200 dark:border-amber-800">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shadow-inner">
+          <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Confirmer la restauration massive</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Restaurer tous les tickets archivés</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Corps -->
+    <div class="p-6">
+      <div class="flex flex-col items-center text-center mb-4">
+        <div class="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+        <p class="text-gray-600 dark:text-gray-300 mb-2 font-medium">
+          Êtes-vous sûr de vouloir restaurer <strong class="text-amber-600">TOUS les tickets archivés</strong> ?
+        </p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Soit un total de <strong>{{ ticketsTotalCount }}</strong> ticket(s)
+        </p>
+      </div>
+      
+      <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mt-4">
+        <div class="flex gap-2">
+          <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-amber-800 dark:text-amber-200">
+              Note importante
+            </p>
+            <p class="text-sm text-amber-700 dark:text-amber-300">
+              Cette opération peut prendre quelques instants selon le nombre de tickets.
+              Les tickets seront déplacés dans la liste des tickets actifs.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Pied de page -->
+    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+      <button (click)="cancelMultiRestoreTicket()" 
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+        Annuler
+      </button>
+      <button (click)="confirmMultiRestoreTicket()" 
+              [disabled]="bulkRestoring"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-amber-600 rounded-xl hover:bg-amber-700 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+        <span *ngIf="!bulkRestoring" class="flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Restaurer tous ({{ ticketsTotalCount }})
+        </span>
+        <span *ngIf="bulkRestoring" class="flex items-center justify-center gap-2">
+          <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+          Restauration massive...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- Modale de confirmation restauration multiple incidents -->
+<div *ngIf="showMultiRestoreIncidentModal" 
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300"
+     (click)="cancelMultiRestoreIncident()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
+       (click)="$event.stopPropagation()">
+    
+    <!-- En-tête -->
+    <div class="bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 px-6 py-4 border-b border-[#C5C6FF] dark:border-[#8788FF]/30">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/50 flex items-center justify-center shadow-inner">
+          <svg class="w-6 h-6 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-[#0C144E] dark:text-white">Confirmer la restauration multiple</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Restaurer plusieurs incidents dans la liste active</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Corps -->
+    <div class="p-6">
+      <p class="text-gray-600 dark:text-gray-300 text-center">
+        Êtes-vous sûr de vouloir restaurer 
+        <strong class="text-[#8788FF]">{{ confirmRestoreIncidents.length }} incident(s)</strong> ?
+      </p>
+      
+      <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 max-h-48 overflow-y-auto mt-4">
+        <p class="text-xs text-gray-500 mb-2 font-medium">Incidents concernés :</p>
+        <ul class="space-y-1">
+          <li *ngFor="let incident of confirmRestoreIncidents" class="text-sm text-gray-700 dark:text-gray-300">
+            • {{ incident.codeIncident }} - {{ incident.descriptionIncident | slice:0:50 }}...
+          </li>
+        </ul>
+      </div>
+      
+      <div class="bg-[#ECECFF] dark:bg-[#0C144E]/20 border border-[#C5C6FF] dark:border-[#8788FF]/30 rounded-lg p-4">
+        <div class="flex gap-2">
+          <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF] flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-[#0C144E] dark:text-white/90">
+              Action réversible
+            </p>
+            <p class="text-sm text-gray-600 dark:text-gray-300">
+              Les incidents seront déplacés dans la liste des incidents actifs.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Pied de page -->
+    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+      <button (click)="cancelMultiRestoreIncident()" 
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+        Annuler
+      </button>
+      <button (click)="confirmMultiRestoreIncident()" 
+              [disabled]="bulkRestoringIncidents"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-xl hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+        <span *ngIf="!bulkRestoringIncidents" class="flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Restaurer ({{ confirmRestoreIncidents.length }})
+        </span>
+        <span *ngIf="bulkRestoringIncidents" class="flex items-center justify-center gap-2">
+          <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+          Restauration...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale de confirmation restauration TOUS les incidents -->
+<div *ngIf="globalIncidentSelectionMode && showMultiRestoreIncidentModal" 
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300"
+     (click)="cancelMultiRestoreIncident()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
+       (click)="$event.stopPropagation()">
+    
+    <!-- En-tête -->
+    <div class="bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/20 px-6 py-4 border-b border-amber-200 dark:border-amber-800">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shadow-inner">
+          <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Confirmer la restauration massive</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Restaurer tous les incidents archivés</p>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Corps -->
+    <div class="p-6">
+      <div class="flex flex-col items-center text-center mb-4">
+        <div class="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4">
+          <svg class="w-8 h-8 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+        </div>
+        <p class="text-gray-600 dark:text-gray-300 mb-2 font-medium">
+          Êtes-vous sûr de vouloir restaurer <strong class="text-amber-600">TOUS les incidents archivés</strong> ?
+        </p>
+        <p class="text-sm text-gray-500 dark:text-gray-400">
+          Soit un total de <strong>{{ incidentsTotalCount }}</strong> incident(s)
+        </p>
+      </div>
+      
+      <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mt-4">
+        <div class="flex gap-2">
+          <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-amber-800 dark:text-amber-200">
+              Note importante
+            </p>
+            <p class="text-sm text-amber-700 dark:text-amber-300">
+              Cette opération peut prendre quelques instants selon le nombre d'incidents.
+              Les incidents seront déplacés dans la liste des incidents actifs.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Pied de page -->
+    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+      <button (click)="cancelMultiRestoreIncident()" 
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+        Annuler
+      </button>
+      <button (click)="confirmMultiRestoreIncident()" 
+              [disabled]="bulkRestoringIncidents"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-amber-600 rounded-xl hover:bg-amber-700 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+        <span *ngIf="!bulkRestoringIncidents" class="flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+          </svg>
+          Restaurer tous ({{ incidentsTotalCount }})
+        </span>
+        <span *ngIf="bulkRestoringIncidents" class="flex items-center justify-center gap-2">
+          <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
+          Restauration massive...
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
 </div>
 
 <style>

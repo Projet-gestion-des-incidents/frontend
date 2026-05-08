@@ -9,11 +9,12 @@ import { AuthService } from '../../shared/services/auth.service';
 import { Incident } from '../../shared/models/incident.model';
 import { TicketDTO } from '../../shared/models/Ticket.models';
 import { UserService } from '../../shared/services/user.service';
+import { CheckboxComponent } from '../../shared/components/form/input/checkbox.component';
 
 @Component({
   selector: 'app-archives',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterModule, BadgeComponent],
+  imports: [CommonModule,CheckboxComponent, FormsModule, RouterModule, BadgeComponent],
   templateUrl: './archives.component.html',
   styleUrls: ['./archives.component.css']
 })
@@ -30,6 +31,19 @@ export class ArchivesComponent implements OnInit {
   incidentsTotalPages = 1;
   incidentsSearchTerm = '';
   
+  // ✅ Pour la sélection multiple des tickets archivés
+  selectedTickets: Set<string> = new Set<string>();
+  showMultiRestoreTicketModal = false;
+  confirmRestoreTickets: TicketDTO[] = [];
+  bulkRestoring = false;
+  pendingRestoreIds: string[] = [];
+
+  // ✅ Pour la sélection multiple des incidents archivés (optionnel)
+  selectedIncidents: Set<string> = new Set<string>();
+  showMultiRestoreIncidentModal = false;
+  confirmRestoreIncidents: Incident[] = [];
+  bulkRestoringIncidents = false;
+  pendingRestoreIncidentIds: string[] = [];
   // Tickets archivés
   archivedTickets: TicketDTO[] = [];
   loadingTickets = false;
@@ -191,7 +205,290 @@ loadUserRole(): void {
       }
     });
   }
+ // ========== GESTION DE LA SÉLECTION MULTIPLE POUR TICKETS ==========
+
+toggleTicketSelection(ticketId: string, checked: boolean): void {
+  // Si on modifie une sélection individuelle, on désactive le mode global
+  if (this.globalTicketSelectionMode) {
+    this.globalTicketSelectionMode = false;
+    // Conserver les sélections de la page courante
+    this.selectedTickets.clear();
+    this.archivedTickets.forEach(ticket => {
+      this.selectedTickets.add(ticket.id);
+    });
+  }
   
+  if (checked) {
+    this.selectedTickets.add(ticketId);
+  } else {
+    this.selectedTickets.delete(ticketId);
+  }
+}
+
+toggleAllTicketSelection(checked: boolean): void {
+  if (checked) {
+    // Activer le mode global (tous les tickets de toutes les pages)
+    this.globalTicketSelectionMode = true;
+    this.selectedTickets.clear();
+    // Optionnel: afficher un message
+  } else {
+    this.globalTicketSelectionMode = false;
+    this.selectedTickets.clear();
+  }
+}
+
+isTicketSelected(ticketId: string): boolean {
+  if (this.globalTicketSelectionMode) return true;
+  return this.selectedTickets.has(ticketId);
+}
+
+isAllTicketsSelected(): boolean {
+  return this.globalTicketSelectionMode || 
+         (this.archivedTickets.length > 0 && 
+          this.selectedTickets.size === this.archivedTickets.length);
+}
+
+isTicketIndeterminate(): boolean {
+  if (this.globalTicketSelectionMode) return false;
+  return this.selectedTickets.size > 0 && 
+         this.selectedTickets.size < this.archivedTickets.length;
+}
+
+// Ouvrir la modale de restauration multiple pour tickets
+openMultiRestoreTicketModal(): void {
+  if (this.globalTicketSelectionMode) {
+    // Mode global: restaurer tous les tickets de toutes les pages
+    const confirmMessage = `⚠️ ATTENTION : Vous allez restaurer TOUS les ${this.ticketsTotalCount} ticket(s) archivés.\n\nConfirmez-vous ?`;
+    if (confirm(confirmMessage)) {
+      this.restoreAllTickets();
+    }
+    return;
+  }
+  
+  if (this.selectedTickets.size === 0) return;
+  
+  const selectedIds = Array.from(this.selectedTickets);
+  this.confirmRestoreTickets = this.archivedTickets.filter(ticket => 
+    selectedIds.includes(ticket.id)
+  );
+  this.showMultiRestoreTicketModal = true;
+}
+
+// Restaurer tous les tickets (toutes pages)
+restoreAllTickets(): void {
+  this.bulkRestoring = true;
+  
+  // Récupérer tous les tickets via l'API
+  const params = {
+    Page: 1,
+    PageSize: this.ticketsTotalCount,
+    SearchTerm: this.ticketsSearchTerm,
+    SortBy: 'DateArchivage',
+    SortDescending: true
+  };
+  
+  this.ticketService.getArchivedTickets(params).subscribe({
+    next: (response: any) => {
+      let allTickets: TicketDTO[] = [];
+      if (response?.data?.items) {
+        allTickets = response.data.items;
+      } else if (response?.items) {
+        allTickets = response.items;
+      }
+      
+      this.restoreTicketsInBatches(allTickets, 0);
+    },
+    error: (err) => {
+      console.error('Erreur chargement tous les tickets:', err);
+      this.bulkRestoring = false;
+      this.showAlert('error', 'Erreur', 'Impossible de charger tous les tickets');
+    }
+  });
+}
+
+// Restaurer les tickets par lots
+restoreTicketsInBatches(tickets: TicketDTO[], startIndex: number): void {
+  const batchSize = 10;
+  const batch = tickets.slice(startIndex, startIndex + batchSize);
+  
+  if (batch.length === 0) {
+    this.bulkRestoring = false;
+    this.globalTicketSelectionMode = false;
+    this.selectedTickets.clear();
+    this.showAlert('success', 'Succès', `Tous les tickets ont été restaurés avec succès.`);
+    this.loadArchivedTickets();
+    return;
+  }
+  
+  let completed = 0;
+  let successCount = 0;
+  
+  batch.forEach(ticket => {
+    this.ticketService.restaurerTicket(ticket.id).subscribe({
+      next: (response) => {
+        if (response.isSuccess) successCount++;
+        completed++;
+        if (completed === batch.length) {
+          this.restoreTicketsInBatches(tickets, startIndex + batchSize);
+        }
+      },
+      error: (err) => {
+        console.error(`Erreur restauration ${ticket.id}:`, err);
+        completed++;
+        if (completed === batch.length) {
+          this.restoreTicketsInBatches(tickets, startIndex + batchSize);
+        }
+      }
+    });
+  });
+}
+
+// Désélectionner tous les tickets
+clearTicketSelection(): void {
+  this.selectedTickets.clear();
+  this.globalTicketSelectionMode = false;
+}
+
+// ========== GESTION DE LA SÉLECTION MULTIPLE POUR INCIDENTS ==========
+
+
+toggleIncidentSelection(incidentId: string, checked: boolean): void {
+  // Si on modifie une sélection individuelle, on désactive le mode global
+  if (this.globalIncidentSelectionMode) {
+    this.globalIncidentSelectionMode = false;
+    // Conserver les sélections de la page courante
+    this.selectedIncidents.clear();
+    this.archivedIncidents.forEach(incident => {
+      this.selectedIncidents.add(incident.id);
+    });
+  }
+  
+  if (checked) {
+    this.selectedIncidents.add(incidentId);
+  } else {
+    this.selectedIncidents.delete(incidentId);
+  }
+}
+
+toggleAllIncidentsSelection(checked: boolean): void {
+  if (checked) {
+    // Activer le mode global (tous les incidents de toutes les pages)
+    this.globalIncidentSelectionMode = true;
+    this.selectedIncidents.clear();
+  } else {
+    this.globalIncidentSelectionMode = false;
+    this.selectedIncidents.clear();
+  }
+}
+isIncidentSelected(incidentId: string): boolean {
+  if (this.globalIncidentSelectionMode) return true;
+  return this.selectedIncidents.has(incidentId);
+}
+
+isAllIncidentsSelected(): boolean {
+  return this.globalIncidentSelectionMode || 
+         (this.archivedIncidents.length > 0 && 
+          this.selectedIncidents.size === this.archivedIncidents.length);
+}
+
+isIncidentIndeterminate(): boolean {
+  if (this.globalIncidentSelectionMode) return false;
+  return this.selectedIncidents.size > 0 && 
+         this.selectedIncidents.size < this.archivedIncidents.length;
+}
+
+openMultiRestoreIncidentModal(): void {
+  if (this.globalIncidentSelectionMode) {
+    const confirmMessage = `⚠️ ATTENTION : Vous allez restaurer TOUS les ${this.incidentsTotalCount} incident(s) archivés.\n\nConfirmez-vous ?`;
+    if (confirm(confirmMessage)) {
+      this.restoreAllIncidents();
+    }
+    return;
+  }
+  
+  if (this.selectedIncidents.size === 0) return;
+  
+  const selectedIds = Array.from(this.selectedIncidents);
+  this.confirmRestoreIncidents = this.archivedIncidents.filter(incident => 
+    selectedIds.includes(incident.id)
+  );
+  this.showMultiRestoreIncidentModal = true;
+}
+
+restoreAllIncidents(): void {
+  this.bulkRestoringIncidents = true;
+  
+  const params = {
+    Page: 1,
+    PageSize: this.incidentsTotalCount,
+    SearchTerm: this.incidentsSearchTerm,
+    SortBy: 'DateArchivage',
+    SortDescending: true
+  };
+  
+  this.incidentService.getIncidentsArchives(params).subscribe({
+    next: (response: any) => {
+      let allIncidents: Incident[] = [];
+      if (response?.data?.items) {
+        allIncidents = response.data.items;
+      } else if (response?.items) {
+        allIncidents = response.items;
+      }
+      
+      this.restoreIncidentsInBatches(allIncidents, 0);
+    },
+    error: (err) => {
+      console.error('Erreur chargement tous les incidents:', err);
+      this.bulkRestoringIncidents = false;
+      this.showAlert('error', 'Erreur', 'Impossible de charger tous les incidents');
+    }
+  });
+}
+
+restoreIncidentsInBatches(incidents: Incident[], startIndex: number): void {
+  const batchSize = 10;
+  const batch = incidents.slice(startIndex, startIndex + batchSize);
+  
+  if (batch.length === 0) {
+    this.bulkRestoringIncidents = false;
+    this.globalIncidentSelectionMode = false;
+    this.selectedIncidents.clear();
+    this.showAlert('success', 'Succès', `Tous les incidents ont été restaurés avec succès.`);
+    this.loadArchivedIncidents();
+    return;
+  }
+  
+  let completed = 0;
+  let successCount = 0;
+  
+  batch.forEach(incident => {
+    this.incidentService.restaurerIncident(incident.id).subscribe({
+      next: (response) => {
+        if (response.isSuccess) successCount++;
+        completed++;
+        if (completed === batch.length) {
+          this.restoreIncidentsInBatches(incidents, startIndex + batchSize);
+        }
+      },
+      error: (err) => {
+        console.error(`Erreur restauration ${incident.id}:`, err);
+        completed++;
+        if (completed === batch.length) {
+          this.restoreIncidentsInBatches(incidents, startIndex + batchSize);
+        }
+      }
+    });
+  });
+}
+  // ✅ Pour la sélection globale des tickets archivés
+  globalTicketSelectionMode: boolean = false;
+  
+  // ✅ Pour la sélection globale des incidents archivés
+  globalIncidentSelectionMode: boolean = false;
+clearIncidentSelection(): void {
+  this.selectedIncidents.clear();
+  this.globalIncidentSelectionMode = false;
+}
   onSearchIncidents(): void {
     this.incidentsCurrentPage = 1;
     this.loadArchivedIncidents();
@@ -396,4 +693,118 @@ loadUserRole(): void {
   clearAlert(): void {
     this.alert.show = false;
   }
+  // ========== MÉTHODES POUR LA RESTAURATION MULTIPLE TICKETS ==========
+
+cancelMultiRestoreTicket(): void {
+  this.showMultiRestoreTicketModal = false;
+  this.confirmRestoreTickets = [];
+  this.pendingRestoreIds = [];
+  this.bulkRestoring = false;
+}
+
+confirmMultiRestoreTicket(): void {
+  if (this.confirmRestoreTickets.length === 0) return;
+  
+  this.bulkRestoring = true;
+  let completed = 0;
+  const total = this.confirmRestoreTickets.length;
+  let successCount = 0;
+  
+  this.confirmRestoreTickets.forEach(ticket => {
+    this.ticketService.restaurerTicket(ticket.id).subscribe({
+      next: (response) => {
+        if (response.isSuccess) {
+          successCount++;
+        }
+        completed++;
+        
+        if (completed === total) {
+          this.bulkRestoring = false;
+          this.showMultiRestoreTicketModal = false;
+          this.selectedTickets.clear();
+          this.confirmRestoreTickets = [];
+          
+          if (successCount === total) {
+            this.showAlert('success', 'Succès', `${total} ticket(s) restauré(s) avec succès.`);
+          } else if (successCount > 0) {
+            this.showAlert('warning', 'Restauration partielle', `${successCount} ticket(s) restauré(s), ${total - successCount} échec(s).`);
+          } else {
+            this.showAlert('error', 'Échec', `Aucun ticket n'a pu être restauré.`);
+          }
+          this.loadArchivedTickets();
+        }
+      },
+      error: (err) => {
+        console.error(`Erreur restauration ${ticket.id}:`, err);
+        completed++;
+        if (completed === total) {
+          this.bulkRestoring = false;
+          this.showMultiRestoreTicketModal = false;
+          this.selectedTickets.clear();
+          this.confirmRestoreTickets = [];
+          this.showAlert('error', 'Erreur', `${successCount}/${total} ticket(s) restauré(s).`);
+          this.loadArchivedTickets();
+        }
+      }
+    });
+  });
+}
+
+// ========== MÉTHODES POUR LA RESTAURATION MULTIPLE INCIDENTS ==========
+
+cancelMultiRestoreIncident(): void {
+  this.showMultiRestoreIncidentModal = false;
+  this.confirmRestoreIncidents = [];
+  this.pendingRestoreIncidentIds = [];
+  this.bulkRestoringIncidents = false;
+}
+
+confirmMultiRestoreIncident(): void {
+  if (this.confirmRestoreIncidents.length === 0) return;
+  
+  this.bulkRestoringIncidents = true;
+  let completed = 0;
+  const total = this.confirmRestoreIncidents.length;
+  let successCount = 0;
+  
+  this.confirmRestoreIncidents.forEach(incident => {
+    this.incidentService.restaurerIncident(incident.id).subscribe({
+      next: (response) => {
+        if (response.isSuccess) {
+          successCount++;
+        }
+        completed++;
+        
+        if (completed === total) {
+          this.bulkRestoringIncidents = false;
+          this.showMultiRestoreIncidentModal = false;
+          this.selectedIncidents.clear();
+          this.confirmRestoreIncidents = [];
+          
+          if (successCount === total) {
+            this.showAlert('success', 'Succès', `${total} incident(s) restauré(s) avec succès.`);
+          } else if (successCount > 0) {
+            this.showAlert('warning', 'Restauration partielle', `${successCount} incident(s) restauré(s), ${total - successCount} échec(s).`);
+          } else {
+            this.showAlert('error', 'Échec', `Aucun incident n'a pu être restauré.`);
+          }
+          this.loadArchivedIncidents();
+        }
+      },
+      error: (err) => {
+        console.error(`Erreur restauration ${incident.id}:`, err);
+        completed++;
+        if (completed === total) {
+          this.bulkRestoringIncidents = false;
+          this.showMultiRestoreIncidentModal = false;
+          this.selectedIncidents.clear();
+          this.confirmRestoreIncidents = [];
+          this.showAlert('error', 'Erreur', `${successCount}/${total} incident(s) restauré(s).`);
+          this.loadArchivedIncidents();
+        }
+      }
+    });
+  });
+}
+
 }
