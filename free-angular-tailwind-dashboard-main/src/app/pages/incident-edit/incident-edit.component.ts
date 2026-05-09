@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, HostListener, OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { ApiResponse, CreateIncidentDTO, EntiteImpactee, Incident, IncidentDetail, IncidentTPEDTO, PieceJointeDTO, SeveriteIncident, StatutIncident, TypeEntiteImpactee, TypeProbleme } from '../../shared/models/incident.model';
@@ -49,7 +49,8 @@ selectedEntiteValue: number | null = null;
     'Moyenne': SeveriteIncident.Moyenne,
     'Forte': SeveriteIncident.Forte
   };
-  
+  // Pour la sélection multiple des entités
+
   // Pour les fichiers
   selectedFiles: File[] = [];
   isDragActive = false;
@@ -224,6 +225,150 @@ loadTpesDisponibles() {
     }
   });
 }
+
+
+// Dans incident-edit.component.ts, ajoutez ces propriétés :
+
+// Pour la sélection multiple des entités
+selectedEntitesValues: number[] = [];
+showEntiteDropdown = false;
+addingEntities = false;
+entitiesAddedCount = 0;
+
+// Méthodes pour la sélection multiple :
+
+
+
+// Vérifier si une entité est sélectionnée
+isEntiteSelected(value: any): boolean {
+  const numValue = typeof value === 'string' ? parseInt(value, 10) : Number(value);
+  return this.selectedEntitesValues.some(v => Number(v) === numValue);
+}
+
+// Basculer la sélection d'une entité
+// Assurez-vous que cette méthode est correcte
+// Dans toggleEntiteSelection, gardez les logs que vous avez déjà
+toggleEntiteSelection(value: number) {
+  const numValue = Number(value);
+  console.log('🖱️ TOGGLE APPELÉ avec:', numValue);
+  
+  const index = this.selectedEntitesValues.findIndex(v => v === numValue);
+  if (index === -1) {
+    this.selectedEntitesValues = [...this.selectedEntitesValues, numValue];
+  } else {
+    this.selectedEntitesValues = this.selectedEntitesValues.filter(v => v !== numValue);
+  }
+  console.log('selectedEntitesValues après:', this.selectedEntitesValues);
+}
+
+// Retirer une entité de la sélection
+removeSelectedEntite(value: number) {
+  this.selectedEntitesValues = this.selectedEntitesValues.filter(v => v !== value);
+}
+
+// Effacer toutes les sélections
+clearSelectedEntites() {
+  this.selectedEntitesValues = [];
+}
+
+// Obtenir le libellé d'une entité à partir de son ID
+getTypeEntiteLabelFromId(id: number): string {
+  const mapping: { [key: number]: string } = {
+    1: 'Machine TPE',
+    2: 'Flux transactionnel',
+    3: 'Réseau',
+    4: 'Service applicatif'
+  };
+  return mapping[id] || 'Inconnu';
+}
+
+// Ajouter plusieurs entités à la fois
+ajouterEntitesMultiples() {
+  if (this.selectedEntitesValues.length === 0) {
+    this.showTemporaryMessage('Veuillez sélectionner au moins une entité', 'error');
+    return;
+  }
+  
+  // Filtrer pour ne garder que les entités qui ne sont pas déjà impactées
+  const entitesExistantes = (this.incident.entitesImpactees || []).map(e => {
+    if (typeof e.typeEntiteImpactee === 'number') return e.typeEntiteImpactee;
+    if (typeof e.typeEntiteImpactee === 'string') {
+      const mapping: { [key: string]: number } = {
+        'MachineTPE': 1, 'FluxTransactionnel': 2, 'Reseau': 3, 'ServiceApplicatif': 4
+      };
+      return mapping[e.typeEntiteImpactee] || 0;
+    }
+    return 0;
+  });
+  
+  const entitesAAjouter = this.selectedEntitesValues.filter(id => !entitesExistantes.includes(id));
+  
+  if (entitesAAjouter.length === 0) {
+    this.showTemporaryMessage('Toutes les entités sélectionnées sont déjà impactées', 'error');
+    this.selectedEntitesValues = [];
+    return;
+  }
+  
+  if (entitesAAjouter.length !== this.selectedEntitesValues.length) {
+    const dejaPresentes = this.selectedEntitesValues.filter(id => entitesExistantes.includes(id));
+    const labels = dejaPresentes.map(id => this.getTypeEntiteLabelFromId(id)).join(', ');
+    this.showTemporaryMessage(`Les entités suivantes sont déjà impactées: ${labels}`, 'warning');
+  }
+  
+  this.addingEntities = true;
+  this.entitiesAddedCount = 0;
+  let successCount = 0;
+  let errorCount = 0;
+  
+  entitesAAjouter.forEach((typeEntiteValue, index) => {
+    this.entiteService.addToIncident(this.incident.id, typeEntiteValue).subscribe({
+      next: (response) => {
+        if (response.isSuccess && response.data) {
+          if (!this.incident.entitesImpactees) {
+            this.incident.entitesImpactees = [];
+          }
+          this.incident.entitesImpactees.push({
+            id: response.data.id,
+            typeEntiteImpactee: typeEntiteValue
+          });
+          successCount++;
+        } else {
+          errorCount++;
+        }
+        this.entitiesAddedCount++;
+        
+        // Quand toutes les requêtes sont terminées
+        if (this.entitiesAddedCount === entitesAAjouter.length) {
+          this.addingEntities = false;
+          this.selectedEntitesValues = [];
+          this.showEntiteDropdown = false;
+          this.incident = { ...this.incident }; // Force refresh
+          
+          if (successCount > 0) {
+            this.showTemporaryMessage(`${successCount} entité(s) ajoutée(s) avec succès${errorCount > 0 ? `, ${errorCount} erreur(s)` : ''}`, 'success');
+          } else {
+            this.showTemporaryMessage(`Erreur lors de l'ajout des entités`, 'error');
+          }
+        }
+      },
+      error: (err) => {
+        console.error(`Erreur ajout entité ${typeEntiteValue}:`, err);
+        errorCount++;
+        this.entitiesAddedCount++;
+        
+        if (this.entitiesAddedCount === entitesAAjouter.length) {
+          this.addingEntities = false;
+          this.selectedEntitesValues = [];
+          this.showEntiteDropdown = false;
+          this.showTemporaryMessage(`${successCount} entité(s) ajoutée(s), ${errorCount} erreur(s)`, 'warning');
+        }
+        this.updateEntitesDisponibles();
+      }
+    });
+  });
+}
+
+
   // Mettre à jour les options du multi-select
 updateTpeOptions() {
   this.tpeOptions = this.tpEsDisponibles.map(tpe => ({
@@ -691,17 +836,15 @@ get isIncidentModifiable(): boolean {
     this.showDeleteEntiteModal = true;
   }
 
+// APRÈS (corrigé) :
   confirmerSuppressionEntite() {
     if (!this.entiteToDelete) return;
 
-    console.log('🗑️ Suppression entité:', this.entiteToDelete.id);
-    
     this.entiteService.removeFromIncident(this.entiteToDelete.id).subscribe({
       next: (response: ApiResponse<boolean>) => {
-        console.log('✅ Réponse suppression:', response);
-        
         if (response.isSuccess) {
           this.incident.entitesImpactees.splice(this.entiteToDelete!.index, 1);
+          this.updateEntitesDisponibles();
           this.showTemporaryMessage('Entité supprimée avec succès', 'success');
         } else {
           this.error = response.message || 'Erreur lors de la suppression';
@@ -709,8 +852,6 @@ get isIncidentModifiable(): boolean {
         this.fermerModalEntite();
       },
       error: (err: any) => {
-        console.error('❌ Erreur détaillée:', err);
-        
         if (err.status === 404) {
           this.error = 'Entité non trouvée';
         } else if (err.status === 403) {
@@ -748,6 +889,8 @@ loadIncident(id: string, callback?: () => void) {
   }).subscribe({
     next: (results) => {
       this.incident = results.incident;
+      this.updateEntitesDisponibles();
+
       this.piecesJointesExistantes = results.piecesJointes;
       
       // ✅ Supprimez ou simplifiez ces logs
@@ -1174,47 +1317,32 @@ ajouterPlusieursEntites() {
 // Supprimez l'ancien getter et remplacez-le par cette version simplifiée
 // Dans incident-edit.component.ts
 
-get entitesDisponibles(): any[] {
-  // ✅ Les options doivent avoir des valeurs numériques
+// Remplacez le getter par une propriété simple
+entitesDisponibles: { value: number; label: string }[] = [];
+
+// Appelez cette méthode après chaque changement d'entitesImpactees
+updateEntitesDisponibles() {
   const toutesOptions = [
     { value: 1, label: 'Machine TPE' },
     { value: 2, label: 'Flux transactionnel' },
     { value: 3, label: 'Réseau' },
     { value: 4, label: 'Service applicatif' }
   ];
-  
+
   if (!this.incident?.entitesImpactees || this.incident.entitesImpactees.length === 0) {
-    return toutesOptions;
+    this.entitesDisponibles = [...toutesOptions];
+    return;
   }
-  
-  // Récupérer les valeurs NUMÉRIQUES des entités existantes
-  const entitesExistantes: number[] = [];
-  
-  for (const entite of this.incident.entitesImpactees) {
-    let valeur = entite.typeEntiteImpactee;
-    
-    if (typeof valeur === 'number') {
-      entitesExistantes.push(valeur);
-    } else if (typeof valeur === 'string') {
-      // Convertir la string en nombre
-      const mapping: { [key: string]: number } = {
-        'MachineTPE': 1,
-        'FluxTransactionnel': 2,
-        'Reseau': 3,
-        'ServiceApplicatif': 4
-      };
-      const mapped = mapping[valeur];
-      if (mapped) entitesExistantes.push(mapped);
-    }
-  }
-  
-  console.log('Entités existantes (IDs):', entitesExistantes);
-  
-  // Filtrer les options
-  const disponibles = toutesOptions.filter(option => !entitesExistantes.includes(option.value));
-  
-  console.log('Entités disponibles:', disponibles);
-  return disponibles;
+
+  const entitesExistantes: number[] = this.incident.entitesImpactees.map(e => {
+    if (typeof e.typeEntiteImpactee === 'number') return e.typeEntiteImpactee;
+    const mapping: { [key: string]: number } = {
+      'MachineTPE': 1, 'FluxTransactionnel': 2, 'Reseau': 3, 'ServiceApplicatif': 4
+    };
+    return mapping[e.typeEntiteImpactee as string] || 0;
+  });
+
+  this.entitesDisponibles = toutesOptions.filter(o => !entitesExistantes.includes(o.value));
 }
 
   // Mapping pour les entités
@@ -1253,7 +1381,7 @@ get entitesDisponibles(): any[] {
 // Ajoutez cette propriété pour les timeouts
 private messageTimeout: any = null;
 
-showTemporaryMessage(message: string, type: 'success' | 'error' = 'success') {
+showTemporaryMessage(message: string, type: 'success' | 'error' | 'warning' = 'success') {
   // ✅ Annuler le timeout précédent
   if (this.messageTimeout) {
     clearTimeout(this.messageTimeout);
@@ -1261,18 +1389,20 @@ showTemporaryMessage(message: string, type: 'success' | 'error' = 'success') {
   
   if (type === 'success') {
     this.successMessage = message;
-    // ✅ Ne pas utiliser showSuccessModal si elle n'est pas affichée dans le HTML
-    // this.showSuccessModal = true;  // ← Supprimer ou commenter
-    
-    // ✅ Fermeture automatique après 3 secondes
     this.messageTimeout = setTimeout(() => {
       this.successMessage = '';
       this.messageTimeout = null;
     }, 3000);
-    
+  } else if (type === 'warning') {
+    // Afficher comme erreur ou créer une variable dédiée
+    this.error = message;
+    // Optionnel: changer la couleur pour orange
+    this.messageTimeout = setTimeout(() => {
+      this.error = null;
+      this.messageTimeout = null;
+    }, 4000); // Plus long pour les warnings
   } else {
     this.error = message;
-    // ✅ Fermeture automatique après 3 secondes (comme le succès)
     this.messageTimeout = setTimeout(() => {
       this.error = null;
       this.messageTimeout = null;
