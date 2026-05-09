@@ -338,18 +338,26 @@ ajouterEntitesMultiples() {
         this.entitiesAddedCount++;
         
         // Quand toutes les requêtes sont terminées
-        if (this.entitiesAddedCount === entitesAAjouter.length) {
-          this.addingEntities = false;
-          this.selectedEntitesValues = [];
-          this.showEntiteDropdown = false;
-          this.incident = { ...this.incident }; // Force refresh
-          
-          if (successCount > 0) {
-            this.showTemporaryMessage(`${successCount} entité(s) ajoutée(s) avec succès${errorCount > 0 ? `, ${errorCount} erreur(s)` : ''}`, 'success');
-          } else {
-            this.showTemporaryMessage(`Erreur lors de l'ajout des entités`, 'error');
-          }
-        }
+        // Quand toutes les requêtes sont terminées
+if (this.entitiesAddedCount === entitesAAjouter.length) {
+  this.addingEntities = false;
+  this.selectedEntitesValues = [];
+  this.showEntiteDropdown = false;
+  
+  // Met à jour la liste des disponibles (retire celles ajoutées)
+  this.updateEntitesDisponibles();
+  
+  if (successCount > 0) {
+    this.showTemporaryMessage(
+      `${successCount} entité(s) ajoutée(s) avec succès${errorCount > 0 ? `, ${errorCount} erreur(s)` : ''}`,
+      'success'
+    );
+    // Scroll vers le haut pour voir le message
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  } else {
+    this.showTemporaryMessage(`Erreur lors de l'ajout des entités`, 'error');
+  }
+}
       },
       error: (err) => {
         console.error(`Erreur ajout entité ${typeEntiteValue}:`, err);
@@ -357,11 +365,13 @@ ajouterEntitesMultiples() {
         this.entitiesAddedCount++;
         
         if (this.entitiesAddedCount === entitesAAjouter.length) {
-          this.addingEntities = false;
-          this.selectedEntitesValues = [];
-          this.showEntiteDropdown = false;
-          this.showTemporaryMessage(`${successCount} entité(s) ajoutée(s), ${errorCount} erreur(s)`, 'warning');
-        }
+  this.addingEntities = false;
+  this.selectedEntitesValues = [];
+  this.showEntiteDropdown = false;
+  this.updateEntitesDisponibles(); // ← ajoutez cette ligne
+  this.showTemporaryMessage(`${successCount} entité(s) ajoutée(s), ${errorCount} erreur(s)`, 'warning');
+  window.scrollTo({ top: 0, behavior: 'smooth' }); // ← et celle-ci
+}
         this.updateEntitesDisponibles();
       }
     });
