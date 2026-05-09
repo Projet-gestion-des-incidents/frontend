@@ -55,7 +55,8 @@ uploadError: string | null = null;
   maxFileSize = 10 * 1024 * 1024; // 10MB
   maxFiles = 10;
 piecesJointesExistantes: any[] = [];
-
+selectedEntiteToAdd: TypeEntiteImpactee | null = null;
+entitesAAjouter: TypeEntiteImpactee[] = []; // Liste des entités à ajouter (optionnel)
   severiteEnumToString: { [key: number]: string } = {
     [SeveriteIncident.Faible]: 'Faible',
     [SeveriteIncident.Moyenne]: 'Moyenne',
@@ -220,6 +221,12 @@ updateTpeOptions() {
       }, 3000);
     }
   }
+
+  // Dans incident-edit.component.ts, ajoutez cette méthode
+onEntiteSelectionChange(value: any) {
+  console.log('Sélection changée:', value);
+  // Vous pouvez ajouter d'autres logiques ici si nécessaire
+}
 
   sauvegarderTpes(): Promise<boolean> {
     return new Promise((resolve) => {
@@ -697,7 +704,6 @@ get isIncidentModifiable(): boolean {
 loadIncident(id: string, callback?: () => void) {
   this.loading = true;
   
-  // Charger l'incident et ses pièces jointes
   forkJoin({
     incident: this.incidentService.getIncidentDetails(id),
     piecesJointes: this.incidentService.getPiecesJointesByIncident(id)
@@ -706,14 +712,14 @@ loadIncident(id: string, callback?: () => void) {
       this.incident = results.incident;
       this.piecesJointesExistantes = results.piecesJointes;
       
-      console.log('📦 Entités reçues:', this.incident.entitesImpactees);
-      console.log('📦 TPEs reçus:', this.incident.tpEs);
-      console.log('📦 Pièces jointes existantes:', this.piecesJointesExistantes);
+      // ✅ Supprimez ou simplifiez ces logs
+      console.log('📦 Incident chargé:', this.incident.codeIncident);
+      console.log('📦 Entités impactées:', this.incident.entitesImpactees?.length || 0);
+      console.log('📦 TPEs associés:', this.incident.tpEs?.length || 0);
       
       // Initialiser les TPEs liés
       if (this.incident.tpEs) {
         this.selectedTpeIds = this.incident.tpEs.map(tpe => tpe.tpeId);
-        console.log('📦 TPEs liés IDs:', this.selectedTpeIds);
       } else {
         this.incident.tpEs = [];
         this.selectedTpeIds = [];
@@ -742,10 +748,8 @@ loadIncident(id: string, callback?: () => void) {
         }
       }
       
-      console.log('✅ Incident chargé:', this.incident);
       this.loading = false;
       
-      // ✅ Exécuter le callback si fourni
       if (callback) {
         callback();
       }
@@ -952,28 +956,162 @@ async save() {
     }
   }
 
-  ajouterEntite() {
-    if (!this.isAdmin) return;
-    
-    this.entiteService.addToIncident(this.incident.id, this.newEntite.typeEntiteImpactee).subscribe({
+// Dans la méthode ajouterEntite, ajoutez ces logs
+ajouterEntite() {
+  console.log('=== AJOUT ENTITÉ ===');
+  console.log('selectedEntiteToAdd:', this.selectedEntiteToAdd);
+  console.log('Type de selectedEntiteToAdd:', typeof this.selectedEntiteToAdd);
+  
+  if (!this.isAdmin) {
+    this.showTemporaryMessage('Action réservée aux administrateurs', 'error');
+    return;
+  }
+  
+  if (!this.selectedEntiteToAdd) {
+    this.showTemporaryMessage('Veuillez sélectionner une entité', 'error');
+    return;
+  }
+  
+  // Convertir en nombre si nécessaire
+  let entiteToAdd = this.selectedEntiteToAdd;
+  if (typeof entiteToAdd === 'string') {
+    entiteToAdd = parseInt(entiteToAdd as any, 10);
+  }
+  
+  // Vérifier si l'entité existe déjà
+  const entitesExistantes = this.incident.entitesImpactees?.map(e => {
+    let val = e.typeEntiteImpactee;
+    if (typeof val === 'string') val = parseInt(val, 10);
+    return val;
+  }) || [];
+  
+  if (entitesExistantes.includes(entiteToAdd)) {
+    this.showTemporaryMessage('Cette entité est déjà impactée', 'error');
+    this.selectedEntiteToAdd = null;
+    return;
+  }
+  
+  // Continuer avec l'ajout...
+  this.loading = true;
+  
+  this.entiteService.addToIncident(this.incident.id, entiteToAdd).subscribe({
+    next: (response) => {
+      this.loading = false;
+      if (response.isSuccess && response.data) {
+        if (!this.incident.entitesImpactees) {
+          this.incident.entitesImpactees = [];
+        }
+        this.incident.entitesImpactees.push({
+          id: response.data.id,
+          typeEntiteImpactee: response.data.typeEntiteImpactee
+        });
+        
+        this.selectedEntiteToAdd = null;
+        this.showTemporaryMessage('Entité ajoutée avec succès', 'success');
+      } else {
+        this.error = response.message || 'Erreur lors de l\'ajout';
+      }
+    },
+    error: (err) => {
+      this.loading = false;
+      console.error('❌ Erreur ajout entité:', err);
+      this.error = err.error?.message || 'Erreur lors de l\'ajout de l\'entité';
+    }
+  });
+}
+
+
+// Ajoutez cette méthode pour ajouter plusieurs entités d'un coup (optionnel)
+ajouterPlusieursEntites() {
+  if (!this.isAdmin) return;
+  if (this.entitesAAjouter.length === 0) {
+    this.showTemporaryMessage('Veuillez sélectionner au moins une entité', 'error');
+    return;
+  }
+  
+  // Filtrer pour éviter les doublons
+  const entitesExistantes = this.incident.entitesImpactees?.map(e => e.typeEntiteImpactee) || [];
+  const entitesNouvelles = this.entitesAAjouter.filter(e => !entitesExistantes.includes(e));
+  
+  if (entitesNouvelles.length === 0) {
+    this.showTemporaryMessage('Toutes ces entités sont déjà impactées', 'error');
+    this.entitesAAjouter = [];
+    return;
+  }
+  
+  // Ajouter chaque entité
+  let ajoutees = 0;
+  let erreurs = 0;
+  
+  entitesNouvelles.forEach(typeEntite => {
+    this.entiteService.addToIncident(this.incident.id, typeEntite).subscribe({
       next: (response) => {
         if (response.isSuccess && response.data) {
+          if (!this.incident.entitesImpactees) {
+            this.incident.entitesImpactees = [];
+          }
           this.incident.entitesImpactees.push({
             id: response.data.id,
             typeEntiteImpactee: response.data.typeEntiteImpactee
           });
-          this.showNewEntiteForm = false;
-          this.newEntite = { typeEntiteImpactee: TypeEntiteImpactee.MachineTPE };
+          ajoutees++;
         } else {
-          this.error = response.message || 'Erreur lors de l\'ajout';
+          erreurs++;
+        }
+        
+        if (ajoutees + erreurs === entitesNouvelles.length) {
+          this.showTemporaryMessage(`${ajoutees} entité(s) ajoutée(s) avec succès${erreurs > 0 ? `, ${erreurs} erreur(s)` : ''}`, 'success');
+          this.entitesAAjouter = [];
         }
       },
       error: (err) => {
-        console.error('❌ Erreur ajout entité:', err);
-        this.error = 'Erreur lors de l\'ajout de l\'entité';
+        console.error('Erreur ajout entité:', err);
+        erreurs++;
+        if (ajoutees + erreurs === entitesNouvelles.length) {
+          this.showTemporaryMessage(`${ajoutees} entité(s) ajoutée(s)${erreurs > 0 ? `, ${erreurs} échec(s)` : ''}`, 'success');
+          this.entitesAAjouter = [];
+        }
       }
     });
+  });
+}
+// Ajoutez cette propriété avec les autres
+// Dans votre composant, ajoutez ce getter et loggez les valeurs
+// Supprimez l'ancien getter et remplacez-le par cette version simplifiée
+get entitesDisponibles(): any[] {
+  if (!this.incident?.entitesImpactees || this.incident.entitesImpactees.length === 0) {
+    return this.typeEntiteOptions;
   }
+  
+  // ✅ Extraire simplement les valeurs numériques des entités existantes
+  const entitesExistantes: number[] = [];
+  
+  for (const entite of this.incident.entitesImpactees) {
+    let valeur = entite.typeEntiteImpactee;
+    
+    // Si c'est un nombre, l'ajouter directement
+    if (typeof valeur === 'number') {
+      entitesExistantes.push(valeur);
+    }
+    // Si c'est une string, essayer de la convertir en nombre
+    else if (typeof valeur === 'string') {
+      const converti = this.typeEntiteStringToEnum[valeur];
+      if (converti !== undefined) {
+        entitesExistantes.push(converti);
+      }
+    }
+  }
+  
+  console.log('Entités existantes (IDs):', entitesExistantes);
+  
+  // Filtrer les options
+  const disponibles = this.typeEntiteOptions.filter(option => {
+    return !entitesExistantes.includes(option.value);
+  });
+  
+  console.log('Entités disponibles:', disponibles);
+  return disponibles;
+}
 
   // Mapping pour les entités
   typeEntiteStringToEnum: { [key: string]: TypeEntiteImpactee } = {

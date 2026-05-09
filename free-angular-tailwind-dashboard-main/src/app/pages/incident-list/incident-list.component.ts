@@ -822,7 +822,7 @@ cancelDelete() {
 
   showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string) {
     this.alert = { show: true, variant, title, message };
-    setTimeout(() => (this.alert.show = false), 3000);
+    setTimeout(() => (this.alert.show = false), 5000);
   }
 
 

@@ -1,29 +1,57 @@
+<div class="space-y-4">
+ <!-- Alert interactif (pour les messages de succès/erreur) -->
+<div *ngIf="alert.show && alert.variant !== 'warning'" 
+     class="rounded-xl border p-4 flex items-center justify-between animate-slide-down mb-4"
+     [ngClass]="{
+       'border-red-200 bg-red-50 dark:border-red-800 dark:bg-red-900/20': alert.variant === 'error',
+       'border-green-200 bg-green-50 dark:border-green-800 dark:bg-green-900/20': alert.variant === 'success'
+     }">
+  <div class="flex items-center gap-3">
+    <div class="flex-shrink-0">
+      <div class="w-8 h-8 rounded-full flex items-center justify-center"
+           [ngClass]="{
+             'bg-red-100 text-red-600 dark:bg-red-800/50 dark:text-red-400': alert.variant === 'error',
+             'bg-green-100 text-green-600 dark:bg-green-800/50 dark:text-green-400': alert.variant === 'success'
+           }">
+        <svg *ngIf="alert.variant === 'error'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <svg *ngIf="alert.variant === 'success'" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+        </svg>
+      </div>
+    </div>
+    <div>
+      <p class="text-sm font-medium"
+         [ngClass]="{
+           'text-red-800 dark:text-red-200': alert.variant === 'error',
+           'text-green-800 dark:text-green-200': alert.variant === 'success'
+         }">
+        {{ alert.title }}
+      </p>
+      <p class="text-sm"
+         [ngClass]="{
+           'text-red-700 dark:text-red-300': alert.variant === 'error',
+           'text-green-700 dark:text-green-300': alert.variant === 'success'
+         }">
+        {{ alert.message }}
+      </p>
+    </div>
+  </div>
+  <!-- Bouton de fermeture X -->
+  <button (click)="alert.show = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+    </svg>
+  </button>
+</div>
+
 <div class="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03] shadow-sm">
   
-  <!-- Alert interactif amélioré -->
-  <app-alert
-    *ngIf="alert.show"
-    [variant]="alert.variant"
-    [title]="alert.title"
-    [message]="alert.message"
-  >
-    <div class="mt-3 flex justify-end gap-2" *ngIf="alert.variant === 'warning'">
-      <button
-        (click)="confirmDelete()"
-        class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium"
-      >
-        Confirmer
-      </button>
-      <button
-        (click)="cancelDelete()"
-        class="px-4 py-2 bg-gray-200 text-gray-800 rounded-lg hover:bg-gray-300 transition-colors text-sm font-medium dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600"
-      >
-        Annuler
-      </button>
-    </div>
-  </app-alert>
+
+
 <!-- Modale de confirmation suppression multiple -->
-<div *ngIf="showMultiDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+<div *ngIf="showMultiDeleteModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
   <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
     <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
       <div class="flex items-center gap-3">
@@ -40,13 +68,7 @@
       <p class="text-gray-600 dark:text-gray-300 mb-2">
         Êtes-vous sûr de vouloir supprimer définitivement <strong class="text-red-600">{{ confirmIncidents.length }} incident(s)</strong> ?
       </p>
-      <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 max-h-48 overflow-y-auto">
-        <ul class="space-y-2">
-          <li *ngFor="let incident of confirmIncidents" class="text-sm text-gray-700 dark:text-gray-300">
-            • {{ incident.codeIncident }}
-          </li>
-        </ul>
-      </div>
+      
       <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
         <div class="flex gap-2">
           <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -74,7 +96,7 @@
   </div>
 </div>
 <!-- Modal de confirmation d'archivage -->
-<div *ngIf="showArchiveModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
+<div *ngIf="showArchiveModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
   <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100 animate-modal-in">
     
     <!-- Header -->
@@ -165,7 +187,7 @@
   </div>
 </div>
   <!-- Modal de confirmation de suppression amélioré -->
-  <div *ngIf="confirmIncident" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
+  <div *ngIf="confirmIncident" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100 animate-modal-in">
       
       <!-- Header -->
@@ -218,7 +240,7 @@
                 Action irréversible
               </p>
               <p class="text-sm text-red-700 dark:text-red-300">
-                Cette action supprimera l'incident.
+                Cet incident sera supprimé définitivement.
               </p>
             </div>
           </div>
@@ -245,7 +267,7 @@
             <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
             <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
           </svg>
-          <span *ngIf="!deleting">Supprimer définitivement</span>
+          <span *ngIf="!deleting">Supprimer</span>
           <span *ngIf="deleting">Suppression...</span>
         </button>
       </div>
@@ -395,7 +417,7 @@
           </div>
           <input 
             type="text" 
-            placeholder="Rechercher par code..." 
+            placeholder="Rechercher par code, commerçant..." 
             [(ngModel)]="searchTerm"
             (input)="onSearch()"
             class="h-11 w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-11 pr-10 text-sm text-gray-800 placeholder:text-gray-400 focus:border-[#8788FF] focus:outline-none focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-white/30 transition-all"
@@ -543,6 +565,23 @@
           </select>
         </div>
 
+        <!-- ✅ NOUVEAU : Filtre par entité impactée (Admin seulement) -->
+    <div *ngIf="userRole === 'Admin'">
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+        
+        Entité impactée
+      </label>
+      <select
+        [(ngModel)]="tempFilters.entiteImpactee"
+        class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-[#8788FF] focus:ring-1 focus:ring-[#8788FF] dark:border-gray-600 dark:bg-gray-800 transition-colors"
+      >
+        <option [ngValue]="undefined">Toutes entités</option>
+        <option *ngFor="let option of entiteImpacteeOptions" [ngValue]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
+
         <!-- Filtre par date -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
@@ -550,9 +589,7 @@
           </label>
           <div class="relative">
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-              <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-              </svg>
+              
             </div>
             <input 
               type="date"
@@ -560,7 +597,7 @@
               [value]="selectedDateDetection"
               (change)="onDateDetectionChange($event)"
               [max]="today"
-              class="pl-10 pr-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all cursor-pointer"
+              class="pr-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all cursor-pointer"
             />
             <button 
               type="button"
@@ -825,7 +862,7 @@
       </button>
     </div>
   </div>
-  <div *ngIf="showMultiArchiveModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+  <div *ngIf="showMultiArchiveModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
   <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
     <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
       <div class="flex items-center gap-3">
@@ -842,14 +879,7 @@
       <p class="text-gray-600 dark:text-gray-300 mb-2">
         Êtes-vous sûr de vouloir archiver <strong class="text-amber-600">{{ confirmArchives.length }} incident(s)</strong> ?
       </p>
-      <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 max-h-48 overflow-y-auto">
-        <p class="text-xs text-gray-500 mb-2 font-medium">Incidents concernés :</p>
-        <ul class="space-y-1">
-          <li *ngFor="let incident of confirmArchives" class="text-sm text-gray-700 dark:text-gray-300">
-            • {{ incident.codeIncident }}
-          </li>
-        </ul>
-      </div>
+      
       <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
         <div class="flex gap-2">
           <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
