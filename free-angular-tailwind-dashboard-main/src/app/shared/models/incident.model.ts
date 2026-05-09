@@ -51,6 +51,8 @@ export interface Incident {
   typeProbleme?: TypeProbleme;  // ← Changé de string à TypeProbleme
   nombreTickets: number;
   nombreEntitesImpactees: number;
+  
+  dateArchivage?: string | null;  
     piecesJointes?: PieceJointeDTO[];
 
 }

@@ -15,6 +15,7 @@ export interface TicketDTO {
   dateCreation: string;
   dateCloture?: string;
 
+  dateArchivage?: string | null;  
   createurId: string;
   createurNom: string;
 
