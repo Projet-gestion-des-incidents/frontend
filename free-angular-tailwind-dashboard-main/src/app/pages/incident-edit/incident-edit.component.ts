@@ -42,7 +42,8 @@ uploadError: string | null = null;
     { value: 'Moyenne', label: 'Moyenne' },
     { value: 'Forte', label: 'Forte' }
   ];
-
+// Dans IncidentEditComponent, ajoutez cette propriété
+selectedEntiteValue: number | null = null;
   severiteStringToEnum: { [key: string]: SeveriteIncident } = {
     'Faible': SeveriteIncident.Faible,
     'Moyenne': SeveriteIncident.Moyenne,
@@ -73,7 +74,8 @@ entitesAAjouter: TypeEntiteImpactee[] = []; // Liste des entités à ajouter (op
   showDeleteEntiteModal: boolean = false;
   entiteToDelete: { id: string; index: number; label: string } | null = null;
   
-  
+  refreshKey = 0;
+
   
   showSuccessModal: boolean = false;
   successMessage: string = '';
@@ -165,8 +167,44 @@ loadTpesDisponibles() {
     : this.tpeService.getAllTPEs();
   
   tpeObservable.subscribe({
-    next: (tpes) => {
-      console.log('📦 TPEs reçus de l\'API:', tpes);
+    next: (response: any) => {  // ⚠️ Utiliser 'any' pour éviter les erreurs de type
+      console.log('📦 Réponse brute TPEs:', response);
+      
+      // ✅ CORRECTION: Extraire le tableau correctement
+      let tpes: any[] = [];
+      
+      // Vérifier le type de response
+      if (response === null || response === undefined) {
+        tpes = [];
+      }
+      // Cas 1: Response est directement un tableau
+      else if (Array.isArray(response)) {
+        tpes = response;
+        console.log('✅ Cas 1 - Response est un tableau');
+      }
+      // Cas 2: Response a une propriété 'data' qui est un tableau
+      else if (response.data && Array.isArray(response.data)) {
+        tpes = response.data;
+        console.log('✅ Cas 2 - data est un tableau');
+      }
+      // Cas 3: Response a une propriété 'items' (pagination)
+      else if (response.items && Array.isArray(response.items)) {
+        tpes = response.items;
+        console.log('✅ Cas 3 - items est un tableau');
+      }
+      // Cas 4: Response est un objet avec d'autres propriétés
+      else if (typeof response === 'object') {
+        // Chercher la première propriété qui est un tableau
+        for (const key in response) {
+          if (response.hasOwnProperty(key) && Array.isArray(response[key])) {
+            tpes = response[key];
+            console.log(`✅ Cas 4 - trouvé tableau dans propriété '${key}'`);
+            break;
+          }
+        }
+      }
+      
+      console.log('📦 TPEs extraits:', tpes);
       console.log('📦 TPEs déjà liés:', this.incident?.tpEs);
       
       // ✅ Filtrer pour exclure les TPEs déjà liés
@@ -957,70 +995,126 @@ async save() {
   }
 
 // Dans la méthode ajouterEntite, ajoutez ces logs
+// Dans incident-edit.component.ts
+
 ajouterEntite() {
   console.log('=== AJOUT ENTITÉ ===');
-  console.log('selectedEntiteToAdd:', this.selectedEntiteToAdd);
-  console.log('Type de selectedEntiteToAdd:', typeof this.selectedEntiteToAdd);
+  console.log('selectedEntiteValue AVANT conversion:', this.selectedEntiteValue);
+  console.log('Type de selectedEntiteValue:', typeof this.selectedEntiteValue);
   
   if (!this.isAdmin) {
     this.showTemporaryMessage('Action réservée aux administrateurs', 'error');
     return;
   }
   
-  if (!this.selectedEntiteToAdd) {
+  if (!this.selectedEntiteValue) {
     this.showTemporaryMessage('Veuillez sélectionner une entité', 'error');
     return;
   }
   
-  // Convertir en nombre si nécessaire
-  let entiteToAdd = this.selectedEntiteToAdd;
-  if (typeof entiteToAdd === 'string') {
-    entiteToAdd = parseInt(entiteToAdd as any, 10);
+  // ✅ CORRECTION CRITIQUE: Convertir correctement la valeur
+  let typeEntiteValue: number;
+  
+  // Si c'est une string, la convertir en nombre
+  if (typeof this.selectedEntiteValue === 'string') {
+    typeEntiteValue = parseInt(this.selectedEntiteValue, 10);
+  } else {
+    typeEntiteValue = this.selectedEntiteValue;
   }
   
-  // Vérifier si l'entité existe déjà
-  const entitesExistantes = this.incident.entitesImpactees?.map(e => {
-    let val = e.typeEntiteImpactee;
-    if (typeof val === 'string') val = parseInt(val, 10);
-    return val;
-  }) || [];
+  console.log('typeEntiteValue APRÈS conversion:', typeEntiteValue);
   
-  if (entitesExistantes.includes(entiteToAdd)) {
-    this.showTemporaryMessage('Cette entité est déjà impactée', 'error');
-    this.selectedEntiteToAdd = null;
+  // Vérifier si c'est un nombre valide
+  if (isNaN(typeEntiteValue) || typeEntiteValue < 1 || typeEntiteValue > 4) {
+    this.showTemporaryMessage('Type d\'entité invalide', 'error');
     return;
   }
   
-  // Continuer avec l'ajout...
-  this.loading = true;
+  // Vérifier si l'entité existe déjà (en comparant les NOMBRES)
+  const entitesExistantes = (this.incident.entitesImpactees || []).map(e => {
+    // Normaliser en nombre
+    if (typeof e.typeEntiteImpactee === 'number') {
+      return e.typeEntiteImpactee;
+    }
+    if (typeof e.typeEntiteImpactee === 'string') {
+      // Convertir la string en nombre via le mapping
+      const mapping: { [key: string]: number } = {
+        'MachineTPE': 1,
+        'FluxTransactionnel': 2,
+        'Reseau': 3,
+        'ServiceApplicatif': 4
+      };
+      return mapping[e.typeEntiteImpactee] || 0;
+    }
+    return 0;
+  });
   
-  this.entiteService.addToIncident(this.incident.id, entiteToAdd).subscribe({
+  console.log('entitesExistantes (nombres):', entitesExistantes);
+  console.log('typeEntiteValue à ajouter:', typeEntiteValue);
+  
+  if (entitesExistantes.includes(typeEntiteValue)) {
+    const label = this.getTypeEntiteLabelFromNumber(typeEntiteValue);
+    this.showTemporaryMessage(`L'entité "${label}" est déjà impactée par cet incident`, 'error');
+    this.selectedEntiteValue = null;
+    return;
+  }
+  
+  this.loading = true;
+  this.refreshKey++;
+
+  // ✅ Envoyer la valeur numérique, pas la string
+  console.log('📦 Payload envoyé à l\'API:', {
+    incidentId: this.incident.id,
+    typeEntiteImpactee: typeEntiteValue
+  });
+  
+  this.entiteService.addToIncident(this.incident.id, typeEntiteValue).subscribe({
     next: (response) => {
       this.loading = false;
+      console.log('✅ Réponse API:', response);
+      
       if (response.isSuccess && response.data) {
         if (!this.incident.entitesImpactees) {
           this.incident.entitesImpactees = [];
         }
+        
+        // ✅ Ajouter l'entité avec la valeur numérique
         this.incident.entitesImpactees.push({
           id: response.data.id,
-          typeEntiteImpactee: response.data.typeEntiteImpactee
+          typeEntiteImpactee: typeEntiteValue as TypeEntiteImpactee
         });
         
-        this.selectedEntiteToAdd = null;
-        this.showTemporaryMessage('Entité ajoutée avec succès', 'success');
+        this.selectedEntiteValue = null;
+        this.incident = { ...this.incident }; // Force refresh
+        
+        const label = this.getTypeEntiteLabelFromNumber(typeEntiteValue);
+        this.showTemporaryMessage(`Entité "${label}" ajoutée avec succès`, 'success');
       } else {
-        this.error = response.message || 'Erreur lors de l\'ajout';
+        this.showTemporaryMessage(response.message || 'Erreur lors de l\'ajout', 'error');
       }
     },
     error: (err) => {
       this.loading = false;
       console.error('❌ Erreur ajout entité:', err);
-      this.error = err.error?.message || 'Erreur lors de l\'ajout de l\'entité';
+      console.error('Détails erreur:', err.error);
+      this.showTemporaryMessage(err.error?.message || 'Erreur lors de l\'ajout de l\'entité', 'error');
     }
   });
 }
 
-
+// Méthode utilitaire pour obtenir le libellé à partir d'un nombre
+getTypeEntiteLabelFromNumber(type: number): string {
+  const mapping: { [key: number]: string } = {
+    1: 'Machine TPE',
+    2: 'Flux transactionnel',
+    3: 'Réseau',
+    4: 'Service applicatif'
+  };
+  return mapping[type] || 'Inconnu';
+}
+trackByOption(index: number, option: any): number {
+  return option.value;
+}
 // Ajoutez cette méthode pour ajouter plusieurs entités d'un coup (optionnel)
 ajouterPlusieursEntites() {
   if (!this.isAdmin) return;
@@ -1078,36 +1172,46 @@ ajouterPlusieursEntites() {
 // Ajoutez cette propriété avec les autres
 // Dans votre composant, ajoutez ce getter et loggez les valeurs
 // Supprimez l'ancien getter et remplacez-le par cette version simplifiée
+// Dans incident-edit.component.ts
+
 get entitesDisponibles(): any[] {
+  // ✅ Les options doivent avoir des valeurs numériques
+  const toutesOptions = [
+    { value: 1, label: 'Machine TPE' },
+    { value: 2, label: 'Flux transactionnel' },
+    { value: 3, label: 'Réseau' },
+    { value: 4, label: 'Service applicatif' }
+  ];
+  
   if (!this.incident?.entitesImpactees || this.incident.entitesImpactees.length === 0) {
-    return this.typeEntiteOptions;
+    return toutesOptions;
   }
   
-  // ✅ Extraire simplement les valeurs numériques des entités existantes
+  // Récupérer les valeurs NUMÉRIQUES des entités existantes
   const entitesExistantes: number[] = [];
   
   for (const entite of this.incident.entitesImpactees) {
     let valeur = entite.typeEntiteImpactee;
     
-    // Si c'est un nombre, l'ajouter directement
     if (typeof valeur === 'number') {
       entitesExistantes.push(valeur);
-    }
-    // Si c'est une string, essayer de la convertir en nombre
-    else if (typeof valeur === 'string') {
-      const converti = this.typeEntiteStringToEnum[valeur];
-      if (converti !== undefined) {
-        entitesExistantes.push(converti);
-      }
+    } else if (typeof valeur === 'string') {
+      // Convertir la string en nombre
+      const mapping: { [key: string]: number } = {
+        'MachineTPE': 1,
+        'FluxTransactionnel': 2,
+        'Reseau': 3,
+        'ServiceApplicatif': 4
+      };
+      const mapped = mapping[valeur];
+      if (mapped) entitesExistantes.push(mapped);
     }
   }
   
   console.log('Entités existantes (IDs):', entitesExistantes);
   
   // Filtrer les options
-  const disponibles = this.typeEntiteOptions.filter(option => {
-    return !entitesExistantes.includes(option.value);
-  });
+  const disponibles = toutesOptions.filter(option => !entitesExistantes.includes(option.value));
   
   console.log('Entités disponibles:', disponibles);
   return disponibles;

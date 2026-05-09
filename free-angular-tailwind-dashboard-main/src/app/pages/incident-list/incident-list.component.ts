@@ -11,6 +11,9 @@ import { AlertComponent } from '../../shared/components/ui/alert/alert.component
 import { ButtonComponent } from '../../shared/components/ui/button/button.component';
 import { UserService } from '../../shared/services/user.service';
 import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
+// Dans incident-list.component.ts, ajoutez ces imports manquants en haut du fichier :
+import { TypeEntiteImpactee } from '../../shared/models/incident.model';
+import { EntiteImpacteeService } from '../../shared/services/entite-impactee.service';
 
 @Component({
   selector: 'app-incident-list',
@@ -92,7 +95,7 @@ loadingArchives = false;
   constructor(
     private incidentService: IncidentService,
         private userService: UserService,
-
+private entiteImpacteeService: EntiteImpacteeService,  // ← Ajoutez ceci
     private router: Router
   ) {}
  loadDashboardStats(): void {
@@ -561,7 +564,7 @@ private formatEntiteImpactee(type: string): string {
   return mapping[type] || type;
 }
 getTypeProblemeLibelle(typeProbleme: any): string {
-  if (typeProbleme === undefined || typeProbleme === null) return '';
+  if (typeProbleme === undefined || typeProbleme === null) return 'Non spécifié';
   
   // Si c'est déjà un nombre (enum)
   if (typeof typeProbleme === 'number') {
@@ -574,16 +577,16 @@ getTypeProblemeLibelle(typeProbleme: any): string {
       case 6: return 'Erreur flux transactionnel';
       case 7: return 'Problème logiciel TPE';
       case 8: return 'Autre';
-      default: return '';
+      default: return 'Non spécifié';
     }
   }
   
-  // Si c'est une string (ancien format)
+  // Si c'est une string
   if (typeof typeProbleme === 'string') {
     return typeProbleme;
   }
   
-  return '';
+  return 'Non spécifié';
 }
  loadMyIncidentsWithFilters(): void {
   this.loading = true;

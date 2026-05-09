@@ -43,20 +43,45 @@ export class EntiteImpacteeService {
 
 
   // AJOUTER une entité impactée à un incident
-  addToIncident(incidentId: string, typeEntiteImpactee: TypeEntiteImpactee): Observable<ApiResponse<EntiteImpactee>> {
-    const dto: AddEntiteImpacteeToIncidentDTO = {
-      incidentId: incidentId,
-      typeEntiteImpactee: typeEntiteImpactee
-    };
-    
-    console.log('📦 Ajout entité à l\'incident:', dto);
-    
-    return this.http.post<ApiResponse<EntiteImpactee>>(
-      `${this.apiUrl}/add-to-incident`,
-      dto,
-      this.getAuthHeaders()
-    );
+// entite-impactee.service.ts
+// Dans entite-impactee.service.ts
+
+addToIncident(incidentId: string, typeEntiteImpactee: TypeEntiteImpactee | number): Observable<ApiResponse<EntiteImpactee>> {
+  // ✅ Convertir le nombre en chaîne (nom de l'enum)
+  const typeString = this.getTypeEntiteImpacteeString(typeEntiteImpactee as number);
+  
+  const dto = {
+    incidentId: incidentId,
+    typeEntiteImpactee: typeString
+  };
+  
+  console.log('📦 Ajout entité à l\'incident:', dto);
+  
+  return this.http.post<ApiResponse<EntiteImpactee>>(
+    `${this.apiUrl}/add-to-incident`,
+    dto,
+    this.getAuthHeaders()
+  );
+}
+
+// Méthode utilitaire pour convertir l'énumération en chaîne
+private getTypeEntiteImpacteeString(type: number): string {
+  switch(type) {
+    case 1:
+      return 'MachineTPE';
+    case 2:
+      return 'FluxTransactionnel';
+    case 3:
+      return 'Reseau';
+    case 4:
+      return 'ServiceApplicatif';
+    default:
+      return 'MachineTPE';
   }
+}
+
+
+
 
   // RETIRER une entité impactée d'un incident
   removeFromIncident(entiteId: string): Observable<ApiResponse<boolean>> {
