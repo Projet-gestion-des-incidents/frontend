@@ -670,18 +670,19 @@ clearIncidentSelection(): void {
     return map[sevStr] || sevStr;
   }
   
-  formatDate(date: Date | string): string {
-    if (!date) return 'N/A';
-    const d = new Date(date);
-    return d.toLocaleDateString('fr-FR', {
-      day: '2-digit',
-      month: '2-digit',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }
-  
+formatDate(date: Date | string | null | undefined): string {
+  if (!date) return 'N/A';
+  const d = new Date(date);
+  // Vérifier si la date est valide
+  if (isNaN(d.getTime())) return 'N/A';
+  return d.toLocaleDateString('fr-FR', {
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+}
   private showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string): void {
     this.alert = { show: true, variant, title, message };
     setTimeout(() => (this.alert.show = false), 5000);
