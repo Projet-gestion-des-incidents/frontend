@@ -307,6 +307,122 @@
     </div>
   </div>
 <br>
+<!-- Dashboard pour commerçant -->
+<div *ngIf="userRole === 'Commercant' && !loadingDashboard && commercantDashboardStats" class="px-6 pb-6">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    
+    <!-- Total incidents - Violet -->
+    <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/10 rounded-xl p-4 border border-purple-200 dark:border-purple-800 hover:shadow-md transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-purple-600 dark:text-purple-400 font-medium">Mes incidents</p>
+          <p class="text-2xl font-bold text-purple-700 dark:text-purple-300 mt-1">
+            {{ commercantDashboardStats.overview.totalIncidents }}
+          </p>
+          <div class="mt-2">
+            <div class="w-full h-1.5 bg-purple-200 dark:bg-purple-800 rounded-full overflow-hidden">
+              <div class="h-full bg-purple-500 rounded-full" style="width: 100%"></div>
+            </div>
+          </div>
+        </div>
+        <div class="p-3 bg-purple-200 dark:bg-purple-800 rounded-xl">
+          <svg class="w-6 h-6 text-purple-700 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Non traités - Rouge -->
+    <div class="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/10 rounded-xl p-4 border border-red-200 dark:border-red-800 hover:shadow-md transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-red-600 dark:text-red-400 font-medium">Non traités</p>
+          <p class="text-2xl font-bold text-red-700 dark:text-red-300 mt-1">
+            {{ commercantDashboardStats.overview.incidentsNonTraite }}
+          </p>
+          <div class="flex items-center gap-1 mt-2">
+            <div class="flex-1 h-1.5 bg-red-200 dark:bg-red-800 rounded-full overflow-hidden">
+              <div class="h-full bg-red-500 rounded-full transition-all duration-500" 
+                   [style.width]="commercantDashboardStats.overview.tauxNonTraite + '%'"></div>
+            </div>
+            <p class="text-xs font-medium text-red-600 dark:text-red-400 min-w-[40px]">
+              {{ commercantDashboardStats.overview.tauxNonTraite }}%
+            </p>
+          </div>
+        </div>
+        <div class="p-3 bg-red-200 dark:bg-red-800 rounded-xl ml-3">
+          <svg class="w-6 h-6 text-red-700 dark:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 8l8 8M16 8l-8 8" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- En cours - Orange -->
+    <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/10 rounded-xl p-4 border border-orange-200 dark:border-orange-800 hover:shadow-md transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-orange-600 dark:text-orange-400 font-medium">En cours</p>
+          <p class="text-2xl font-bold text-orange-700 dark:text-orange-300 mt-1">
+            {{ commercantDashboardStats.overview.incidentsEnCours }}
+          </p>
+          <div class="flex items-center gap-1 mt-2">
+            <div class="flex-1 h-1.5 bg-orange-200 dark:bg-orange-800 rounded-full overflow-hidden">
+              <div class="h-full bg-orange-500 rounded-full transition-all duration-500" 
+                   [style.width]="commercantDashboardStats.overview.tauxEnCours + '%'"></div>
+            </div>
+            <p class="text-xs font-medium text-orange-600 dark:text-orange-400 min-w-[40px]">
+              {{ commercantDashboardStats.overview.tauxEnCours }}%
+            </p>
+          </div>
+        </div>
+        <div class="p-3 bg-orange-200 dark:bg-orange-800 rounded-xl ml-3">
+          <svg class="w-6 h-6 text-orange-700 dark:text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- Fermés/Résolus - Vert -->
+    <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/10 rounded-xl p-4 border border-green-200 dark:border-green-800 hover:shadow-md transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-green-600 dark:text-green-400 font-medium">Fermés</p>
+          <p class="text-2xl font-bold text-green-700 dark:text-green-300 mt-1">
+            {{ commercantDashboardStats.overview.incidentsFerme }}
+          </p>
+          <div class="flex items-center gap-1 mt-2">
+            <div class="flex-1 h-1.5 bg-green-200 dark:bg-green-800 rounded-full overflow-hidden">
+              <div class="h-full bg-green-500 rounded-full transition-all duration-500" 
+                   [style.width]="commercantDashboardStats.overview.tauxResolution + '%'"></div>
+            </div>
+            <p class="text-xs font-medium text-green-600 dark:text-green-400 min-w-[40px]">
+              {{ commercantDashboardStats.overview.tauxResolution }}%
+            </p>
+          </div>
+        </div>
+        <div class="p-3 bg-green-200 dark:bg-green-800 rounded-xl ml-3">
+          <svg class="w-6 h-6 text-green-700 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+
+</div>
+
+<!-- Loading pour le dashboard commerçant -->
+<div *ngIf="userRole === 'Commercant' && loadingDashboard" class="px-6 pb-6">
+  <div class="flex justify-center items-center py-8">
+    <div class="animate-spin rounded-full h-8 w-8 border-4 border-[#C5C6FF] border-t-[#8788FF]"></div>
+  </div>
+</div>
   <!-- Cards de statistiques -->
   <div class="px-6 pb-6" *ngIf="userRole !== 'Commercant'">
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">

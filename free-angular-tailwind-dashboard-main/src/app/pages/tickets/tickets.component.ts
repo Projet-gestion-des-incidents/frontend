@@ -14,6 +14,7 @@ import { DatePickerComponent } from '../../shared/components/form/date-picker/da
 import { CheckboxComponent } from '../../shared/components/form/input/checkbox.component';
 import { forkJoin, Observable, of } from 'rxjs';
 import { catchError, finalize, tap } from 'rxjs/operators';
+import { DashboardAdminService, TicketTechnicienDashboardDTO } from '../../shared/services/dashboard-admin.service';
 
 @Component({
   selector: 'app-tickets',
@@ -95,34 +96,36 @@ selectedTickets: Set<string> = new Set<string>();
 
   constructor(
     private ticketService: TicketService,
+    private dashboardAdminService:DashboardAdminService,
     private userService: UserService,
     private router: Router
   ) {}
 
-  ngOnInit(): void {
-    this.generateYearOptions();
-    
-    // Récupérer le rôle de l'utilisateur connecté
-    this.userService.getMyProfile().subscribe({
-      next: (user) => {
-        this.userRole = user.role;
-        this.isAdmin = user.role === 'Admin';
-        this.isTechnicien = user.role === 'Technicien';
-        console.log('👤 Rôle utilisateur:', this.userRole);
-        console.log('  - isAdmin:', this.isAdmin);
-        console.log('  - isTechnicien:', this.isTechnicien);
-        
-        // Charger les tickets selon le rôle
-        this.loadTickets();
+ngOnInit(): void {
+  this.generateYearOptions();
+  
+  this.userService.getMyProfile().subscribe({
+    next: (user) => {
+      this.userRole = user.role;
+      this.isAdmin = user.role === 'Admin';
+      this.isTechnicien = user.role === 'Technicien';
+      console.log('👤 Rôle utilisateur:', this.userRole);
+      
+      this.loadTickets();
+      
+      if (this.isAdmin) {
         this.loadDashboardStats();
-      },
-      error: (err) => {
-        console.error('❌ Erreur récupération rôle:', err);
-        this.error = 'Impossible de récupérer votre profil';
-        this.loading = false;
+      } else if (this.isTechnicien) {
+        this.loadTechnicienDashboardStats();
       }
-    });
-  }
+    },
+    error: (err) => {
+      console.error('❌ Erreur récupération rôle:', err);
+      this.error = 'Impossible de récupérer votre profil';
+      this.loading = false;
+    }
+  });
+}
 // Ajoutez ces propriétés avec les autres déclarations
 ticketToArchive: TicketDTO | null = null;
 showArchiveModal: boolean = false;
@@ -807,7 +810,28 @@ onTicketDateChange(event: Event): void {
     this.tempFilters.dateDebut = '';
   }
 }
-
+// Propriétés pour le dashboard technicien
+technicienDashboardStats: TicketTechnicienDashboardDTO | null = null;
+loadingTechnicienDashboard = false;
+loadTechnicienDashboardStats(): void {
+  if (!this.isTechnicien) return;
+  
+  this.loadingTechnicienDashboard = true;
+  
+  this.dashboardAdminService.getTechnicienDashboard().subscribe({
+    next: (response) => {
+      if (response.isSuccess && response.data) {
+        this.technicienDashboardStats = response.data;
+        console.log('Dashboard technicien chargé:', this.technicienDashboardStats);
+      }
+      this.loadingTechnicienDashboard = false;
+    },
+    error: (err) => {
+      console.error('Erreur chargement dashboard technicien:', err);
+      this.loadingTechnicienDashboard = false;
+    }
+  });
+}
   toggleFilters(): void {
     this.showFilters = !this.showFilters;
     if (this.showFilters) {

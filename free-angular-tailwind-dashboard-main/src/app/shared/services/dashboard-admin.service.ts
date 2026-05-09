@@ -180,7 +180,83 @@ export interface IncidentDashboardDTO {
   resolutionParSeverite: ResolutionParSeveriteDTO[];
   resolutionParTypeProbleme: ResolutionParTypeProblemeDTO[];
 }
+// dashboard-admin.service.ts - Ajouter ces DTOs
 
+export interface TicketTechnicienDashboardDTO {
+  overview: {
+    totalTickets: number;
+    ticketsAssignes: number;
+    ticketsEnCours: number;
+    ticketsResolus: number;
+    ticketsNonArchive: number;
+    ticketsArchives: number;
+    tauxAssignes: number;
+    tauxEnCours: number;
+    tauxResolus: number;
+    tauxResolution: number;
+  };
+  statsParStatut: Array<{
+    statut: string;
+    count: number;
+    color: string;
+    pourcentage: number;
+  }>;
+  statsParJour: Array<{
+    date: string;
+    dateFormatee: string;
+    jour: string;
+    crees: number;
+    assignes: number;
+    enCours: number;
+    resolus: number;
+  }>;
+  statsParSemaine: Array<any>;
+  statsParMois: Array<any>;
+  statsResolution: Array<{
+    periode: string;
+    date: string;
+    ticketsResolus: number;
+    tempsMoyenResolutionHeures: number;
+    tempsMoyenResolutionJours: number;
+  }>;
+}
+
+export interface TicketTechnicienDashboardResponse {
+  data: TicketTechnicienDashboardDTO;
+  isSuccess: boolean;
+  message?: string;
+}
+// dashboard-admin.service.ts - Ajouter
+
+export interface CommercantIncidentOverviewDTO {
+  totalIncidents: number;
+  incidentsNonTraite: number;
+  incidentsEnCours: number;
+  incidentsFerme: number;
+  incidentsArchives: number;
+  incidentsNonArchive: number;
+  tauxNonTraite: number;
+  tauxEnCours: number;
+  tauxFerme: number;
+  tauxResolution: number;
+}
+
+export interface CommercantIncidentDashboardDTO {
+  overview: CommercantIncidentOverviewDTO;
+  statsParStatut: Array<{ statut: string; count: number; color: string; pourcentage: number }>;
+  statsParJour: Array<any>;
+  statsParSemaine: Array<any>;
+  statsParMois: Array<any>;
+  resolutionParTypeProbleme: Array<{
+    typeProbleme: string;
+    nombreIncidents: number;
+    nombreResolus: number;
+    tempsMoyenResolutionHeures: number;
+    tauxResolution: number;
+    pourcentageTotal: number;
+    color: string;
+  }>;
+}
 // ==================== SERVICE ====================
 @Injectable({ providedIn: 'root' })
 export class DashboardAdminService {
@@ -213,7 +289,24 @@ export class DashboardAdminService {
 
 
 // Dans la classe DashboardAdminService, AJOUTER CETTE MÉTHODE :
+// dashboard-admin.service.ts - Ajouter cette méthode
 
+/**
+ * Récupère le dashboard pour le technicien connecté (ses tickets assignés)
+ */
+getTechnicienDashboard(): Observable<ApiResponse<TicketTechnicienDashboardDTO>> {
+  return this.http.get<ApiResponse<TicketTechnicienDashboardDTO>>(
+    `${this.baseUrl}/ticket/technicien-dashboard`,
+    this.getAuthHeaders()
+  );
+}
+// Dans incident.service.ts
+getCommercantDashboard(): Observable<ApiResponse<CommercantIncidentDashboardDTO>> {
+  return this.http.get<ApiResponse<CommercantIncidentDashboardDTO>>(
+    `${this.baseUrl}/incident/commercant-dashboard`,
+    this.getAuthHeaders()
+  );
+}
 getTPEDashboard(): Observable<ApiResponse<TPEDashboardDTO>> {
   return this.http.get<ApiResponse<TPEDashboardDTO>>(
     `${this.baseUrl}/tpe/dashboard`, this.getAuthHeaders()

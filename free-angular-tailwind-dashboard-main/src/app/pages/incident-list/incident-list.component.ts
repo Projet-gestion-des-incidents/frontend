@@ -14,6 +14,7 @@ import { DatePickerComponent } from '../../shared/components/form/date-picker/da
 // Dans incident-list.component.ts, ajoutez ces imports manquants en haut du fichier :
 import { TypeEntiteImpactee } from '../../shared/models/incident.model';
 import { EntiteImpacteeService } from '../../shared/services/entite-impactee.service';
+import { DashboardAdminService } from '../../shared/services/dashboard-admin.service';
 
 @Component({
   selector: 'app-incident-list',
@@ -94,6 +95,7 @@ loadingArchives = false;
 
   constructor(
     private incidentService: IncidentService,
+   private dashboardAdminService:DashboardAdminService,
         private userService: UserService,
 private entiteImpacteeService: EntiteImpacteeService,  // ← Ajoutez ceci
     private router: Router
@@ -134,13 +136,31 @@ cancelArchive(): void {
   this.incidentToArchive = null;
   this.archiving = false;
 }
-
+// Dans incident-list.component.ts, ajoutez cette propriété avec les autres
+commercantDashboardStats: any = null;
+// Dans incident-list.component.ts
+loadCommercantDashboardStats(): void {
+  this.loadingDashboard = true;
+  
+  this.dashboardAdminService.getCommercantDashboard().subscribe({
+    next: (response) => {
+      if (response.isSuccess && response.data) {
+        this.commercantDashboardStats = response.data;
+        console.log('Dashboard commerçant chargé:', this.commercantDashboardStats);
+      }
+      this.loadingDashboard = false;
+    },
+    error: (err) => {
+      console.error('Erreur chargement dashboard commerçant:', err);
+      this.loadingDashboard = false;
+    }
+  });
+}
 confirmArchive(): void {
   if (!this.incidentToArchive) return;
   
   this.archiving = true;
   
-  // Sauvegarder l'ID avant l'archivage
   const incidentId = this.incidentToArchive.id;
   const isFerme = this.getStatutNumber(this.incidentToArchive.statutIncident) === StatutIncident.Ferme;
   
@@ -149,13 +169,11 @@ confirmArchive(): void {
       if (response.isSuccess) {
         this.showAlert('success', 'Succès', `L'incident "${this.incidentToArchive!.codeIncident}" a été archivé.`);
         
-        // Retirer l'incident de la liste actuelle
-        const index = this.filteredIncidents.findIndex(i => i.id === incidentId);
-        if (index !== -1) {
-          this.filteredIncidents.splice(index, 1);
-          this.incidents.splice(index, 1);
-          this.totalCount--;
-          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+        // ✅ RECHARGER LA PAGE AUTOMATIQUEMENT
+        if (this.userRole === 'Admin') {
+          this.loadIncidents();
+        } else {
+          this.loadMyIncidentsWithFilters();
         }
         
         // Désélectionner et mettre à jour les stats
@@ -292,6 +310,8 @@ ngOnInit(): void {
       } else {
         // ✅ Charger avec les filtres dès le départ
         this.loadMyIncidentsWithFilters();
+          this.loadCommercantDashboardStats();  // ✅ Ajouter cette ligne
+
       }
     },
     error: (err) => {
@@ -1397,14 +1417,6 @@ executeMultiArchive(): void {
     this.incidentService.archiverIncident(id).subscribe({
       next: (response) => {
         if (response.isSuccess) {
-          const index = this.filteredIncidents.findIndex(i => i.id === id);
-          if (index !== -1) this.filteredIncidents.splice(index, 1);
-          this.selectedIncidents.delete(id);
-          
-          // ✅ Décrémenter les stats en cache
-          this.cachedSelectionStats.archivable--;
-          this.cachedSelectionStats.total--;
-          
           successCount++;
         }
         completed++;
@@ -1415,22 +1427,31 @@ executeMultiArchive(): void {
           this.pendingArchiveIds = [];
           this.confirmArchives = [];
           
-          // ✅ Mettre à jour totalCount et totalPages
-          this.totalCount = this.filteredIncidents.length;
-          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
-          
-          // ✅ Si plus d'éléments sélectionnés, tout réinitialiser
-          if (this.selectedIncidents.size === 0) {
-            this.currentSelectionType = null;
-            this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+          // ✅ RECHARGER LA PAGE AUTOMATIQUEMENT
+          if (this.userRole === 'Admin') {
+            this.loadIncidents();
+          } else {
+            this.loadMyIncidentsWithFilters();
           }
+          
+          // ✅ Recharger aussi le dashboard commerçant si besoin
+          if (this.userRole === 'Commercant') {
+            this.loadCommercantDashboardStats();
+          }
+          
+          // ✅ Réinitialiser la sélection
+          this.selectedIncidents.clear();
+          this.globalSelectionMode = false;
+          this.currentSelectionType = null;
+          this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
           
           if (successCount === total) {
             this.showAlert('success', 'Succès', `${total} incident(s) archivé(s) avec succès.`);
           } else if (successCount > 0) {
             this.showAlert('warning', 'Archivage partiel', `${successCount} incident(s) archivé(s), ${total - successCount} échec(s).`);
+          } else {
+            this.showAlert('error', 'Échec', `Aucun incident n'a pu être archivé.`);
           }
-          this.loadIncidents();
         }
       },
       error: (err) => {
@@ -1441,8 +1462,20 @@ executeMultiArchive(): void {
           this.showMultiArchiveModal = false;
           this.pendingArchiveIds = [];
           this.confirmArchives = [];
+          
+          // ✅ RECHARGER LA PAGE AUTOMATIQUEMENT même en cas d'erreur partielle
+          if (this.userRole === 'Admin') {
+            this.loadIncidents();
+          } else {
+            this.loadMyIncidentsWithFilters();
+          }
+          
+          this.selectedIncidents.clear();
+          this.globalSelectionMode = false;
+          this.currentSelectionType = null;
+          this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+          
           this.showAlert('error', 'Erreur', `${successCount}/${total} incident(s) archivé(s).`);
-          this.loadIncidents();
         }
       }
     });
@@ -1480,18 +1513,6 @@ executeMultiDelete(): void {
   this.confirmIncidents.forEach(incident => {
     this.incidentService.deleteIncident(incident.id).subscribe({
       next: () => {
-        const index = this.filteredIncidents.findIndex(i => i.id === incident.id);
-        if (index !== -1) this.filteredIncidents.splice(index, 1);
-        
-        const indexAll = this.incidents.findIndex(i => i.id === incident.id);
-        if (indexAll !== -1) this.incidents.splice(indexAll, 1);
-        
-        this.selectedIncidents.delete(incident.id);
-        
-        // ✅ Décrémenter les stats en cache
-        this.cachedSelectionStats.deletable--;
-        this.cachedSelectionStats.total--;
-        
         successCount++;
         completed++;
         
@@ -1500,17 +1521,24 @@ executeMultiDelete(): void {
           this.showMultiDeleteModal = false;
           this.confirmIncidents = [];
           
-          this.totalCount = this.filteredIncidents.length;
-          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
-          if (this.currentPage > this.totalPages && this.totalPages > 0) {
-            this.currentPage = this.totalPages;
+          // ✅ RECHARGER LA PAGE AUTOMATIQUEMENT
+          if (this.userRole === 'Admin') {
+            this.loadIncidents();
+          } else {
+            this.loadMyIncidentsWithFilters();
           }
           
-          // ✅ Si plus d'éléments sélectionnés, tout réinitialiser
-          if (this.selectedIncidents.size === 0) {
-            this.currentSelectionType = null;
-            this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+          // ✅ Recharger le dashboard si commerçant
+          if (this.userRole === 'Commercant') {
+            this.loadCommercantDashboardStats();
+          } else if (this.userRole === 'Admin') {
+            this.loadDashboardStats();
           }
+          
+          this.selectedIncidents.clear();
+          this.globalSelectionMode = false;
+          this.currentSelectionType = null;
+          this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
           
           if (successCount === total) {
             this.showAlert('success', 'Succès', `${total} incident(s) supprimé(s) avec succès.`);
@@ -1519,7 +1547,6 @@ executeMultiDelete(): void {
           } else {
             this.showAlert('error', 'Échec', `Aucun incident n'a pu être supprimé.`);
           }
-          this.loadIncidents();
         }
       },
       error: (err) => {
@@ -1529,8 +1556,20 @@ executeMultiDelete(): void {
           this.bulkDeleting = false;
           this.showMultiDeleteModal = false;
           this.confirmIncidents = [];
+          
+          // ✅ RECHARGER LA PAGE AUTOMATIQUEMENT
+          if (this.userRole === 'Admin') {
+            this.loadIncidents();
+          } else {
+            this.loadMyIncidentsWithFilters();
+          }
+          
+          this.selectedIncidents.clear();
+          this.globalSelectionMode = false;
+          this.currentSelectionType = null;
+          this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+          
           this.showAlert('error', 'Erreur', `${successCount}/${total} incident(s) supprimé(s).`);
-          this.loadIncidents();
         }
       }
     });
