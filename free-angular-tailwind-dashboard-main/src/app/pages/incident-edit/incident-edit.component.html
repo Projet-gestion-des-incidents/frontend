@@ -66,7 +66,7 @@
 </div>
   <!-- Modale suppression entité -->
   <div *ngIf="showDeleteEntiteModal" 
-       class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+       class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
        (click)="fermerModalEntite()">
     <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-modal-in"
          (click)="$event.stopPropagation()">
@@ -241,6 +241,7 @@
           </label>
           <select
             [(ngModel)]="severiteString"
+            (ngModelChange)="checkForChanges()"
             name="severite"
             class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm appearance-none focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all cursor-pointer"
           >
@@ -286,13 +287,17 @@
         <div *ngFor="let entite of incident.entitesImpactees; let i = index" 
              class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-full group hover:bg-gray-200 transition-all">
           <span class="text-sm text-gray-700 dark:text-gray-300">{{ getTypeEntiteLabel(entite.typeEntiteImpactee) }}</span>
-          <button (click)="supprimerEntite(entite.id, i)" 
-                  class="text-gray-400 hover:text-red-500 transition-colors" 
-                  title="Supprimer">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-            </svg>
-          </button>
+          <!-- Dans le template, modifiez ce bouton -->
+<button 
+  type="button"  
+  (ngModelChange)="checkForChanges()"
+  (click)="supprimerEntite(entite.id, i)" 
+  class="text-gray-400 hover:text-red-500 transition-colors" 
+  title="Supprimer">
+  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+  </svg>
+</button>
         </div>
       </div>
     </div>
@@ -661,10 +666,10 @@
         Annuler
       </button>
       <button
-        type="submit"
-        [disabled]="loading"
-        class="order-1 sm:order-2 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#8788FF] to-[#787AEA] px-6 py-2.5 text-sm font-medium text-white shadow-md hover:from-[#787AEA] hover:to-[#0C144E] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg"
-      >
+  type="submit"
+  [disabled]="loading || !hasChanges"
+  class="order-1 sm:order-2 inline-flex items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-[#8788FF] to-[#787AEA] px-6 py-2.5 text-sm font-medium text-white shadow-md hover:from-[#787AEA] hover:to-[#0C144E] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg"
+>
         <svg *ngIf="!loading" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
         </svg>

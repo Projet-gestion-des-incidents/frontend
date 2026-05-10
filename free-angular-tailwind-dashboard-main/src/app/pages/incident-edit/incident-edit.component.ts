@@ -50,6 +50,8 @@ selectedEntiteValue: number | null = null;
     'Forte': SeveriteIncident.Forte
   };
   // Pour la sélection multiple des entités
+hasChanges: boolean = false;
+initialIncidentState: any = null;
 
   // Pour les fichiers
   selectedFiles: File[] = [];
@@ -259,6 +261,9 @@ toggleEntiteSelection(value: number) {
     this.selectedEntitesValues = this.selectedEntitesValues.filter(v => v !== numValue);
   }
   console.log('selectedEntitesValues après:', this.selectedEntitesValues);
+  
+  // ✅ Vérifier les changements
+  this.checkForChanges();
 }
 
 // Retirer une entité de la sélection
@@ -282,6 +287,7 @@ getTypeEntiteLabelFromId(id: number): string {
   return mapping[id] || 'Inconnu';
 }
 
+// Ajouter plusieurs entités à la fois
 // Ajouter plusieurs entités à la fois
 ajouterEntitesMultiples() {
   if (this.selectedEntitesValues.length === 0) {
@@ -320,7 +326,7 @@ ajouterEntitesMultiples() {
   let successCount = 0;
   let errorCount = 0;
   
-  entitesAAjouter.forEach((typeEntiteValue, index) => {
+  entitesAAjouter.forEach((typeEntiteValue) => {
     this.entiteService.addToIncident(this.incident.id, typeEntiteValue).subscribe({
       next: (response) => {
         if (response.isSuccess && response.data) {
@@ -338,26 +344,31 @@ ajouterEntitesMultiples() {
         this.entitiesAddedCount++;
         
         // Quand toutes les requêtes sont terminées
-        // Quand toutes les requêtes sont terminées
-if (this.entitiesAddedCount === entitesAAjouter.length) {
-  this.addingEntities = false;
-  this.selectedEntitesValues = [];
-  this.showEntiteDropdown = false;
-  
-  // Met à jour la liste des disponibles (retire celles ajoutées)
-  this.updateEntitesDisponibles();
-  
-  if (successCount > 0) {
-    this.showTemporaryMessage(
-      `${successCount} entité(s) ajoutée(s) avec succès${errorCount > 0 ? `, ${errorCount} erreur(s)` : ''}`,
-      'success'
-    );
-    // Scroll vers le haut pour voir le message
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-  } else {
-    this.showTemporaryMessage(`Erreur lors de l'ajout des entités`, 'error');
-  }
-}
+        if (this.entitiesAddedCount === entitesAAjouter.length) {
+          this.addingEntities = false;
+          this.selectedEntitesValues = [];
+          this.showEntiteDropdown = false;
+          
+          // ✅ Met à jour la liste des disponibles
+          this.updateEntitesDisponibles();
+          
+          // ✅ Met à jour l'état initial après les ajouts
+          this.initialIncidentState.entitesImpactees = JSON.parse(JSON.stringify(this.incident.entitesImpactees || []));
+          
+          // ✅ Vérifie les changements
+          this.checkForChanges();
+          
+          if (successCount > 0) {
+            this.showTemporaryMessage(
+              `${successCount} entité(s) ajoutée(s) avec succès${errorCount > 0 ? `, ${errorCount} erreur(s)` : ''}`,
+              'success'
+            );
+            // Scroll vers le haut pour voir le message
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+          } else {
+            this.showTemporaryMessage(`Erreur lors de l'ajout des entités`, 'error');
+          }
+        }
       },
       error: (err) => {
         console.error(`Erreur ajout entité ${typeEntiteValue}:`, err);
@@ -365,14 +376,22 @@ if (this.entitiesAddedCount === entitesAAjouter.length) {
         this.entitiesAddedCount++;
         
         if (this.entitiesAddedCount === entitesAAjouter.length) {
-  this.addingEntities = false;
-  this.selectedEntitesValues = [];
-  this.showEntiteDropdown = false;
-  this.updateEntitesDisponibles(); // ← ajoutez cette ligne
-  this.showTemporaryMessage(`${successCount} entité(s) ajoutée(s), ${errorCount} erreur(s)`, 'warning');
-  window.scrollTo({ top: 0, behavior: 'smooth' }); // ← et celle-ci
-}
-        this.updateEntitesDisponibles();
+          this.addingEntities = false;
+          this.selectedEntitesValues = [];
+          this.showEntiteDropdown = false;
+          
+          // ✅ Met à jour la liste des disponibles même en cas d'erreur partielle
+          this.updateEntitesDisponibles();
+          
+          // ✅ Met à jour l'état initial
+          this.initialIncidentState.entitesImpactees = JSON.parse(JSON.stringify(this.incident.entitesImpactees || []));
+          
+          // ✅ Vérifie les changements
+          this.checkForChanges();
+          
+          this.showTemporaryMessage(`${successCount} entité(s) ajoutée(s), ${errorCount} erreur(s)`, 'warning');
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
       }
     });
   });
@@ -411,7 +430,7 @@ updateTpeOptions() {
       this.error = 'Modifications en attente - cliquez sur Enregistrer pour appliquer';
       setTimeout(() => {
         this.error = null;
-      }, 3000);
+      }, 5000);
     }
   }
 
@@ -609,7 +628,7 @@ showErrorDialog(message: string, resultCode?: number): void {
     if (this.error === message || this.error === this.error) {
       this.error = null;
     }
-  }, 3000);
+  }, 5000);
 }
  confirmerSuppressionTpe() {
   if (!this.tpeToDelete) return;
@@ -822,57 +841,68 @@ get isIncidentModifiable(): boolean {
   }
 
   // Pour les entités
-  supprimerEntite(entiteId: string | undefined, index: number) {
-    if (!this.isAdmin) {
-      this.error = 'Seul l\'administrateur peut supprimer des entités';
-      return;
-    }
-    
-    if (!entiteId) {
-      console.warn('⚠️ Entité sans ID - suppression locale seulement');
-      this.incident.entitesImpactees.splice(index, 1);
-      return;
-    }
-
-    // Préparer les données pour la modale
-    const entite = this.incident.entitesImpactees[index];
-    const label = this.getTypeEntiteLabel(entite.typeEntiteImpactee);
-    
-    this.entiteToDelete = {
-      id: entiteId,
-      index: index,
-      label: label
-    };
-    this.showDeleteEntiteModal = true;
+supprimerEntite(entiteId: string | undefined, index: number) {
+  // ✅ Empêcher la propagation de l'événement pour éviter toute action par défaut
+  event?.stopPropagation();
+  
+  if (!this.isAdmin) {
+    this.error = 'Seul l\'administrateur peut supprimer des entités';
+    return;
   }
+  
+  if (!entiteId) {
+    console.warn('⚠️ Entité sans ID - suppression locale seulement');
+    this.incident.entitesImpactees.splice(index, 1);
+    this.updateEntitesDisponibles(); // ← Ajoutez ceci
+    return;
+  }
+
+  // Préparer les données pour la modale
+  const entite = this.incident.entitesImpactees[index];
+  const label = this.getTypeEntiteLabel(entite.typeEntiteImpactee);
+  
+  this.entiteToDelete = {
+    id: entiteId,
+    index: index,
+    label: label
+  };
+  this.showDeleteEntiteModal = true;
+}
 
 // APRÈS (corrigé) :
-  confirmerSuppressionEntite() {
-    if (!this.entiteToDelete) return;
+confirmerSuppressionEntite() {
+  if (!this.entiteToDelete) return;
 
-    this.entiteService.removeFromIncident(this.entiteToDelete.id).subscribe({
-      next: (response: ApiResponse<boolean>) => {
-        if (response.isSuccess) {
-          this.incident.entitesImpactees.splice(this.entiteToDelete!.index, 1);
-          this.updateEntitesDisponibles();
-          this.showTemporaryMessage('Entité supprimée avec succès', 'success');
-        } else {
-          this.error = response.message || 'Erreur lors de la suppression';
-        }
-        this.fermerModalEntite();
-      },
-      error: (err: any) => {
-        if (err.status === 404) {
-          this.error = 'Entité non trouvée';
-        } else if (err.status === 403) {
-          this.error = 'Vous n\'avez pas les droits pour supprimer cette entité';
-        } else {
-          this.error = err.error?.message || 'Erreur lors de la suppression';
-        }
-        this.fermerModalEntite();
+  this.entiteService.removeFromIncident(this.entiteToDelete.id).subscribe({
+    next: (response: ApiResponse<boolean>) => {
+      if (response.isSuccess) {
+        this.incident.entitesImpactees.splice(this.entiteToDelete!.index, 1);
+        this.updateEntitesDisponibles();
+        this.showTemporaryMessage('Entité supprimée avec succès', 'success');
+        
+        // ✅ AJOUTEZ CETTE LIGNE - Met à jour l'état initial pour refléter la suppression
+        this.initialIncidentState.entitesImpactees = JSON.parse(JSON.stringify(this.incident.entitesImpactees || []));
+        
+        // ✅ AJOUTEZ CETTE LIGNE - Vérifie les changements après suppression
+        this.checkForChanges();
+      } else {
+        this.error = response.message || 'Erreur lors de la suppression';
       }
-    });
-  }
+      this.fermerModalEntite();
+    },
+    error: (err: any) => {
+      console.error('❌ Erreur:', err);
+      if (err.status === 404) {
+        this.error = 'Entité non trouvée';
+      } else if (err.status === 403) {
+        this.error = 'Vous n\'avez pas les droits pour supprimer cette entité';
+      } else {
+        this.error = err.error?.message || 'Erreur lors de la suppression';
+      }
+      this.fermerModalEntite();
+    }
+  });
+}
 
   fermerModalEntite() {
     this.showDeleteEntiteModal = false;
@@ -888,6 +918,57 @@ get isIncidentModifiable(): boolean {
     this.showTpeSelector = !this.showTpeSelector;
   }
 
+  // Méthode pour vérifier si des changements ont été effectués
+checkForChanges() {
+  if (!this.initialIncidentState || !this.incident) {
+    this.hasChanges = false;
+    return;
+  }
+  
+  let hasAnyChange = false;
+  
+  // 1. Vérifier la description
+  if (this.incident.descriptionIncident !== this.initialIncidentState.descriptionIncident) {
+    hasAnyChange = true;
+  }
+  
+  // 2. Vérifier le type de problème
+  const currentTypeProbleme = this.typeProblemeStringToEnum[this.typeProblemeString] || this.typeProblemeString;
+  const initialTypeProbleme = this.initialIncidentState.typeProbleme;
+  if (currentTypeProbleme !== initialTypeProbleme) {
+    hasAnyChange = true;
+  }
+  
+  // 3. Vérifier la sévérité (pour Admin)
+  if (this.isAdmin && this.severiteString) {
+    const currentSeverite = this.severiteStringToEnum[this.severiteString] || this.severiteString;
+    const initialSeverite = this.initialIncidentState.severiteIncident;
+    if (currentSeverite !== initialSeverite) {
+      hasAnyChange = true;
+    }
+  }
+  
+  // 4. Vérifier les entités impactées
+  const currentEntitesCount = this.incident.entitesImpactees?.length || 0;
+  const initialEntitesCount = this.initialIncidentState.entitesImpactees?.length || 0;
+  if (currentEntitesCount !== initialEntitesCount) {
+    hasAnyChange = true;
+  }
+  
+  // 5. Vérifier les TPEs (si modifications en attente)
+  if (this.tpeIdsModifies) {
+    hasAnyChange = true;
+  }
+  
+  // 6. Vérifier les nouveaux fichiers à uploader
+  if (this.selectedFiles.length > 0) {
+    hasAnyChange = true;
+  }
+  
+  this.hasChanges = hasAnyChange;
+  console.log('🔄 Changements détectés:', this.hasChanges);
+}
+
   // ========== CHARGEMENT DE L'INCIDENT ==========
 
 loadIncident(id: string, callback?: () => void) {
@@ -900,10 +981,20 @@ loadIncident(id: string, callback?: () => void) {
     next: (results) => {
       this.incident = results.incident;
       this.updateEntitesDisponibles();
-
       this.piecesJointesExistantes = results.piecesJointes;
       
-      // ✅ Supprimez ou simplifiez ces logs
+      // ✅ Sauvegarder l'état initial de l'incident
+      this.initialIncidentState = {
+        descriptionIncident: this.incident.descriptionIncident,
+        typeProbleme: this.incident.typeProbleme,
+        severiteIncident: this.incident.severiteIncident,
+        entitesImpactees: JSON.parse(JSON.stringify(this.incident.entitesImpactees || [])),
+        tpEs: JSON.parse(JSON.stringify(this.incident.tpEs || []))
+      };
+      
+      // Initialiser hasChanges à false
+      this.hasChanges = false;
+      
       console.log('📦 Incident chargé:', this.incident.codeIncident);
       console.log('📦 Entités impactées:', this.incident.entitesImpactees?.length || 0);
       console.log('📦 TPEs associés:', this.incident.tpEs?.length || 0);
@@ -1067,7 +1158,6 @@ async save() {
   // ✅ VALIDATION AU DÉBUT - Avant toute action
   if (!this.incident.descriptionIncident || this.incident.descriptionIncident.length < 10) {
     this.error = 'La description doit contenir au moins 10 caractères';
-    // Scroll vers le haut pour voir l'erreur
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
@@ -1115,8 +1205,17 @@ async save() {
     this.incidentService.updateIncident(this.incident.id, updateDto).subscribe({
       next: (updated) => {
         console.log('✅ Incident mis à jour:', updated);
+        
+        // ✅ Afficher le message de succès
+        this.successMessage = 'Incident modifié avec succès !';
+        
+        // ✅ Désactiver le loading
         this.loading = false;
-        this.router.navigate(['/incidents']);
+        
+        // ✅ Rediriger après 5 secondes
+        setTimeout(() => {
+          this.router.navigate(['/incidents']);
+        }, 5000);
       },
       error: (err: any) => {
         console.error('❌ Erreur:', err);
@@ -1402,7 +1501,7 @@ showTemporaryMessage(message: string, type: 'success' | 'error' | 'warning' = 's
     this.messageTimeout = setTimeout(() => {
       this.successMessage = '';
       this.messageTimeout = null;
-    }, 3000);
+    }, 5000);
   } else if (type === 'warning') {
     // Afficher comme erreur ou créer une variable dédiée
     this.error = message;
@@ -1410,13 +1509,13 @@ showTemporaryMessage(message: string, type: 'success' | 'error' | 'warning' = 's
     this.messageTimeout = setTimeout(() => {
       this.error = null;
       this.messageTimeout = null;
-    }, 4000); // Plus long pour les warnings
+    }, 5000); // Plus long pour les warnings
   } else {
     this.error = message;
     this.messageTimeout = setTimeout(() => {
       this.error = null;
       this.messageTimeout = null;
-    }, 3000);
+    }, 5000);
   }
 }
 
