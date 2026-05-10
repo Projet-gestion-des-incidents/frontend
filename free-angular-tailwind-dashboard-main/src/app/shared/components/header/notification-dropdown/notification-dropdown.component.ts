@@ -37,55 +37,49 @@ successMessage: string = '';
     private router: Router
   ) {}
 
-  ngOnInit(): void {
-    this.loadNotifications();
-    this.loadUnreadCount();
-    
-    this.refreshSubscription = interval(30000).subscribe(() => {
-      if (this.isComponentAlive && !this.isOpen) {
-        this.loadNotifications();
-        this.loadUnreadCount();
-      }
-    });
-  }
+ngOnInit(): void {
+  this.loadNotifications(); // ✅ loadUnreadCount() appelé dedans
 
-  ngOnDestroy(): void {
-    this.isComponentAlive = false;
-    if (this.refreshSubscription) {
-      this.refreshSubscription.unsubscribe();
-      this.refreshSubscription = undefined;
+  this.refreshSubscription = interval(30000).subscribe(() => {
+    if (this.isComponentAlive && !this.isOpen) {
+      this.loadNotifications();
     }
-    if (this.successMessageTimeout) {
-      clearTimeout(this.successMessageTimeout);
-    }
-  }
+  });
+}
 
 toggleDropdown() {
   this.isOpen = !this.isOpen;
-  
+
   if (this.isOpen) {
-    this.showAll = false;  // Réinitialiser l'affichage
+    this.showAll = false;
     this.loadNotifications();
-    
-    // ✅ CACHER LE COMPTEUR VISUELLEMENT (sans appeler l'API)
-    // Le compteur disparaît de la cloche, mais les notifications restent "non lues" côté serveur
-    this.unreadCount = 0;
+
+    // ✅ Appel API pour persister la consultation (multi-appareils)
+    this.notificationService.markAllAsConsulted().subscribe({
+      next: () => {
+        // Mettre à jour localement sans recharger
+        this.allNotifications.forEach(n => n.estConsulte = true);
+      },
+      error: (err) => console.error('Erreur consultation:', err)
+    });
+
+    this.unreadCount = 0; // Masquer le badge immédiatement
   }
 }
-  
-  closeDropdown() {
-    this.isOpen = false;
-  }
 
 loadNotifications() {
   if (this.isLoading) return;
-  
+
   this.isLoading = true;
   this.notificationService.getMyNotifications().subscribe({
     next: (data) => {
       if (this.isComponentAlive) {
         this.allNotifications = data;
         this.updateDisplayedNotifications();
+
+        // ✅ Calculer le compteur ici, sans appel API séparé
+        this.unreadCount = data.filter(n => !n.estConsulte).length;
+
         this.isLoading = false;
       }
     },
@@ -97,6 +91,23 @@ loadNotifications() {
     }
   });
 }
+  ngOnDestroy(): void {
+    this.isComponentAlive = false;
+    if (this.refreshSubscription) {
+      this.refreshSubscription.unsubscribe();
+      this.refreshSubscription = undefined;
+    }
+    if (this.successMessageTimeout) {
+      clearTimeout(this.successMessageTimeout);
+    }
+  }
+
+
+  closeDropdown() {
+    this.isOpen = false;
+  }
+
+
 
 updateDisplayedNotifications() {
   if (this.showAll) {
@@ -229,33 +240,27 @@ private redirectToDetail(notification: Notification): void {
   console.log('=== FIN REDIRECTION ===');
 }
 
-// Nouvelle méthode pour confirmer la suppression de toutes
 executeDeleteAll() {
-    this.deletingAllNotifications = true;
-    
-    this.notificationService.deleteAllMyNotifications().subscribe({
-      next: (response) => {
-        console.log('✅ Toutes les notifications supprimées:', response);
-        this.allNotifications = [];
-        this.notifications = [];
-        this.unreadCount = 0;
-        this.showAll = false;
-        this.deletingAllNotifications = false;
-        this.confirmDeleteAll = false;
-        
-        // ✅ Afficher le message de succès
-        this.showSuccessMessage('Toutes les notifications ont été supprimées avec succès');
-      },
-      error: (err) => {
-        console.error('❌ Erreur lors de la suppression de toutes les notifications:', err);
-        this.deletingAllNotifications = false;
-        this.confirmDeleteAll = false;
-        
-        // ✅ Afficher un message d'erreur
-        this.showSuccessMessage('Erreur lors de la suppression des notifications', true);
-      }
-    });
-  }
+  this.deletingAllNotifications = true;
+
+  this.notificationService.deleteAllMyNotifications().subscribe({
+    next: (response) => {
+      this.allNotifications = [];
+      this.notifications = [];
+      this.unreadCount = 0;
+      this.showAll = false;
+      this.deletingAllNotifications = false;
+      this.confirmDeleteAll = false;
+      this.showSuccessMessage('Toutes les notifications ont été supprimées avec succès');
+    },
+    error: (err) => {
+      console.error('Erreur suppression:', err);
+      this.deletingAllNotifications = false;
+      this.confirmDeleteAll = false;
+      this.showSuccessMessage('Erreur lors de la suppression des notifications', true);
+    }
+  });
+}
 
 // ✅ Ouvre le modal de confirmation
 deleteAllNotifications() {
@@ -307,37 +312,34 @@ closeDeleteAllModal() {
 }
 
 executeDeleteSingle() {
-    if (!this.confirmDeleteNotification) return;
-    
-    this.deletingNotification = true;
-    const notificationId = this.confirmDeleteNotification.id;
-    const deletedNotification = this.confirmDeleteNotification;
-    
-    this.notificationService.deleteNotification(notificationId).subscribe({
-      next: () => {
-        this.allNotifications = this.allNotifications.filter(n => n.id !== notificationId);
-        this.notifications = this.notifications.filter(n => n.id !== notificationId);
-        
-        if (!deletedNotification.estLu) {
-          this.unreadCount = Math.max(0, this.unreadCount - 1);
-        }
-        
-        this.deletingNotification = false;
-        this.confirmDeleteNotification = null;
-        
-        // ✅ Afficher le message de succès
-        this.showSuccessMessage(`Notification "${deletedNotification.titre.substring(0, 50)}" supprimée avec succès`);
-      },
-      error: (err) => {
-        console.error('Erreur suppression:', err);
-        this.deletingNotification = false;
-        this.confirmDeleteNotification = null;
-        
-        // ✅ Afficher un message d'erreur
-        this.showSuccessMessage('Erreur lors de la suppression de la notification', true);
+  if (!this.confirmDeleteNotification) return;
+
+  this.deletingNotification = true;
+  const notificationId = this.confirmDeleteNotification.id;
+  const deletedNotification = this.confirmDeleteNotification;
+
+  this.notificationService.deleteNotification(notificationId).subscribe({
+    next: () => {
+      this.allNotifications = this.allNotifications.filter(n => n.id !== notificationId);
+      this.notifications = this.notifications.filter(n => n.id !== notificationId);
+
+      // ✅ Décrémenter seulement si elle n'était pas encore consultée
+      if (!deletedNotification.estConsulte) {
+        this.unreadCount = Math.max(0, this.unreadCount - 1);
       }
-    });
-  }
+
+      this.deletingNotification = false;
+      this.confirmDeleteNotification = null;
+      this.showSuccessMessage(`Notification "${deletedNotification.titre.substring(0, 50)}" supprimée avec succès`);
+    },
+    error: (err) => {
+      console.error('Erreur suppression:', err);
+      this.deletingNotification = false;
+      this.confirmDeleteNotification = null;
+      this.showSuccessMessage('Erreur lors de la suppression de la notification', true);
+    }
+  });
+}
 private showSuccessMessage(message: string, isError: boolean = false) {
     this.successMessage = message;
     

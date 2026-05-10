@@ -11,6 +11,8 @@ export interface Notification {
   titre: string;
   message: string;
   dateEnvoi: Date;
+    estConsulte: boolean;          // ✅ NOUVEAU
+  dateConsultation?: Date; 
   estLu: boolean;
   dateLecture?: Date;
   destinataireId: string;
@@ -44,7 +46,9 @@ export class NotificationService {
       })
     };
   }
-
+markAllAsConsulted(): Observable<void> {
+  return this.http.put<void>(`${this.apiUrl}/consulter`, {}, this.getAuthHeaders());
+}
   // Récupérer toutes les notifications de l'utilisateur connecté
   getMyNotifications(): Observable<Notification[]> {
     return this.http.get<Notification[]>(`${this.apiUrl}`, this.getAuthHeaders());

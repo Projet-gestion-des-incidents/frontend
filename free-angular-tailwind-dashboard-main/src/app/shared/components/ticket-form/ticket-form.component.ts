@@ -85,24 +85,49 @@ commercantsAvecIncidents: any[] = [];
 /**
  * Filtre les commerçants pour ne garder que ceux qui ont des incidents disponibles
  */
+// ticket-form.component.ts
+
 filtrerCommercantsAvecIncidents(): void {
   if (!this.incidents || this.incidents.length === 0) {
     this.commercantsAvecIncidents = [];
     return;
   }
   
-  // Récupérer les IDs des commerçants qui ont des incidents disponibles
+  // 🔍 DEBUG - Afficher les IDs des commerçants chargés
+  console.log('🔍 IDs des commerçants chargés:');
+  this.commercants.forEach(commercant => {
+    console.log(`  - Commerçant: ${commercant.nomMagasin || commercant.userName || commercant.nom} -> id: ${commercant.id}`);
+  });
+  
+  // Récupérer les IDs des commerçants (en string)
+  const commercantsIds = new Set(
+    this.commercants.map(c => c.id?.toString())
+  );
+  
+  // Filtrer les incidents dont le createdById correspond à un commerçant
+  const incidentsAvecCommercant = this.incidents.filter(incident => {
+    const incidentCreatorId = incident.createdById?.toString();
+    return commercantsIds.has(incidentCreatorId);
+  });
+  
+  console.log(`📊 Incidents avec commerçant correspondant: ${incidentsAvecCommercant.length}`);
+  
+  // Récupérer les IDs des commerçants qui ont des incidents
   const commercantsIdsAvecIncidents = new Set(
-    this.incidents.map(incident => incident.createdById)
+    incidentsAvecCommercant.map(incident => incident.createdById?.toString())
   );
   
   // Filtrer la liste complète des commerçants
   this.commercantsAvecIncidents = this.commercants.filter(commercant => 
-    commercantsIdsAvecIncidents.has(commercant.id)
+    commercantsIdsAvecIncidents.has(commercant.id?.toString())
   );
   
   console.log(`📊 Commerçants avec incidents disponibles: ${this.commercantsAvecIncidents.length}`);
-  console.log('Commerçants filtrés:', this.commercantsAvecIncidents);
+  console.log('Commerçants filtrés:', this.commercantsAvecIncidents.map(c => ({
+    id: c.id,
+    nom: c.nomMagasin || c.userName,
+    incidentCount: incidentsAvecCommercant.filter(i => i.createdById?.toString() === c.id?.toString()).length
+  })));
 }
   futureDateValidator(control: AbstractControl): ValidationErrors | null {
     if (!control.value) {
@@ -130,7 +155,7 @@ filtrerCommercantsAvecIncidents(): void {
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
- loadTechniciens(): void {
+loadTechniciens(): void {
   console.log('🔍 Récupération des techniciens...');
   
   this.userService.getTechniciens().subscribe({
@@ -147,8 +172,16 @@ filtrerCommercantsAvecIncidents(): void {
         techniciensData = response.items;
       }
       
-      // ✅ Mapper les techniciens
-      this.techniciens = techniciensData.map((u: any) => ({
+      // ✅ FILTRER : Ne garder que les techniciens ACTIFS et avec email CONFIRMÉ
+      const techniciensFiltres = techniciensData.filter((u: any) => 
+        u.statut === 'Actif' && u.emailConfirmed === true
+      );
+      
+      console.log(`📊 Techniciens avant filtrage: ${techniciensData.length}`);
+      console.log(`📊 Techniciens après filtrage (Actif + email confirmé): ${techniciensFiltres.length}`);
+      
+      // ✅ Mapper les techniciens filtrés
+      this.techniciens = techniciensFiltres.map((u: any) => ({
         id: u.id,
         nom: u.nom,
         prenom: u.prenom,
@@ -156,6 +189,7 @@ filtrerCommercantsAvecIncidents(): void {
         userName: u.userName,
         phoneNumber: u.phoneNumber,
         statut: u.statut,
+        emailConfirmed: u.emailConfirmed,
         birthDate: u.birthDate,
         image: u.image
       }));
@@ -163,11 +197,16 @@ filtrerCommercantsAvecIncidents(): void {
       // ✅ Créer les options pour le select
       this.technicienOptions = this.techniciens.map(t => ({
         value: t.id,
-        label: `${t.prenom} ${t.nom}`  // Prénom puis Nom pour meilleure lisibilité
+        label: `${t.prenom} ${t.nom}`
       }));
       
-      console.log('✅ Techniciens chargés:', this.techniciens.length);
+      console.log('✅ Techniciens chargés et filtrés:', this.techniciens.length);
       console.log('📋 Options:', this.technicienOptions);
+      
+      // ✅ Si aucun technicien disponible, afficher un message
+      if (this.technicienOptions.length === 0) {
+        console.warn('⚠️ Aucun technicien actif avec email confirmé trouvé');
+      }
     },
     error: (err) => {
       console.error('❌ Erreur chargement techniciens:', err);
@@ -198,9 +237,6 @@ filtrerCommercantsAvecIncidents(): void {
 // ticket-form.component.ts
 
 onCommercantChange(): void {
-  // ✅ NE PAS réinitialiser la sélection quand on change de commerçant
-  // this.selectedIncidentIds = [];  ← SUPPRIMER CETTE LIGNE
-  
   // Ne rien faire si aucun commerçant n'est sélectionné
   if (!this.selectedCommercantId) {
     this.showIncidentsList = false;
@@ -209,17 +245,21 @@ onCommercantChange(): void {
     return;
   }
   
-  // Filtrer par commerçant sélectionné
-  this.filteredIncidents = this.incidents.filter(
-    incident => incident.createdById === this.selectedCommercantId
+  // Trouver le commerçant sélectionné dans commercantsAvecIncidents
+  const selectedCommercant = this.commercantsAvecIncidents.find(
+    c => c.id === this.selectedCommercantId
   );
   
-  // Regrouper les incidents filtrés
-  this.groupIncidentsByCommercant();
-  
-  // Afficher la liste
-  this.showIncidentsList = true;
-  this.showIncidentError = false;
+  if (selectedCommercant && selectedCommercant.incidents) {
+    this.filteredIncidents = selectedCommercant.incidents;
+    this.groupIncidentsByCommercant();
+    this.showIncidentsList = true;
+    this.showIncidentError = false;
+  } else {
+    this.filteredIncidents = [];
+    this.groupedIncidents = [];
+    this.showIncidentsList = true;
+  }
   
   console.log(`📊 ${this.filteredIncidents.length} incidents pour le commerçant sélectionné`);
   console.log('IDs actuellement sélectionnés:', this.selectedIncidentIds);
@@ -241,20 +281,41 @@ loadIncidents(): void {
       this.incidents = incidents;
       console.log('Incidents disponibles:', this.incidents.length);
       
+      // ✅ CRÉER LA LISTE DES COMMERÇANTS À PARTIR DES INCIDENTS
+      const commercantsMap = new Map();
+      
+      this.incidents.forEach(incident => {
+        if (incident.createdById && !commercantsMap.has(incident.createdById)) {
+          commercantsMap.set(incident.createdById, {
+            id: incident.createdById,
+            nomMagasin: incident.createdByName || 'Commerçant',
+            nom: incident.createdByName,
+            incidents: []
+          });
+        }
+        
+        if (incident.createdById) {
+          const commercant = commercantsMap.get(incident.createdById);
+          if (commercant) {
+            commercant.incidents = commercant.incidents || [];
+            commercant.incidents.push(incident);
+          }
+        }
+      });
+      
+      // Convertir la Map en tableau
+      this.commercantsAvecIncidents = Array.from(commercantsMap.values());
+      
+      console.log('✅ Commerçants extraits des incidents:', this.commercantsAvecIncidents);
+      
       // Trier les incidents
       this.incidents.sort((a, b) => {
         return new Date(b.dateDetection).getTime() - new Date(a.dateDetection).getTime();
       });
       
-      // ✅ Filtrer les commerçants qui ont des incidents disponibles
-      this.filtrerCommercantsAvecIncidents();
-      
-      // ✅ NE PAS initialiser filteredIncidents ici
-      // La liste ne s'affichera qu'après sélection d'un commerçant
+      // Initialiser les listes vides
       this.filteredIncidents = [];
       this.groupedIncidents = [];
-      
-      // Réinitialiser la sélection
       this.selectedIncidentIds = [];
     },
     error: (err) => {
@@ -265,34 +326,33 @@ loadIncidents(): void {
 }
 
 
-  // Modifier groupIncidentsByCommercant pour utiliser filteredIncidents
-  groupIncidentsByCommercant(): void {
-    const groups = new Map();
+ groupIncidentsByCommercant(): void {
+  const groups = new Map();
+  
+  // Utiliser filteredIncidents
+  this.filteredIncidents.forEach(incident => {
+    const commercantId = incident.createdById;
+    const commercantName = incident.createdByName || 'Commerçant inconnu';
+    const key = `${commercantId}-${commercantName}`;
     
-    // Utiliser filteredIncidents au lieu de incidents
-    this.filteredIncidents.forEach(incident => {
-      const commercantId = incident.createdById;
-      const commercantName = incident.createdByName || 'Commerçant inconnu';
-      const key = `${commercantId}-${commercantName}`;
-      
-      if (!groups.has(key)) {
-        groups.set(key, {
-          commercantId: commercantId,
-          commercantName: commercantName,
-          incidents: []
-        });
-      }
-      
-      groups.get(key).incidents.push(incident);
-    });
+    if (!groups.has(key)) {
+      groups.set(key, {
+        commercantId: commercantId,
+        commercantName: commercantName,
+        incidents: []
+      });
+    }
     
-    // Convertir la Map en tableau et trier par nom de commerçant
-    this.groupedIncidents = Array.from(groups.values()).sort((a, b) => 
-      a.commercantName.localeCompare(b.commercantName)
-    );
-    
-    console.log('Incidents groupés par commerçant:', this.groupedIncidents);
-  }
+    groups.get(key).incidents.push(incident);
+  });
+  
+  // Convertir la Map en tableau et trier par nom de commerçant
+  this.groupedIncidents = Array.from(groups.values()).sort((a, b) => 
+    a.commercantName.localeCompare(b.commercantName)
+  );
+  
+  console.log('Incidents groupés par commerçant:', this.groupedIncidents);
+}
 
   // Méthode pour obtenir le libellé du statut
   getStatutLibelle(statut: string): string {
