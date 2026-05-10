@@ -85,7 +85,288 @@ export class ArchivesComponent implements OnInit {
   ngOnInit(): void {
     this.loadUserRole();
   }
-  
+  // ========== SUPPRESSION DÉFINITIVE TICKET ==========
+
+showDeleteTicketModal = false;
+ticketToDelete: TicketDTO | null = null;
+deletingTicket = false;
+
+openDeleteTicketModal(ticket: TicketDTO, event: Event): void {
+  event.stopPropagation();
+  this.ticketToDelete = ticket;
+  this.showDeleteTicketModal = true;
+}
+
+cancelDeleteTicket(): void {
+  this.showDeleteTicketModal = false;
+  this.ticketToDelete = null;
+  this.deletingTicket = false;
+}
+
+confirmDeleteTicket(): void {
+  if (!this.ticketToDelete) return;
+  this.deletingTicket = true;
+
+  this.ticketService.deleteTicket(this.ticketToDelete.id).subscribe({
+    next: () => {
+      this.archivedTickets = this.archivedTickets.filter(t => t.id !== this.ticketToDelete!.id);
+      this.ticketsTotalCount--;
+      this.selectedTickets.delete(this.ticketToDelete!.id);
+      this.showAlert('success', 'Succès', `Le ticket "${this.ticketToDelete!.referenceTicket}" a été supprimé définitivement.`);
+      this.deletingTicket = false;
+      this.cancelDeleteTicket();
+    },
+    error: (err) => {
+      console.error('Erreur suppression ticket:', err);
+      this.showAlert('error', 'Erreur', err.error?.message || 'Impossible de supprimer le ticket.');
+      this.deletingTicket = false;
+      this.cancelDeleteTicket();
+    }
+  });
+}
+
+// ========== SUPPRESSION DÉFINITIVE INCIDENT ==========
+
+showDeleteIncidentModal = false;
+incidentToDelete: Incident | null = null;
+deletingIncident = false;
+
+openDeleteIncidentModal(incident: Incident, event: Event): void {
+  event.stopPropagation();
+  this.incidentToDelete = incident;
+  this.showDeleteIncidentModal = true;
+}
+
+cancelDeleteIncident(): void {
+  this.showDeleteIncidentModal = false;
+  this.incidentToDelete = null;
+  this.deletingIncident = false;
+}
+
+confirmDeleteIncident(): void {
+  if (!this.incidentToDelete) return;
+  this.deletingIncident = true;
+
+  this.incidentService.deleteIncident(this.incidentToDelete.id).subscribe({
+    next: () => {
+      this.archivedIncidents = this.archivedIncidents.filter(i => i.id !== this.incidentToDelete!.id);
+      this.incidentsTotalCount--;
+      this.selectedIncidents.delete(this.incidentToDelete!.id);
+      this.showAlert('success', 'Succès', `L'incident "${this.incidentToDelete!.codeIncident}" a été supprimé définitivement.`);
+      this.deletingIncident = false;
+      this.cancelDeleteIncident();
+    },
+    error: (err) => {
+      console.error('Erreur suppression incident:', err);
+      this.showAlert('error', 'Erreur', err.error?.message || 'Impossible de supprimer l\'incident.');
+      this.deletingIncident = false;
+      this.cancelDeleteIncident();
+    }
+  });
+}
+// ========== SUPPRESSION MULTIPLE TICKETS ==========
+
+showMultiDeleteTicketModal = false;
+confirmDeleteTickets: TicketDTO[] = [];
+bulkDeletingTickets = false;
+
+openMultiDeleteTicketModal(): void {
+  if (this.globalTicketSelectionMode) {
+    this.confirmDeleteTickets = [];
+    this.showMultiDeleteTicketModal = true;
+    return;
+  }
+
+  if (this.selectedTickets.size === 0) return;
+
+  const selectedIds = Array.from(this.selectedTickets);
+  this.confirmDeleteTickets = this.archivedTickets.filter(t =>
+    selectedIds.includes(t.id)
+  );
+  this.showMultiDeleteTicketModal = true;
+}
+
+cancelMultiDeleteTicket(): void {
+  this.showMultiDeleteTicketModal = false;
+  this.confirmDeleteTickets = [];
+  this.bulkDeletingTickets = false;
+}
+
+confirmMultiDeleteTicket(): void {
+  // CAS 1 : Mode global — charger tous puis supprimer
+  if (this.globalTicketSelectionMode && this.confirmDeleteTickets.length === 0) {
+    this.bulkDeletingTickets = true;
+    const params = {
+      Page: 1,
+      PageSize: this.ticketsTotalCount,
+      SearchTerm: this.ticketsSearchTerm,
+      SortBy: 'DateArchivage',
+      SortDescending: true
+    };
+
+    this.ticketService.getArchivedTickets(params).subscribe({
+      next: (response: any) => {
+        let allTickets: TicketDTO[] = [];
+        if (response?.data?.items) allTickets = response.data.items;
+        else if (response?.items) allTickets = response.items;
+        this.deleteTicketsInBatches(allTickets, 0, 0);
+      },
+      error: () => {
+        this.bulkDeletingTickets = false;
+        this.showAlert('error', 'Erreur', 'Impossible de charger les tickets.');
+      }
+    });
+
+    this.showMultiDeleteTicketModal = false;
+    return;
+  }
+
+  // CAS 2 : Sélection normale
+  if (this.confirmDeleteTickets.length === 0) return;
+
+  this.bulkDeletingTickets = true;
+  this.deleteTicketsInBatches(this.confirmDeleteTickets, 0, 0);
+  this.showMultiDeleteTicketModal = false;
+}
+
+private deleteTicketsInBatches(tickets: TicketDTO[], startIndex: number, successCount: number): void {
+  const batchSize = 10;
+  const batch = tickets.slice(startIndex, startIndex + batchSize);
+
+  if (batch.length === 0) {
+    this.bulkDeletingTickets = false;
+    this.globalTicketSelectionMode = false;
+    this.selectedTickets.clear();
+    this.confirmDeleteTickets = [];
+    this.showAlert('success', 'Succès', `${successCount} ticket(s) supprimé(s) définitivement.`);
+    this.loadArchivedTickets();
+    return;
+  }
+
+  let completed = 0;
+  let batchSuccess = 0;
+
+  batch.forEach(ticket => {
+    this.ticketService.deleteTicket(ticket.id).subscribe({
+      next: () => {
+        batchSuccess++;
+        completed++;
+        if (completed === batch.length) {
+          this.deleteTicketsInBatches(tickets, startIndex + batchSize, successCount + batchSuccess);
+        }
+      },
+      error: (err) => {
+        console.error(`Erreur suppression ticket ${ticket.id}:`, err);
+        completed++;
+        if (completed === batch.length) {
+          this.deleteTicketsInBatches(tickets, startIndex + batchSize, successCount + batchSuccess);
+        }
+      }
+    });
+  });
+}
+
+// ========== SUPPRESSION MULTIPLE INCIDENTS ==========
+
+showMultiDeleteIncidentModal = false;
+confirmDeleteIncidents: Incident[] = [];
+bulkDeletingIncidents = false;
+
+openMultiDeleteIncidentModal(): void {
+  if (this.globalIncidentSelectionMode) {
+    this.confirmDeleteIncidents = [];
+    this.showMultiDeleteIncidentModal = true;
+    return;
+  }
+
+  if (this.selectedIncidents.size === 0) return;
+
+  const selectedIds = Array.from(this.selectedIncidents);
+  this.confirmDeleteIncidents = this.archivedIncidents.filter(i =>
+    selectedIds.includes(i.id)
+  );
+  this.showMultiDeleteIncidentModal = true;
+}
+
+cancelMultiDeleteIncident(): void {
+  this.showMultiDeleteIncidentModal = false;
+  this.confirmDeleteIncidents = [];
+  this.bulkDeletingIncidents = false;
+}
+
+confirmMultiDeleteIncident(): void {
+  // CAS 1 : Mode global
+  if (this.globalIncidentSelectionMode && this.confirmDeleteIncidents.length === 0) {
+    this.bulkDeletingIncidents = true;
+    const params = {
+      Page: 1,
+      PageSize: this.incidentsTotalCount,
+      SearchTerm: this.incidentsSearchTerm,
+      SortBy: 'DateArchivage',
+      SortDescending: true
+    };
+
+    this.incidentService.getIncidentsArchives(params).subscribe({
+      next: (response: any) => {
+        let allIncidents: Incident[] = [];
+        if (response?.data?.items) allIncidents = response.data.items;
+        else if (response?.items) allIncidents = response.items;
+        this.deleteIncidentsInBatches(allIncidents, 0, 0);
+      },
+      error: () => {
+        this.bulkDeletingIncidents = false;
+        this.showAlert('error', 'Erreur', 'Impossible de charger les incidents.');
+      }
+    });
+
+    this.showMultiDeleteIncidentModal = false;
+    return;
+  }
+
+  // CAS 2 : Sélection normale
+  if (this.confirmDeleteIncidents.length === 0) return;
+
+  this.bulkDeletingIncidents = true;
+  this.deleteIncidentsInBatches(this.confirmDeleteIncidents, 0, 0);
+  this.showMultiDeleteIncidentModal = false;
+}
+
+private deleteIncidentsInBatches(incidents: Incident[], startIndex: number, successCount: number): void {
+  const batchSize = 10;
+  const batch = incidents.slice(startIndex, startIndex + batchSize);
+
+  if (batch.length === 0) {
+    this.bulkDeletingIncidents = false;
+    this.globalIncidentSelectionMode = false;
+    this.selectedIncidents.clear();
+    this.confirmDeleteIncidents = [];
+    this.showAlert('success', 'Succès', `${successCount} incident(s) supprimé(s) définitivement.`);
+    this.loadArchivedIncidents();
+    return;
+  }
+
+  let completed = 0;
+  let batchSuccess = 0;
+
+  batch.forEach(incident => {
+    this.incidentService.deleteIncident(incident.id).subscribe({
+      next: () => {
+        batchSuccess++;
+        completed++;
+        if (completed === batch.length) {
+          this.deleteIncidentsInBatches(incidents, startIndex + batchSize, successCount + batchSuccess);
+        }
+      },
+      error: (err) => {
+        console.error(`Erreur suppression incident ${incident.id}:`, err);
+        completed++;
+        if (completed === batch.length) {
+          this.deleteIncidentsInBatches(incidents, startIndex + batchSize, successCount + batchSuccess);
+        }
+      }
+    });
+  });
+}
 loadUserRole(): void {
   this.userService.getMyProfile().subscribe({
     next: (user) => {

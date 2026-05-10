@@ -55,7 +55,7 @@
         <div>
           <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90 flex items-center gap-2">
             Liste des TPE
-            <span class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-[#ECECFF] text-[#8788FF] dark:bg-[#0C144E]/30 dark:text-[#B2B3FF] rounded-full">
+            <span   *ngIf="userRole !== 'Admin'" class="inline-flex items-center justify-center px-2 py-1 text-xs font-medium bg-[#ECECFF] text-[#8788FF] dark:bg-[#0C144E]/30 dark:text-[#B2B3FF] rounded-full">
               {{ totalCount }} 
             </span>
           </h3>

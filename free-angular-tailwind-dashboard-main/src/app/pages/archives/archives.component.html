@@ -133,28 +133,29 @@
 
   <div *ngIf="archivedIncidents.length > 0" class="space-y-4">
     
-<!-- Barre d'actions avec sélection multiple pour incidents -->
 <div *ngIf="selectedIncidents.size > 0 || globalIncidentSelectionMode" class="flex items-center justify-between p-3 bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 rounded-xl border border-[#C5C6FF] dark:border-[#8788FF]/30">
   <div class="flex items-center gap-2">
     <span class="text-sm font-medium text-[#0C144E] dark:text-white">
-      <ng-container *ngIf="globalIncidentSelectionMode">
-        {{ incidentsTotalCount }} incident(s) sélectionné(s) (toutes pages)
-      </ng-container>
-      <ng-container *ngIf="!globalIncidentSelectionMode">
-        {{ selectedIncidents.size }} incident(s) sélectionné(s)
-      </ng-container>
+      <ng-container *ngIf="globalIncidentSelectionMode">{{ incidentsTotalCount }} incident(s) sélectionné(s)</ng-container>
+      <ng-container *ngIf="!globalIncidentSelectionMode">{{ selectedIncidents.size }} incident(s) sélectionné(s)</ng-container>
     </span>
-    <button
-      (click)="clearIncidentSelection()"
-      class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
-    >
+    <button (click)="clearIncidentSelection()"
+      class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors">
       Désélectionner
     </button>
-    <button
-      (click)="openMultiRestoreIncidentModal()"
-      class="px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-lg hover:from-[#787AEA] hover:to-[#0C144E] transition-colors"
-    >
-      Restaurer 
+    <button (click)="openMultiRestoreIncidentModal()"
+      class="px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-lg hover:from-[#787AEA] hover:to-[#0C144E] transition-colors">
+      Restaurer
+      (<ng-container *ngIf="globalIncidentSelectionMode">{{ incidentsTotalCount }}</ng-container>
+       <ng-container *ngIf="!globalIncidentSelectionMode">{{ selectedIncidents.size }}</ng-container>)
+    </button>
+    <!-- ✅ NOUVEAU -->
+    <button (click)="openMultiDeleteIncidentModal()"
+      class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-1">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"/>
+      </svg>
+      Supprimer
       (<ng-container *ngIf="globalIncidentSelectionMode">{{ incidentsTotalCount }}</ng-container>
        <ng-container *ngIf="!globalIncidentSelectionMode">{{ selectedIncidents.size }}</ng-container>)
     </button>
@@ -227,6 +228,14 @@
             </svg>
           </button>
         </div>
+        <button
+    (click)="openDeleteIncidentModal(incident, $event)"
+    class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+    title="Supprimer définitivement">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+    </svg>
+  </button>
       </div>
     </div>
 
@@ -288,24 +297,26 @@
 <div *ngIf="selectedTickets.size > 0 || globalTicketSelectionMode" class="flex items-center justify-between p-3 bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 rounded-xl border border-[#C5C6FF] dark:border-[#8788FF]/30">
   <div class="flex items-center gap-2">
     <span class="text-sm font-medium text-[#0C144E] dark:text-white">
-      <ng-container *ngIf="globalTicketSelectionMode">
-        {{ ticketsTotalCount }} ticket(s) sélectionné(s) 
-      </ng-container>
-      <ng-container *ngIf="!globalTicketSelectionMode">
-        {{ selectedTickets.size }} ticket(s) sélectionné(s)
-      </ng-container>
+      <ng-container *ngIf="globalTicketSelectionMode">{{ ticketsTotalCount }} ticket(s) sélectionné(s)</ng-container>
+      <ng-container *ngIf="!globalTicketSelectionMode">{{ selectedTickets.size }} ticket(s) sélectionné(s)</ng-container>
     </span>
-    <button
-      (click)="clearTicketSelection()"
-      class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors"
-    >
+    <button (click)="clearTicketSelection()"
+      class="px-3 py-1.5 text-xs font-medium text-gray-600 bg-gray-200 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-colors">
       Désélectionner
     </button>
-    <button
-      (click)="openMultiRestoreTicketModal()"
-      class="px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-lg hover:from-[#787AEA] hover:to-[#0C144E] transition-colors"
-    >
-      Restaurer 
+    <button (click)="openMultiRestoreTicketModal()"
+      class="px-3 py-1.5 text-xs font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-lg hover:from-[#787AEA] hover:to-[#0C144E] transition-colors">
+      Restaurer
+      (<ng-container *ngIf="globalTicketSelectionMode">{{ ticketsTotalCount }}</ng-container>
+       <ng-container *ngIf="!globalTicketSelectionMode">{{ selectedTickets.size }}</ng-container>)
+    </button>
+    <!-- ✅ NOUVEAU -->
+    <button (click)="openMultiDeleteTicketModal()"
+      class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-1">
+      <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"/>
+      </svg>
+      Supprimer
       (<ng-container *ngIf="globalTicketSelectionMode">{{ ticketsTotalCount }}</ng-container>
        <ng-container *ngIf="!globalTicketSelectionMode">{{ selectedTickets.size }}</ng-container>)
     </button>
@@ -382,6 +393,14 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
           </svg>
         </button>
+          <button
+    (click)="openDeleteTicketModal(ticket, $event)"
+    class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
+    title="Supprimer définitivement">
+    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+    </svg>
+  </button>
       </div>
     </div>
   </div>
@@ -887,6 +906,282 @@
           <div class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></div>
           Restauration massive...
         </span>
+      </button>
+    </div>
+  </div>
+</div>
+<!-- Modale suppression définitive incident -->
+<div *ngIf="showDeleteIncidentModal"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+     (click)="cancelDeleteIncident()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden"
+       (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/20 px-6 py-4 border-b border-red-200 dark:border-red-800">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center">
+          <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Supprimer définitivement</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Cette action est irréversible</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="p-6">
+      <p class="text-gray-600 dark:text-gray-300 text-center mb-4">
+        Êtes-vous sûr de vouloir supprimer définitivement l'incident
+        <span class="font-semibold text-gray-900 dark:text-white block mt-1">"{{ incidentToDelete?.codeIncident }}"</span> ?
+      </p>
+
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div class="flex gap-2">
+          <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-red-800 dark:text-red-200">Suppression définitive</p>
+            <p class="text-sm text-red-700 dark:text-red-300">
+              L'incident et toutes ses données associées (liaisons TPE, tickets, notifications) seront supprimés définitivement.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+      <button (click)="cancelDeleteIncident()"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all">
+        Annuler
+      </button>
+      <button (click)="confirmDeleteIncident()"
+              [disabled]="deletingIncident"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        <svg *ngIf="!deletingIncident" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"/>
+        </svg>
+        <svg *ngIf="deletingIncident" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>{{ deletingIncident ? 'Suppression...' : 'Supprimer définitivement' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- Modale suppression définitive ticket -->
+<div *ngIf="showDeleteTicketModal"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+     (click)="cancelDeleteTicket()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden"
+       (click)="$event.stopPropagation()">
+
+    <!-- Header -->
+    <div class="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/20 px-6 py-4 border-b border-red-200 dark:border-red-800">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center">
+          <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Supprimer définitivement</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Cette action est irréversible</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Body -->
+    <div class="p-6">
+      <p class="text-gray-600 dark:text-gray-300 text-center mb-4">
+        Êtes-vous sûr de vouloir supprimer définitivement le ticket
+        <span class="font-semibold text-gray-900 dark:text-white block mt-1">"{{ ticketToDelete?.referenceTicket }}"</span> ?
+      </p>
+      <p class="text-xs text-gray-500 dark:text-gray-400 text-center mb-4">{{ ticketToDelete?.titreTicket }}</p>
+
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div class="flex gap-2">
+          <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-red-800 dark:text-red-200">Suppression définitive</p>
+            <p class="text-sm text-red-700 dark:text-red-300">
+              Le ticket et toutes ses données associées (commentaires, pièces jointes, notifications) seront supprimés définitivement.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+      <button (click)="cancelDeleteTicket()"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all">
+        Annuler
+      </button>
+      <button (click)="confirmDeleteTicket()"
+              [disabled]="deletingTicket"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        <svg *ngIf="!deletingTicket" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"/>
+        </svg>
+        <svg *ngIf="deletingTicket" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>{{ deletingTicket ? 'Suppression...' : 'Supprimer définitivement' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+<div *ngIf="showMultiDeleteIncidentModal"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+     (click)="cancelMultiDeleteIncident()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden"
+       (click)="$event.stopPropagation()">
+
+    <div class="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/20 px-6 py-4 border-b border-red-200 dark:border-red-800">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center">
+          <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Suppression multiple</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Cette action est irréversible</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6">
+      <p class="text-gray-600 dark:text-gray-300 text-center mb-4">
+        Êtes-vous sûr de vouloir supprimer définitivement
+        <strong class="text-red-600">
+          <ng-container *ngIf="globalIncidentSelectionMode">{{ incidentsTotalCount }}</ng-container>
+          <ng-container *ngIf="!globalIncidentSelectionMode">{{ confirmDeleteIncidents.length }}</ng-container>
+          incident(s)
+        </strong> ?
+      </p>
+
+      <div *ngIf="!globalIncidentSelectionMode && confirmDeleteIncidents.length > 0"
+           class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 max-h-40 overflow-y-auto">
+        <p class="text-xs text-gray-500 mb-2 font-medium">Incidents concernés :</p>
+        <ul class="space-y-1">
+          <li *ngFor="let incident of confirmDeleteIncidents" class="text-sm text-gray-700 dark:text-gray-300">
+            • {{ incident.codeIncident }} — {{ incident.descriptionIncident | slice:0:50 }}...
+          </li>
+        </ul>
+      </div>
+
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div class="flex gap-2">
+          <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          <p class="text-sm text-red-700 dark:text-red-300">
+            Les incidents et toutes leurs données associées seront supprimés définitivement et ne pourront pas être récupérés.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+      <button (click)="cancelMultiDeleteIncident()"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all">
+        Annuler
+      </button>
+      <button (click)="confirmMultiDeleteIncident()"
+              [disabled]="bulkDeletingIncidents"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        <svg *ngIf="!bulkDeletingIncidents" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"/>
+        </svg>
+        <svg *ngIf="bulkDeletingIncidents" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>{{ bulkDeletingIncidents ? 'Suppression...' : 'Supprimer définitivement' }}</span>
+      </button>
+    </div>
+  </div>
+</div>
+<div *ngIf="showMultiDeleteTicketModal"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+     (click)="cancelMultiDeleteTicket()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden"
+       (click)="$event.stopPropagation()">
+
+    <div class="bg-gradient-to-r from-red-50 to-red-100 dark:from-red-900/30 dark:to-red-800/20 px-6 py-4 border-b border-red-200 dark:border-red-800">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-red-100 dark:bg-red-900/50 flex items-center justify-center">
+          <svg class="w-6 h-6 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"/>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Suppression multiple</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Cette action est irréversible</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="p-6">
+      <p class="text-gray-600 dark:text-gray-300 text-center mb-4">
+        Êtes-vous sûr de vouloir supprimer définitivement
+        <strong class="text-red-600">
+          <ng-container *ngIf="globalTicketSelectionMode">{{ ticketsTotalCount }}</ng-container>
+          <ng-container *ngIf="!globalTicketSelectionMode">{{ confirmDeleteTickets.length }}</ng-container>
+          ticket(s)
+        </strong> ?
+      </p>
+
+      <div *ngIf="!globalTicketSelectionMode && confirmDeleteTickets.length > 0"
+           class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 max-h-40 overflow-y-auto">
+        <p class="text-xs text-gray-500 mb-2 font-medium">Tickets concernés :</p>
+        <ul class="space-y-1">
+          <li *ngFor="let ticket of confirmDeleteTickets" class="text-sm text-gray-700 dark:text-gray-300">
+            • {{ ticket.referenceTicket }} — {{ ticket.titreTicket }}
+          </li>
+        </ul>
+      </div>
+
+      <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+        <div class="flex gap-2">
+          <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+          </svg>
+          <p class="text-sm text-red-700 dark:text-red-300">
+            Les tickets et toutes leurs données associées seront supprimés définitivement et ne pourront pas être récupérés.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+      <button (click)="cancelMultiDeleteTicket()"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all">
+        Annuler
+      </button>
+      <button (click)="confirmMultiDeleteTicket()"
+              [disabled]="bulkDeletingTickets"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 transition-all shadow-sm disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2">
+        <svg *ngIf="!bulkDeletingTickets" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"/>
+        </svg>
+        <svg *ngIf="bulkDeletingTickets" class="animate-spin w-4 h-4" fill="none" viewBox="0 0 24 24">
+          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+        <span>{{ bulkDeletingTickets ? 'Suppression...' : 'Supprimer définitivement' }}</span>
       </button>
     </div>
   </div>
