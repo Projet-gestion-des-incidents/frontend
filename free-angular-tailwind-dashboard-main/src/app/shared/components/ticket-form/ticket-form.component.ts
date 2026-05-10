@@ -37,11 +37,13 @@ export class TicketFormComponent implements OnInit {
 
   ticketForm!: FormGroup;
   loading = false;
-  
+  // Ajoutez ces propriétés avec les autres
+successMessage: string = '';
   // Pour les techniciens
   techniciens: { id: string; nom: string; prenom: string }[] = [];
   technicienOptions: { value: string; label: string }[] = [];
-
+// Ajoutez cette propriété avec les autres
+showCommercantError = false;
   // Pour les incidents
   incidents: any[] = [];
   filteredIncidents: any[] = [];  // ✅ Incidents filtrés par commerçant
@@ -70,16 +72,16 @@ export class TicketFormComponent implements OnInit {
     this.loadIncidents();
   }
 
-  initForm(): void {
-    this.ticketForm = this.fb.group({
-      titreTicket: ['', [Validators.required, Validators.minLength(3)]],
-      descriptionTicket: ['', Validators.required],
-      assigneeId: [null],
-      dateLimite: [null],
-      commentaireInitial: [''],
-      commentaireInterne: [false]
-    });
-  }
+initForm(): void {
+  this.ticketForm = this.fb.group({
+    titreTicket: ['', [Validators.required, Validators.minLength(3)]],
+    descriptionTicket: ['', [Validators.required, Validators.minLength(10)]], // ✅ Ajout de minLength(10)
+    assigneeId: [null, Validators.required],
+    dateLimite: [null, [Validators.required, this.futureDateValidator]],
+    commentaireInitial: [''],
+    commentaireInterne: [false]
+  });
+}
 // Ajoutez cette propriété avec les autres
 commercantsAvecIncidents: any[] = [];
 /**
@@ -129,21 +131,28 @@ filtrerCommercantsAvecIncidents(): void {
     incidentCount: incidentsAvecCommercant.filter(i => i.createdById?.toString() === c.id?.toString()).length
   })));
 }
-  futureDateValidator(control: AbstractControl): ValidationErrors | null {
-    if (!control.value) {
-      return null;
-    }
-    
-    const selectedDate = new Date(control.value);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    
-    if (selectedDate < today) {
-      return { pastDate: true };
-    }
-    return null;
+// Validateur personnalisé pour vérifier que la date est dans le futur
+futureDateValidator(control: AbstractControl): ValidationErrors | null {
+  if (!control.value) {
+    return null; // La valeur est gérée par Validators.required
   }
-
+  
+  const selectedDate = new Date(control.value);
+  const now = new Date();
+  
+  // Comparer les dates sans les millisecondes
+  selectedDate.setSeconds(0, 0);
+  now.setSeconds(0, 0);
+  
+  if (selectedDate <= now) {
+    return { pastDate: true };
+  }
+  return null;
+}
+// Vérifier si le formulaire est valide pour activer le bouton
+isFormValid(): boolean {
+  return this.ticketForm.valid && this.selectedIncidentIds.length > 0;
+}
   getTodayString(): string {
     const today = new Date();
     const year = today.getFullYear();
@@ -388,7 +397,7 @@ selectAllIncidents(): void {
     this.showMaxIncidentError = true;
     setTimeout(() => {
       this.showMaxIncidentError = false;
-    }, 6000);
+    }, 10000);
   }
   
   console.log('✅ Après "Tout sélectionner":', this.selectedIncidentIds.length, '/', this.maxIncidents);
@@ -422,7 +431,7 @@ selectAllIncidents(): void {
       // Optionnel: faire disparaître l'erreur après 3 secondes
       setTimeout(() => {
         this.showMaxIncidentError = false;
-      }, 3000);
+      }, 10000);
       
       return;
     }
@@ -446,81 +455,118 @@ selectAllIncidents(): void {
   private showWarning(message: string): void {
     console.warn(message);
   }
+// ========== SOUMISSION ==========
+submit() {
+  this.showIncidentError = false;
+  this.showCommercantError = false;
 
-  // ========== SOUMISSION ==========
-  submit() {
-    this.showIncidentError = false;
-
-    if (this.ticketForm.invalid) {
-      this.ticketForm.markAllAsTouched();
-      return;
+  if (this.ticketForm.invalid) {
+    this.ticketForm.markAllAsTouched();
+    const firstInvalid = document.querySelector('.ng-invalid.ng-touched, .ng-invalid.ng-dirty');
+    if (firstInvalid) {
+      firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
     }
-  if (this.ticketForm.value.descriptionTicket.length < 10) {
-    this.error = 'La description doit contenir au moins 10 caractères';
     return;
   }
-    // Vérifier qu'au moins un incident est sélectionné
-    if (!this.selectedIncidentIds || this.selectedIncidentIds.length === 0) {
-      this.showIncidentError = true;
-      
-      setTimeout(() => {
-        document.querySelector('.rounded-2xl')?.scrollIntoView({
-          behavior: 'smooth',
-          block: 'center'
-        });
-      }, 100);
-      
-      return;
-    }
-
-    this.loading = true;
-    console.log('🚀 Création du ticket...');
-
-    const ticketFormData = new FormData();
-    ticketFormData.append('TitreTicket', this.ticketForm.value.titreTicket);
-    ticketFormData.append('DescriptionTicket', this.ticketForm.value.descriptionTicket);
+  
+  // ✅ Vérifier qu'un commerçant est sélectionné
+  if (!this.selectedCommercantId) {
+    this.showCommercantError = true;
+    setTimeout(() => {
+      document.querySelector('.rounded-2xl')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }, 100);
+    return;
+  }
+  
+  // ✅ Vérifier qu'au moins un incident est sélectionné
+  if (!this.selectedIncidentIds || this.selectedIncidentIds.length === 0) {
+    this.showIncidentError = true;
     
-    if (this.ticketForm.value.assigneeId) {
-      ticketFormData.append('AssigneeId', this.ticketForm.value.assigneeId);
-    }
+    setTimeout(() => {
+      document.querySelector('.incidents-section')?.scrollIntoView({
+        behavior: 'smooth',
+        block: 'center'
+      });
+    }, 100);
     
-    if (this.ticketForm.value.dateLimite) {
-      ticketFormData.append('DateLimite', new Date(this.ticketForm.value.dateLimite).toISOString());
-    }
-
-    this.ticketService.createTicket(ticketFormData).pipe(
-      switchMap(ticketResponse => {
-        const ticketId = ticketResponse.data.id;
-        console.log('✅ Ticket créé avec ID:', ticketId);
-        
-        if (this.selectedIncidentIds && this.selectedIncidentIds.length > 0) {
-          console.log('🔗 Liaison de', this.selectedIncidentIds.length, 'incident(s)...');
-          return this.ticketService.lierIncidents(ticketId, this.selectedIncidentIds).pipe(
-            map(incidentResult => ({ ticketId, incidentResult }))
-          );
-        }
-        return of({ ticketId });
-      }),
-      catchError(error => {
-        console.error('❌ Erreur:', error);
-        return throwError(() => error);
-      }),
-      finalize(() => {
-        this.loading = false;
-      })
-    ).subscribe({
-      next: (result) => {
-        console.log('✅ Ticket créé avec succès:', result);
-        this.router.navigate(['/tickets', result.ticketId]);
-      },
-      error: (error) => {
-        console.error('❌ Erreur fatale:', error);
-        this.showError('Erreur lors de la création du ticket');
-        this.loading = false;
-      }
-    });
+    return;
   }
 
+  this.loading = true;
+  console.log('🚀 Création du ticket...');
+
+  const ticketFormData = new FormData();
+  ticketFormData.append('TitreTicket', this.ticketForm.value.titreTicket);
+  ticketFormData.append('DescriptionTicket', this.ticketForm.value.descriptionTicket);
+  
+  if (this.ticketForm.value.assigneeId) {
+    ticketFormData.append('AssigneeId', this.ticketForm.value.assigneeId);
+  }
+  
+  if (this.ticketForm.value.dateLimite) {
+    const dateValue = new Date(this.ticketForm.value.dateLimite);
+    ticketFormData.append('DateLimite', dateValue.toISOString());
+  }
+
+  this.ticketService.createTicket(ticketFormData).pipe(
+    switchMap(ticketResponse => {
+      const ticketId = ticketResponse.data.id;
+      console.log('✅ Ticket créé avec ID:', ticketId);
+      
+      if (this.selectedIncidentIds && this.selectedIncidentIds.length > 0) {
+        console.log('🔗 Liaison de', this.selectedIncidentIds.length, 'incident(s)...');
+        return this.ticketService.lierIncidents(ticketId, this.selectedIncidentIds).pipe(
+          map(incidentResult => ({ ticketId, incidentResult }))
+        );
+      }
+      return of({ ticketId });
+    }),
+    catchError(error => {
+      console.error('❌ Erreur détaillée:', error);
+      
+      if (error.error?.message) {
+        this.error = error.error.message;
+      } else if (error.error?.errors) {
+        const messages = Object.values(error.error.errors).flat();
+        this.error = messages.join(', ');
+      } else if (typeof error.error === 'string') {
+        this.error = error.error;
+      } else {
+        this.error = 'Erreur lors de la création du ticket';
+      }
+      
+      return throwError(() => error);
+    }),
+    finalize(() => {
+      this.loading = false;
+    })
+  ).subscribe({
+    next: (result) => {
+      console.log('✅ Ticket créé avec succès:', result);
+      
+      // ✅ Afficher le message de succès
+      this.successMessage = `Ticket créé avec succès !`;
+      
+      // ✅ SCROLL AUTOMATIQUE VERS LE HAUT
+      setTimeout(() => {
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }, 100);
+      
+      // ✅ Rediriger vers la liste des tickets après 5 secondes
+      setTimeout(() => {
+        this.router.navigate(['/tickets']);
+      }, 5000);
+    },
+    error: (error) => {
+      console.error('❌ Erreur fatale:', error);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      this.loading = false;
+    }
+  });
+}
   error: string | null = null;  
 
   cancel(): void {
