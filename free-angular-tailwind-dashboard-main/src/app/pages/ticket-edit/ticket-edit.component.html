@@ -480,98 +480,125 @@
     </div>
   </div>
 </div>
-    <!-- SECTION 1: Informations générales -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
-      <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
-        <div class="flex items-center gap-3">
-          <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
-            <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Informations générales</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Détails du ticket</p>
-          </div>
-        </div>
+<!-- SECTION 1: Informations générales -->
+<div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+  <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
+    <div class="flex items-center gap-3">
+      <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+        <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
+        </svg>
       </div>
-
-      <div class="p-6 space-y-5">
-        <!-- Titre - Visible seulement pour Admin -->
-        <div *ngIf="isAdmin">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Titre du ticket <span class="text-red-500">*</span>
-          </label>
-          <input
-            [(ngModel)]="ticket.titreTicket"
-            name="titreTicket"
-            required
-            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-700"
-            placeholder="Ex: Panne du serveur de production"
-            [readonly]="!isAdmin"
-          />
-        </div>
-
-        <!-- Description - Visible seulement pour Admin -->
-        <div *ngIf="isAdmin">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Description <span class="text-red-500">*</span>
-          </label>
-          <textarea
-            [(ngModel)]="ticket.descriptionTicket"
-            name="descriptionTicket"
-            required
-            rows="4"
-            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all resize-none disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-700"
-            placeholder="Décrivez le ticket en détail..."
-            [readonly]="!isAdmin"
-          ></textarea>
-        </div>
-
-        <!-- Statut - Visible seulement pour les non-admins (techniciens) -->
-        <div *ngIf="!isAdmin">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Statut
-          </label>
-          <select 
-            [(ngModel)]="ticket.statutTicket"
-            name="statutTicket"
-            class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all appearance-none cursor-pointer"
-          >
-            <option *ngFor="let s of statuts" [value]="s.value">
-              {{ s.label }}
-            </option>
-          </select>
-        </div>
-
-        <!-- Pour l'admin, afficher le statut en lecture seule -->
-        <div *ngIf="isAdmin">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-            Statut
-          </label>
-          <div class="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
-            <span class="text-sm text-gray-700 dark:text-gray-300">{{ getStatutLibelle(ticket.statutTicket) }}</span>
-          </div>
-        </div>
-
-        <div *ngIf="isAdmin && ticket.assigneeNom" class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600">
-          <div class="flex items-center gap-2 mb-2">
-            <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-            </svg>
-            <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-              Assigné à
-            </span>
-          </div>
-          <div class="flex items-center gap-3 pl-6">
-          
-            <p class="text-gray-900 dark:text-white font-medium">
-              {{ ticket.assigneeNom }}
-            </p>
-          </div>
-        </div>
+      <div>
+        <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Informations générales</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Détails du ticket</p>
       </div>
     </div>
+  </div>
+
+  <div class="p-6 space-y-5">
+    <!-- Titre -->
+    <div *ngIf="isAdmin">
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Titre du ticket <span class="text-red-500">*</span>
+      </label>
+      <input
+        [(ngModel)]="ticket.titreTicket"
+        (ngModelChange)="checkForChanges()"
+        name="titreTicket"
+        required
+        minlength="3"
+        class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-700"
+        [class.border-red-500]="titreInvalid && titreTouched"
+        (blur)="titreTouched = true"
+        placeholder="Ex: Problème accès application"
+      />
+      <!-- Message d'erreur pour le titre -->
+      <div *ngIf="titreInvalid && titreTouched" 
+           class="mt-2 text-xs text-red-600 flex items-center gap-1">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        Le titre est obligatoire (min. 3 caractères)
+      </div>
+    </div>
+
+    <!-- Description -->
+    <div *ngIf="isAdmin">
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Description <span class="text-red-500">*</span>
+      </label>
+      <textarea
+        [(ngModel)]="ticket.descriptionTicket"
+        (ngModelChange)="checkForChanges()"
+        name="descriptionTicket"
+        required
+        minlength="10"
+        rows="4"
+        class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all resize-none disabled:bg-gray-100 disabled:cursor-not-allowed dark:disabled:bg-gray-700"
+        [class.border-red-500]="descriptionInvalid && descriptionTouched"
+        (blur)="descriptionTouched = true"
+        placeholder="Décrivez le ticket en détail..."
+      ></textarea>
+      <!-- Message d'erreur pour la description -->
+      <div *ngIf="descriptionInvalid && descriptionTouched" 
+           class="mt-2 text-xs text-red-600 flex items-center gap-1">
+        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+        <span *ngIf="!ticket.descriptionTicket || ticket.descriptionTicket.length === 0">
+          La description est obligatoire
+        </span>
+        <span *ngIf="ticket.descriptionTicket && ticket.descriptionTicket.length > 0 && ticket.descriptionTicket.length < 10">
+          La description doit contenir au moins 10 caractères
+        </span>
+      </div>
+    </div>
+
+    <!-- Statut - Visible seulement pour les non-admins (techniciens) -->
+    <div *ngIf="!isAdmin">
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Statut
+      </label>
+      <select 
+        [(ngModel)]="ticket.statutTicket"
+        (ngModelChange)="checkForChanges()"
+        name="statutTicket"
+        class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all appearance-none cursor-pointer"
+      >
+        <option *ngFor="let s of statuts" [value]="s.value">
+          {{ s.label }}
+        </option>
+      </select>
+    </div>
+
+    <!-- Pour l'admin, afficher le statut en lecture seule -->
+    <div *ngIf="isAdmin">
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+        Statut
+      </label>
+      <div class="p-3 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
+        <span class="text-sm text-gray-700 dark:text-gray-300">{{ getStatutLibelle(ticket.statutTicket) }}</span>
+      </div>
+    </div>
+
+    <div *ngIf="isAdmin && ticket.assigneeNom" class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600">
+      <div class="flex items-center gap-2 mb-2">
+        <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+        </svg>
+        <span class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+          Assigné à
+        </span>
+      </div>
+      <div class="flex items-center gap-3 pl-6">
+        <p class="text-gray-900 dark:text-white font-medium">
+          {{ ticket.assigneeNom }}
+        </p>
+      </div>
+    </div>
+  </div>
+</div>
 
     <!-- SECTION 2: Assignation (visible uniquement pour l'admin) -->
     <div *ngIf="isAdmin && showAssignmentSection" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
@@ -617,21 +644,22 @@
 
   
 
-    <!-- Boutons d'action -->
-    <div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
-      <button type="button" (click)="cancel()"
-              class="px-6 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
-        Annuler
-      </button>
-      <button type="submit" [disabled]="loading || !ticketForm.form.valid"
-              class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#8788FF] to-[#787AEA] px-6 py-2.5 text-sm font-medium text-white shadow-md hover:from-[#787AEA] hover:to-[#0C144E] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg">
-        <span *ngIf="loading" class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
-        <span>{{ loading ? 'Enregistrement...' : 'Enregistrer les modifications' }}</span>
-        <svg *ngIf="!loading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-        </svg>
-      </button>
-    </div>
+<!-- Boutons d'action -->
+<div class="flex justify-end gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
+  <button type="button" (click)="cancel()"
+          class="px-6 py-2.5 text-sm font-medium text-gray-700 hover:text-gray-800 dark:text-gray-400 dark:hover:text-gray-200 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800">
+    Annuler
+  </button>
+  <button type="submit" 
+          [disabled]="loading || !hasChanges || (isAdmin && (titreInvalid || descriptionInvalid))"
+          class="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#8788FF] to-[#787AEA] px-6 py-2.5 text-sm font-medium text-white shadow-md hover:from-[#787AEA] hover:to-[#0C144E] disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 hover:shadow-lg">
+    <span *ngIf="loading" class="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent"></span>
+    <span>{{ loading ? 'Enregistrement...' : 'Enregistrer les modifications' }}</span>
+    <svg *ngIf="!loading" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+    </svg>
+  </button>
+</div>
   </form>
 </div>
 

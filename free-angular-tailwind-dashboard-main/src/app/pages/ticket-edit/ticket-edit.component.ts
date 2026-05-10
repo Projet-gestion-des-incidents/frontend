@@ -531,11 +531,28 @@ loadData(): void {
         this.originalStatut = this.ticket.statutTicket;
         this.originalAssigneeId = this.ticket.assigneeId;
         
-        this.showAssignmentSection = !this.ticket.assigneeId;
-        this.tempAssigneeId = this.ticket.assigneeId;
-
+        // ✅ Sauvegarder l'état initial du ticket
+        this.initialTicketState = {
+          titreTicket: this.ticket.titreTicket,
+          descriptionTicket: this.ticket.descriptionTicket,
+          statutTicket: this.ticket.statutTicket,
+          assigneeId: this.ticket.assigneeId,
+          dateLimite: this.ticket.dateLimite
+        };
+        
         this.incidentsLies = results.incidentsLies;
         this.incidentsSelectionnes = this.incidentsLies.map((i: any) => i.id);
+        
+        // ✅ Sauvegarder la liste originale des incidents liés
+        this.originalIncidentsList = [...this.incidentsLies.map((i: any) => i.id)];
+        
+        // ✅ Réinitialiser hasChanges à false
+        this.hasChanges = false;
+        this.titreTouched = false;
+        this.descriptionTouched = false;
+        
+        this.showAssignmentSection = !this.ticket.assigneeId;
+        this.tempAssigneeId = this.ticket.assigneeId;
 
         // ✅ Incidents disponibles (sans ticket lié)
         const allIncidentsDisponibles = results.incidentsDisponibles || [];
@@ -545,7 +562,6 @@ loadData(): void {
         });
         
         console.log('📊 Incidents disponibles après filtrage:', this.incidentsDisponibles.length);
-        console.log('📊 Détails incidents disponibles:', this.incidentsDisponibles);
         
         this.incidents = this.incidentsDisponibles;
         
@@ -767,6 +783,78 @@ showSuccess(message: string): void {
   }, 5000);
 }
 
+// Ajoutez ces propriétés avec les autres déclarations
+hasChanges: boolean = false;
+initialTicketState: any = null;
+titreTouched: boolean = false;
+descriptionTouched: boolean = false;
+
+// Ajoutez ces getters pour la validation
+get titreInvalid(): boolean {
+  return !this.ticket?.titreTicket || this.ticket.titreTicket.length < 3;
+}
+
+get descriptionInvalid(): boolean {
+  return !this.ticket?.descriptionTicket || this.ticket.descriptionTicket.length < 10;
+}
+
+// Méthode pour vérifier si des changements ont été effectués
+checkForChanges(): void {
+  if (!this.initialTicketState || !this.ticket) {
+    this.hasChanges = false;
+    return;
+  }
+  
+  let hasAnyChange = false;
+  
+  // Vérifier le titre (pour admin)
+  if (this.isAdmin) {
+    if (this.ticket.titreTicket !== this.initialTicketState.titreTicket) {
+      hasAnyChange = true;
+    }
+  }
+  
+  // Vérifier la description (pour admin)
+  if (this.isAdmin) {
+    if (this.ticket.descriptionTicket !== this.initialTicketState.descriptionTicket) {
+      hasAnyChange = true;
+    }
+  }
+  
+  // Vérifier le statut (pour technicien)
+  if (this.isTechnicien) {
+    if (this.ticket.statutTicket !== this.initialTicketState.statutTicket) {
+      hasAnyChange = true;
+    }
+  }
+  
+  // Vérifier l'assignation (pour admin)
+  if (this.isAdmin) {
+    if (this.ticket.assigneeId !== this.initialTicketState.assigneeId) {
+      hasAnyChange = true;
+    }
+  }
+  
+  // Vérifier la date limite (pour admin)
+  if (this.isAdmin) {
+    if (this.ticket.dateLimite !== this.initialTicketState.dateLimite) {
+      hasAnyChange = true;
+    }
+  }
+  
+  // ✅ NOUVEAU: Vérifier si la liste des incidents a changé
+  const currentIncidentsList = this.incidentsLies.map((i: any) => i.id).sort();
+  const originalIncidentsList = this.originalIncidentsList.sort();
+  
+  if (JSON.stringify(currentIncidentsList) !== JSON.stringify(originalIncidentsList)) {
+    hasAnyChange = true;
+  }
+  
+  this.hasChanges = hasAnyChange;
+  console.log('🔄 Changements détectés:', this.hasChanges);
+  console.log('  - Incidents originaux:', originalIncidentsList);
+  console.log('  - Incidents actuels:', currentIncidentsList);
+}
 // Ajoutez la méthode pour confirmer la suppression d'un commentaire
 confirmerSuppressionCommentaire(commentaireId: string, auteurNom: string): void {
   this.commentToDelete = { id: commentaireId, auteurNom: auteurNom };
@@ -876,7 +964,7 @@ private saveAsAdmin(): void {
         // Rediriger après un court délai
         setTimeout(() => {
           this.router.navigate(['/tickets']);
-        }, 1500);
+        }, 3000);
         
       } else {
         this.error = response.message || 'Erreur mise à jour ticket';
@@ -958,7 +1046,7 @@ private saveAsTechnicien(): void {
         // Rediriger après un court délai pour voir le message
         setTimeout(() => {
           this.router.navigate(['/tickets']);
-        }, 1500);
+        }, 3000);
         
       } else {
         this.error = response.message || 'Erreur mise à jour ticket';
@@ -1121,6 +1209,9 @@ executerDelierIncident(): void {
         // Recharger les incidents disponibles
         this.reloadIncidentsDisponibles();
         
+        // ✅ AJOUTER CETTE LIGNE - Vérifier les changements après délien
+        this.checkForChanges();
+        
         this.showSuccess(`Incident ${this.incidentToDelete!.code} retiré avec succès`);
       } else {
         // ✅ Utiliser l'affichage d'erreur stylisé au lieu de alert
@@ -1139,18 +1230,23 @@ executerDelierIncident(): void {
     }
   });
 }
+// Ajoutez ces propriétés avec les autres déclarations
+originalIncidentsList: string[] = []; // Garde une copie de la liste originale des incidents liés
 
 // ✅ Nouvelle méthode pour afficher les erreurs avec le style existant
-showErrorDialog(message: string): void {
+// ✅ Nouvelle méthode pour afficher les erreurs SANS scroll automatique
+showErrorDialog(message: string, shouldScroll: boolean = false): void {
   this.error = message;
   
-  // Faire défiler jusqu'au message d'erreur
-  setTimeout(() => {
-    const errorElement = document.querySelector('.rounded-xl.border-red-200');
-    if (errorElement) {
-      errorElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, 100);
+  // ✅ NE PAS scroller automatiquement sauf si explicitement demandé
+  if (shouldScroll) {
+    setTimeout(() => {
+      const errorElement = document.querySelector('.rounded-xl.border-red-200');
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 100);
+  }
   
   // Auto-fermeture après 5 secondes
   setTimeout(() => {
@@ -1251,6 +1347,9 @@ executerLierIncident(): void {
             }
           }
         }
+        
+        // ✅ AJOUTER CETTE LIGNE - Vérifier les changements après liaison
+        this.checkForChanges();
         
         this.showSuccess(`Incident ${this.incidentToLink!.code} lié avec succès`);
         this.fermerModalLienIncident();
