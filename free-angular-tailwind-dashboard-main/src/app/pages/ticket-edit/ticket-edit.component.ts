@@ -142,6 +142,10 @@ loadCommercants(): void {
     next: (commercants) => {
       this.commercants = commercants;
       console.log('✅ Commerçants chargés:', this.commercants.length);
+      console.log('Détails:', this.commercants.map(c => ({ id: c.id, nom: c.nomMagasin || c.userName })));
+      
+      // ✅ Re-filtrer après chargement des incidents
+      this.filtrerCommercantsAvecIncidents();
     },
     error: (err) => {
       console.error('❌ Erreur chargement commerçants:', err);
@@ -153,28 +157,58 @@ commercantsAvecIncidents: any[] = []; // Commerçants qui ont au moins un incide
 /**
  * Filtre les commerçants pour ne garder que ceux qui ont des incidents disponibles
  */
+/**
+ * Filtre les commerçants pour ne garder que ceux qui ont des incidents disponibles
+ */
+/**
+ * Filtre les commerçants pour ne garder que ceux qui ont des incidents disponibles
+ * Version corrigée pour correspondre au comportement de la création
+ */
 filtrerCommercantsAvecIncidents(): void {
-  if (!this.incidentsDisponibles || this.incidentsDisponibles.length === 0) {
+  // ✅ Utiliser la source complète des incidents disponibles (tous les incidents sans ticket)
+  const sourceIncidents = this.incidentsDisponibles || [];
+  
+  if (sourceIncidents.length === 0) {
     this.commercantsAvecIncidents = [];
+    console.log('⚠️ Aucun incident disponible, liste des commerçants vidée');
     return;
   }
   
-  // Récupérer les IDs des commerçants qui ont des incidents disponibles
-  const commercantsIdsAvecIncidents = new Set(
-    this.incidentsDisponibles.map(incident => incident.createdById)
-  );
+  console.log('📊 Source incidents disponibles (tous):', sourceIncidents);
+  console.log('📊 Nombre total d\'incidents disponibles:', sourceIncidents.length);
   
-  // Filtrer la liste complète des commerçants
-  this.commercantsAvecIncidents = this.commercants.filter(commercant => 
-    commercantsIdsAvecIncidents.has(commercant.id)
-  );
+  // ✅ Regrouper par commercial et créer la liste
+  const commercantsMap = new Map();
+  
+  sourceIncidents.forEach(incident => {
+    const commercantId = incident.createdById;
+    const commercantName = incident.createdByName || 'Commerçant inconnu';
+    
+    if (!commercantsMap.has(commercantId)) {
+      commercantsMap.set(commercantId, {
+        id: commercantId,
+        nomMagasin: commercantName,
+        nomMagazine: commercantName,
+        nom: commercantName,
+        incidents: []
+      });
+    }
+    
+    commercantsMap.get(commercantId).incidents.push(incident);
+  });
+  
+  // Convertir la Map en tableau
+  this.commercantsAvecIncidents = Array.from(commercantsMap.values());
   
   console.log(`📊 Commerçants avec incidents disponibles: ${this.commercantsAvecIncidents.length}`);
-  console.log('Commerçants filtrés:', this.commercantsAvecIncidents);
+  console.log('Détails:', this.commercantsAvecIncidents);
 }
 // Méthode appelée quand le commerçant change
 // Méthode appelée quand le commerçant change
 onCommercantChange(): void {
+  console.log('🔄 onCommercantChange appelé, selectedCommercantId:', this.selectedCommercantId);
+  console.log('📊 commercantsAvecIncidents:', this.commercantsAvecIncidents);
+  
   if (!this.selectedCommercantId) {
     this.showIncidentsList = false;
     this.filteredIncidentsDisponibles = [];
@@ -187,6 +221,8 @@ onCommercantChange(): void {
     incident => incident.createdById === this.selectedCommercantId
   );
   
+  console.log('📊 Incidents filtrés:', this.filteredIncidentsDisponibles.length);
+  
   // Regrouper les incidents filtrés
   this.groupIncidentsDisponiblesByCommercant();
   
@@ -194,8 +230,6 @@ onCommercantChange(): void {
   this.showIncidentsList = true;
   
   console.log(`📊 ${this.filteredIncidentsDisponibles.length} incidents pour le commerçant sélectionné`);
-  console.log('Incidents disponibles:', this.incidentsDisponibles);
-  console.log('Incidents filtrés:', this.filteredIncidentsDisponibles);
 }
 
 // Méthode pour grouper les incidents disponibles par commerçant
@@ -730,7 +764,7 @@ showSuccess(message: string): void {
   this.successMessage = message;
   setTimeout(() => {
     this.successMessage = '';
-  }, 3000);
+  }, 5000);
 }
 
 // Ajoutez la méthode pour confirmer la suppression d'un commentaire

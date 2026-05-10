@@ -167,59 +167,61 @@ isFormValid(): boolean {
 loadTechniciens(): void {
   console.log('🔍 Récupération des techniciens...');
   
-  this.userService.getTechniciens().subscribe({
+  // ✅ Passer des paramètres pour récupérer TOUS les techniciens
+  const request = {
+    page: 1,
+    pageSize: 100,  // Grand nombre pour tout prendre
+    sortBy: 'Nom',
+    sortDescending: false
+  };
+  
+  this.userService.getTechniciens(request).subscribe({
     next: (response) => {
-      console.log('📦 Réponse reçue:', response);
+      console.log('📦 Réponse API techniciens:', response);
       
-      // ✅ Extraire les données correctement
       let techniciensData = [];
+      
       if (response?.data && Array.isArray(response.data)) {
         techniciensData = response.data;
-      } else if (Array.isArray(response)) {
-        techniciensData = response;
-      } else if (response?.items) {
-        techniciensData = response.items;
       }
       
-      // ✅ FILTRER : Ne garder que les techniciens ACTIFS et avec email CONFIRMÉ
-      const techniciensFiltres = techniciensData.filter((u: any) => 
-        u.statut === 'Actif' && u.emailConfirmed === true
-      );
+      console.log(`📊 Nombre total de techniciens dans la réponse: ${techniciensData.length}`);
       
-      console.log(`📊 Techniciens avant filtrage: ${techniciensData.length}`);
+      // ✅ Filtrer par statut "Actif" et email confirmé
+      const techniciensFiltres = techniciensData.filter((u: any) => {
+        const isActif = u.statut === 'Actif' || u.statut === 0;
+        const isEmailConfirmed = u.emailConfirmed === true || u.emailConfirmed === 1;
+        return isActif && isEmailConfirmed;
+      });
+      
       console.log(`📊 Techniciens après filtrage (Actif + email confirmé): ${techniciensFiltres.length}`);
       
-      // ✅ Mapper les techniciens filtrés
+      techniciensFiltres.forEach((t: any, index: number) => {
+        console.log(`✅ Technicien ${index + 1}: ${t.prenom} ${t.nom}`);
+      });
+      
       this.techniciens = techniciensFiltres.map((u: any) => ({
         id: u.id,
-        nom: u.nom,
-        prenom: u.prenom,
-        email: u.email,
-        userName: u.userName,
-        phoneNumber: u.phoneNumber,
+        nom: u.nom || '',
+        prenom: u.prenom || '',
+        email: u.email || '',
+        userName: u.userName || '',
+        phoneNumber: u.phoneNumber || '',
         statut: u.statut,
         emailConfirmed: u.emailConfirmed,
         birthDate: u.birthDate,
         image: u.image
       }));
       
-      // ✅ Créer les options pour le select
       this.technicienOptions = this.techniciens.map(t => ({
         value: t.id,
-        label: `${t.prenom} ${t.nom}`
+        label: `${t.prenom} ${t.nom}`.trim()
       }));
       
-      console.log('✅ Techniciens chargés et filtrés:', this.techniciens.length);
-      console.log('📋 Options:', this.technicienOptions);
-      
-      // ✅ Si aucun technicien disponible, afficher un message
-      if (this.technicienOptions.length === 0) {
-        console.warn('⚠️ Aucun technicien actif avec email confirmé trouvé');
-      }
+      console.log('✅ Techniciens chargés:', this.techniciens.length);
     },
     error: (err) => {
-      console.error('❌ Erreur chargement techniciens:', err);
-      this.showError('Impossible de charger les techniciens');
+      console.error('❌ Erreur:', err);
     }
   });
 }

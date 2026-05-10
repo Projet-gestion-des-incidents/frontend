@@ -130,7 +130,7 @@
 
   <!-- Modale liaison incident -->
   <div *ngIf="showLinkIncidentModal" 
-       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 transition-all duration-300"
+       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
        (click)="fermerModalLienIncident()">
     <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
          (click)="$event.stopPropagation()">
@@ -176,7 +176,7 @@
 
   <!-- Modale délien incident -->
   <div *ngIf="showDeleteIncidentModal" 
-       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[200] p-4 transition-all duration-300" 
+       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300" 
        (click)="fermerModalIncident()">
     <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
          (click)="$event.stopPropagation()">
@@ -282,7 +282,7 @@
       <div *ngIf="incidentsLies && incidentsLies.length > 0" class="space-y-3 mb-6">
         <div *ngFor="let incident of incidentsLies; let i = index" 
              class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl group hover:shadow-sm transition-all">
-          <div class="flex items-center gap-3 flex-1 cursor-pointer" (click)="viewIncident(incident.id)">
+          <div class="flex items-center gap-3 flex-1">
             <div class="w-10 h-10 rounded-lg flex items-center justify-center" 
                  [ngClass]="{
                    'bg-[#ECECFF] dark:bg-[#0C144E]/30': incident.statutIncident === 0,
@@ -409,7 +409,7 @@
             <div class="divide-y divide-gray-100 dark:divide-gray-800">
               <div *ngFor="let incident of group.incidents" 
                    class="flex items-center justify-between p-3 hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-all group">
-                <div class="flex items-center gap-3 flex-1 cursor-pointer" (click)="viewIncident(incident.id)">
+                <div class="flex items-center gap-3 flex-1">
                   <div class="w-10 h-10 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30 flex items-center justify-center">
                     <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 4H7a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v12a2 2 0 01-2 2z"></path>
