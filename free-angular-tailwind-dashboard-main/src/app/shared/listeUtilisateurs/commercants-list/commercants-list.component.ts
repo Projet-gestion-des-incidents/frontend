@@ -205,52 +205,66 @@ onEdit(commercant: any): void {
     this.bulkDeleting = false;
   }
 
-  executeMultiDelete(): void {
-    if (this.confirmUsers.length === 0) return;
+executeMultiDelete(): void {
+  if (this.confirmUsers.length === 0) return;
 
-    this.bulkDeleting = true;
-    let completed = 0;
-    const total = this.confirmUsers.length;
-    let successCount = 0;
+  this.bulkDeleting = true;
+  let completed = 0;
+  const total = this.confirmUsers.length;
+  let successCount = 0;
+  const errors: string[] = [];
 
-    this.confirmUsers.forEach(commercant => {
-      this.userService.deleteUser(commercant.id).subscribe({
-        next: () => {
+  this.confirmUsers.forEach(commercant => {
+    this.userService.deleteUser(commercant.id).subscribe({
+      next: (response: any) => {
+        const isSuccess = typeof response === 'boolean' 
+          ? response 
+          : (response?.isSuccess === true);
+        
+        if (isSuccess) {
           const index = this.commercants.findIndex(c => c.id === commercant.id);
           if (index !== -1) this.commercants.splice(index, 1);
           this.selectedCommercants.delete(commercant.id);
           successCount++;
-          completed++;
-          
-          if (completed === total) {
-            this.bulkDeleting = false;
-            this.showMultiDeleteModal = false;
-            this.confirmUsers = [];
-            
-            if (successCount === total) {
-              this.showAlert('success', 'Succès', `${total} commerçant(s) supprimé(s) avec succès.`);
-            } else if (successCount > 0) {
-              this.showAlert('error', 'Attention', `${successCount} commerçant(s) supprimé(s), ${total - successCount} échec(s).`);
-            } else {
-              this.showAlert('error', 'Erreur', `Aucun commerçant n'a pu être supprimé.`);
-            }
-            this.loadCommercants();
-          }
-        },
-        error: (err) => {
-          console.error(`Erreur suppression ${commercant.nomMagasin}:`, err);
-          completed++;
-          if (completed === total) {
-            this.bulkDeleting = false;
-            this.showMultiDeleteModal = false;
-            this.confirmUsers = [];
-            this.showAlert('error', 'Erreur', `${successCount}/${total} commerçant(s) supprimé(s).`);
-            this.loadCommercants();
-          }
+        } else {
+          errors.push(`${commercant.nomMagasin}: ${response?.message || 'Erreur inconnue'}`);
         }
-      });
+        completed++;
+        
+        if (completed === total) {
+          this.bulkDeleting = false;
+          this.showMultiDeleteModal = false;
+          this.confirmUsers = [];
+          
+          if (successCount === total) {
+            this.showAlert('success', 'Succès', `${total} commerçant(s) supprimé(s) avec succès.`);
+          } else if (successCount > 0) {
+            this.showAlert('error', 'Attention', `${successCount} commerçant(s) supprimé(s), ${total - successCount} échec(s).\n${errors.slice(0, 3).join(', ')}`);
+          } else {
+            this.showAlert('error', 'Erreur', `Aucun commerçant n'a pu être supprimé.\n${errors.slice(0, 3).join(', ')}`);
+          }
+          this.loadCommercants();
+        }
+      },
+      error: (err) => {
+        console.error(`Erreur suppression ${commercant.nomMagasin}:`, err);
+        let errorMsg = err.error?.message || err.message || 'Erreur';
+        if (errorMsg.includes('TPEs') || errorMsg.includes('incidents')) {
+          errorMsg = 'Ce commerçant a des données associées.';
+        }
+        errors.push(`${commercant.nomMagasin}: ${errorMsg}`);
+        completed++;
+        if (completed === total) {
+          this.bulkDeleting = false;
+          this.showMultiDeleteModal = false;
+          this.confirmUsers = [];
+          this.showAlert('error', 'Erreur', `${successCount}/${total} commerçant(s) supprimé(s).\n${errors.slice(0, 3).join(', ')}`);
+          this.loadCommercants();
+        }
+      }
     });
-  }
+  });
+}
 
   // ================= ACTIONS SIMPLES =================
   
@@ -296,44 +310,75 @@ onEdit(commercant: any): void {
     });
   }
 
-  onDelete(commercant: any): void {
-    this.confirmUser = commercant;
-  }
+onDelete(commercant: any): void {
+  // ✅ Vérifier si le commerçant a des incidents avant d'ouvrir la modale
+  this.userService.getCommercantById(commercant.id).subscribe({
+    next: (details) => {
+      if (details && details.nombreIncidents > 0) {
+        // Utiliser 'error' au lieu de 'warning'
+        this.showAlert('error', 'Suppression impossible', 
+          `Ce commerçant a ${details.nombreIncidents} incident(s) associé(s). Supprimez-les d'abord.`);
+      } else {
+        this.confirmUser = commercant;
+      }
+    },
+    error: () => {
+      // Si on ne peut pas vérifier, on autorise quand même
+      this.confirmUser = commercant;
+    }
+  });
+}
 
   cancelDelete(): void {
     this.confirmUser = null;
     this.deleting = false;
   }
 
-  confirmDelete(): void {
-    if (!this.confirmUser) return;
+confirmDelete(): void {
+  if (!this.confirmUser) return;
 
-    this.deleting = true;
-    
-    const commercantToDelete = this.confirmUser;
-    const nomMagasin = commercantToDelete.nomMagasin;
-    
-    this.userService.deleteUser(commercantToDelete.id).subscribe({
-      next: () => {
+  this.deleting = true;
+  
+  const commercantToDelete = this.confirmUser;
+  const nomMagasin = commercantToDelete.nomMagasin;
+  
+  this.userService.deleteUser(commercantToDelete.id).subscribe({
+    next: (response: any) => {
+      // ✅ Vérifier la réponse correctement
+      const isSuccess = typeof response === 'boolean' 
+        ? response 
+        : (response?.isSuccess === true);
+      
+      if (isSuccess) {
+        // ✅ Supprimer de la liste locale seulement si succès
         this.commercants = this.commercants.filter(c => c.id !== commercantToDelete.id);
-        this.confirmUser = null;
-        this.deleting = false;
+        this.selectedCommercants.delete(commercantToDelete.id);
         this.showAlert('success', 'Succès', `${nomMagasin} a été supprimé avec succès.`);
-        this.loadCommercants();
-      },
-      error: (err) => {
-        console.error('Erreur suppression', err);
-        this.deleting = false;
-        
-        if (err.error?.message?.includes('TPEs associés')) {
-          this.showAlert('error', 'Attention', 'Ce commerçant a des TPEs associés. Supprimez-les d\'abord.');
-        } else {
-          this.showAlert('error', 'Erreur', err.error?.message || `Impossible de supprimer ${nomMagasin}.`);
-        }
-        this.confirmUser = null;
+        this.loadCommercants(); // Recharger pour mettre à jour les compteurs
+      } else {
+        // ❌ Afficher l'erreur réelle du backend
+        const errorMsg = response?.message || 'Impossible de supprimer ce commerçant.';
+        this.showAlert('error', 'Erreur', errorMsg);
       }
-    });
-  }
+      this.deleting = false;
+      this.confirmUser = null;
+    },
+    error: (err) => {
+      console.error('Erreur suppression', err);
+      this.deleting = false;
+      
+      // ✅ Récupérer le message d'erreur détaillé
+      let errorMessage = err.error?.message || err.message || 'Erreur inconnue';
+      
+      if (errorMessage.includes('TPEs') || errorMessage.includes('incidents')) {
+        errorMessage = 'Ce commerçant a des données associées (TPEs, incidents). Supprimez-les d\'abord.';
+      }
+      
+      this.showAlert('error', 'Erreur', errorMessage);
+      this.confirmUser = null;
+    }
+  });
+}
 
   getStatutCount(statut: string): number {
     return this.commercants.filter(c => c.statut === statut).length;
