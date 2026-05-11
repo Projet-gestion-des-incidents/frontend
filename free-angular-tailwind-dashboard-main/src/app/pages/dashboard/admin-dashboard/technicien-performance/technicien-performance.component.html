@@ -13,37 +13,55 @@
   </div>
 
   <!-- Modal d'export -->
-  <div *ngIf="showExportModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-    <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 animate-fadeIn">
-      <div class="px-6 py-4 border-b bg-gradient-to-r from-[#ECECFF] to-white rounded-t-2xl">
-        <h3 class="text-lg font-semibold text-[#0C144E]">Exporter les données</h3>
-        <p class="text-xs text-gray-500">Export de la performance des techniciens</p>
-      </div>
-      
-      <div class="p-6">
-        <p class="text-sm text-gray-600">Vous allez exporter le classement complet des techniciens avec :</p>
-        <ul class="mt-3 space-y-1 text-sm text-gray-500">
-          <li>• Tickets assignés, en cours et résolus</li>
-          <li>• Tickets résolus avant/après la date limite</li>
-          <li>• Taux de résolution et respect des délais</li>
-        </ul>
-      </div>
-      
-      <div class="px-6 py-4 border-t bg-gray-50 rounded-b-2xl flex justify-end gap-3">
-        <button (click)="closeExportModal()" 
-                class="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-lg transition">
-          Annuler
-        </button>
-        <button (click)="exportData()" 
-                class="px-4 py-2 bg-[#8788FF] hover:bg-[#6b6cff] text-white rounded-lg transition flex items-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+<!-- Modal d'export - Version corrigée avec fond flou -->
+<div *ngIf="showExportModal" 
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
+     (click)="closeExportModal()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
+       (click)="$event.stopPropagation()">
+    
+    <!-- En-tête avec dégradé -->
+    <div class="bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 px-6 py-4 border-b border-[#C5C6FF] dark:border-[#8788FF]/30">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/50 flex items-center justify-center shadow-inner">
+          <svg class="w-6 h-6 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
           </svg>
-          Exporter
-        </button>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-[#0C144E] dark:text-white">Exporter les données</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Export de la performance des techniciens</p>
+        </div>
       </div>
     </div>
+    
+    <!-- Corps -->
+    <div class="p-6">
+      <p class="text-sm text-gray-600 dark:text-gray-300">Vous allez exporter le classement complet des techniciens avec :</p>
+      <ul class="mt-3 space-y-1 text-sm text-gray-500 dark:text-gray-400">
+        <li>• Tickets assignés, en cours et résolus</li>
+        <li>• Tickets résolus avant/après la date limite</li>
+        <li>• Taux de résolution et respect des délais</li>
+      </ul>
+    </div>
+    
+    <!-- Pied de page -->
+    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+      <button (click)="closeExportModal()" 
+              type="button"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+        Annuler
+      </button>
+      <button (click)="exportData()" 
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-xl hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+        </svg>
+        Exporter
+      </button>
+    </div>
   </div>
+</div>
   
   <div *ngIf="loading" class="flex justify-center items-center py-20">
     <div class="animate-spin rounded-full h-12 w-12 border-4 border-[#C5C6FF] border-t-[#8788FF]"></div>
