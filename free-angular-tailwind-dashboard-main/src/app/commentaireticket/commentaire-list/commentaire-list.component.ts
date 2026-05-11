@@ -1,4 +1,4 @@
-import { Component, OnInit } from '@angular/core';
+import { ChangeDetectorRef, Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router, RouterModule } from '@angular/router';
@@ -75,6 +75,8 @@ export class CommentaireListComponent implements OnInit {
   constructor(
     private route: ActivatedRoute,
     private router: Router,
+      private cdr: ChangeDetectorRef,  // Ajoutez ceci
+
     private commentaireService: CommentaireService,
     private ticketService: TicketService,
     private userService: UserService
@@ -99,7 +101,7 @@ export class CommentaireListComponent implements OnInit {
     this.successMessage = message;
     setTimeout(() => {
       this.successMessage = null;
-    }, 3000);
+    }, 5000);
   }
 
   // ✅ AJOUTER cette méthode pour afficher les erreurs
@@ -115,11 +117,43 @@ export class CommentaireListComponent implements OnInit {
   /**
    * Détermine si un commentaire doit être affiché pour l'utilisateur courant
    */
-  shouldDisplayComment(comment: CommentaireDTO): boolean {
-    if (this.isAdmin) return true;
-    if (comment.auteurId === this.userId) return true;
-    return !comment.estInterne;
+/**
+ * Détermine si un commentaire doit être affiché pour l'utilisateur courant
+ * 
+ * Règles de visibilité :
+ * 1. L'auteur voit TOUS ses commentaires (internes et publics)
+ * 2. Les Admins voient TOUS les commentaires
+ * 3. Les Techniciens voient UNIQUEMENT les commentaires publics des autres
+ * 4. Les commentaires internes des autres Techniciens sont masqués
+ */
+shouldDisplayComment(comment: CommentaireDTO): boolean {
+  // Règle 1: L'auteur voit toujours son commentaire
+  if (comment.auteurId === this.userId) {
+    return true;
   }
+  
+  // Règle 2: Les Admins voient tout
+  if (this.isAdmin) {
+    return true;
+  }
+  
+  // Règle 3: Si commentaire interne, seul l'auteur ou l'admin le voit
+  if (comment.estInterne) {
+    return false; // Technicien non-auteur ne voit pas les internes
+  }
+  
+  // Règle 4: Technicien voit les commentaires publics
+  return this.isTechnicien;
+}
+// Ajoutez cette méthode
+
+/**
+ * Détermine si l'utilisateur peut voir l'option "commentaire interne"
+ * Seuls les Admins peuvent choisir si un commentaire est interne
+ */
+get canChooseVisibility(): boolean {
+  return this.isAdmin;  // Seul l'admin peut choisir
+}
 
 canEditComment(commentaire: CommentaireDTO): boolean {
   // ✅ Si le ticket est résolu, on ne peut pas modifier
@@ -274,6 +308,182 @@ loadCommentaires(): void {
     this.newFiles = [];
   }
 
+  // Ajoutez cette méthode après les propriétés
+// Ajoutez cette propriété avec les autres déclarations
+editHasChanges: boolean = false;
+/**
+ * Vérifie si le formulaire d'édition de commentaire a des changements
+ * Le bouton est activé uniquement si le message a changé OU des fichiers ont été ajoutés/supprimés
+ */
+// Remplacez isEditFormValid par cette version améliorée
+get isEditFormValid(): boolean {
+  if (!this.editCommentData) return false;
+
+  const messageChanged = this.editMessage !== this.editCommentData.message;
+  const filesAdded = this.editFilesToAdd.length > 0;
+
+  // ✅ FIX : comparer avec le count ORIGINAL sauvegardé à l'ouverture
+  const currentFilesCount = this.editCommentData.piecesJointes?.length || 0;
+  const filesDeleted = this.originalPiecesJointesCount !== currentFilesCount;
+
+  let statusChanged = false;
+  if (this.isAdmin && this.editCommentData) {
+    statusChanged = this.editEstInterne !== this.editCommentData.estInterne;
+  }
+
+  const hasChanges = messageChanged || filesAdded || filesDeleted || statusChanged;
+
+  const hasValidMessage = this.editMessage && this.editMessage.trim().length > 0;
+  const hasExistingFiles = currentFilesCount > 0;
+  const hasContent = hasValidMessage || filesAdded || hasExistingFiles;
+
+  return hasChanges && hasContent;
+}
+// Ajoutez ces propriétés avec les autres déclarations
+showConfirmDeleteFileModal: boolean = false;
+fileToDelete: { pieceId?: string; fileName: string; isDeleteAll: boolean } | null = null;
+
+// Ajoutez ces méthodes
+
+/**
+ * Ouvre la modale de confirmation pour supprimer une pièce jointe spécifique
+ */
+confirmDeleteSingleFile(pieceId: string, fileName: string): void {
+  this.fileToDelete = {
+    pieceId: pieceId,
+    fileName: fileName,
+    isDeleteAll: false
+  };
+  this.showConfirmDeleteFileModal = true;
+}
+
+/**
+ * Ouvre la modale de confirmation pour supprimer toutes les pièces jointes
+ */
+confirmDeleteAllFiles(): void {
+  const totalFiles = this.editCommentData?.piecesJointes?.length || 0;
+  if (totalFiles === 0) return;
+  
+  this.fileToDelete = {
+    fileName: `${totalFiles} fichier(s)`,
+    isDeleteAll: true
+  };
+  this.showConfirmDeleteFileModal = true;
+}
+private originalPiecesJointesCount: number = 0;
+
+/**
+ * Exécute la suppression des fichiers après confirmation
+ */
+// Modifiez executeDeleteFiles() pour une suppression immédiate
+// Ajoutez cette méthode pour vérifier les changements dans l'édition
+checkEditChanges(): void {
+  // Force la mise à jour des getters
+  // Angular recalcule automatiquement isEditFormValid
+}
+
+// Modifiez executeDeleteFiles()
+executeDeleteFiles(): void {
+  if (!this.fileToDelete) return;
+  
+  if (this.fileToDelete.isDeleteAll) {
+    // Supprimer immédiatement toutes les pièces jointes
+    const allIds = this.editCommentData.piecesJointes.map((p: any) => p.id);
+    allIds.forEach((id: string) => {
+      if (!this.editPiecesToDelete.includes(id)) {
+        this.editPiecesToDelete.push(id);
+      }
+    });
+    this.editCommentData.piecesJointes = [];
+    // Pas de message de succès
+  } else if (this.fileToDelete.pieceId) {
+    const pieceIndex = this.editCommentData.piecesJointes.findIndex(
+      (piece: any) => piece.id === this.fileToDelete!.pieceId
+    );
+    if (pieceIndex !== -1) {
+      if (!this.editPiecesToDelete.includes(this.fileToDelete.pieceId)) {
+        this.editPiecesToDelete.push(this.fileToDelete.pieceId);
+      }
+      this.editCommentData.piecesJointes.splice(pieceIndex, 1);
+      // Pas de message de succès
+    }
+  }
+  
+  this.closeConfirmDeleteFileModal();
+  this.cdr.detectChanges();
+}
+
+// Ajoutez ces propriétés avec les autres déclarations
+showConfirmDeleteAddFileModal: boolean = false;
+addFileToDelete: { index: number; fileName: string; isDeleteAll: boolean } | null = null;
+
+/**
+ * Ouvre la modale de confirmation pour supprimer une pièce jointe spécifique dans l'ajout
+ */
+confirmDeleteSingleAddFile(index: number, fileName: string): void {
+  this.addFileToDelete = {
+    index: index,
+    fileName: fileName,
+    isDeleteAll: false
+  };
+  this.showConfirmDeleteAddFileModal = true;
+}
+
+/**
+ * Ouvre la modale de confirmation pour supprimer toutes les pièces jointes dans l'ajout
+ */
+confirmDeleteAllAddFiles(): void {
+  const totalFiles = this.newCommentFiles.length;
+  if (totalFiles === 0) return;
+  
+  this.addFileToDelete = {
+    index: -1,
+    fileName: `${totalFiles} fichier(s)`,
+    isDeleteAll: true
+  };
+  this.showConfirmDeleteAddFileModal = true;
+}
+
+/**
+ * Exécute la suppression des fichiers après confirmation pour l'ajout
+ */
+executeDeleteAddFiles(): void {
+  if (!this.addFileToDelete) return;
+  
+  if (this.addFileToDelete.isDeleteAll) {
+    this.newCommentFiles = [];
+  } else if (this.addFileToDelete.index >= 0) {
+    this.newCommentFiles.splice(this.addFileToDelete.index, 1);
+  }
+  
+  this.closeConfirmDeleteAddFileModal();
+}
+
+/**
+ * Ferme la modale de confirmation de suppression pour l'ajout
+ */
+closeConfirmDeleteAddFileModal(): void {
+  this.showConfirmDeleteAddFileModal = false;
+  this.addFileToDelete = null;
+}
+
+/**
+ * Ferme la modale de confirmation de suppression
+ */
+closeConfirmDeleteFileModal(): void {
+  this.showConfirmDeleteFileModal = false;
+  this.fileToDelete = null;
+}
+// Ajoutez cette méthode dans la classe CommentaireListComponent, après les autres méthodes
+
+/**
+ * Gère le changement de la checkbox "Interne" dans le formulaire d'édition
+ */
+onEstInterneChange(value: boolean): void {
+  this.editEstInterne = value;
+  // Force la détection de changement (Angular recalcule automatiquement le getter isEditFormValid)
+}
+
   submitCommentaire(): void {
     if (!this.newMessage.trim() && this.newFiles.length === 0) {
       this.error = 'Veuillez saisir un message ou ajouter un fichier';
@@ -305,77 +515,103 @@ loadCommentaires(): void {
   // ========== ÉDITION DE COMMENTAIRE (MODALE) ==========
   
   // ✅ Méthode pour ouvrir la modale d'édition
-  openEditModal(comment: any): void {
-    if (!this.canEditComment(comment)) {
-      this.showError('Vous ne pouvez pas modifier ce commentaire');
-      return;
-    }
-    
-    this.editCommentData = {
-      id: comment.id,
-      message: comment.message,
-      estInterne: comment.estInterne,
-      piecesJointes: comment.piecesJointes || []
-    };
-    this.editMessage = comment.message;
-    this.editEstInterne = comment.estInterne;
-    this.editFilesToAdd = [];
-    this.editPiecesToDelete = [];
-    this.filesToDelete = [];
-    this.showEditModal = true;
+ // Modifiez openEditModal()
+openEditModal(comment: any): void {
+  if (!this.canEditComment(comment)) {
+    this.showError('Vous ne pouvez pas modifier ce commentaire');
+    return;
   }
+  
+  this.editCommentData = {
+    id: comment.id,
+    message: comment.message,
+    estInterne: comment.estInterne,
+    piecesJointes: comment.piecesJointes || []
+  };
+    this.originalPiecesJointesCount = (comment.piecesJointes || []).length;  // ← AJOUTER
+
+  this.editMessage = comment.message;
+  // ✅ Seul l'admin peut modifier le statut interne
+  this.editEstInterne = this.isAdmin ? comment.estInterne : false;
+  this.editFilesToAdd = [];
+  this.editPiecesToDelete = [];
+  this.filesToDelete = [];
+  this.showEditModal = true;
+}
+
+// Modifiez saveEdit()
+saveEdit(): void {
+  if (!this.editCommentData) return;
+  
+  const formData = new FormData();
+  formData.append('Id', this.editCommentData.id);
+  formData.append('Message', this.editMessage);
+  
+  // ✅ Si l'utilisateur n'est pas Admin, conserver la valeur originale (ne pas modifier)
+  const estInterne = this.isAdmin ? this.editEstInterne : this.editCommentData.estInterne;
+  formData.append('EstInterne', String(estInterne));
+  
+  formData.append('EffacerMessage', String(!this.editMessage.trim()));
+  
+  this.editPiecesToDelete.forEach(id => {
+    formData.append('PiecesJointesASupprimer', id);
+  });
+  
+  this.editFilesToAdd.forEach(file => {
+    formData.append('NouveauxFichiers', file, file.name);
+  });
+  
+  this.commentaireService.updateCommentaire(this.editCommentData.id, formData).subscribe({
+    next: () => {
+      this.loadCommentaires();
+      this.showSuccess('Commentaire modifié avec succès');
+    },
+    error: (err) => {
+      console.error('Erreur modification:', err);
+      this.showError('Erreur lors de la modification du commentaire');
+    }
+  });
+}
 
   // ✅ Fermer la modale d'édition
-  closeEditModal(): void {
-    this.showEditModal = false;
-    this.editCommentData = null;
-    this.editMessage = '';
-    this.editEstInterne = false;
-    this.editFilesToAdd = [];
-    this.editPiecesToDelete = [];
-    this.filesToDelete = [];
-  }
+closeEditModal(): void {
+  this.showEditModal = false;
+  this.editCommentData = null;
+  this.editMessage = '';
+  this.editEstInterne = false;
+  this.editFilesToAdd = [];
+  this.editPiecesToDelete = [];
+  this.filesToDelete = [];
+  this.originalPiecesJointesCount = 0;  // ← ajouter cette ligne
+}
 
   // ✅ Confirmer et sauvegarder l'édition
-  confirmEditSave(): void {
-    if (!this.editMessage?.trim()) {
-      this.showError('Le message ne peut pas être vide');
-      return;
-    }
-    this.saveEdit();
-    this.closeEditModal();
+confirmEditSave(): void {
+  const hasMessage = this.editMessage?.trim().length > 0;
+  const hasExistingFiles = this.editCommentData?.piecesJointes?.length > 0;
+  const hasNewFiles = this.editFilesToAdd.length > 0;
+
+  if (!hasMessage && !hasExistingFiles && !hasNewFiles) {
+    this.showError('Le commentaire doit contenir un message ou au moins une pièce jointe');
+    return;
   }
+
+  this.saveEdit();
+  this.closeEditModal();
+}
 
   // ✅ Sauvegarde de l'édition (appel API)
-  saveEdit(): void {
-    if (!this.editCommentData) return;
-    
-    const formData = new FormData();
-    formData.append('Id', this.editCommentData.id);
-    formData.append('Message', this.editMessage);
-    formData.append('EstInterne', String(this.editEstInterne));
-    formData.append('EffacerMessage', String(!this.editMessage.trim()));
-    
-    this.editPiecesToDelete.forEach(id => {
-      formData.append('PiecesJointesASupprimer', id);
-    });
-    
-    this.editFilesToAdd.forEach(file => {
-      formData.append('NouveauxFichiers', file, file.name);
-    });
-    
-    this.commentaireService.updateCommentaire(this.editCommentData.id, formData).subscribe({
-      next: () => {
-        this.loadCommentaires();
-        this.showSuccess('Commentaire modifié avec succès');
-      },
-      error: (err) => {
-        console.error('Erreur modification:', err);
-        this.showError('Erreur lors de la modification du commentaire');
-      }
-    });
-  }
+ 
+// Ajoutez cette méthode après les propriétés
 
+/**
+ * Vérifie si le formulaire d'ajout de commentaire est valide
+ * Le bouton est activé uniquement si un message OU des fichiers sont présents
+ */
+get isAddCommentFormValid(): boolean {
+  return (this.newCommentData.message && this.newCommentData.message.trim().length > 0) 
+      || (this.newCommentFiles.length > 0);
+}
   // ========== GESTION DES FICHIERS EN ÉDITION ==========
   onEditFileSelected(event: any): void {
     const files = event.target.files;
@@ -631,6 +867,7 @@ clearAddAllFiles(): void {
   this.newCommentFiles = [];
 }
 
+// Modifiez la méthode submitNewComment()
 submitNewComment(): void {
   if (!this.newCommentData.message.trim() && this.newCommentFiles.length === 0) {
     this.error = 'Veuillez saisir un message ou ajouter un fichier';
@@ -642,7 +879,11 @@ submitNewComment(): void {
   
   const formData = new FormData();
   formData.append('Message', this.newCommentData.message);
-  formData.append('EstInterne', String(this.newCommentData.estInterne));
+  
+  // ✅ IMPORTANT: Si l'utilisateur n'est pas Admin, forcer estInterne à false
+  const estInterne = this.isAdmin ? this.newCommentData.estInterne : false;
+  formData.append('EstInterne', String(estInterne));
+  
   this.newCommentFiles.forEach(file => {
     formData.append('fichiers', file, file.name);
   });
