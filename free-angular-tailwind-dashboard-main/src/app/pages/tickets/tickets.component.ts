@@ -397,7 +397,7 @@ executeMultiArchive(): void {
           const index = this.tickets.findIndex(t => t.id === id);
           if (index !== -1) this.tickets.splice(index, 1);
           
-          this.selectedTickets.delete(id);  // utiliser delete
+          this.selectedTickets.delete(id);
           successCount++;
         }
         completed++;
@@ -414,9 +414,12 @@ executeMultiArchive(): void {
           this.updateSelectionStats();
           
           if (successCount === total) {
-            this.showAlert('success', 'Succès', `${total} ticket(s) archivé(s) avec succès.`);
+            // ✅ Utiliser successMessage
+            this.successMessage = `${total} ticket(s) archivé(s) avec succès.`;
+            setTimeout(() => this.successMessage = '', 5000);
           } else if (successCount > 0) {
-            this.showAlert('warning', 'Archivage partiel', `${successCount} ticket(s) archivé(s), ${total - successCount} échec(s).`);
+            this.error = `${successCount} ticket(s) archivé(s), ${total - successCount} échec(s).`;
+            setTimeout(() => this.error = null, 5000);
           }
           this.loadTickets();
         }
@@ -430,7 +433,8 @@ executeMultiArchive(): void {
           this.pendingArchiveIds = [];
           this.confirmArchiveTickets = [];
           this.updateSelectionStats();
-          this.showAlert('error', 'Erreur', `${successCount}/${total} ticket(s) archivé(s).`);
+          this.error = `${successCount}/${total} ticket(s) archivé(s).`;
+          setTimeout(() => this.error = null, 5000);
           this.loadTickets();
         }
       }
@@ -509,7 +513,6 @@ executeMultiDelete(): void {
           const index = this.tickets.findIndex(t => t.id === id);
           if (index !== -1) this.tickets.splice(index, 1);
           
-          // ✅ Utiliser delete sur Set
           this.selectedTickets.delete(id);
           successCount++;
         }
@@ -531,11 +534,15 @@ executeMultiDelete(): void {
           }
           
           if (successCount === total) {
-            this.showAlert('success', 'Succès', `${total} ticket(s) supprimé(s) avec succès.`);
+            // ✅ Utiliser successMessage
+            this.successMessage = `${total} ticket(s) supprimé(s) avec succès.`;
+            setTimeout(() => this.successMessage = '', 5000);
           } else if (successCount > 0) {
-            this.showAlert('warning', 'Suppression partielle', `${successCount} ticket(s) supprimé(s), ${total - successCount} échec(s).`);
+            this.error = `${successCount} ticket(s) supprimé(s), ${total - successCount} échec(s).`;
+            setTimeout(() => this.error = null, 5000);
           } else {
-            this.showAlert('error', 'Échec', `Aucun ticket n'a pu être supprimé.`);
+            this.error = `Aucun ticket n'a pu être supprimé.`;
+            setTimeout(() => this.error = null, 5000);
           }
           this.loadTickets();
         }
@@ -549,7 +556,8 @@ executeMultiDelete(): void {
           this.pendingDeleteIds = [];
           this.confirmDeleteTickets = [];
           this.updateSelectionStats();
-          this.showAlert('error', 'Erreur', `${successCount}/${total} ticket(s) supprimé(s).`);
+          this.error = `${successCount}/${total} ticket(s) supprimé(s).`;
+          setTimeout(() => this.error = null, 5000);
           this.loadTickets();
         }
       }
@@ -597,20 +605,18 @@ confirmArchive(): void {
   this.ticketService.archiverTicket(this.ticketToArchive.id).subscribe({
     next: (response) => {
       if (response.isSuccess) {
-        this.showAlert('success', 'Succès', `Le ticket "${this.ticketToArchive!.referenceTicket}" a été archivé avec succès.`);
-        
-        this.loadTickets();
-        
+        // ✅ Utiliser successMessage au lieu de showAlert
         this.successMessage = `Ticket "${this.ticketToArchive!.referenceTicket}" archivé avec succès.`;
         setTimeout(() => {
           this.successMessage = '';
-        }, 3000);
+        }, 5000);
         
-        // ✅ Utiliser delete sur Set
+        this.loadTickets();
         this.selectedTickets.delete(this.ticketToArchive!.id);
       } else {
         const errorMessage = response.message || 'Impossible d\'archiver le ticket.';
-        this.showAlert('error', 'Erreur', errorMessage);
+        this.error = errorMessage;
+        setTimeout(() => this.error = null, 5000);
       }
       this.cancelArchive();
     },
@@ -627,7 +633,8 @@ confirmArchive(): void {
         errorMessage = err.message;
       }
       
-      this.showAlert('error', 'Erreur', errorMessage);
+      this.error = errorMessage;
+      setTimeout(() => this.error = null, 5000);
       this.cancelArchive();
     }
   });
@@ -1222,22 +1229,31 @@ this.selectedTickets.delete(this.confirmTicket!.id);
     this.ticketsToDelete = null;
   }
 
-  showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string) {
-    if (variant === 'success') {
-      this.successMessage = message;
-      setTimeout(() => {
-        this.successMessage = '';
-      }, 3000);
-    } else if (variant === 'error') {
-      this.error = message;
-      setTimeout(() => {
+// Dans tickets.component.ts, modifiez la méthode showAlert
+
+showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string) {
+  if (variant === 'success') {
+    this.successMessage = message;
+    setTimeout(() => {
+      this.successMessage = '';
+    }, 5000);
+  } else if (variant === 'error') {
+    this.error = message;
+    setTimeout(() => {
+      this.error = null;
+    }, 5000);
+  } else if (variant === 'warning') {
+    // Pour les avertissements, on peut utiliser l'alerte ou un toast
+    console.warn(message);
+    // Optionnel : afficher une alerte temporaire aussi
+    this.error = message;
+    setTimeout(() => {
+      if (this.error === message) {
         this.error = null;
-      }, 5000);
-    } else if (variant === 'warning') {
-      // Pour les avertissements, on peut utiliser l'alerte ou un toast
-      console.warn(message);
-    }
+      }
+    }, 5000);
   }
+}
 
   // ========== PAGINATION ==========
 

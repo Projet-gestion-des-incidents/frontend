@@ -4,7 +4,7 @@
    <!-- MODALES DE CONFIRMATION -->
 <!-- Modal de confirmation d'archivage pour les tickets -->
 <div *ngIf="showArchiveModal" 
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
      (click)="cancelArchive()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
        (click)="$event.stopPropagation()">
@@ -76,7 +76,7 @@
 </div>
 <!-- Modale suppression ticket unique -->
 <div *ngIf="confirmTicket" 
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
      (click)="cancelDelete()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
        (click)="$event.stopPropagation()">
@@ -117,7 +117,7 @@
 
 <!-- Modale suppression multiple -->
 <div *ngIf="ticketsToDelete && ticketsToDelete.length > 0 && !confirmTicket" 
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
      (click)="cancelDelete()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
        (click)="$event.stopPropagation()">
@@ -160,6 +160,12 @@
     </div>
   </div>
 </div> 
+
+  </div>
+
+ 
+  <!-- Dans tickets.component.html, ajoutez ce bloc après le div qui contient les modales et avant la carte principale -->
+
 <!-- Message de succès -->
 <div *ngIf="successMessage" 
      class="rounded-xl border border-green-200 bg-green-50 p-4 flex items-center justify-between animate-slide-down dark:border-green-800 dark:bg-green-900/20 mb-6">
@@ -179,10 +185,6 @@
     </svg>
   </button>
 </div>
-  </div>
-
- 
-  
 
 
   <!-- Carte principale -->
@@ -486,7 +488,7 @@
           </div>
         <input 
           type="text" 
-          placeholder="Rechercher par code..." 
+          placeholder="Rechercher par code, titre, technicien..." 
           [(ngModel)]="searchTerm"
           (input)="onSearch()"
           class="h-11 w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-11 pr-10 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-white/30 transition-all"
@@ -604,21 +606,17 @@
       </select>
     </div>
 
- <!-- Filtre par date -->
+<!-- Filtre par date -->
 <div class="relative">
   <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Date de création</label>
   <div class="relative">
-    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
-      <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-      </svg>
-    </div>
     <input 
       type="date" 
       id="ticketDate"
       [value]="selectedDate | date:'yyyy-MM-dd'"
       (change)="onTicketDateChange($event)"
-      class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all cursor-pointer"
+      class="w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-blue-300 focus:ring-2 focus:ring-blue-500/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all cursor-pointer"
+      style="padding-left: 0.75rem;"
     />
     <button 
       type="button"
@@ -917,7 +915,7 @@
     </div>
   </div>
   <!-- Modal de confirmation d'archivage multiple -->
-<div *ngIf="showMultiArchiveModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+<div *ngIf="showMultiArchiveModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
   <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
     <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
       <div class="flex items-center gap-3">
@@ -934,14 +932,7 @@
       <p class="text-gray-600 dark:text-gray-300 mb-2">
         Êtes-vous sûr de vouloir archiver <strong class="text-amber-600">{{ confirmArchiveTickets.length }} ticket(s)</strong> ?
       </p>
-      <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 max-h-48 overflow-y-auto">
-        <p class="text-xs text-gray-500 mb-2 font-medium">Tickets concernés :</p>
-        <ul class="space-y-1">
-          <li *ngFor="let ticket of confirmArchiveTickets" class="text-sm text-gray-700 dark:text-gray-300">
-            • {{ ticket.referenceTicket }} - {{ ticket.titreTicket }}
-          </li>
-        </ul>
-      </div>
+      
       <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
         <div class="flex gap-2">
           <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -970,7 +961,7 @@
 </div>
 
 <!-- Modal de confirmation suppression multiple -->
-<div *ngIf="showMultiDeleteModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+<div *ngIf="showMultiDeleteModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
   <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
     <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
       <div class="flex items-center gap-3">
@@ -987,14 +978,7 @@
       <p class="text-gray-600 dark:text-gray-300 mb-2">
         Êtes-vous sûr de vouloir supprimer définitivement <strong class="text-red-600">{{ confirmDeleteTickets.length }} ticket(s)</strong> ?
       </p>
-      <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 max-h-48 overflow-y-auto">
-        <p class="text-xs text-gray-500 mb-2 font-medium">Tickets concernés :</p>
-        <ul class="space-y-1">
-          <li *ngFor="let ticket of confirmDeleteTickets" class="text-sm text-gray-700 dark:text-gray-300">
-            • {{ ticket.referenceTicket }} - {{ ticket.titreTicket }}
-          </li>
-        </ul>
-      </div>
+      
       <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
         <div class="flex gap-2">
           <svg class="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
