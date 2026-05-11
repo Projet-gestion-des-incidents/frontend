@@ -163,10 +163,11 @@
 </div>
 
 <!-- Bouton Sélectionner tout pour incidents (CORRIGÉ) -->
+<!-- Bouton Sélectionner tout pour incidents -->
 <div class="flex items-center gap-3 px-4 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
   <button
     (click)="toggleAllIncidentsSelection(selectedIncidents.size === 0 && !globalIncidentSelectionMode)"
-    class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium transition-all duration-200 rounded-lg"
+    class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg"
     [ngClass]="{
       'text-[#8788FF] bg-[#ECECFF] hover:bg-[#C5C6FF] dark:bg-[#0C144E]/30 dark:text-[#B2B3FF] dark:hover:bg-[#0C144E]/50': selectedIncidents.size === 0 && !globalIncidentSelectionMode
     }"
@@ -326,16 +327,13 @@
   <!-- Bouton Sélectionner tout / Désélectionner tout -->
   <button
     (click)="toggleAllTicketSelection(selectedTickets.size === 0 && !globalTicketSelectionMode)"
-    class="inline-flex items-center gap-2 px-3 py-1.5 text-xs font-medium transition-all duration-200 rounded-lg"
+    class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-medium transition-all duration-200 rounded-lg"
     [ngClass]="{
       'text-[#8788FF] bg-[#ECECFF] hover:bg-[#C5C6FF] dark:bg-[#0C144E]/30 dark:text-[#B2B3FF] dark:hover:bg-[#0C144E]/50': selectedTickets.size === 0 && !globalTicketSelectionMode,
     }"
   >
-
     <span *ngIf="selectedTickets.size === 0 && !globalTicketSelectionMode">Sélectionner tout</span>
   </button>
-  
-
 </div>
 
 
@@ -451,7 +449,7 @@
 
   <!-- Modale de confirmation restauration incident -->
   <div *ngIf="showRestoreIncidentModal" 
-       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300"
+       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
        (click)="cancelRestoreIncident()">
     <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
          (click)="$event.stopPropagation()">
@@ -524,7 +522,7 @@
 
   <!-- Modale de confirmation restauration ticket -->
   <div *ngIf="showRestoreTicketModal" 
-       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300"
+       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
        (click)="cancelRestoreTicket()">
     <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
          (click)="$event.stopPropagation()">
@@ -596,7 +594,7 @@
   </div>
   <!-- Modale de confirmation restauration multiple tickets -->
 <div *ngIf="showMultiRestoreTicketModal" 
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
      (click)="cancelMultiRestoreTicket()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
        (click)="$event.stopPropagation()">
@@ -623,14 +621,7 @@
         <strong class="text-[#8788FF]">{{ confirmRestoreTickets.length }} ticket(s)</strong> ?
       </p>
       
-      <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 max-h-48 overflow-y-auto mt-4">
-        <p class="text-xs text-gray-500 mb-2 font-medium">Tickets concernés :</p>
-        <ul class="space-y-1">
-          <li *ngFor="let ticket of confirmRestoreTickets" class="text-sm text-gray-700 dark:text-gray-300">
-            • {{ ticket.referenceTicket }} - {{ ticket.titreTicket }}
-          </li>
-        </ul>
-      </div>
+      
       
       <div class="bg-[#ECECFF] dark:bg-[#0C144E]/20 border border-[#C5C6FF] dark:border-[#8788FF]/30 rounded-lg p-4">
         <div class="flex gap-2">
@@ -675,7 +666,7 @@
 
 <!-- Modale de confirmation restauration TOUS les tickets -->
 <div *ngIf="globalTicketSelectionMode && showMultiRestoreTicketModal" 
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
      (click)="cancelMultiRestoreTicket()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
        (click)="$event.stopPropagation()">
@@ -721,7 +712,7 @@
               Note importante
             </p>
             <p class="text-sm text-amber-700 dark:text-amber-300">
-              Cette opération peut prendre quelques instants selon le nombre de tickets ({{ ticketsTotalCount }} ticket(s)).
+            
               Les tickets seront déplacés dans la liste des tickets actifs.
             </p>
           </div>
@@ -754,7 +745,7 @@
 </div>
 <!-- Modale de confirmation restauration multiple incidents -->
 <div *ngIf="showMultiRestoreIncidentModal" 
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
      (click)="cancelMultiRestoreIncident()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
        (click)="$event.stopPropagation()">
@@ -833,7 +824,7 @@
 
 <!-- Modale de confirmation restauration TOUS les incidents -->
 <div *ngIf="globalIncidentSelectionMode && showMultiRestoreIncidentModal" 
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4 transition-all duration-300"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
      (click)="cancelMultiRestoreIncident()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
        (click)="$event.stopPropagation()">
@@ -879,7 +870,7 @@
               Note importante
             </p>
             <p class="text-sm text-amber-700 dark:text-amber-300">
-              Cette opération peut prendre quelques instants selon le nombre d'incidents.
+              
               Les incidents seront déplacés dans la liste des incidents actifs.
             </p>
           </div>
@@ -912,7 +903,7 @@
 </div>
 <!-- Modale suppression définitive incident -->
 <div *ngIf="showDeleteIncidentModal"
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
      (click)="cancelDeleteIncident()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden"
        (click)="$event.stopPropagation()">
@@ -927,7 +918,7 @@
         </div>
         <div>
           <h3 class="text-lg font-bold text-gray-900 dark:text-white">Supprimer définitivement</h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Cette action est irréversible</p>
+          
         </div>
       </div>
     </div>
@@ -947,7 +938,7 @@
           <div>
             <p class="text-sm font-medium text-red-800 dark:text-red-200">Suppression définitive</p>
             <p class="text-sm text-red-700 dark:text-red-300">
-              L'incident et toutes ses données associées (liaisons TPE, tickets, notifications) seront supprimés définitivement.
+              L'incident et toutes ses données associées seront supprimés définitivement.
             </p>
           </div>
         </div>
@@ -970,7 +961,7 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span>{{ deletingIncident ? 'Suppression...' : 'Supprimer définitivement' }}</span>
+        <span>{{ deletingIncident ? 'Suppression...' : 'Supprimer ' }}</span>
       </button>
     </div>
   </div>
@@ -978,7 +969,7 @@
 
 <!-- Modale suppression définitive ticket -->
 <div *ngIf="showDeleteTicketModal"
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
      (click)="cancelDeleteTicket()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden"
        (click)="$event.stopPropagation()">
@@ -993,7 +984,7 @@
         </div>
         <div>
           <h3 class="text-lg font-bold text-gray-900 dark:text-white">Supprimer définitivement</h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Cette action est irréversible</p>
+          
         </div>
       </div>
     </div>
@@ -1014,7 +1005,7 @@
           <div>
             <p class="text-sm font-medium text-red-800 dark:text-red-200">Suppression définitive</p>
             <p class="text-sm text-red-700 dark:text-red-300">
-              Le ticket et toutes ses données associées (commentaires, pièces jointes, notifications) seront supprimés définitivement.
+              Le ticket et toutes ses données associées seront supprimés définitivement.
             </p>
           </div>
         </div>
@@ -1037,13 +1028,13 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span>{{ deletingTicket ? 'Suppression...' : 'Supprimer définitivement' }}</span>
+        <span>{{ deletingTicket ? 'Suppression...' : 'Supprimer' }}</span>
       </button>
     </div>
   </div>
 </div>
 <div *ngIf="showMultiDeleteIncidentModal"
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
      (click)="cancelMultiDeleteIncident()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden"
        (click)="$event.stopPropagation()">
@@ -1088,7 +1079,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
           </svg>
           <p class="text-sm text-red-700 dark:text-red-300">
-            Les incidents et toutes leurs données associées seront supprimés définitivement et ne pourront pas être récupérés.
+            Les incidents et toutes leurs données associées seront supprimés définitivement.
           </p>
         </div>
       </div>
@@ -1109,13 +1100,13 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span>{{ bulkDeletingIncidents ? 'Suppression...' : 'Supprimer définitivement' }}</span>
+        <span>{{ bulkDeletingIncidents ? 'Suppression...' : 'Supprimer' }}</span>
       </button>
     </div>
   </div>
 </div>
 <div *ngIf="showMultiDeleteTicketModal"
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
      (click)="cancelMultiDeleteTicket()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full shadow-2xl overflow-hidden"
        (click)="$event.stopPropagation()">
@@ -1144,15 +1135,7 @@
         </strong> ?
       </p>
 
-      <div *ngIf="!globalTicketSelectionMode && confirmDeleteTickets.length > 0"
-           class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-4 mb-4 max-h-40 overflow-y-auto">
-        <p class="text-xs text-gray-500 mb-2 font-medium">Tickets concernés :</p>
-        <ul class="space-y-1">
-          <li *ngFor="let ticket of confirmDeleteTickets" class="text-sm text-gray-700 dark:text-gray-300">
-            • {{ ticket.referenceTicket }} — {{ ticket.titreTicket }}
-          </li>
-        </ul>
-      </div>
+      
 
       <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
         <div class="flex gap-2">
@@ -1181,7 +1164,7 @@
           <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
           <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
         </svg>
-        <span>{{ bulkDeletingTickets ? 'Suppression...' : 'Supprimer définitivement' }}</span>
+        <span>{{ bulkDeletingTickets ? 'Suppression...' : 'Supprimer' }}</span>
       </button>
     </div>
   </div>
