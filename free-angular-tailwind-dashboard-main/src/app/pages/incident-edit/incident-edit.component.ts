@@ -1547,6 +1547,41 @@ onDescriptionChange(): void {
   }
 }
 
+// Ajoutez avec les autres propriétés
+showDeleteSingleNewFileModal: boolean = false;
+singleNewFileToDelete: { index: number; fileName: string } | null = null;
+
+/**
+ * Ouvre la modale de confirmation pour supprimer un nouveau fichier spécifique
+ */
+confirmDeleteSingleNewFile(index: number, fileName: string): void {
+  this.singleNewFileToDelete = {
+    index: index,
+    fileName: fileName
+  };
+  this.showDeleteSingleNewFileModal = true;
+}
+
+/**
+ * Exécute la suppression d'un nouveau fichier spécifique
+ */
+executeDeleteSingleNewFile(): void {
+  if (!this.singleNewFileToDelete) return;
+  
+  this.selectedFiles.splice(this.singleNewFileToDelete.index, 1);
+  this.updateIncidentFiles();
+  this.checkForChanges();
+  this.showTemporaryMessage(`Fichier "${this.singleNewFileToDelete.fileName}" supprimé`, 'success');
+  this.closeDeleteSingleNewFileModal();
+}
+
+/**
+ * Ferme la modale de suppression d'un nouveau fichier
+ */
+closeDeleteSingleNewFileModal(): void {
+  this.showDeleteSingleNewFileModal = false;
+  this.singleNewFileToDelete = null;
+}
 
 showTemporaryMessage(message: string, type: 'success' | 'error' | 'warning' = 'success') {
   if (this.messageTimeout) {
