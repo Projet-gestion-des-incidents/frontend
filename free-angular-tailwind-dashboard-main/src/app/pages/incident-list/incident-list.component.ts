@@ -583,6 +583,95 @@ private formatEntiteImpactee(type: string): string {
   
   return mapping[type] || type;
 }
+
+/**
+ * Vérifie si un incident est lié à un ticket
+ */
+/**
+ * Vérifie si un incident est lié à un ticket
+ */
+/**
+ * Vérifie si un incident est lié à un ticket
+ * Basé sur la structure JSON de l'API
+ */
+/**
+ * Vérifie si un incident est lié à un ticket
+ * Avec débogages complets
+ */
+isIncidentLieATicket(incident: any): boolean {
+  console.log('🔍 [DEBUG] isIncidentLieATicket appelé pour incident:', incident?.codeIncident || incident?.id);
+  
+  if (!incident) {
+    console.log('❌ [DEBUG] Incident est null/undefined');
+    return false;
+  }
+
+  // Afficher toutes les propriétés pertinentes de l'incident
+  console.log('📊 [DEBUG] Propriétés de l\'incident:', {
+    id: incident.id,
+    codeIncident: incident.codeIncident,
+    hasOwnTickets: incident.hasOwnProperty('tickets'),
+    ticketsValue: incident.tickets,
+    ticketsLength: incident.tickets?.length,
+    ticketCount: incident.ticketCount,
+    hasTicket: incident.hasTicket,
+    isLinkedToTicket: incident.isLinkedToTicket
+  });
+
+  // ✅ CAS 1: Propriété 'tickets' présente et non vide (getIncidentDetails)
+  if (incident.tickets && Array.isArray(incident.tickets)) {
+    console.log(`📋 [DEBUG] Propriété tickets trouvée, longueur: ${incident.tickets.length}`);
+    if (incident.tickets.length > 0) {
+      console.log('✅ [DEBUG] CAS 1 - Incident lié à un ticket (tickets array non vide)');
+      console.log('   Tickets:', incident.tickets.map((t: any) => t.referenceTicket || t.ticketId));
+      return true;
+    } else {
+      console.log('⚠️ [DEBUG] tickets array existe mais est vide');
+    }
+  } else {
+    console.log('⚠️ [DEBUG] Propriété tickets non présente ou pas un tableau');
+  }
+
+  // ✅ CAS 2: Propriété 'ticketCount' > 0
+  if (incident.ticketCount !== undefined && incident.ticketCount !== null) {
+    console.log(`📊 [DEBUG] ticketCount = ${incident.ticketCount}`);
+    if (incident.ticketCount > 0) {
+      console.log('✅ [DEBUG] CAS 2 - Incident lié à un ticket (ticketCount > 0)');
+      return true;
+    }
+  } else {
+    console.log('⚠️ [DEBUG] Propriété ticketCount non présente');
+  }
+
+  // ✅ CAS 3: Propriété 'hasTicket' ou 'isLinkedToTicket'
+  if (incident.hasTicket !== undefined) {
+    console.log(`🏷️ [DEBUG] hasTicket = ${incident.hasTicket}`);
+  }
+  if (incident.isLinkedToTicket !== undefined) {
+    console.log(`🔗 [DEBUG] isLinkedToTicket = ${incident.isLinkedToTicket}`);
+  }
+  
+  if (incident.hasTicket === true || incident.isLinkedToTicket === true) {
+    console.log('✅ [DEBUG] CAS 3 - Incident lié à un ticket (flag true)');
+    return true;
+  }
+
+  console.log('❌ [DEBUG] Aucune condition - Incident non lié à un ticket');
+  return false;
+}
+// Dans incident-list.component.ts
+viewIncidentEdit(id: string): void {
+  const incident = this.filteredIncidents.find(i => i.id === id);
+  
+  if (incident && this.isIncidentLieATicket(incident)) {
+    this.showAlert('warning', 'Modification bloquée', 
+      'Cet incident est déjà lié à un ticket et ne peut pas être modifié.');
+    return;
+  }
+
+  this.router.navigate(['/incidents/edit', id]);
+}
+
 getTypeProblemeLibelle(typeProbleme: any): string {
   if (typeProbleme === undefined || typeProbleme === null) return 'Non spécifié';
   

@@ -137,11 +137,18 @@ ngOnInit(): void {
       this.userRole = user.role;
       console.log('Rôle utilisateur:', this.userRole);
       
-      // ✅ Attendre que l'incident soit chargé avant de charger les TPEs
       const incidentId = this.route.snapshot.paramMap.get('id');
       if (incidentId) {
         this.loadIncident(incidentId, () => {
-          // Callback après chargement de l'incident
+          // ✅ Vérifier si l'incident est lié à un ticket
+          if (this.isIncidentLieATicket) {
+            this.error = 'Cet incident ne peut pas être modifié car il est déjà lié à un ticket.';
+            // Rediriger après 3 secondes
+            setTimeout(() => {
+              this.router.navigate(['/incidents']);
+            }, 3000);
+            return;
+          }
           this.loadTpesDisponibles();
         });
       } else {

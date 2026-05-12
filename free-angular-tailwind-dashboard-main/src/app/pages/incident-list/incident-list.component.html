@@ -884,11 +884,18 @@
                 </svg>
               </button>
 
-           <button 
-  [routerLink]="['/incidents/edit', incident.id]"
-  [disabled]="incident.statutIncident?.toString() === 'EnCours' || incident.statutIncident?.toString() === 'Ferme'"
-  class="p-2 text-gray-400 hover:text-amber-600 rounded-lg hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-  [title]="(incident.statutIncident?.toString() === 'EnCours' || incident.statutIncident?.toString() === 'Ferme') ? 'Modification impossible : incident en cours ou fermé' : 'Modifier l\'incident'"
+<!-- Bouton Modifier - UN SEUL BOUTON -->
+<!-- Bouton Modifier - UN SEUL BOUTON -->
+<!-- Bouton Modifier - DÉSACTIVÉ si lié à un ticket -->
+<button 
+  [disabled]="isIncidentLieATicket(incident)"
+  (click)="!isIncidentLieATicket(incident) && viewIncidentEdit(incident.id)"
+  class="p-2 rounded-lg transition-colors"
+  [ngClass]="{
+    'text-gray-400 cursor-not-allowed opacity-50': isIncidentLieATicket(incident),
+    'text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20': !isIncidentLieATicket(incident)
+  }"
+  [title]="isIncidentLieATicket(incident) ? 'Cet incident est lié à un ticket et ne peut pas être modifié' : 'Modifier l\'incident'"
 >
   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4h2m-1-1v2m7.071 2.929a2 2 0 010 2.828l-8.486 8.486a2 2 0 01-.878.515l-4 1a1 1 0 01-1.213-1.213l1-4a2 2 0 01.515-.878l8.486-8.486a2 2 0 012.828 0z"></path>
