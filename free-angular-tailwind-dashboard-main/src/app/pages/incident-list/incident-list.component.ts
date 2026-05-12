@@ -598,6 +598,10 @@ private formatEntiteImpactee(type: string): string {
  * Vérifie si un incident est lié à un ticket
  * Avec débogages complets
  */
+/**
+ * Vérifie si un incident est lié à un ticket
+ * Basé sur la structure JSON de l'API
+ */
 isIncidentLieATicket(incident: any): boolean {
   console.log('🔍 [DEBUG] isIncidentLieATicket appelé pour incident:', incident?.codeIncident || incident?.id);
   
@@ -610,49 +614,27 @@ isIncidentLieATicket(incident: any): boolean {
   console.log('📊 [DEBUG] Propriétés de l\'incident:', {
     id: incident.id,
     codeIncident: incident.codeIncident,
-    hasOwnTickets: incident.hasOwnProperty('tickets'),
-    ticketsValue: incident.tickets,
+    ticketsArray: incident.tickets,
     ticketsLength: incident.tickets?.length,
     ticketCount: incident.ticketCount,
-    hasTicket: incident.hasTicket,
-    isLinkedToTicket: incident.isLinkedToTicket
+    hasTicket: incident.hasTicket
   });
 
-  // ✅ CAS 1: Propriété 'tickets' présente et non vide (getIncidentDetails)
+  // ✅ CAS 1: Vérifier le tableau 'tickets' (le plus fiable)
   if (incident.tickets && Array.isArray(incident.tickets)) {
     console.log(`📋 [DEBUG] Propriété tickets trouvée, longueur: ${incident.tickets.length}`);
     if (incident.tickets.length > 0) {
       console.log('✅ [DEBUG] CAS 1 - Incident lié à un ticket (tickets array non vide)');
-      console.log('   Tickets:', incident.tickets.map((t: any) => t.referenceTicket || t.ticketId));
-      return true;
-    } else {
-      console.log('⚠️ [DEBUG] tickets array existe mais est vide');
-    }
-  } else {
-    console.log('⚠️ [DEBUG] Propriété tickets non présente ou pas un tableau');
-  }
-
-  // ✅ CAS 2: Propriété 'ticketCount' > 0
-  if (incident.ticketCount !== undefined && incident.ticketCount !== null) {
-    console.log(`📊 [DEBUG] ticketCount = ${incident.ticketCount}`);
-    if (incident.ticketCount > 0) {
-      console.log('✅ [DEBUG] CAS 2 - Incident lié à un ticket (ticketCount > 0)');
       return true;
     }
-  } else {
-    console.log('⚠️ [DEBUG] Propriété ticketCount non présente');
   }
 
-  // ✅ CAS 3: Propriété 'hasTicket' ou 'isLinkedToTicket'
-  if (incident.hasTicket !== undefined) {
-    console.log(`🏷️ [DEBUG] hasTicket = ${incident.hasTicket}`);
-  }
-  if (incident.isLinkedToTicket !== undefined) {
-    console.log(`🔗 [DEBUG] isLinkedToTicket = ${incident.isLinkedToTicket}`);
-  }
-  
-  if (incident.hasTicket === true || incident.isLinkedToTicket === true) {
-    console.log('✅ [DEBUG] CAS 3 - Incident lié à un ticket (flag true)');
+  // ⚠️ CAS 2: ticketCount (IGNORER si tickets array existe et n'est pas vide)
+  // Ne pas utiliser ticketCount car il est buggé dans l'API
+
+  // ✅ CAS 3: hasTicket (UNIQUEMENT si tickets array n'existe pas)
+  if (!incident.tickets && incident.hasTicket === true) {
+    console.log('✅ [DEBUG] CAS 3 - Incident lié à un ticket (hasTicket flag true)');
     return true;
   }
 
@@ -909,18 +891,83 @@ StatutIncident = StatutIncident;
 confirmDelete() {
   if (!this.confirmIncident) return;
 
+  // ✅ VÉRIFICATION 1: Incident lié à un ticket ?
+  if (this.isIncidentLieATicket(this.confirmIncident)) {
+    this.showAlert('error', 'Suppression impossible', 
+      'Cet incident ne peut pas être supprimé.');
+    this.confirmIncident = null;
+    this.deleting = false;
+    return;
+  }
+
+  // ✅ VÉRIFICATION 2: Incident en cours ?
+  const statutValue = this.getStatutNumber(this.confirmIncident.statutIncident);
+  if (statutValue === StatutIncident.EnCours) {
+    this.showAlert('error', 'Suppression impossible', 
+      'Impossible de supprimer un incident en cours de traitement.');
+    this.confirmIncident = null;
+    this.deleting = false;
+    return;
+  }
+
+  // ✅ VÉRIFICATION 3: Incident déjà archivé ?
+  if (this.confirmIncident.dateArchivage) {
+    this.showAlert('error', 'Suppression impossible', 
+      'Impossible de supprimer un incident déjà archivé.');
+    this.confirmIncident = null;
+    this.deleting = false;
+    return;
+  }
+
   this.deleting = true;
   
   this.incidentService.deleteIncident(this.confirmIncident.id).subscribe({
     next: () => {
       this.showAlert('success', 'Incident supprimé', `L'incident "${this.confirmIncident!.codeIncident}" a été supprimé.`);
+      
+      // Supprimer localement de la liste
+      const deletedId = this.confirmIncident!.id;
+      this.filteredIncidents = this.filteredIncidents.filter(i => i.id !== deletedId);
+      this.incidents = this.filteredIncidents;
+      this.totalCount = this.filteredIncidents.length;
+      this.totalPages = Math.ceil(this.totalCount / this.pageSize);
+      
+      // Ajuster la page si nécessaire
+      if (this.filteredIncidents.length === 0 && this.currentPage > 1) {
+        this.currentPage--;
+        if (this.userRole === 'Admin') {
+          this.loadIncidents();
+        } else {
+          this.loadMyIncidentsWithFilters();
+        }
+      }
+      
+      // Recharger les dashboards
+      if (this.userRole === 'Commercant') {
+        this.loadCommercantDashboardStats();
+      } else if (this.userRole === 'Admin') {
+        this.loadDashboardStats();
+      }
+      
+      // Nettoyer la sélection
+      this.selectedIncidents.delete(deletedId);
+      if (this.selectedIncidents.size === 0) {
+        this.currentSelectionType = null;
+        this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+      }
+      
       this.confirmIncident = null;
       this.deleting = false;
-      this.loadIncidents(); // Recharger la liste
     },
     error: (err) => {
       console.error(err);
-      this.showAlert('error', 'Erreur', `Impossible de supprimer l'incident "${this.confirmIncident!.codeIncident}".`);
+      let errorMessage = 'Impossible de supprimer l\'incident.';
+      if (err.error?.message) {
+        errorMessage = err.error.message;
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      this.showAlert('error', 'Erreur', errorMessage);
       this.confirmIncident = null;
       this.deleting = false;
     }
@@ -1390,28 +1437,45 @@ confirmDeleteMultiple(): void {
       else if (response?.items) allIncidents = response.items;
       else if (Array.isArray(response)) allIncidents = response;
       
-      // Filtrer pour ne garder que les incidents non fermés qui sont sélectionnés
+      // ✅ CORRECTION : Filtrer par statut NON FERMÉ ET non lié à un ticket
       this.confirmIncidents = allIncidents.filter(incident => {
         const statutValue = this.getStatutNumber(incident.statutIncident);
-        return selectedIds.includes(incident.id) && statutValue !== StatutIncident.Ferme;
+        const isNonFerme = statutValue !== StatutIncident.Ferme;
+        const hasNoTicket = !this.isIncidentLieATicket(incident);
+        
+        // On ne peut supprimer que les incidents :
+        // 1. Non fermés (NonTraite ou EnCours) 
+        // 2. ET non liés à un ticket
+        return selectedIds.includes(incident.id) && isNonFerme && hasNoTicket;
       });
       
       this.pendingDeleteIds = this.confirmIncidents.map(i => i.id);
       this.pendingDeleteCount = this.confirmIncidents.length;
       this.showMultiDeleteModal = true;
       this.loading = false;
+      
+      // Message d'information si certains incidents ont été exclus
+      const totalEligible = this.confirmIncidents.length;
+      const totalSelected = selectedIds.length;
+      if (totalEligible < totalSelected) {
+        const excluded = totalSelected - totalEligible;
+        
+      }
     },
     error: (err) => {
       console.error('Erreur chargement incidents pour suppression:', err);
       this.loading = false;
-      // Fallback: utiliser les incidents de la page courante
+      // Fallback: utiliser les incidents de la page courante avec le même filtre
       this.confirmIncidents = this.filteredIncidents.filter(incident => {
         const statutValue = this.getStatutNumber(incident.statutIncident);
-        return selectedIds.includes(incident.id) && statutValue !== StatutIncident.Ferme;
+        const isNonFerme = statutValue !== StatutIncident.Ferme;
+        const hasNoTicket = !this.isIncidentLieATicket(incident);
+        return selectedIds.includes(incident.id) && isNonFerme && hasNoTicket;
       });
       this.pendingDeleteIds = this.confirmIncidents.map(i => i.id);
       this.pendingDeleteCount = this.confirmIncidents.length;
       this.showMultiDeleteModal = true;
+      this.loading = false;
     }
   });
 }
@@ -1501,13 +1565,11 @@ executeMultiArchive(): void {
   let completed = 0;
   const total = this.pendingArchiveIds.length;
   let successCount = 0;
-  
+
   this.pendingArchiveIds.forEach(id => {
     this.incidentService.archiverIncident(id).subscribe({
       next: (response) => {
-        if (response.isSuccess) {
-          successCount++;
-        }
+        if (response.isSuccess) successCount++;
         completed++;
         
         if (completed === total) {
@@ -1516,55 +1578,77 @@ executeMultiArchive(): void {
           this.pendingArchiveIds = [];
           this.confirmArchives = [];
           
-          // ✅ RECHARGER LA PAGE AUTOMATIQUEMENT
-          if (this.userRole === 'Admin') {
-            this.loadIncidents();
-          } else {
-            this.loadMyIncidentsWithFilters();
-          }
-          
-          // ✅ Recharger aussi le dashboard commerçant si besoin
-          if (this.userRole === 'Commercant') {
-            this.loadCommercantDashboardStats();
-          }
-          
-          // ✅ Réinitialiser la sélection
-          this.selectedIncidents.clear();
-          this.globalSelectionMode = false;
-          this.currentSelectionType = null;
-          this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+          let message = '';
+          let variant: 'success' | 'error' | 'warning' | 'info' = 'success';
           
           if (successCount === total) {
-            this.showAlert('success', 'Succès', `${total} incident(s) archivé(s) avec succès.`);
+            variant = 'success';
+            message = `${total} incident(s) archivé(s) avec succès.`;
           } else if (successCount > 0) {
-            this.showAlert('warning', 'Archivage partiel', `${successCount} incident(s) archivé(s), ${total - successCount} échec(s).`);
+            variant = 'warning';
+            message = `${successCount}/${total} incident(s) archivé(s). ${total - successCount} échec(s).`;
           } else {
-            this.showAlert('error', 'Échec', `Aucun incident n'a pu être archivé.`);
+            variant = 'error';
+            message = `Aucun incident n'a pu être archivé (0/${total}).`;
           }
+          
+          this.showAlert(variant, variant === 'success' ? 'Succès' : (variant === 'warning' ? 'Archivage partiel' : 'Échec'), message);
+          
+          setTimeout(() => {
+            if (this.userRole === 'Admin') {
+              this.loadIncidents();
+            } else {
+              this.loadMyIncidentsWithFilters();
+            }
+            
+            if (this.userRole === 'Commercant') {
+              this.loadCommercantDashboardStats();
+            }
+            
+            this.selectedIncidents.clear();
+            this.globalSelectionMode = false;
+            this.currentSelectionType = null;
+            this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+          }, 3000);
         }
       },
-      error: (err) => {
-        console.error(`Erreur archivage ${id}:`, err);
+      error: () => {
         completed++;
+        
         if (completed === total) {
           this.bulkArchiving = false;
           this.showMultiArchiveModal = false;
           this.pendingArchiveIds = [];
           this.confirmArchives = [];
           
-          // ✅ RECHARGER LA PAGE AUTOMATIQUEMENT même en cas d'erreur partielle
-          if (this.userRole === 'Admin') {
-            this.loadIncidents();
+          let message = '';
+          let variant: 'success' | 'error' | 'warning' | 'info' = 'success';
+          
+          if (successCount === total) {
+            variant = 'success';
+            message = `${total} incident(s) archivé(s) avec succès.`;
+          } else if (successCount > 0) {
+            variant = 'warning';
+            message = `${successCount}/${total} incident(s) archivé(s). ${total - successCount} échec(s).`;
           } else {
-            this.loadMyIncidentsWithFilters();
+            variant = 'error';
+            message = `Aucun incident n'a pu être archivé (0/${total}).`;
           }
           
-          this.selectedIncidents.clear();
-          this.globalSelectionMode = false;
-          this.currentSelectionType = null;
-          this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+          this.showAlert(variant, variant === 'success' ? 'Succès' : (variant === 'warning' ? 'Archivage partiel' : 'Échec'), message);
           
-          this.showAlert('error', 'Erreur', `${successCount}/${total} incident(s) archivé(s).`);
+          setTimeout(() => {
+            if (this.userRole === 'Admin') {
+              this.loadIncidents();
+            } else {
+              this.loadMyIncidentsWithFilters();
+            }
+            
+            this.selectedIncidents.clear();
+            this.globalSelectionMode = false;
+            this.currentSelectionType = null;
+            this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+          }, 3000);
         }
       }
     });
@@ -1598,6 +1682,7 @@ executeMultiDelete(): void {
   let completed = 0;
   const total = this.confirmIncidents.length;
   let successCount = 0;
+  const failedIncidents: { code: string; reason: string }[] = [];
 
   this.confirmIncidents.forEach(incident => {
     this.incidentService.deleteIncident(incident.id).subscribe({
@@ -1610,55 +1695,80 @@ executeMultiDelete(): void {
           this.showMultiDeleteModal = false;
           this.confirmIncidents = [];
           
-          // ✅ RECHARGER LA PAGE AUTOMATIQUEMENT
-          if (this.userRole === 'Admin') {
-            this.loadIncidents();
-          } else {
-            this.loadMyIncidentsWithFilters();
-          }
-          
-          // ✅ Recharger le dashboard si commerçant
-          if (this.userRole === 'Commercant') {
-            this.loadCommercantDashboardStats();
-          } else if (this.userRole === 'Admin') {
-            this.loadDashboardStats();
-          }
-          
-          this.selectedIncidents.clear();
-          this.globalSelectionMode = false;
-          this.currentSelectionType = null;
-          this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+          // Message SIMPLIFIÉ
+          let message = '';
+          let variant: 'success' | 'error' | 'warning' | 'info' = 'success';
           
           if (successCount === total) {
-            this.showAlert('success', 'Succès', `${total} incident(s) supprimé(s) avec succès.`);
+            variant = 'success';
+            message = `${total} incident(s) supprimé(s) avec succès.`;
           } else if (successCount > 0) {
-            this.showAlert('warning', 'Suppression partielle', `${successCount} incident(s) supprimé(s), ${total - successCount} échec(s).`);
+            variant = 'warning';
+            message = `${successCount}/${total} incident(s) supprimé(s). ${total - successCount} échec(s).`;
           } else {
-            this.showAlert('error', 'Échec', `Aucun incident n'a pu être supprimé.`);
+            variant = 'error';
+            message = `Aucun incident n'a pu être supprimé (0/${total}).`;
           }
+          
+          this.showAlert(variant, variant === 'success' ? 'Succès' : (variant === 'warning' ? 'Suppression partielle' : 'Échec'), message);
+          
+          setTimeout(() => {
+            if (this.userRole === 'Admin') {
+              this.loadIncidents();
+            } else {
+              this.loadMyIncidentsWithFilters();
+            }
+            
+            if (this.userRole === 'Commercant') {
+              this.loadCommercantDashboardStats();
+            } else if (this.userRole === 'Admin') {
+              this.loadDashboardStats();
+            }
+            
+            this.selectedIncidents.clear();
+            this.globalSelectionMode = false;
+            this.currentSelectionType = null;
+            this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+          }, 3000);
         }
       },
       error: (err) => {
-        console.error(`Erreur suppression ${incident.codeIncident}:`, err);
         completed++;
+        failedIncidents.push({ code: incident.codeIncident, reason: '' });
+        
         if (completed === total) {
           this.bulkDeleting = false;
           this.showMultiDeleteModal = false;
           this.confirmIncidents = [];
           
-          // ✅ RECHARGER LA PAGE AUTOMATIQUEMENT
-          if (this.userRole === 'Admin') {
-            this.loadIncidents();
+          let message = '';
+          let variant: 'success' | 'error' | 'warning' | 'info' = 'success';
+          
+          if (successCount === total) {
+            variant = 'success';
+            message = `${total} incident(s) supprimé(s) avec succès.`;
+          } else if (successCount > 0) {
+            variant = 'warning';
+            message = `${successCount}/${total} incident(s) supprimé(s). ${total - successCount} échec(s).`;
           } else {
-            this.loadMyIncidentsWithFilters();
+            variant = 'error';
+            message = `Aucun incident n'a pu être supprimé (0/${total}).`;
           }
           
-          this.selectedIncidents.clear();
-          this.globalSelectionMode = false;
-          this.currentSelectionType = null;
-          this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+          this.showAlert(variant, variant === 'success' ? 'Succès' : (variant === 'warning' ? 'Suppression partielle' : 'Échec'), message);
           
-          this.showAlert('error', 'Erreur', `${successCount}/${total} incident(s) supprimé(s).`);
+          setTimeout(() => {
+            if (this.userRole === 'Admin') {
+              this.loadIncidents();
+            } else {
+              this.loadMyIncidentsWithFilters();
+            }
+            
+            this.selectedIncidents.clear();
+            this.globalSelectionMode = false;
+            this.currentSelectionType = null;
+            this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
+          }, 3000);
         }
       }
     });
