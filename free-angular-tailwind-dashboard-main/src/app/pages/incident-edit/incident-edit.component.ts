@@ -1051,44 +1051,29 @@ pieceToDelete: { id: string; index: number; nom: string } | null = null;
 // ========== GESTION DES FICHIERS ==========
 
 // Méthode pour supprimer une pièce jointe
+// Cette méthode doit seulement ouvrir la modale, PAS supprimer directement
 supprimerPieceJointe(pieceId: string, index: number) {
-  // ✅ Règle 1: Si incident lié à un ticket → suppression impossible pour tous
   if (this.isIncidentLieATicket) {
     this.error = this.isCommercant 
       ? 'Impossible de supprimer des fichiers : cet incident est déjà lié à un support.'
       : 'Impossible de supprimer des fichiers : cet incident est déjà lié à un ticket.';
     return;
   }
-  
-  // ✅ Règle 2: Admin peut supprimer (incident non lié)
-  if (this.isAdmin) {
-    const piece = this.piecesJointesExistantes[index];
-    const nomFichier = piece?.nomFichier || 'ce fichier';
-    
-    this.pieceToDelete = {
-      id: pieceId,
-      index: index,
-      nom: nomFichier
-    };
-    this.showDeletePieceModal = true;
+
+  if (!this.canDeleteFiles()) {
+    this.error = 'Vous n\'avez pas les droits pour supprimer ce fichier.';
     return;
   }
-  
-  // ✅ Règle 3: Commerçant peut supprimer (incident non lié)
-  if (this.isCommercant && !this.isIncidentLieATicket) {
-    const piece = this.piecesJointesExistantes[index];
-    const nomFichier = piece?.nomFichier || 'ce fichier';
-    
-    this.pieceToDelete = {
-      id: pieceId,
-      index: index,
-      nom: nomFichier
-    };
-    this.showDeletePieceModal = true;
-    return;
-  }
-  
-  this.error = 'Vous n\'avez pas les droits pour supprimer ce fichier.';
+
+  const piece = this.piecesJointesExistantes[index];
+  const nomFichier = piece?.nomFichier || 'ce fichier';
+
+  this.pieceToDelete = { 
+    id: pieceId, 
+    index, 
+    nom: nomFichier 
+  };
+  this.showDeletePieceModal = true;
 }
 
 // Méthode pour vérifier si l'utilisateur peut ajouter des fichiers
@@ -1130,24 +1115,51 @@ confirmerSuppressionPiece() {
 
   console.log('🗑️ Suppression pièce jointe:', this.pieceToDelete.id);
   
+  // Optionnel : mettre loading si tu veux un spinner dans la modale
+  // this.loading = true;
+
   this.incidentService.supprimerPieceJointe(this.pieceToDelete.id).subscribe({
     next: (response) => {
       if (response.isSuccess) {
+        // Mise à jour locale
         this.piecesJointesExistantes.splice(this.pieceToDelete!.index, 1);
-        this.showTemporaryMessage('Fichier supprimé avec succès', 'success');
+        
+        // ✅ Message de succès APRÈS confirmation (comme pour TPE)
+        this.showTemporaryMessage(`Fichier "${this.pieceToDelete!.nom}" supprimé avec succès`, 'success');
+        
+        // Mise à jour de l'état des changements
+        this.checkForChanges();
       } else {
-        this.error = response.message || 'Erreur lors de la suppression';
+        this.error = response.message || 'Erreur lors de la suppression du fichier';
       }
+      
       this.fermerModalPiece();
+      // this.loading = false; // si tu l'avais activé
     },
     error: (err) => {
-      console.error('❌ Erreur suppression:', err);
-      this.error = err.error?.message || 'Erreur lors de la suppression';
+      console.error('❌ Erreur suppression pièce jointe:', err);
+      this.error = err.error?.message || 'Erreur lors de la suppression du fichier';
       this.fermerModalPiece();
+      // this.loading = false;
     }
   });
 }
 
+// Ajoutez ces propriétés avec les autres
+submitted = false;
+descriptionError: string | null = null; // ✅ Nouvelle propriété pour l'erreur sous le champ
+
+
+private showErrorWithScroll(message: string): void {
+  this.error = message;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  setTimeout(() => {
+    if (this.error === message) {
+      this.error = null;
+    }
+  }, 5000);
+}
 fermerModalPiece() {
   this.showDeletePieceModal = false;
   this.pieceToDelete = null;
@@ -1155,15 +1167,26 @@ fermerModalPiece() {
 async save() {
   if (!this.incident) return;
   
-  // ✅ VALIDATION AU DÉBUT - Avant toute action
-  if (!this.incident.descriptionIncident || this.incident.descriptionIncident.length < 10) {
-    this.error = 'La description doit contenir au moins 10 caractères';
+  // ✅ VALIDATION AU DÉBUT
+  this.submitted = true;
+  
+  // ✅ Vérifier d'abord si le formulaire est valide
+  if (!this.isFormValid()) {
+    // Afficher l'erreur uniquement sous le champ concerné
+    if (!this.incident.descriptionIncident || this.incident.descriptionIncident.length < 10) {
+      const currentLength = this.incident.descriptionIncident?.length || 0;
+      this.descriptionError = currentLength === 0 
+        ? 'La description est obligatoire'
+        : `La description doit contenir au moins 10 caractères (${currentLength}/10)`;
+    }
+    
+    // Scroll vers le haut
     window.scrollTo({ top: 0, behavior: 'smooth' });
     return;
   }
   
   this.loading = true;
-  this.error = null;
+  this.error = null; // ✅ Ne pas utiliser this.error pour les erreurs de description
 
   try {
     // 1. Uploader les nouveaux fichiers
@@ -1208,6 +1231,9 @@ async save() {
         
         // ✅ Afficher le message de succès
         this.successMessage = 'Incident modifié avec succès !';
+        
+        // ✅ Scroll vers le haut
+        window.scrollTo({ top: 0, behavior: 'smooth' });
         
         // ✅ Désactiver le loading
         this.loading = false;
@@ -1490,33 +1516,59 @@ updateEntitesDisponibles() {
 // Ajoutez cette propriété pour les timeouts
 private messageTimeout: any = null;
 
+isFormValid(): boolean {
+  // Vérifier la description
+  if (!this.incident.descriptionIncident || this.incident.descriptionIncident.length < 10) {
+    return false;
+  }
+  
+  // Vérifier le type de problème
+  if (!this.typeProblemeString) {
+    return false;
+  }
+  
+  // Vérifier les TPEs (au moins un TPE)
+  if (!this.incident.tpEs || this.incident.tpEs.length === 0) {
+    return false;
+  }
+  
+  return true;
+}
+
+// Méthode appelée quand la description change
+onDescriptionChange(): void {
+  this.checkForChanges();
+  
+  // ✅ Validation en temps réel - stocker l'erreur localement, pas dans this.error
+  if (this.incident.descriptionIncident && this.incident.descriptionIncident.length > 0 && this.incident.descriptionIncident.length < 10) {
+    this.descriptionError = `La description doit contenir au moins 10 caractères (${this.incident.descriptionIncident.length}/10)`;
+  } else {
+    this.descriptionError = null;
+  }
+}
+
+
 showTemporaryMessage(message: string, type: 'success' | 'error' | 'warning' = 'success') {
-  // ✅ Annuler le timeout précédent
   if (this.messageTimeout) {
     clearTimeout(this.messageTimeout);
   }
-  
+
   if (type === 'success') {
     this.successMessage = message;
-    this.messageTimeout = setTimeout(() => {
-      this.successMessage = '';
-      this.messageTimeout = null;
-    }, 5000);
-  } else if (type === 'warning') {
-    // Afficher comme erreur ou créer une variable dédiée
-    this.error = message;
-    // Optionnel: changer la couleur pour orange
-    this.messageTimeout = setTimeout(() => {
-      this.error = null;
-      this.messageTimeout = null;
-    }, 5000); // Plus long pour les warnings
   } else {
     this.error = message;
-    this.messageTimeout = setTimeout(() => {
-      this.error = null;
-      this.messageTimeout = null;
-    }, 5000);
   }
+
+  const duration = type === 'warning' ? 7000 : 5000;
+
+  this.messageTimeout = setTimeout(() => {
+    if (type === 'success') {
+      this.successMessage = '';
+    } else {
+      this.error = null;
+    }
+    this.messageTimeout = null;
+  }, duration);
 }
 
   cancel() {
@@ -1561,21 +1613,35 @@ private addFiles(files: File[]): void {
   // Filtrer les fichiers trop volumineux
   const validFiles = files.filter(file => {
     if (file.size > this.maxFileSize) {
-      console.warn(`Fichier ${file.name} trop volumineux (max ${this.maxFileSize / 1024 / 1024}MB)`);
       this.showError(`Le fichier ${file.name} dépasse la limite de 10MB`);
       return false;
     }
     return true;
   });
 
-  // Vérifier la limite de nombre de fichiers
-  if (this.selectedFiles.length + validFiles.length > this.maxFiles) {
-    this.showError(`Vous ne pouvez pas ajouter plus de ${this.maxFiles} fichiers`);
+  // ✅ Calculer le nombre total de fichiers (existants + nouveaux)
+  const totalFilesAfterAdd = this.piecesJointesExistantes.length + this.selectedFiles.length + validFiles.length;
+  
+  // ✅ Vérifier la limite de nombre de fichiers TOTAL (existants + nouveaux)
+  if (totalFilesAfterAdd > this.maxFiles) {
+    const placesRestantes = this.maxFiles - (this.piecesJointesExistantes.length + this.selectedFiles.length);
+    if (placesRestantes <= 0) {
+      this.showError(`Vous avez déjà ${this.piecesJointesExistantes.length + this.selectedFiles.length} fichier(s). La limite maximale est de ${this.maxFiles} fichiers.`);
+    } else {
+      this.showError(`Vous ne pouvez ajouter que ${placesRestantes} fichier(s) supplémentaire(s). Limite maximale : ${this.maxFiles} fichiers.`);
+    }
     return;
   }
 
   // Ajouter les fichiers à la liste locale
-  this.selectedFiles = [...this.selectedFiles, ...validFiles];
+  if (validFiles.length > 0) {
+    this.selectedFiles = [...this.selectedFiles, ...validFiles];
+    // Effacer l'erreur si ajout réussi
+    this.error = null;
+    
+    // ✅ Vérifier les changements
+    this.checkForChanges();
+  }
 }
 
 // Nouvelle méthode pour uploader les fichiers lors de la sauvegarde
@@ -1623,19 +1689,36 @@ async uploaderFichiers(): Promise<boolean> {
 }
 
 
-  private showError(message: string): void {
-    alert(message);
-  }
+private showError(message: string): void {
+  this.error = message;
   
-  removeFile(index: number): void {
-    this.selectedFiles.splice(index, 1);
-    this.updateIncidentFiles();
-  }
+  // Scroll automatique vers le haut
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
+  // Auto-effacement après 5 secondes
+  setTimeout(() => {
+    if (this.error === message) {
+      this.error = null;
+    }
+  }, 5000);
+}
+  
+removeFile(index: number): void {
+  this.selectedFiles.splice(index, 1);
+  this.updateIncidentFiles();
+  this.checkForChanges(); // ✅ Ajouter cette ligne
+}
 
-  clearAllFiles(): void {
-    this.selectedFiles = [];
-    this.updateIncidentFiles();
-  }
+// ✅ Getter pour obtenir le nombre total de fichiers (existants + nouveaux)
+get totalFilesCount(): number {
+  return (this.piecesJointesExistantes?.length || 0) + this.selectedFiles.length;
+}
+
+clearAllFiles(): void {
+  this.selectedFiles = [];
+  this.updateIncidentFiles();
+  this.checkForChanges(); // ✅ Ajouter cette ligne
+}
 
   isImage(contentType: string | null | undefined): boolean {
     if (!contentType) {
