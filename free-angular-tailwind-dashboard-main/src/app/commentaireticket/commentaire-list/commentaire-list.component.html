@@ -293,14 +293,15 @@
         </div>
       </div>
       
-   <!-- Pièces jointes existantes -->
+<!-- Pièces jointes existantes -->
 <div *ngIf="editCommentData?.piecesJointes?.length > 0" class="mb-4">
   <div class="flex items-center justify-between mb-2">
     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
       Pièces jointes actuelles ({{ editCommentData.piecesJointes.length }})
     </label>
-    <button *ngIf="editCommentData.piecesJointes.length > 0 && isAdmin"
-            (click)="confirmDeleteAllFiles()"
+    <!-- ✅ Le bouton "Tout effacer" est maintenant visible pour les techniciens aussi -->
+    <button *ngIf="editCommentData.piecesJointes.length > 0"
+            (click)="confirmDeleteAllFilesEdit()"
             type="button"
             class="text-xs text-red-500 hover:text-red-700 flex items-center gap-1 px-2 py-1 rounded hover:bg-red-50 transition-colors">
       <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -324,7 +325,7 @@
           Marqué pour suppression
         </span>
         <button *ngIf="!isPieceMarkedForDelete(piece.id)" 
-                (click)="confirmDeleteSingleFile(piece.id, piece.nomFichier)"
+                (click)="confirmDeleteSingleFileEdit(piece.id, piece.nomFichier)"
                 class="p-1 text-gray-400 hover:text-red-500 rounded-lg opacity-0 group-hover:opacity-100 transition-all hover:bg-red-50"
                 title="Supprimer ce fichier">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -342,6 +343,85 @@
       </div>
     </div>
   </div>
+
+  <!-- MODALE DE CONFIRMATION SUPPRESSION PIÈCES JOINTES (ÉDITION) -->
+<div *ngIf="showConfirmDeleteFileEditModal" 
+     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100001] p-4 transition-all duration-300"
+     (click)="closeConfirmDeleteFileEditModal()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
+       (click)="$event.stopPropagation()">
+    
+    <div class="bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/20 px-6 py-4 border-b border-amber-200 dark:border-amber-800">
+      <div class="flex items-center gap-3">
+        <div class="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shadow-inner">
+          <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"></path>
+          </svg>
+        </div>
+        <div>
+          <h3 class="text-lg font-bold text-gray-900 dark:text-white">Confirmer la suppression</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Cette action est irréversible</p>
+        </div>
+      </div>
+    </div>
+    
+    <div class="p-6">
+      <p class="text-gray-600 dark:text-gray-300 text-center">
+        Êtes-vous sûr de vouloir supprimer 
+        <span class="font-semibold text-gray-900 dark:text-white">
+          {{ fileToDeleteEdit?.isDeleteAll ? 'toutes les pièces jointes' : '"' + fileToDeleteEdit?.fileName + '"' }}
+        </span>
+        ?
+      </p>
+      
+      <div *ngIf="!fileToDeleteEdit?.isDeleteAll" class="mt-2 text-center">
+        <p class="text-xs text-gray-500">
+          Cette action supprimera définitivement ce fichier.
+        </p>
+      </div>
+      
+      <div *ngIf="fileToDeleteEdit?.isDeleteAll" class="mt-2 text-center">
+        <p class="text-xs text-amber-600 dark:text-amber-400">
+          Attention : Cette action supprimera tous les fichiers joints à ce commentaire.
+        </p>
+      </div>
+      
+      <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mt-4">
+        <div class="flex gap-2">
+          <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-amber-800 dark:text-amber-200">
+              Action irréversible
+            </p>
+            <p class="text-xs text-amber-700 dark:text-amber-300">
+              Les fichiers supprimés ne pourront pas être récupérés. Vous devrez les ajouter à nouveau si nécessaire.
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+      <button (click)="closeConfirmDeleteFileEditModal()" 
+              type="button"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+        Annuler
+      </button>
+      <button (click)="executeDeleteFilesEdit()" 
+              type="button"
+              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700 transition-all duration-200 shadow-sm hover:shadow-md">
+        <span class="flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z"></path>
+          </svg>
+          Supprimer
+        </span>
+      </button>
+    </div>
+  </div>
+</div>
 </div>
       
       <!-- Ajout de nouveaux fichiers -->
@@ -535,16 +615,7 @@
       </label>
       
       <!-- Message pour les techniciens -->
-      <div *ngIf="!isAdmin" class="mb-4 p-3 rounded-lg bg-gray-50 dark:bg-gray-700/30 border border-gray-200 dark:border-gray-600">
-        <div class="flex items-center gap-2">
-          <svg class="w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-          </svg>
-          <span class="text-xs text-gray-600 dark:text-gray-400">
-            Les commentaires des techniciens sont toujours publics.
-          </span>
-        </div>
-      </div>
+      
         
       <div class="mb-4">
         <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">

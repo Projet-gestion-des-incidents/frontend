@@ -358,6 +358,9 @@ executerResoudreIncident(): void {
         if (tousResolus && this.ticket.statutTicket !== 'Resolu') {
           this.ticket.statutTicket = 'Resolu';
           this.showSuccess(`Tous les incidents sont résolus. Le ticket a été automatiquement fermé.`);
+          setTimeout(() => {
+            this.router.navigate(['/tickets']);
+          }, 5000);
         } else {
           this.showSuccess(`Incident ${this.incidentToResolve!.code} résolu avec succès`);
         }
@@ -392,6 +395,9 @@ verifierEtFermerTicket(): void {
   if (tousResolus && this.ticket.statutTicket !== 'Resolu') {
     this.ticket.statutTicket = 'Resolu';
     this.showSuccess(`✅ Tous les incidents sont résolus. Le ticket a été automatiquement fermé.`);
+    setTimeout(() => {
+      this.router.navigate(['/tickets']);
+    }, 5000);
   }
 }
 /**
@@ -407,14 +413,36 @@ fermerModalResolveIncident(): void {
  /**
  * Recharger seulement les incidents
  */
+/**
+ * Recharger seulement les incidents
+ * AVEC REDIRECTION SI TOUS RÉSOLUS
+ */
 reloadIncidents(): void {
   this.ticketService.getIncidentsByTicket(this.ticketId).subscribe({
     next: (incidents) => {
       this.incidentsLies = incidents;
       this.incidentsSelectionnes = incidents.map((i: any) => i.id);
       
-      // Vérifier si tous les incidents sont résolus après le rechargement
-      this.verifierEtFermerTicket();
+      // ✅ Vérifier si tous les incidents sont résolus après le rechargement
+      const tousResolus = this.incidentsLies.every(incident => 
+        incident.statutIncident === 2 || 
+        incident.statutIncidentLibelle?.toLowerCase().includes('résolu') ||
+        incident.statutIncidentLibelle?.toLowerCase().includes('resolu')
+      );
+      
+      // ✅ Si tous les incidents sont résolus et le ticket n'est pas déjà résolu
+      if (tousResolus && this.ticket.statutTicket !== 'Resolu') {
+        // Mettre à jour le ticket localement
+        this.ticket.statutTicket = 'Resolu';
+        
+        // Afficher le message de succès
+        this.showSuccess(`✅ Tous les incidents sont résolus. Le ticket a été automatiquement fermé.`);
+        
+        // ✅ REDIRIGER VERS LA PAGE DE LISTE DES TICKETS
+        setTimeout(() => {
+          this.router.navigate(['/tickets']);
+        }, 5000);
+      }
     },
     error: (err) => {
       console.error('Erreur rechargement incidents:', err);
@@ -964,7 +992,7 @@ private saveAsAdmin(): void {
         // Rediriger après un court délai
         setTimeout(() => {
           this.router.navigate(['/tickets']);
-        }, 3000);
+        }, 5000);
         
       } else {
         this.error = response.message || 'Erreur mise à jour ticket';
@@ -1046,7 +1074,7 @@ private saveAsTechnicien(): void {
         // Rediriger après un court délai pour voir le message
         setTimeout(() => {
           this.router.navigate(['/tickets']);
-        }, 3000);
+        }, 5000);
         
       } else {
         this.error = response.message || 'Erreur mise à jour ticket';

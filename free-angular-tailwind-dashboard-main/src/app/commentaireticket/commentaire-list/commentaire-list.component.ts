@@ -97,22 +97,26 @@ export class CommentaireListComponent implements OnInit {
   }
 
   // ✅ AJOUTER cette méthode pour afficher les succès
-  showSuccess(message: string): void {
-    this.successMessage = message;
-    setTimeout(() => {
-      this.successMessage = null;
-    }, 5000);
-  }
+ // ✅ MODIFIER cette méthode pour ajouter le scroll
+showSuccess(message: string): void {
+  this.successMessage = message;
+  this.scrollToTop(); // ← AJOUTER CETTE LIGNE
+  setTimeout(() => {
+    this.successMessage = null;
+  }, 5000);
+}
 
   // ✅ AJOUTER cette méthode pour afficher les erreurs
-  showError(message: string): void {
-    this.error = message;
-    setTimeout(() => {
-      if (this.error === message) {
-        this.error = null;
-      }
-    }, 5000);
-  }
+// ✅ MODIFIER cette méthode pour ajouter le scroll
+showError(message: string): void {
+  this.error = message;
+  this.scrollToTop(); // ← AJOUTER CETTE LIGNE
+  setTimeout(() => {
+    if (this.error === message) {
+      this.error = null;
+    }
+  }, 5000);
+}
 
   /**
    * Détermine si un commentaire doit être affiché pour l'utilisateur courant
@@ -457,6 +461,94 @@ executeDeleteAddFiles(): void {
   }
   
   this.closeConfirmDeleteAddFileModal();
+}
+// Propriétés pour la modale de suppression des fichiers en édition
+showConfirmDeleteFileEditModal: boolean = false;
+fileToDeleteEdit: { pieceId?: string; fileName: string; isDeleteAll: boolean } | null = null;
+/**
+ * Ouvre la modale de confirmation pour supprimer une pièce jointe spécifique dans l'édition
+ */
+confirmDeleteSingleFileEdit(pieceId: string, fileName: string): void {
+  this.fileToDeleteEdit = {
+    pieceId: pieceId,
+    fileName: fileName,
+    isDeleteAll: false
+  };
+  this.showConfirmDeleteFileEditModal = true;
+}
+
+/**
+ * Ouvre la modale de confirmation pour supprimer toutes les pièces jointes dans l'édition
+ */
+confirmDeleteAllFilesEdit(): void {
+  const totalFiles = this.editCommentData?.piecesJointes?.length || 0;
+  if (totalFiles === 0) return;
+  
+  this.fileToDeleteEdit = {
+    fileName: `${totalFiles} fichier(s)`,
+    isDeleteAll: true
+  };
+  this.showConfirmDeleteFileEditModal = true;
+}
+
+/**
+ * Exécute la suppression des fichiers après confirmation pour l'édition
+ */
+executeDeleteFilesEdit(): void {
+  if (!this.fileToDeleteEdit) return;
+  
+  if (this.fileToDeleteEdit.isDeleteAll) {
+    // Supprimer immédiatement toutes les pièces jointes
+    const allIds = this.editCommentData.piecesJointes.map((p: any) => p.id);
+    allIds.forEach((id: string) => {
+      if (!this.editPiecesToDelete.includes(id)) {
+        this.editPiecesToDelete.push(id);
+      }
+    });
+    this.editCommentData.piecesJointes = [];
+  } else if (this.fileToDeleteEdit.pieceId) {
+    const pieceIndex = this.editCommentData.piecesJointes.findIndex(
+      (piece: any) => piece.id === this.fileToDeleteEdit!.pieceId
+    );
+    if (pieceIndex !== -1) {
+      if (!this.editPiecesToDelete.includes(this.fileToDeleteEdit.pieceId)) {
+        this.editPiecesToDelete.push(this.fileToDeleteEdit.pieceId);
+      }
+      this.editCommentData.piecesJointes.splice(pieceIndex, 1);
+    }
+  }
+  
+  this.closeConfirmDeleteFileEditModal();
+  this.cdr.detectChanges();
+}
+
+
+/**
+ * Fait défiler la page vers le haut pour afficher le message de succès/erreur
+ */
+scrollToTop(): void {
+  // Scroll vers le haut de la page
+  window.scrollTo({
+    top: 0,
+    behavior: 'smooth'
+  });
+  
+  // Alternative : scroll vers l'élément de message
+  // setTimeout(() => {
+  //   const alertElement = document.querySelector('.rounded-xl.border');
+  //   if (alertElement) {
+  //     alertElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  //   }
+  // }, 100);
+}
+
+
+/**
+ * Ferme la modale de confirmation de suppression pour l'édition
+ */
+closeConfirmDeleteFileEditModal(): void {
+  this.showConfirmDeleteFileEditModal = false;
+  this.fileToDeleteEdit = null;
 }
 
 /**
@@ -859,14 +951,30 @@ private addFilesToComment(files: File[]): void {
   this.newCommentFiles = [...this.newCommentFiles, ...validFiles];
 }
 
+// Au lieu de supprimer directement, ouvrir la modale de confirmation
 removeAddFile(index: number): void {
-  this.newCommentFiles.splice(index, 1);
+  const file = this.newCommentFiles[index];
+  if (!file) return;
+  
+  this.addFileToDelete = {
+    index: index,
+    fileName: file.name,
+    isDeleteAll: false
+  };
+  this.showConfirmDeleteAddFileModal = true;
 }
 
 clearAddAllFiles(): void {
-  this.newCommentFiles = [];
+  const totalFiles = this.newCommentFiles.length;
+  if (totalFiles === 0) return;
+  
+  this.addFileToDelete = {
+    index: -1,
+    fileName: `${totalFiles} fichier(s)`,
+    isDeleteAll: true
+  };
+  this.showConfirmDeleteAddFileModal = true;
 }
-
 // Modifiez la méthode submitNewComment()
 submitNewComment(): void {
   if (!this.newCommentData.message.trim() && this.newCommentFiles.length === 0) {
