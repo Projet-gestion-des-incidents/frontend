@@ -623,6 +623,9 @@ showErrorDialog(message: string, resultCode?: number): void {
     this.error = message;
   }
   
+  // ✅ Scroll automatique vers le haut pour voir l'erreur
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  
   // Auto-fermeture après 5 secondes
   setTimeout(() => {
     if (this.error === message || this.error === this.error) {
@@ -1593,6 +1596,9 @@ showTemporaryMessage(message: string, type: 'success' | 'error' | 'warning' = 's
   } else {
     this.error = message;
   }
+
+  // ✅ Scroll automatique vers le haut pour voir le message
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 
   const duration = type === 'warning' ? 7000 : 5000;
 
