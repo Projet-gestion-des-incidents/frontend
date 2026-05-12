@@ -47,7 +47,7 @@
   <!-- En-tête -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div>
-       <h1 class="text-2xl font-bold text-deep-purple dark:text-white/90">Gestion des commerçants</h1>
+        <h1 class="text-2xl font-bold text-[#0C144E] dark:text-white/90">Gestion des commerçants</h1>
       
     </div>
     <div class="flex gap-3">
@@ -76,7 +76,7 @@ class="inline-flex items-center gap-2 rounded-xl bg-gradient-digital-horizontal 
                  class="w-full pl-11 pr-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-sm focus:border-digital-purple focus:ring-2 focus:ring-digital-purple/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white transition-all">
         </div>
         <button (click)="toggleFilters()"
-                class="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl border-2 transition-all duration-200 font-medium"
+              class="inline-flex items-center gap-2 rounded-xl border border-gray-300 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-300 dark:hover:bg-gray-700 transition-all"
                 [class.bg-digital-purple]="showFilters"
                 [class.text-white]="showFilters"
                 [class.border-digital-purple]="showFilters"
@@ -87,7 +87,7 @@ class="inline-flex items-center gap-2 rounded-xl bg-gradient-digital-horizontal 
           <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
           </svg>
-          <span>Filtres</span>
+          <span>Filtrer</span>
           <span *ngIf="selectedStatut" class="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold bg-digital-purple text-white rounded-full">{{ (selectedStatut ? 1 : 0) }}</span>
         </button>
       </div>

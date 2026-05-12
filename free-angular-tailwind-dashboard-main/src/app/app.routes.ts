@@ -24,8 +24,6 @@ import { ForgotPasswordComponent } from './shared/components/auth/forgot-passwor
 import { ResetPasswordComponent } from './shared/components/auth/reset-password/reset-password.component';
 import { ForgotPasswordPageComponent } from './pages/auth-pages/forgot-password/forgot-password/forgot-password-page/forgot-password-page.component';
 import { AdminDashboardComponent } from './pages/dashboard/admin-dashboard/admin-dashboard.component';
-import { TechnicienDashboardComponent } from './pages/dashboard/technicien-dashboard/technicien-dashboard.component';
-import { CommercantDashboardComponent } from './pages/dashboard/commercant-dashboard/commercant-dashboard.component';
 import { AuthGuard } from './shared/guards/auth.guard';
 import { IncidentListComponent } from './pages/incident-list/incident-list.component';
 import { IncidentFormComponent } from './shared/components/incident-form/incident-form.component';
@@ -69,7 +67,7 @@ export const routes: Routes = [
       },
       {
     path: 'admin-dashboard',
-    component: AdminDashboardComponent,
+    component: AdminDashboardComponent,title:'Dashboard',
     children: [
       { path: '', redirectTo: 'tickets', pathMatch: 'full' },
       { path: 'tickets', component:   TicketsDashboardComponent },
@@ -104,13 +102,7 @@ export const routes: Routes = [
         canActivate: [AuthGuard],
         data: { roles: ['Admin'] },
         title: 'Créer un commerçant'
-      },
-{
-  path: 'technicien-dashboard',
-  component: TechnicienDashboardComponent,
-  canActivate: [AuthGuard],
-  data: { roles: ['Technicien'] }
-},{
+      },{
   path: 'update-commercant/:id',
   component: UpdateCommercantComponent,
   canActivate: [AuthGuard],
@@ -123,12 +115,7 @@ export const routes: Routes = [
   data: { roles: ['Admin'] },
   title: 'Modifier un technicien'
 }
-,{
-  path: 'commercant-dashboard',
-  component: CommercantDashboardComponent,
-  canActivate: [AuthGuard],
-  data: { roles: ['Commercant'] }
-}, {
+, {
         path: 'tpes',
         children: [
           // Admin peut voir tous les TPEs
@@ -143,13 +130,13 @@ export const routes: Routes = [
             path: 'new', 
             component: AjoutTPEComponent, 
             canActivate: [AuthGuard], 
-            data: { roles: ['Admin'] } 
+            data: { roles: ['Admin'] } ,title:'Associer un TPE'
           },
           { 
             path: 'edit/:id', 
             component: ModifierTpeComponent, 
             canActivate: [AuthGuard], 
-            data: { roles: ['Admin'] } 
+            data: { roles: ['Admin'] } ,title:'Modifier TPE'
           }
         ]
       },
@@ -168,13 +155,15 @@ export const routes: Routes = [
       path: '', 
       component: IncidentListComponent,
       canActivate: [AuthGuard],
-      data: { roles: ['Admin', 'Commercant'] } // Admin voit tout, Commercant voit ses propres
+      data: { roles: ['Admin', 'Commercant'] }
+      ,title:'Liste des Incidents' // Admin voit tout, Commercant voit ses propres
     },
     { 
             path: 'new', 
             component: IncidentFormComponent, 
             canActivate: [AuthGuard], 
             data: { roles: ['Commercant'] } 
+            ,title:'Ajouter un Incident'
           },
           // Modification d'un incident (Admin + Commercant)
           { 
@@ -182,6 +171,7 @@ export const routes: Routes = [
             component: IncidentEditComponent, 
             canActivate: [AuthGuard], 
             data: { roles: ['Admin', 'Commercant'] } 
+              ,title:'Modifier un Incident'
           },
           // Détail d'un incident (Admin + Commercant)
           { 
@@ -189,6 +179,7 @@ export const routes: Routes = [
             component: IncidentDetailComponent, 
             canActivate: [AuthGuard], 
             data: { roles: ['Admin', 'Commercant'] } 
+              ,title:'Details d un Incident'
           }
         ]
       },  {
@@ -199,7 +190,9 @@ export const routes: Routes = [
             path: '', 
             component: TicketsComponent,
             canActivate: [AuthGuard],
-            data: { roles: ['Admin', 'Technicien'] } // Admin voit tout, Technicien voit ses tickets assignés
+            data: { roles: ['Admin', 'Technicien'] }
+             ,title:'Liste des Tickets'
+             // Admin voit tout, Technicien voit ses tickets assignés
           },
           // Création d'un ticket (Admin uniquement)
           { 
@@ -207,24 +200,31 @@ export const routes: Routes = [
             component: TicketFormComponent,
             canActivate: [AuthGuard],
             data: { roles: ['Admin'] } 
+              ,title:'Ajouter un Ticket'
           },
           // Modification d'un ticket (Admin + Technicien)
           { 
             path: 'edit/:id', 
             component: TicketEditComponent,
             canActivate: [AuthGuard],
-            data: { roles: ['Admin', 'Technicien'] } 
+            data: { roles: ['Admin', 'Technicien'] } ,
+              title:'Modifier un Ticket'
+
           },
           // Détail d'un ticket (Admin + Technicien)
           { 
             path: ':id', 
             component: TicketDetailComponent,
             canActivate: [AuthGuard],
-            data: { roles: ['Admin', 'Technicien'] } 
+            data: { roles: ['Admin', 'Technicien'] } ,
+            title:'Details d un Ticket'
+
           },
               { path: ':id/commentaires', 
                 component: CommentaireListComponent, 
                 canActivate: [AuthGuard],
+                              title:'Liste des commentaires',
+
                  data: { roles: ['Admin', 'Technicien'] } }
         ]
       }
@@ -238,7 +238,7 @@ export const routes: Routes = [
       {
         path:'profile',
         component:ProfileComponent,
-        title:'Angular Profile Dashboard | TailAdmin - Angular Admin Dashboard Template'
+        title:'Profil'
       },
       {
         path:'form-elements',
@@ -306,22 +306,25 @@ export const routes: Routes = [
   // auth pages
   {
     path: 'forgot-password', 
-    component: ForgotPasswordPageComponent 
+    component: ForgotPasswordPageComponent ,
+        title:'Mot de passe oublié'
+
   }
  , { 
     path: 'reset-password', 
-    component: ResetPasswordComponent 
+    component: ResetPasswordComponent ,
+    title:'Réinitialiser le mot de passe'
   },
   
   {
     path:'signin',
     component:SignInComponent,
-    title:'Angular Sign In Dashboard | TailAdmin - Angular Admin Dashboard Template'
+    title:'Connexion'
   },
   {
     path:'signup',
     component:SignUpComponent,
-    title:'Angular Sign Up Dashboard | TailAdmin - Angular Admin Dashboard Template'
+    title:'Créer un compte Technicien'
   },
  {
     path: 'otp',
