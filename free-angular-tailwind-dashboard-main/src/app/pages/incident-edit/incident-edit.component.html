@@ -33,7 +33,7 @@
   <!-- MODALES DE CONFIRMATION -->
   <!-- Modale liaison TPE -->
 <div *ngIf="showLinkTpeModal" 
-     class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
+     class="fixed top-0 left-0 right-0 bottom-0 w-full h-full min-h-screen bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
      (click)="fermerModalLienTpe()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-modal-in"
        (click)="$event.stopPropagation()">
@@ -64,6 +64,49 @@
     </div>
   </div>
 </div>
+
+<!-- Modale suppression de tous les nouveaux fichiers -->
+<div *ngIf="showDeleteAllFilesModal" 
+     class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
+     (click)="closeDeleteAllFilesModal()">
+  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-modal-in"
+       (click)="$event.stopPropagation()">
+    <div class="text-center">
+      <div class="mx-auto w-16 h-16 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center mb-4">
+        <svg class="w-8 h-8 text-red-600 dark:text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-2">Confirmer la suppression</h3>
+      <p class="text-gray-600 dark:text-gray-400 mb-6">
+        Êtes-vous sûr de vouloir supprimer <span class="font-semibold text-gray-900 dark:text-white">tous les fichiers</span> sélectionnés ({{ selectedFiles.length }} fichier(s)) ?
+      </p>
+      <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mb-6">
+        <div class="flex gap-2">
+          <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-amber-800 dark:text-amber-200">Action irréversible</p>
+            <p class="text-xs text-amber-700 dark:text-amber-300">Cette action supprimera définitivement tous les fichiers que vous venez de sélectionner.</p>
+          </div>
+        </div>
+      </div>
+      <div class="flex gap-3">
+        <button type="button" (click)="closeDeleteAllFilesModal()" 
+                class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600">
+          Annuler
+        </button>
+        <button type="button" (click)="executeDeleteAllNewFiles()" 
+                class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-red-600 rounded-xl hover:bg-red-700">
+          Supprimer tout
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
+
   <!-- Modale suppression entité -->
   <div *ngIf="showDeleteEntiteModal" 
        class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
@@ -91,7 +134,8 @@
 
   <!-- Modale suppression TPE -->
   <div *ngIf="showDeleteTpeModal" 
-       class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
+       class="fixed top-0 left-0 right-0 bottom-0 w-full h-full min-h-screen bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
+       
        (click)="fermerModalTpe()">
     <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-modal-in"
          (click)="$event.stopPropagation()">
@@ -120,7 +164,7 @@
 <!-- Modale suppression pièce jointe -->
 <!-- Modale suppression pièce jointe -->
 <div *ngIf="showDeletePieceModal" 
-     class="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
+     class="fixed top-0 left-0 right-0 bottom-0 w-full h-full min-h-screen bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
      (click)="fermerModalPiece()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-6 shadow-2xl animate-modal-in"
        (click)="$event.stopPropagation()">
@@ -641,7 +685,9 @@
         <div *ngIf="selectedFiles.length > 0 && canAddFiles()" class="mt-4">
           <div class="flex items-center justify-between mb-3">
             <span class="text-xs font-medium text-gray-500">{{ selectedFiles.length }} nouveau(x) fichier(s)</span>
-            <button (click)="clearAllFiles()" class="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
+            <!-- Après (correct) -->
+<button type="button" (click)="confirmDeleteAllNewFiles()" 
+        class="text-xs text-red-600 hover:text-red-700 flex items-center gap-1 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
               </svg>

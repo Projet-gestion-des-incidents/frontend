@@ -1756,13 +1756,43 @@ onTypeProblemeChange() {
     
     // Afficher un message informatif
     this.showTemporaryMessage(
-      'Le type de problème a été modifié. Les entités impactées seront automatiquement mises à jour lors de l\'enregistrement.',
+      'Le type de problème a été modifié.',
       'success'
     );
     
     // Optionnel: Marquer que les entités ont changé pour rafraîchir l'affichage
     this.entitesImpacteesModifiees = true;
   }
+}
+
+// Ajoutez avec les autres propriétés
+showDeleteAllFilesModal: boolean = false;
+
+/**
+ * Ouvre la modale de confirmation pour supprimer tous les nouveaux fichiers sélectionnés
+ */
+confirmDeleteAllNewFiles(): void {
+  if (this.selectedFiles.length === 0) return;
+  
+  this.showDeleteAllFilesModal = true;
+}
+
+/**
+ * Exécute la suppression de tous les nouveaux fichiers sélectionnés
+ */
+executeDeleteAllNewFiles(): void {
+  this.selectedFiles = [];
+  this.updateIncidentFiles();
+  this.checkForChanges();
+  this.showTemporaryMessage('Tous les fichiers sélectionnés ont été supprimés', 'success');
+  this.closeDeleteAllFilesModal();
+}
+
+/**
+ * Ferme la modale de suppression de tous les fichiers
+ */
+closeDeleteAllFilesModal(): void {
+  this.showDeleteAllFilesModal = false;
 }
 
 // Ajoutez cette propriété
