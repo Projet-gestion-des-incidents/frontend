@@ -687,7 +687,7 @@ initPannesParModeleChart() {
     title: {
       text: 'Répartition des incidents par modèle',
       align: 'center',
-      style: { fontSize: '14px', fontWeight: '600', fontFamily: 'Poppins, system-ui, sans-serif' }
+      style: { color: '#1E293B', fontSize: '15px', fontWeight: '600', fontFamily: 'Poppins, system-ui, sans-serif' }
     },
     stroke: {
       show: true,

@@ -43,12 +43,13 @@ Math = Math;
   bulkDeleting = false;
   
   // ✅ Alert
-  alert = {
-    show: false,
-    variant: 'success' as 'success' | 'error',
-    title: '',
-    message: ''
-  };
+ // ✅ Alert - Ajouter 'warning' au type
+alert = {
+  show: false,
+  variant: 'success' as 'success' | 'error' | 'warning',
+  title: '',
+  message: ''
+};
 
   constructor(private userService: UserService,    private router: Router
 ) {}
@@ -180,10 +181,11 @@ onEdit(commercant: any): void {
   }
 
   // ================= ALERT =================
-  showAlert(variant: 'success' | 'error', title: string, message: string): void {
-    this.alert = { show: true, variant, title, message };
-    setTimeout(() => { this.alert.show = false; }, 5000);
-  }
+ // ================= ALERT =================
+showAlert(variant: 'success' | 'error' | 'warning', title: string, message: string): void {
+  this.alert = { show: true, variant, title, message };
+  setTimeout(() => { this.alert.show = false; }, 5000);
+}
 
   clearAlert(): void {
     this.alert.show = false;
@@ -311,19 +313,22 @@ executeMultiDelete(): void {
   }
 
 onDelete(commercant: any): void {
-  // ✅ Vérifier si le commerçant a des incidents avant d'ouvrir la modale
+  // ✅ Vérifier si le commerçant a des incidents
   this.userService.getCommercantById(commercant.id).subscribe({
     next: (details) => {
-      if (details && details.nombreIncidents > 0) {
-        // Utiliser 'error' au lieu de 'warning'
+      // Vérifier la propriété appropriée selon votre DTO
+      if (details && (details.nombreIncidents > 0 || details.hasIncidents || details.incidentCount > 0)) {
         this.showAlert('error', 'Suppression impossible', 
-          `Ce commerçant a ${details.nombreIncidents} incident(s) associé(s). Supprimez-les d'abord.`);
+          `Ce commerçant a ${details.nombreIncidents || details.incidentCount} incident(s) associé(s). Supprimez-les d'abord ou contactez l'administrateur.`);
       } else {
         this.confirmUser = commercant;
       }
     },
     error: () => {
-      // Si on ne peut pas vérifier, on autorise quand même
+      // Si on ne peut pas vérifier, afficher un avertissement
+      this.showAlert('warning', 'Attention', 
+        'Impossible de vérifier les dépendances. La suppression pourrait échouer si des incidents sont associés.');
+      // On autorise quand même
       this.confirmUser = commercant;
     }
   });
@@ -370,8 +375,11 @@ confirmDelete(): void {
       // ✅ Récupérer le message d'erreur détaillé
       let errorMessage = err.error?.message || err.message || 'Erreur inconnue';
       
-      if (errorMessage.includes('TPEs') || errorMessage.includes('incidents')) {
-        errorMessage = 'Ce commerçant a des données associées (TPEs, incidents). Supprimez-les d\'abord.';
+      // ✅ Message spécifique pour les incidents
+      if (errorMessage.includes('incident') || errorMessage.toLowerCase().includes('incident')) {
+        errorMessage = 'Ce commerçant a des incidents associés. Supprimez les incidents d\'abord avant de supprimer le commerçant.';
+      } else if (errorMessage.includes('TPEs') || errorMessage.toLowerCase().includes('tpe')) {
+        errorMessage = 'Ce commerçant a des TPEs associés. Détachez ou supprimez les TPEs d\'abord.';
       }
       
       this.showAlert('error', 'Erreur', errorMessage);
@@ -379,6 +387,7 @@ confirmDelete(): void {
     }
   });
 }
+
 
   getStatutCount(statut: string): number {
     return this.commercants.filter(c => c.statut === statut).length;

@@ -160,30 +160,33 @@
             </div>
           </div>
 
-          <!-- Nom d'utilisateur -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-              Nom d'utilisateur <span class="text-red-500">*</span>
-            </label>
-            <div class="relative">
-              <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg class="w-4 h-4 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-                </svg>
-              </div>
-              <input type="text" formControlName="userName" placeholder="ex: jean.dupont"
-                class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
-                [class.border-red-500]="technicienForm.get('userName')?.invalid && technicienForm.get('userName')?.touched" />
-            </div>
-            <div *ngIf="technicienForm.get('userName')?.touched && technicienForm.get('userName')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
-              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <span *ngIf="technicienForm.get('userName')?.errors?.['required']">Le nom d'utilisateur est requis</span>
-              <span *ngIf="technicienForm.get('userName')?.errors?.['minlength']">Minimum 3 caractères</span>
-              <span *ngIf="technicienForm.get('userName')?.errors?.['maxlength']">Maximum 30 caractères</span>
-            </div>
-          </div>
+<!-- Nom d'utilisateur -->
+<div>
+  <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+    Nom d'utilisateur <span class="text-red-500">*</span>
+  </label>
+  <div class="relative">
+    <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+      <svg class="w-4 h-4 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+      </svg>
+    </div>
+    <input type="text" formControlName="userName" placeholder="ex: jean.dupont"
+      class="w-full pl-10 pr-4 py-2.5 rounded-lg border border-gray-300 bg-white text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+      [class.border-red-500]="technicienForm.get('userName')?.invalid && technicienForm.get('userName')?.touched" />
+  </div>
+  <div *ngIf="technicienForm.get('userName')?.touched && technicienForm.get('userName')?.invalid" class="mt-2 text-xs text-red-500 flex items-center gap-1">
+    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+    </svg>
+    <span *ngIf="technicienForm.get('userName')?.errors?.['required']">Le nom d'utilisateur est requis</span>
+    <span *ngIf="technicienForm.get('userName')?.errors?.['minlength']">Minimum 3 caractères</span>
+    <span *ngIf="technicienForm.get('userName')?.errors?.['maxlength']">Maximum 30 caractères</span>
+    <span *ngIf="technicienForm.get('userName')?.errors?.['usernameInvalid']">
+      Le nom d'utilisateur ne peut contenir que des lettres et des chiffres (pas d'espaces ni caractères spéciaux)
+    </span>
+  </div>
+</div>
 
       <!-- Téléphone -->
 <div>

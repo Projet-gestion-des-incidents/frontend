@@ -296,49 +296,49 @@
       
       <form [formGroup]="editForm" (ngSubmit)="saveInfo()" class="space-y-6">
         
-        <!-- Photo de profil -->
-        <div class="flex items-center gap-5 p-4 bg-[#ECECFF] dark:bg-[#0C144E]/20 rounded-xl border border-[#C5C6FF] dark:border-[#8788FF]/30">
-          <div class="relative group">
-            <div class="w-20 h-20 rounded-full overflow-hidden border-3 border-[#8788FF] dark:border-[#B2B3FF] shadow-md bg-white">
-              <img [src]="imagePreview || user.image || '/assets/default-avatar.png'" class="w-full h-full object-cover" />
-            </div>
-            <div class="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
-              <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              </svg>
-            </div>
-          </div>
-          <div class="flex-1">
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Photo de profil</label>
-            <div class="relative mt-2">
-              <input type="file" id="profileImage" #fileInput (change)="onImageSelected($event)" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" class="hidden"/>
-              <button type="button" (click)="fileInput.click()" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all text-[#8788FF] bg-[#ECECFF] hover:bg-[#C5C6FF] dark:bg-[#0C144E]/20 dark:text-[#B2B3FF] dark:hover:bg-[#0C144E]/30">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
-                </svg>
-                Choisir une image
-              </button>
-              <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">JPG, PNG, GIF ou WebP. Max 5MB.</p>
-            </div>
-            <div *ngIf="selectedImage" class="mt-3">
-              <div class="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center">
-                  <img [src]="imagePreview" class="w-full h-full object-cover" />
-                </div>
-                <div class="flex-1">
-                  <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{{ selectedImage.name }}</p>
-                  <p class="text-xs text-gray-500 dark:text-gray-400">{{ formatFileSize(selectedImage.size) }}</p>
-                </div>
-                <button type="button" (click)="removeSelectedImage()" class="p-1 text-gray-400 hover:text-red-500 transition-colors">
-                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                  </svg>
-                </button>
-              </div>
-            </div>
-          </div>
+    <!-- Photo de profil - Version corrigée -->
+<div class="flex flex-col sm:flex-row items-start sm:items-center gap-5 p-4 bg-[#ECECFF] dark:bg-[#0C144E]/20 rounded-xl border border-[#C5C6FF] dark:border-[#8788FF]/30">
+  <div class="relative group flex-shrink-0">
+    <div class="w-20 h-20 rounded-full overflow-hidden border-3 border-[#8788FF] dark:border-[#B2B3FF] shadow-md bg-white">
+      <img [src]="imagePreview || user.image || '/assets/default-avatar.png'" class="w-full h-full object-cover" />
+    </div>
+    <div class="absolute inset-0 rounded-full bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer">
+      <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"></path>
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"></path>
+      </svg>
+    </div>
+  </div>
+  <div class="flex-1 min-w-0"> <!-- Ajout de min-w-0 pour éviter le débordement -->
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Photo de profil</label>
+    <div class="relative mt-2">
+      <input type="file" id="profileImage" #fileInput (change)="onImageSelected($event)" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" class="hidden"/>
+      <button type="button" (click)="fileInput.click()" class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium rounded-lg transition-all text-[#8788FF] bg-[#ECECFF] hover:bg-[#C5C6FF] dark:bg-[#0C144E]/20 dark:text-[#B2B3FF] dark:hover:bg-[#0C144E]/30">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"></path>
+        </svg>
+        Choisir une image
+      </button>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-2 break-words">JPG, PNG, GIF ou WebP. Max 5MB.</p>
+    </div>
+    <div *ngIf="selectedImage" class="mt-3">
+      <div class="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+        <div class="w-10 h-10 rounded-lg overflow-hidden bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+          <img [src]="imagePreview" class="w-full h-full object-cover" />
         </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{{ selectedImage.name }}</p>
+          <p class="text-xs text-gray-500 dark:text-gray-400">{{ formatFileSize(selectedImage.size) }}</p>
+        </div>
+        <button type="button" (click)="removeSelectedImage()" class="p-1 text-gray-400 hover:text-red-500 transition-colors flex-shrink-0">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
 
         <!-- Champs du formulaire en grille -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -593,59 +593,79 @@
         
         <!-- Mot de passe actuel -->
         <div>
-          <app-label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mot de passe actuel</app-label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Mot de passe actuel <span class="text-red-500">*</span>
+          </label>
           <div class="relative">
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
               <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
               </svg>
             </div>
-            <input [type]="showCurrentPassword ? 'text' : 'password'" 
-                   [value]="passwordForm.get('currentPassword')?.value" 
-                   (input)="passwordForm.get('currentPassword')?.setValue($any($event.target).value)"
-                   placeholder="Entrez votre mot de passe actuel" 
-                   class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
-            <button type="button" (click)="toggleCurrentPassword()" 
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-              <svg *ngIf="!showCurrentPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
-              </svg>
-              <svg *ngIf="showCurrentPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-              </svg>
-            </button>
+            <input 
+              [type]="showCurrentPassword ? 'text' : 'password'" 
+              formControlName="currentPassword"
+              placeholder="Entrez votre mot de passe actuel" 
+              class="w-full pl-10 pr-11 py-3 rounded-xl border border-gray-300 bg-white text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+              style="height: 42px;"
+            />
+            <span
+              (click)="toggleCurrentPassword()"
+              class="absolute z-30 cursor-pointer"
+              style="right: 12px; top: 50%; transform: translateY(-50%);"
+            >
+              @if (showCurrentPassword) {
+                <svg width="1.25em" height="1.25em" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" class="fill-gray-500 dark:fill-gray-400">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M10.0002 13.8619C7.23361 13.8619 4.86803 12.1372 3.92328 9.70241C4.86804 7.26761 7.23361 5.54297 10.0002 5.54297C12.7667 5.54297 15.1323 7.26762 16.0771 9.70243C15.1323 12.1372 12.7667 13.8619 10.0002 13.8619ZM10.0002 4.04297C6.48191 4.04297 3.49489 6.30917 2.4155 9.4593C2.3615 9.61687 2.3615 9.78794 2.41549 9.94552C3.49488 13.0957 6.48191 15.3619 10.0002 15.3619C13.5184 15.3619 16.5055 13.0957 17.5849 9.94555C17.6389 9.78797 17.6389 9.6169 17.5849 9.45932C16.5055 6.30919 13.5184 4.04297 10.0002 4.04297ZM9.99151 7.84413C8.96527 7.84413 8.13333 8.67606 8.13333 9.70231C8.13333 10.7286 8.96527 11.5605 9.99151 11.5605H10.0064C11.0326 11.5605 11.8646 10.7286 11.8646 9.70231C11.8646 8.67606 11.0326 7.84413 10.0064 7.84413H9.99151Z"></path>
+                </svg>
+              } @else {
+                <svg width="1.25em" height="1.25em" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" class="fill-gray-500 dark:fill-gray-400">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M4.63803 3.57709C4.34513 3.2842 3.87026 3.2842 3.57737 3.57709C3.28447 3.86999 3.28447 4.34486 3.57737 4.63775L4.85323 5.91362C3.74609 6.84199 2.89363 8.06395 2.4155 9.45936C2.3615 9.61694 2.3615 9.78801 2.41549 9.94558C3.49488 13.0957 6.48191 15.3619 10.0002 15.3619C11.255 15.3619 12.4422 15.0737 13.4994 14.5598L15.3625 16.4229C15.6554 16.7158 16.1302 16.7158 16.4231 16.4229C16.716 16.13 16.716 15.6551 16.4231 15.3622L4.63803 3.57709ZM12.3608 13.4212L10.4475 11.5079C10.3061 11.5423 10.1584 11.5606 10.0064 11.5606H9.99151C8.96527 11.5606 8.13333 10.7286 8.13333 9.70237C8.13333 9.5461 8.15262 9.39434 8.18895 9.24933L5.91885 6.97923C5.03505 7.69015 4.34057 8.62704 3.92328 9.70247C4.86803 12.1373 7.23361 13.8619 10.0002 13.8619C10.8326 13.8619 11.6287 13.7058 12.3608 13.4212ZM16.0771 9.70249C15.7843 10.4569 15.3552 11.1432 14.8199 11.7311L15.8813 12.7925C16.6329 11.9813 17.2187 11.0143 17.5849 9.94561C17.6389 9.78803 17.6389 9.61696 17.5849 9.45938C16.5055 6.30925 13.5184 4.04303 10.0002 4.04303C9.13525 4.04303 8.30244 4.17999 7.52218 4.43338L8.75139 5.66259C9.1556 5.58413 9.57311 5.54303 10.0002 5.54303C12.7667 5.54303 15.1323 7.26768 16.0771 9.70249Z"></path>
+                </svg>
+              }
+            </span>
           </div>
         </div>
         
         <!-- Nouveau mot de passe -->
         <div>
-          <app-label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Nouveau mot de passe</app-label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Nouveau mot de passe <span class="text-red-500">*</span>
+          </label>
           <div class="relative">
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
               <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
               </svg>
             </div>
-            <input [type]="showNewPassword ? 'text' : 'password'" 
-                   [value]="passwordForm.get('newPassword')?.value" 
-                   (input)="passwordForm.get('newPassword')?.setValue($any($event.target).value)"
-                   placeholder="Entrez votre nouveau mot de passe" 
-                   class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
-            <button type="button" (click)="toggleNewPassword()" 
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-              <svg *ngIf="!showNewPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
-              </svg>
-              <svg *ngIf="showNewPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-              </svg>
-            </button>
+            <input 
+              [type]="showNewPassword ? 'text' : 'password'" 
+              formControlName="newPassword"
+              placeholder="Entrez votre nouveau mot de passe" 
+              class="w-full pl-10 pr-11 py-3 rounded-xl border border-gray-300 bg-white text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+              style="height: 42px;"
+            />
+            <span
+              (click)="toggleNewPassword()"
+              class="absolute z-30 cursor-pointer"
+              style="right: 12px; top: 50%; transform: translateY(-50%);"
+            >
+              @if (showNewPassword) {
+                <svg width="1.25em" height="1.25em" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" class="fill-gray-500 dark:fill-gray-400">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M10.0002 13.8619C7.23361 13.8619 4.86803 12.1372 3.92328 9.70241C4.86804 7.26761 7.23361 5.54297 10.0002 5.54297C12.7667 5.54297 15.1323 7.26762 16.0771 9.70243C15.1323 12.1372 12.7667 13.8619 10.0002 13.8619ZM10.0002 4.04297C6.48191 4.04297 3.49489 6.30917 2.4155 9.4593C2.3615 9.61687 2.3615 9.78794 2.41549 9.94552C3.49488 13.0957 6.48191 15.3619 10.0002 15.3619C13.5184 15.3619 16.5055 13.0957 17.5849 9.94555C17.6389 9.78797 17.6389 9.6169 17.5849 9.45932C16.5055 6.30919 13.5184 4.04297 10.0002 4.04297ZM9.99151 7.84413C8.96527 7.84413 8.13333 8.67606 8.13333 9.70231C8.13333 10.7286 8.96527 11.5605 9.99151 11.5605H10.0064C11.0326 11.5605 11.8646 10.7286 11.8646 9.70231C11.8646 8.67606 11.0326 7.84413 10.0064 7.84413H9.99151Z"></path>
+                </svg>
+              } @else {
+                <svg width="1.25em" height="1.25em" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" class="fill-gray-500 dark:fill-gray-400">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M4.63803 3.57709C4.34513 3.2842 3.87026 3.2842 3.57737 3.57709C3.28447 3.86999 3.28447 4.34486 3.57737 4.63775L4.85323 5.91362C3.74609 6.84199 2.89363 8.06395 2.4155 9.45936C2.3615 9.61694 2.3615 9.78801 2.41549 9.94558C3.49488 13.0957 6.48191 15.3619 10.0002 15.3619C11.255 15.3619 12.4422 15.0737 13.4994 14.5598L15.3625 16.4229C15.6554 16.7158 16.1302 16.7158 16.4231 16.4229C16.716 16.13 16.716 15.6551 16.4231 15.3622L4.63803 3.57709ZM12.3608 13.4212L10.4475 11.5079C10.3061 11.5423 10.1584 11.5606 10.0064 11.5606H9.99151C8.96527 11.5606 8.13333 10.7286 8.13333 9.70237C8.13333 9.5461 8.15262 9.39434 8.18895 9.24933L5.91885 6.97923C5.03505 7.69015 4.34057 8.62704 3.92328 9.70247C4.86803 12.1373 7.23361 13.8619 10.0002 13.8619C10.8326 13.8619 11.6287 13.7058 12.3608 13.4212ZM16.0771 9.70249C15.7843 10.4569 15.3552 11.1432 14.8199 11.7311L15.8813 12.7925C16.6329 11.9813 17.2187 11.0143 17.5849 9.94561C17.6389 9.78803 17.6389 9.61696 17.5849 9.45938C16.5055 6.30925 13.5184 4.04303 10.0002 4.04303C9.13525 4.04303 8.30244 4.17999 7.52218 4.43338L8.75139 5.66259C9.1556 5.58413 9.57311 5.54303 10.0002 5.54303C12.7667 5.54303 15.1323 7.26768 16.0771 9.70249Z"></path>
+                </svg>
+              }
+            </span>
           </div>
+          
+          <!-- Indicateur de force du mot de passe -->
           @if (passwordForm.get('newPassword')?.value && passwordForm.get('newPassword')?.value.length > 0) {
-            <div class="mt-2">
-              <div class="flex gap-1 h-1.5 mb-2">
+            <div class="mt-1">
+              <div class="flex gap-1 h-1 mb-1">
                 <div class="flex-1 rounded-full" [class.bg-red-500]="passwordStrength === 'weak'" [class.bg-gray-200]="passwordStrength !== 'weak'"></div>
                 <div class="flex-1 rounded-full" [class.bg-yellow-500]="passwordStrength === 'medium'" [class.bg-gray-200]="passwordStrength !== 'medium'"></div>
                 <div class="flex-1 rounded-full" [class.bg-green-500]="passwordStrength === 'strong'" [class.bg-gray-200]="passwordStrength !== 'strong'"></div>
@@ -661,44 +681,71 @@
         
         <!-- Confirmer le mot de passe -->
         <div>
-          <app-label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Confirmer le mot de passe</app-label>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+            Confirmer le mot de passe <span class="text-red-500">*</span>
+          </label>
           <div class="relative">
             <div class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none z-10">
               <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>
               </svg>
             </div>
-            <input [type]="showConfirmPassword ? 'text' : 'password'" 
-                   [value]="passwordForm.get('confirmPassword')?.value" 
-                   (input)="passwordForm.get('confirmPassword')?.setValue($any($event.target).value)"
-                   placeholder="Confirmez votre nouveau mot de passe" 
-                   class="pl-10 w-full rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"/>
-            <button type="button" (click)="toggleConfirmPassword()" 
-                    class="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors">
-              <svg *ngIf="!showConfirmPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"></path>
-              </svg>
-              <svg *ngIf="showConfirmPassword" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
-              </svg>
-            </button>
+            <input 
+              [type]="showConfirmPassword ? 'text' : 'password'" 
+              formControlName="confirmPassword"
+              placeholder="Confirmez votre nouveau mot de passe" 
+              class="w-full pl-10 pr-11 py-3 rounded-xl border border-gray-300 bg-white text-sm focus:border-[#8788FF] focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-600 dark:bg-gray-800 dark:text-white transition-all"
+              style="height: 42px;"
+            />
+            <span
+              (click)="toggleConfirmPassword()"
+              class="absolute z-30 cursor-pointer"
+              style="right: 12px; top: 50%; transform: translateY(-50%);"
+            >
+              @if (showConfirmPassword) {
+                <svg width="1.25em" height="1.25em" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" class="fill-gray-500 dark:fill-gray-400">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M10.0002 13.8619C7.23361 13.8619 4.86803 12.1372 3.92328 9.70241C4.86804 7.26761 7.23361 5.54297 10.0002 5.54297C12.7667 5.54297 15.1323 7.26762 16.0771 9.70243C15.1323 12.1372 12.7667 13.8619 10.0002 13.8619ZM10.0002 4.04297C6.48191 4.04297 3.49489 6.30917 2.4155 9.4593C2.3615 9.61687 2.3615 9.78794 2.41549 9.94552C3.49488 13.0957 6.48191 15.3619 10.0002 15.3619C13.5184 15.3619 16.5055 13.0957 17.5849 9.94555C17.6389 9.78797 17.6389 9.6169 17.5849 9.45932C16.5055 6.30919 13.5184 4.04297 10.0002 4.04297ZM9.99151 7.84413C8.96527 7.84413 8.13333 8.67606 8.13333 9.70231C8.13333 10.7286 8.96527 11.5605 9.99151 11.5605H10.0064C11.0326 11.5605 11.8646 10.7286 11.8646 9.70231C11.8646 8.67606 11.0326 7.84413 10.0064 7.84413H9.99151Z"></path>
+                </svg>
+              } @else {
+                <svg width="1.25em" height="1.25em" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg" class="fill-gray-500 dark:fill-gray-400">
+                  <path fill-rule="evenodd" clip-rule="evenodd" d="M4.63803 3.57709C4.34513 3.2842 3.87026 3.2842 3.57737 3.57709C3.28447 3.86999 3.28447 4.34486 3.57737 4.63775L4.85323 5.91362C3.74609 6.84199 2.89363 8.06395 2.4155 9.45936C2.3615 9.61694 2.3615 9.78801 2.41549 9.94558C3.49488 13.0957 6.48191 15.3619 10.0002 15.3619C11.255 15.3619 12.4422 15.0737 13.4994 14.5598L15.3625 16.4229C15.6554 16.7158 16.1302 16.7158 16.4231 16.4229C16.716 16.13 16.716 15.6551 16.4231 15.3622L4.63803 3.57709ZM12.3608 13.4212L10.4475 11.5079C10.3061 11.5423 10.1584 11.5606 10.0064 11.5606H9.99151C8.96527 11.5606 8.13333 10.7286 8.13333 9.70237C8.13333 9.5461 8.15262 9.39434 8.18895 9.24933L5.91885 6.97923C5.03505 7.69015 4.34057 8.62704 3.92328 9.70247C4.86803 12.1373 7.23361 13.8619 10.0002 13.8619C10.8326 13.8619 11.6287 13.7058 12.3608 13.4212ZM16.0771 9.70249C15.7843 10.4569 15.3552 11.1432 14.8199 11.7311L15.8813 12.7925C16.6329 11.9813 17.2187 11.0143 17.5849 9.94561C17.6389 9.78803 17.6389 9.61696 17.5849 9.45938C16.5055 6.30925 13.5184 4.04303 10.0002 4.04303C9.13525 4.04303 8.30244 4.17999 7.52218 4.43338L8.75139 5.66259C9.1556 5.58413 9.57311 5.54303 10.0002 5.54303C12.7667 5.54303 15.1323 7.26768 16.0771 9.70249Z"></path>
+                </svg>
+              }
+            </span>
           </div>
+          
           @if (passwordForm.get('confirmPassword')?.invalid && passwordForm.get('confirmPassword')?.touched) {
             <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
               </svg>
               @if (passwordForm.get('confirmPassword')?.errors?.['required']) {Veuillez confirmer votre mot de passe}
-              @if (passwordForm.get('confirmPassword')?.errors?.['passwordMismatch']) {Les mots de passe ne correspondent pas}
             </p>
           }
-          @if (passwordForm.get('confirmPassword')?.value && passwordForm.get('newPassword')?.value === passwordForm.get('confirmPassword')?.value && passwordForm.get('newPassword')?.value && passwordForm.get('confirmPassword')?.touched && !passwordForm.get('confirmPassword')?.errors?.['passwordMismatch']) {
+          
+          @if (passwordForm.get('confirmPassword')?.value && 
+               passwordForm.get('newPassword')?.value === passwordForm.get('confirmPassword')?.value && 
+               passwordForm.get('newPassword')?.value && 
+               passwordForm.get('confirmPassword')?.touched && 
+               !passwordForm.get('confirmPassword')?.errors?.['passwordMismatch']) {
             <p class="mt-1 text-xs text-green-500 flex items-center gap-1">
               <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
               </svg>
               Les mots de passe correspondent
+            </p>
+          }
+          
+          <!-- Message d'erreur mismatch -->
+          @if (passwordForm.hasError('mismatch') && 
+               passwordForm.get('confirmPassword')?.touched && 
+               passwordForm.get('newPassword')?.value && 
+               passwordForm.get('confirmPassword')?.value) {
+            <p class="mt-1 text-xs text-red-500 flex items-center gap-1">
+              <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+              </svg>
+              Les mots de passe ne correspondent pas
             </p>
           }
         </div>

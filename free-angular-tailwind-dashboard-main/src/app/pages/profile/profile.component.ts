@@ -533,64 +533,60 @@ saveInfo(): void {
   serviceCall.subscribe({
     next: (response: any) => {
       this.saving = false;
-      console.log('📥 Réponse API:', response);
+      console.log('📥 Réponse API brute:', response);
       
-      // ✅ Cas OTP email - Changement d'email
+      // ✅ CORRECTION: Votre API retourne les données directement
+      // La réponse contient 'nom', 'prenom', 'email', etc. - c'est un succès
+      if (response && typeof response === 'object') {
+        // ✅ Si la réponse contient 'nom' ou 'email' ou 'prenom', c'est un succès
+        if (response.nom !== undefined || response.email !== undefined || response.prenom !== undefined) {
+          console.log('✅ Succès - Mise à jour réussie');
+          
+          // Afficher le message de succès
+          this.showGlobalSuccess('Profil mis à jour avec succès');
+          
+          // Mettre à jour l'utilisateur localement
+          if (response.nom !== undefined) this.user.nom = response.nom;
+          if (response.prenom !== undefined) this.user.prenom = response.prenom;
+          if (response.email !== undefined) this.user.email = response.email;
+          if (response.phoneNumber !== undefined) this.user.phoneNumber = response.phoneNumber;
+          if (response.birthDate !== undefined) this.user.birthDate = response.birthDate;
+          if (response.adresse !== undefined) this.user.adresse = response.adresse;
+          if (response.image !== undefined) this.user.image = response.image;
+          
+          // Nettoyer l'image sélectionnée
+          this.selectedImage = null;
+          this.imageBase64 = null;
+          
+          // Fermer le modal
+          this.closeInfoModal();
+          return;
+        }
+      }
+      
+      // ✅ Cas OTP email (si votre API utilise ce code)
       if (response.resultCode === 42) {
-        // ✅ Fermer le modal d'info
         this.closeInfoModal();
-        
-        // ✅ Réinitialiser l'alerte
         this.clearAlert();
-        
-        // ✅ Stocker le nouvel email
         this.pendingEmailChange = formValue.email;
         this.otpPurpose = 'email';
-        
-        // ✅ Ouvrir directement le modal OTP avec le message intégré
         this.showOtpModal = true;
         return;
       }
       
-      // ✅ Cas OTP password - Changement de mot de passe
+      // ✅ Cas OTP password
       if (response.resultCode === 43) {
-  // ✅ Fermer le modal d'info
-  this.closeInfoModal();
-  this.clearAlert();
-  
-  // ✅ Stocker le nouveau mot de passe
-  this.pendingPasswordChange = this.passwordForm.value.newPassword;
-  this.otpPurpose = 'password';
-  
-  // ✅ Ouvrir directement le modal OTP (sans message, l'info est déjà dans le modal)
-  this.showOtpModal = true;
-  return;
-}
-      
-      // ✅ Succès sans OTP
-      if (response.resultCode === 0 || response.isSuccess === true) {
-        this.showGlobalSuccess(response.message || 'Profil mis à jour avec succès');
-        
-        if (response.data) {
-          this.user = { ...this.user, ...response.data };
-        } else {
-          this.user.nom = formValue.nom;
-          this.user.prenom = formValue.prenom;
-          this.user.email = formValue.email;
-          this.user.phoneNumber = formValue.phoneNumber;
-          if (formValue.birthDate) this.user.birthDate = formValue.birthDate;
-          if (formValue.adresse) this.user.adresse = formValue.adresse;
-          if (this.user.role === 'Commercant' && formValue.nomMagasin) {
-            this.user.nom = formValue.nomMagasin;
-          }
-          if (this.imageBase64 && this.imagePreview) this.user.image = this.imagePreview;
-        }
-        
         this.closeInfoModal();
+        this.clearAlert();
+        this.pendingPasswordChange = this.passwordForm.value.newPassword;
+        this.otpPurpose = 'password';
+        this.showOtpModal = true;
+        return;
       }
-      else if (response.resultCode !== 42 && response.resultCode !== 43) {
-        this.showAlert('error', 'Erreur', response.message || 'Erreur lors de la mise à jour');
-      }
+      
+      // ✅ Cas erreur
+      console.error('❌ Réponse non reconnue comme succès:', response);
+      this.showAlert('error', 'Erreur', response.message || 'Erreur lors de la mise à jour');
     },
     error: (err: any) => {
       console.error('❌ Erreur HTTP:', err);
@@ -604,6 +600,8 @@ saveInfo(): void {
         } else if (errorMessage.includes('téléphone déjà utilisé')) {
           errorMessage = 'Ce numéro de téléphone est déjà utilisé';
         }
+      } else if (err.message) {
+        errorMessage = err.message;
       }
       
       this.showAlert('error', 'Erreur de mise à jour', errorMessage);
@@ -639,6 +637,7 @@ onOtpModalClose(): void {
 
 private showGlobalSuccess(message: string): void {
   this.globalSuccessMessage = message;
+  console.log('✅ Message global affiché:', message);
   
   // Efface automatiquement après 5 secondes
   if (this.globalSuccessTimeout) {
@@ -647,6 +646,9 @@ private showGlobalSuccess(message: string): void {
   this.globalSuccessTimeout = setTimeout(() => {
     this.globalSuccessMessage = '';
   }, 5000);
+  
+  // ✅ Faire défiler vers le haut pour voir le message
+  window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 changePassword(): void {
   console.log('========== DÉBUT CHANGE PASSWORD ==========');
