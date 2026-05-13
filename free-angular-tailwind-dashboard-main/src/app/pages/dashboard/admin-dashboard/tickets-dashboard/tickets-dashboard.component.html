@@ -174,22 +174,23 @@
       </div>
       <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">{{ ticketData.assignationGlobale?.totalTicketsAvecAssignation || 0 }} / {{ ticketData.overview.totalTickets }} tickets assignés</p>
     </div>
-
-    <!-- Temps moyen -->
-    <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/10 rounded-xl p-4 border border-orange-200 dark:border-orange-800 hover:shadow-md transition-all duration-300">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm text-orange-600 dark:text-orange-400 font-medium">Temps moyen</p>
-          <p class="text-2xl font-bold text-orange-700 dark:text-orange-300">{{ ticketData.statsResolution.tempsMoyenResolutionHeures }}h</p>
-        </div>
-        <div class="p-3 bg-orange-200 dark:bg-orange-800 rounded-xl">
-          <svg class="w-6 h-6 text-orange-700 dark:text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-          </svg>
-        </div>
-      </div>
-      <p class="text-xs text-orange-500 dark:text-orange-400/70 mt-2">Entre date de détection et date de résolution</p>
+<!-- Temps moyen -->
+<div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/10 rounded-xl p-4 border border-orange-200 dark:border-orange-800 hover:shadow-md transition-all duration-300">
+  <div class="flex items-center justify-between">
+    <div>
+      <p class="text-sm text-orange-600 dark:text-orange-400 font-medium">Temps moyen</p>
+      <p class="text-2xl font-bold text-orange-700 dark:text-orange-300">
+        {{ ((ticketData.statsResolution.tempsMoyenResolutionHeures / 24) | number:'1.0-0') }}j
+      </p>
     </div>
+    <div class="p-3 bg-orange-200 dark:bg-orange-800 rounded-xl">
+      <svg class="w-6 h-6 text-orange-700 dark:text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+    </div>
+  </div>
+  <p class="text-xs text-orange-500 dark:text-orange-400/70 mt-2">Entre date de détection et date de résolution</p>
+</div>
   </div>
 
   <!-- Graphiques Tickets - Dark mode adapté -->
