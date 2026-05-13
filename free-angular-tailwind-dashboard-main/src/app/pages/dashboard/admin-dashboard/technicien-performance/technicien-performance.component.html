@@ -3,7 +3,7 @@
    <!-- Bouton export -->
   <div class="flex justify-end">
     <button (click)="openExportModal()" 
-            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#8788FF] to-[#787AEA] text-white hover:from-[#787AEA] hover:to-[#0C144E]">
+            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#8788FF] to-[#787AEA] text-white hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
               d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -13,118 +13,140 @@
   </div>
 
   <!-- Modal d'export -->
-<!-- Modal d'export - Version corrigée avec fond flou -->
-<div *ngIf="showExportModal" 
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
-     (click)="closeExportModal()">
-  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
-       (click)="$event.stopPropagation()">
-    
-    <!-- En-tête avec dégradé -->
-    <div class="bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 px-6 py-4 border-b border-[#C5C6FF] dark:border-[#8788FF]/30">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/50 flex items-center justify-center shadow-inner">
-          <svg class="w-6 h-6 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-        </div>
-        <div>
-          <h3 class="text-lg font-bold text-[#0C144E] dark:text-white">Exporter les données</h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Export de la performance des techniciens</p>
+  <div *ngIf="showExportModal" 
+       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
+       (click)="closeExportModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
+         (click)="$event.stopPropagation()">
+      
+      <div class="bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 px-6 py-4 border-b border-[#C5C6FF] dark:border-[#8788FF]/30">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/50 flex items-center justify-center shadow-inner">
+            <svg class="w-6 h-6 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-[#0C144E] dark:text-white">Exporter les données</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Export de la performance des techniciens</p>
+          </div>
         </div>
       </div>
-    </div>
-    
-    <!-- Corps -->
-    <div class="p-6">
-      <p class="text-sm text-gray-600 dark:text-gray-300">Vous allez exporter le classement complet des techniciens avec :</p>
-      <ul class="mt-3 space-y-1 text-sm text-gray-500 dark:text-gray-400">
-        <li>• Tickets assignés, en cours et résolus</li>
-        <li>• Tickets résolus avant/après la date limite</li>
-        <li>• Taux de résolution et respect des délais</li>
-      </ul>
-    </div>
-    
-    <!-- Pied de page -->
-    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
-      <button (click)="closeExportModal()" 
-              type="button"
-              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
-        Annuler
-      </button>
-      <button (click)="exportData()" 
-              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-xl hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-        </svg>
-        Exporter
-      </button>
+      
+      <div class="p-6">
+        <p class="text-sm text-gray-600 dark:text-gray-300">Vous allez exporter le classement complet des techniciens avec :</p>
+        <ul class="mt-3 space-y-1 text-sm text-gray-500 dark:text-gray-400">
+          <li class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#8788FF]"></span>
+            Tickets assignés, en cours et résolus
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#8788FF]"></span>
+            Tickets résolus avant/après la date limite
+          </li>
+          <li class="flex items-center gap-2">
+            <span class="w-1.5 h-1.5 rounded-full bg-[#8788FF]"></span>
+            Taux de résolution et respect des délais
+          </li>
+        </ul>
+      </div>
+      
+      <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+        <button (click)="closeExportModal()" 
+                type="button"
+                class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+          Annuler
+        </button>
+        <button (click)="exportData()" 
+                class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-xl hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Exporter
+        </button>
+      </div>
     </div>
   </div>
-</div>
   
   <div *ngIf="loading" class="flex justify-center items-center py-20">
-    <div class="animate-spin rounded-full h-12 w-12 border-4 border-[#C5C6FF] border-t-[#8788FF]"></div>
+    <div class="animate-spin rounded-full h-12 w-12 border-4 border-[#C5C6FF] dark:border-[#0C144E]/30 border-t-[#8788FF] dark:border-t-[#B2B3FF]"></div>
   </div>
 
-  <div *ngIf="error" class="p-4 bg-red-50 text-red-600 rounded-xl border border-red-200">
+  <div *ngIf="error" class="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-800">
     {{ error }}
   </div>
 
   <div *ngIf="!loading && ticketData" class="space-y-6">
-    <div class="bg-white rounded-2xl border overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
       
-      <div class="px-6 py-4 border-b bg-gradient-to-r from-[#ECECFF] to-white">
-        <h3 class="text-lg font-semibold text-[#0C144E]">Performance des techniciens</h3>
-        <p class="text-xs text-gray-500">Détail des tickets résolus et taux de réussite</p>
+      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-[#ECECFF] dark:from-[#0C144E]/20 to-white dark:to-transparent">
+        <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Performance des techniciens</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Détail des tickets résolus et taux de réussite</p>
       </div>
+      
       <div class="overflow-x-auto">
         <table class="min-w-full">
           <thead>
-            <tr class="border-b bg-gray-50">
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500">Technicien</th>
-              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500">Assignés</th>
-              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500">En cours</th>
-              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500">Résolus</th>
-              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500">Résolus avant délai</th>
-              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500">Résolus après délai</th>
-              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500">Taux succès</th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500">Progression</th>
+            <tr class="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Technicien</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Assignés</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">En cours</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Résolus</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Résolus avant délai</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Résolus après délai</th>
+              <th class="px-6 py-3 text-center text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Taux succès</th>
+              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Progression</th>
             </tr>
           </thead>
-          <tbody class="divide-y">
-  <tr *ngFor="let tech of activeTechnicians" class="hover:bg-gray-50 transition">
+          <tbody class="divide-y divide-gray-100 dark:divide-gray-700">
+            <tr *ngFor="let tech of activeTechnicians" 
+                class="hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors duration-150">
               <td class="px-6 py-3">
                 <div class="flex items-center gap-3">
-                  <span class="text-sm font-medium">{{ tech.prenom }} {{ tech.nom }}</span>
+                  <span class="text-sm font-medium text-gray-900 dark:text-white">{{ tech.prenom }} {{ tech.nom }}</span>
                 </div>
-              </td>
-              <td class="px-6 py-3 text-center text-sm font-semibold text-gray-600">{{ tech.ticketsAssignes || 0 }}</td>
-              <td class="px-6 py-3 text-center text-sm text-orange-600">{{ tech.ticketsEnCours || 0 }}</td>
-              <td class="px-6 py-3 text-center text-sm font-semibold text-green-600">{{ tech.ticketsResolus || 0 }}</td>
-              <td class="px-6 py-3 text-center text-sm font-semibold text-green-600">
-                  {{ tech.ticketsResolusAvantDateLimite || 0 }}
-              </td>
- <td class="px-6 py-3 text-center text-sm font-semibold text-red-600">            
-                  {{ tech.ticketsResolusApresDateLimite || 0 }}
-              </td>
+               </td>
+              <td class="px-6 py-3 text-center text-sm font-semibold text-gray-600 dark:text-gray-400">
+                {{ tech.ticketsAssignes || 0 }}
+               </td>
+              <td class="px-6 py-3 text-center text-sm font-medium text-orange-600 dark:text-orange-400">
+                {{ tech.ticketsEnCours || 0 }}
+               </td>
+              <td class="px-6 py-3 text-center text-sm font-semibold text-green-600 dark:text-green-400">
+                {{ tech.ticketsResolus || 0 }}
+               </td>
+              <td class="px-6 py-3 text-center text-sm font-semibold text-emerald-600 dark:text-emerald-400">
+                {{ tech.ticketsResolusAvantDateLimite || 0 }}
+               </td>
+              <td class="px-6 py-3 text-center text-sm font-semibold text-red-600 dark:text-red-400">
+                {{ tech.ticketsResolusApresDateLimite || 0 }}
+               </td>
               <td class="px-6 py-3 text-center">
-                <span class="px-2 py-1 text-xs rounded-full" 
-                      [class.bg-green-100]="tech.tauxResolution >= 70" 
-                      [class.bg-yellow-100]="tech.tauxResolution >= 50 && tech.tauxResolution < 70"
-                      [class.bg-red-100]="tech.tauxResolution < 50">
+                <span class="inline-flex items-center px-2.5 py-1 text-xs font-medium rounded-full"
+                      [class]="getTauxResolutionClass(tech.tauxResolution)">
                   {{ tech.tauxResolution }}%
                 </span>
-              </td>
-           
+               </td>
               <td class="px-6 py-3">
-                <div class="w-24 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                  <div class="h-full bg-gradient-to-r from-[#8788FF] to-[#C5C6FF] rounded-full" [style.width]="tech.tauxResolution + '%'"></div>
+                <div class="w-24 h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                  <div class="h-full bg-gradient-to-r from-[#8788FF] to-[#C5C6FF] dark:from-[#B2B3FF] dark:to-[#8788FF] rounded-full transition-all duration-300" 
+                       [style.width]="tech.tauxResolution + '%'"></div>
                 </div>
-              </td>
-            </tr>
+               </td>
+             </tr>
+            <tr *ngIf="activeTechnicians.length === 0">
+              <td colspan="8" class="px-6 py-12 text-center">
+                <div class="flex flex-col items-center justify-center">
+                  <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                  </svg>
+                  <p class="text-gray-500 dark:text-gray-400 text-lg font-medium">Aucun technicien trouvé</p>
+                  <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Aucun ticket n'est actuellement assigné</p>
+                </div>
+               </td>
+             </tr>
           </tbody>
-        </table>
+         </table>
       </div>
     </div>
   </div>

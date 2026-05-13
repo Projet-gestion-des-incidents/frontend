@@ -3,7 +3,8 @@
   <!-- Bouton export -->
   <div class="flex justify-end mb-4">
     <button (click)="openExportModal()" 
-class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#8788FF] to-[#787AEA] text-white hover:from-[#787AEA] hover:to-[#0C144E]">     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#8788FF] to-[#787AEA] text-white hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200 shadow-sm hover:shadow-md">
+      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
               d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
       </svg>
@@ -11,275 +12,296 @@ class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#8788
     </button>
   </div>
 
-<!-- Modal d'export Tickets - Version corrigée -->
-<div *ngIf="showExportModal" 
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
-     (click)="closeExportModal()">
-  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
-       (click)="$event.stopPropagation()">
-    
-    <!-- En-tête avec dégradé -->
-    <div class="bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 px-6 py-4 border-b border-[#C5C6FF] dark:border-[#8788FF]/30">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/50 flex items-center justify-center shadow-inner">
-          <svg class="w-6 h-6 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
+  <!-- Modal d'export Tickets - Version corrigée dark mode -->
+  <div *ngIf="showExportModal" 
+       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
+       (click)="closeExportModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
+         (click)="$event.stopPropagation()">
+      
+      <!-- En-tête avec dégradé -->
+      <div class="bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 px-6 py-4 border-b border-[#C5C6FF] dark:border-[#8788FF]/30">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/50 flex items-center justify-center shadow-inner">
+            <svg class="w-6 h-6 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-[#0C144E] dark:text-white">Exporter les données</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Choisissez la période pour les tickets</p>
+          </div>
         </div>
+      </div>
+      
+      <!-- Corps -->
+      <div class="p-6 space-y-4">
+        <!-- Période -->
         <div>
-          <h3 class="text-lg font-bold text-[#0C144E] dark:text-white">Exporter les données</h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Choisissez la période pour les tickets</p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Corps -->
-    <div class="p-6 space-y-4">
-      <!-- Période -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Période</label>
-        <div class="grid grid-cols-3 gap-2">
-          <button (click)="exportPeriod = 'jour'" 
-                  [class.bg-[#8788FF]]="exportPeriod === 'jour'"
-                  [class.text-white]="exportPeriod === 'jour'"
-                  [class.bg-gray-100]="exportPeriod !== 'jour'"
-                  [class.dark:bg-gray-700]="exportPeriod !== 'jour'"
-                  class="px-3 py-2 rounded-lg text-sm transition">
-            Jour
-          </button>
-          <button (click)="exportPeriod = 'semaine'" 
-                  [class.bg-[#8788FF]]="exportPeriod === 'semaine'"
-                  [class.text-white]="exportPeriod === 'semaine'"
-                  [class.bg-gray-100]="exportPeriod !== 'semaine'"
-                  [class.dark:bg-gray-700]="exportPeriod !== 'semaine'"
-                  class="px-3 py-2 rounded-lg text-sm transition">
-            Semaine
-          </button>
-          <button (click)="exportPeriod = 'mois'" 
-                  [class.bg-[#8788FF]]="exportPeriod === 'mois'"
-                  [class.text-white]="exportPeriod === 'mois'"
-                  [class.bg-gray-100]="exportPeriod !== 'mois'"
-                  [class.dark:bg-gray-700]="exportPeriod !== 'mois'"
-                  class="px-3 py-2 rounded-lg text-sm transition">
-            Mois
-          </button>
-        </div>
-      </div>
-      
-      <!-- Sélecteur Mois (visible seulement pour Semaine) -->
-      <div *ngIf="exportPeriod === 'semaine'">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mois</label>
-        <select [(ngModel)]="selectedMonth" 
-                class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#8788FF] focus:border-transparent dark:bg-gray-800 dark:border-gray-600">
-          <option value="1">Janvier</option>
-          <option value="2">Février</option>
-          <option value="3">Mars</option>
-          <option value="4">Avril</option>
-          <option value="5">Mai</option>
-          <option value="6">Juin</option>
-          <option value="7">Juillet</option>
-          <option value="8">Août</option>
-          <option value="9">Septembre</option>
-          <option value="10">Octobre</option>
-          <option value="11">Novembre</option>
-          <option value="12">Décembre</option>
-        </select>
-      </div>
-    </div>
-    
-    <!-- Pied de page -->
-    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
-      <button (click)="closeExportModal()" 
-              type="button"
-              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
-        Annuler
-      </button>
-      <button (click)="exportData()" 
-              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-xl hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-        </svg>
-        Exporter
-      </button>
-    </div>
-  </div>
-</div>
-    <!-- Cartes métriques Tickets -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200 hover:shadow-md transition">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-purple-600 font-medium">Total tickets</p>
-            <p class="text-2xl font-bold text-purple-700">{{ ticketData.overview.totalTickets }}</p>
-          </div>
-          <div class="p-3 bg-purple-200 rounded-xl">
-            <svg class="w-6 h-6 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-            </svg>
-          </div>
-        </div>
-      </div>
-
-      <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200 hover:shadow-md transition">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-green-600 font-medium">Taux de résolution</p>
-            <p class="text-2xl font-bold text-green-700">{{ ticketData.overview.tauxResolutionGlobal }}%</p>
-          </div>
-          <div class="p-3 bg-green-200 rounded-xl">
-            <svg class="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-        </div>
-        <div class="mt-2 flex items-center gap-2">
-          <div class="flex-1 h-1.5 bg-green-200 rounded-full">
-            <div class="h-full bg-green-500 rounded-full" [style.width]="ticketData.overview.tauxResolutionGlobal + '%'"></div>
-          </div>
-          <p class="text-xs font-medium text-green-600">{{ ticketData.overview.tauxResolutionGlobal }}%</p>
-        </div>
-        <p class="text-xs text-green-500 mt-2">{{ ticketData.overview.ticketsResolus }} / {{ ticketData.overview.totalTickets }} tickets résolus</p>
-      </div>
-
-      <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-4 border border-blue-200 hover:shadow-md transition">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-blue-600 font-medium">Taux d'assignation</p>
-            <p class="text-2xl font-bold text-blue-700">{{ ticketData.assignationGlobale?.tauxAssignation || 0 }}%</p>
-          </div>
-          <div class="p-3 bg-blue-200 rounded-xl">
-            <svg class="w-6 h-6 text-blue-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
-            </svg>
-          </div>
-        </div>
-        <div class="mt-2 flex items-center gap-2">
-          <div class="flex-1 h-1.5 bg-blue-200 rounded-full">
-            <div class="h-full bg-blue-500 rounded-full" [style.width]="(ticketData.assignationGlobale?.tauxAssignation || 0) + '%'"></div>
-          </div>
-          <p class="text-xs font-medium text-blue-600">{{ ticketData.assignationGlobale?.tauxAssignation || 0 }}%</p>
-        </div>
-        <p class="text-xs text-gray-500 mt-2">{{ ticketData.assignationGlobale?.totalTicketsAvecAssignation || 0 }} / {{ ticketData.overview.totalTickets }} tickets assignés</p>
-      </div>
-
-      <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl p-4 border border-orange-200 hover:shadow-md transition">
-        <div class="flex items-center justify-between">
-          <div>
-            <p class="text-sm text-orange-600 font-medium">Temps moyen</p>
-            <p class="text-2xl font-bold text-orange-700">{{ ticketData.statsResolution.tempsMoyenResolutionHeures }}h</p>
-          </div>
-          <div class="p-3 bg-orange-200 rounded-xl">
-            <svg class="w-6 h-6 text-orange-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-            </svg>
-          </div>
-        </div>
-        <p class="text-xs text-orange-500 mt-2">Entre date de détection et date de résolution</p>
-      </div>
-    </div>
-
-    <!-- Graphiques Tickets -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-      
-      <div class="bg-white rounded-2xl border shadow-sm">
-        <div class="px-6 py-4 border-b bg-gradient-to-r from-[#ECECFF] to-white rounded-t-2xl">
-          <h3 class="text-lg font-semibold text-[#0C144E]">Répartition par statut</h3>
-          <p class="text-xs text-gray-500">Distribution des tickets selon leur statut</p>
-        </div>
-        <div class="p-5">
-          <apx-chart *ngIf="chartDonut" [series]="chartDonut.series" [chart]="chartDonut.chart" 
-                     [labels]="chartDonut.labels" [colors]="chartDonut.colors" [legend]="chartDonut.legend"
-                     [dataLabels]="chartDonut.dataLabels" [plotOptions]="chartDonut.plotOptions">
-          </apx-chart>
-        </div>
-      </div>
-
-      <div class="bg-white rounded-2xl border shadow-sm">
-        <div class="px-6 py-4 border-b bg-gradient-to-r from-[#ECECFF] to-white rounded-t-2xl">
-          <div class="flex justify-between items-center flex-wrap gap-3">
-            <div>
-              <h3 class="text-lg font-semibold text-[#0C144E]">Évolution des tickets</h3>
-              <p class="text-xs text-gray-500">Créations et résolutions par période</p>
-            </div>
-            <div class="flex gap-2 bg-gray-100 rounded-lg p-1">
-              <button (click)="changePeriode('jour')" [class.bg-white]="selectedPeriode === 'jour'" class="px-3 py-1.5 text-sm rounded-lg">Jour</button>
-              <button (click)="changePeriode('semaine')" [class.bg-white]="selectedPeriode === 'semaine'" class="px-3 py-1.5 text-sm rounded-lg">Semaine</button>
-              <button (click)="changePeriode('mois')" [class.bg-white]="selectedPeriode === 'mois'" class="px-3 py-1.5 text-sm rounded-lg">Mois</button>
-            </div>
-          </div>
-        </div>
-        <div class="p-5">
-          <apx-chart *ngIf="chartEvolution" [series]="chartEvolution.series" [chart]="chartEvolution.chart"
-                     [xaxis]="chartEvolution.xaxis" [yaxis]="chartEvolution.yaxis" [stroke]="chartEvolution.stroke"
-                     [markers]="chartEvolution.markers" [tooltip]="chartEvolution.tooltip" [legend]="chartEvolution.legend"
-                     [colors]="chartEvolution.colors">
-          </apx-chart>
-        </div>
-      </div>
-    </div>
-
-    <!-- Graphique Respect des délais -->
-    <div class="grid grid-cols-1 gap-6">
-     <div class="bg-white rounded-2xl border shadow-sm hover:shadow-md transition-shadow">
-        <div class="px-6 py-4 border-b bg-gradient-to-r from-[#ECECFF] to-white rounded-t-2xl">
-          <div class="flex justify-between items-center">
-            <div>
-              <h3 class="text-lg font-semibold text-[#0C144E]">Respect des délais</h3>
-              <p class="text-xs text-gray-500">Tickets résolus avant/après la date limite</p>
-            </div>
-            <div class="relative">
-              
-              
-              
-            </div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Période</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button (click)="exportPeriod = 'jour'" 
+                    [class.bg-[#8788FF]]="exportPeriod === 'jour'"
+                    [class.text-white]="exportPeriod === 'jour'"
+                    [class.bg-gray-100]="exportPeriod !== 'jour'"
+                    [class.dark:bg-gray-700]="exportPeriod !== 'jour'"
+                    [class.dark:text-gray-300]="exportPeriod !== 'jour'"
+                    [class.text-gray-700]="exportPeriod !== 'jour'"
+                    class="px-3 py-2 rounded-lg text-sm transition-all duration-200">
+              Jour
+            </button>
+            <button (click)="exportPeriod = 'semaine'" 
+                    [class.bg-[#8788FF]]="exportPeriod === 'semaine'"
+                    [class.text-white]="exportPeriod === 'semaine'"
+                    [class.bg-gray-100]="exportPeriod !== 'semaine'"
+                    [class.dark:bg-gray-700]="exportPeriod !== 'semaine'"
+                    [class.dark:text-gray-300]="exportPeriod !== 'semaine'"
+                    [class.text-gray-700]="exportPeriod !== 'semaine'"
+                    class="px-3 py-2 rounded-lg text-sm transition-all duration-200">
+              Semaine
+            </button>
+            <button (click)="exportPeriod = 'mois'" 
+                    [class.bg-[#8788FF]]="exportPeriod === 'mois'"
+                    [class.text-white]="exportPeriod === 'mois'"
+                    [class.bg-gray-100]="exportPeriod !== 'mois'"
+                    [class.dark:bg-gray-700]="exportPeriod !== 'mois'"
+                    [class.dark:text-gray-300]="exportPeriod !== 'mois'"
+                    [class.text-gray-700]="exportPeriod !== 'mois'"
+                    class="px-3 py-2 rounded-lg text-sm transition-all duration-200">
+              Mois
+            </button>
           </div>
         </div>
         
-        <div class="p-5">
-          <apx-chart
-            *ngIf="chartResolution"
-            [series]="chartResolution.series"
-            [chart]="chartResolution.chart"
-            [plotOptions]="chartResolution.plotOptions"
-            [fill]="chartResolution.fill"
-            [stroke]="chartResolution.stroke"
-            [labels]="chartResolution.labels"
-            [colors]="chartResolution.colors">
-          </apx-chart>
-          <div *ngIf="!chartResolution" class="text-center py-8 text-gray-500">Chargement du graphique...</div>
+        <!-- Sélecteur Mois (visible seulement pour Semaine) -->
+        <div *ngIf="exportPeriod === 'semaine'">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mois</label>
+          <select [(ngModel)]="selectedMonth" 
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#8788FF] focus:border-transparent dark:bg-gray-800 dark:text-white transition-all">
+            <option value="1">Janvier</option>
+            <option value="2">Février</option>
+            <option value="3">Mars</option>
+            <option value="4">Avril</option>
+            <option value="5">Mai</option>
+            <option value="6">Juin</option>
+            <option value="7">Juillet</option>
+            <option value="8">Août</option>
+            <option value="9">Septembre</option>
+            <option value="10">Octobre</option>
+            <option value="11">Novembre</option>
+            <option value="12">Décembre</option>
+          </select>
         </div>
+      </div>
+      
+      <!-- Pied de page -->
+      <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+        <button (click)="closeExportModal()" 
+                type="button"
+                class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+          Annuler
+        </button>
+        <button (click)="exportData()" 
+                class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-xl hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Exporter
+        </button>
+      </div>
+    </div>
+  </div>
 
-        <!-- Pied de page avec indicateurs -->
-        <div class="flex items-center justify-around gap-5 px-6 py-4 border-t bg-gray-50 rounded-b-2xl">
-          <div class="text-center">
-            <p class="text-xs text-gray-500 mb-1">Avant délai</p>
-            <p class="flex items-center justify-center gap-1 text-xl font-semibold text-green-600">
-              {{ totalAvantDelai }}
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M7.60141 2.33683C7.73885 2.18084 7.9401 2.08243 8.16435 2.08243C8.16475 2.08243 8.16516 2.08243 8.16556 2.08243C8.35773 2.08219 8.54998 2.15535 8.69664 2.30191L12.6968 6.29924C12.9898 6.59203 12.9899 7.0669 12.6971 7.3599C12.4044 7.6529 11.9295 7.65306 11.6365 7.36027L8.91435 4.64004L8.91435 13.5C8.91435 13.9142 8.57856 14.25 8.16435 14.25C7.75013 14.25 7.41435 13.9142 7.41435 13.5L7.41435 4.64442L4.69679 7.36025C4.4038 7.65305 3.92893 7.6529 3.63613 7.35992C3.34333 7.06693 3.34348 6.59206 3.63646 6.29926L7.60141 2.33683Z" fill="#039855"></path>
-              </svg>
-            </p>
-          </div>
-          <div class="w-px bg-gray-300 h-8"></div>
-          <div class="text-center">
-            <p class="text-xs text-gray-500 mb-1">Après délai</p>
-            <p class="flex items-center justify-center gap-1 text-xl font-semibold text-red-600">
-              {{ totalApresDelai }}
-              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <path fill-rule="evenodd" clip-rule="evenodd" d="M7.26816 13.6632C7.4056 13.8192 7.60686 13.9176 7.8311 13.9176C7.83148 13.9176 7.83187 13.9176 7.83226 13.9176C8.02445 13.9178 8.21671 13.8447 8.36339 13.6981L12.3635 9.70076C12.6565 9.40797 12.6567 8.9331 12.3639 8.6401C12.0711 8.34711 11.5962 8.34694 11.3032 8.63973L8.5811 11.36L8.5811 2.5C8.5811 2.08579 8.24531 1.75 7.8311 1.75C7.41688 1.75 7.0811 2.08579 7.0811 2.5L7.0811 11.3556L4.36354 8.63975C4.07055 8.34695 3.59568 8.3471 3.30288 8.64009C3.01008 8.93307 3.01023 9.40794 3.30321 9.70075L7.26816 13.6632Z" fill="#D92D20"></path>
-              </svg>
-            </p>
-          </div>
-          <div class="w-px bg-gray-300 h-8"></div>
-          <div class="text-center">
-            <p class="text-xs text-gray-500 mb-1">Total résolus</p>
-            <p class="text-xl font-semibold text-gray-800">
-              {{ totalAvantDelai + totalApresDelai }}
-            </p>
-          </div>
+  <!-- Cartes métriques Tickets - Dark mode adapté -->
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+    <!-- Total tickets -->
+    <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/10 rounded-xl p-4 border border-purple-200 dark:border-purple-800 hover:shadow-md transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-purple-600 dark:text-purple-400 font-medium">Total tickets</p>
+          <p class="text-2xl font-bold text-purple-700 dark:text-purple-300">{{ ticketData.overview.totalTickets }}</p>
+        </div>
+        <div class="p-3 bg-purple-200 dark:bg-purple-800 rounded-xl">
+          <svg class="w-6 h-6 text-purple-700 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+          </svg>
         </div>
       </div>
     </div>
 
-  
+    <!-- Taux de résolution -->
+    <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/10 rounded-xl p-4 border border-green-200 dark:border-green-800 hover:shadow-md transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-green-600 dark:text-green-400 font-medium">Taux de résolution</p>
+          <p class="text-2xl font-bold text-green-700 dark:text-green-300">{{ ticketData.overview.tauxResolutionGlobal }}%</p>
+        </div>
+        <div class="p-3 bg-green-200 dark:bg-green-800 rounded-xl">
+          <svg class="w-6 h-6 text-green-700 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+      </div>
+      <div class="mt-2 flex items-center gap-2">
+        <div class="flex-1 h-1.5 bg-green-200 dark:bg-green-800 rounded-full overflow-hidden">
+          <div class="h-full bg-green-500 dark:bg-green-400 rounded-full transition-all duration-300" 
+               [style.width]="ticketData.overview.tauxResolutionGlobal + '%'"></div>
+        </div>
+        <p class="text-xs font-medium text-green-600 dark:text-green-400">{{ ticketData.overview.tauxResolutionGlobal }}%</p>
+      </div>
+      <p class="text-xs text-green-500 dark:text-green-400/70 mt-2">{{ ticketData.overview.ticketsResolus }} / {{ ticketData.overview.totalTickets }} tickets résolus</p>
+    </div>
+
+    <!-- Taux d'assignation -->
+    <div class="bg-gradient-to-br from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/10 rounded-xl p-4 border border-blue-200 dark:border-blue-800 hover:shadow-md transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-blue-600 dark:text-blue-400 font-medium">Taux d'assignation</p>
+          <p class="text-2xl font-bold text-blue-700 dark:text-blue-300">{{ ticketData.assignationGlobale?.tauxAssignation || 0 }}%</p>
+        </div>
+        <div class="p-3 bg-blue-200 dark:bg-blue-800 rounded-xl">
+          <svg class="w-6 h-6 text-blue-700 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+          </svg>
+        </div>
+      </div>
+      <div class="mt-2 flex items-center gap-2">
+        <div class="flex-1 h-1.5 bg-blue-200 dark:bg-blue-800 rounded-full overflow-hidden">
+          <div class="h-full bg-blue-500 dark:bg-blue-400 rounded-full transition-all duration-300" 
+               [style.width]="(ticketData.assignationGlobale?.tauxAssignation || 0) + '%'"></div>
+        </div>
+        <p class="text-xs font-medium text-blue-600 dark:text-blue-400">{{ ticketData.assignationGlobale?.tauxAssignation || 0 }}%</p>
+      </div>
+      <p class="text-xs text-gray-500 dark:text-gray-400 mt-2">{{ ticketData.assignationGlobale?.totalTicketsAvecAssignation || 0 }} / {{ ticketData.overview.totalTickets }} tickets assignés</p>
+    </div>
+
+    <!-- Temps moyen -->
+    <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/10 rounded-xl p-4 border border-orange-200 dark:border-orange-800 hover:shadow-md transition-all duration-300">
+      <div class="flex items-center justify-between">
+        <div>
+          <p class="text-sm text-orange-600 dark:text-orange-400 font-medium">Temps moyen</p>
+          <p class="text-2xl font-bold text-orange-700 dark:text-orange-300">{{ ticketData.statsResolution.tempsMoyenResolutionHeures }}h</p>
+        </div>
+        <div class="p-3 bg-orange-200 dark:bg-orange-800 rounded-xl">
+          <svg class="w-6 h-6 text-orange-700 dark:text-orange-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+        </div>
+      </div>
+      <p class="text-xs text-orange-500 dark:text-orange-400/70 mt-2">Entre date de détection et date de résolution</p>
+    </div>
   </div>
+
+  <!-- Graphiques Tickets - Dark mode adapté -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    
+    <!-- Graphique Donut - Répartition par statut -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
+      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-[#ECECFF] dark:from-[#0C144E]/20 to-white dark:to-transparent rounded-t-2xl">
+        <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Répartition par statut</h3>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Distribution des tickets selon leur statut</p>
+      </div>
+      <div class="p-5">
+        <apx-chart *ngIf="chartDonut" [series]="chartDonut.series" [chart]="chartDonut.chart" 
+                   [labels]="chartDonut.labels" [colors]="chartDonut.colors" [legend]="chartDonut.legend"
+                   [dataLabels]="chartDonut.dataLabels" [plotOptions]="chartDonut.plotOptions">
+        </apx-chart>
+      </div>
+    </div>
+
+    <!-- Graphique Évolution des tickets -->
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
+      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-[#ECECFF] dark:from-[#0C144E]/20 to-white dark:to-transparent rounded-t-2xl">
+        <div class="flex justify-between items-center flex-wrap gap-3">
+          <div>
+            <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Évolution des tickets</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Créations et résolutions par période</p>
+          </div>
+          <div class="flex gap-2 bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
+            <button (click)="changePeriode('jour')" 
+                    [class.bg-white]="selectedPeriode === 'jour'"
+                    [class.dark:bg-gray-600]="selectedPeriode === 'jour'"
+                    [class.dark:text-white]="selectedPeriode === 'jour'"
+                    class="px-3 py-1.5 text-sm rounded-lg transition-all duration-200 dark:text-gray-300">Jour</button>
+            <button (click)="changePeriode('semaine')" 
+                    [class.bg-white]="selectedPeriode === 'semaine'"
+                    [class.dark:bg-gray-600]="selectedPeriode === 'semaine'"
+                    [class.dark:text-white]="selectedPeriode === 'semaine'"
+                    class="px-3 py-1.5 text-sm rounded-lg transition-all duration-200 dark:text-gray-300">Semaine</button>
+            <button (click)="changePeriode('mois')" 
+                    [class.bg-white]="selectedPeriode === 'mois'"
+                    [class.dark:bg-gray-600]="selectedPeriode === 'mois'"
+                    [class.dark:text-white]="selectedPeriode === 'mois'"
+                    class="px-3 py-1.5 text-sm rounded-lg transition-all duration-200 dark:text-gray-300">Mois</button>
+          </div>
+        </div>
+      </div>
+      <div class="p-5">
+        <apx-chart *ngIf="chartEvolution" [series]="chartEvolution.series" [chart]="chartEvolution.chart"
+                   [xaxis]="chartEvolution.xaxis" [yaxis]="chartEvolution.yaxis" [stroke]="chartEvolution.stroke"
+                   [markers]="chartEvolution.markers" [tooltip]="chartEvolution.tooltip" [legend]="chartEvolution.legend"
+                   [colors]="chartEvolution.colors">
+        </apx-chart>
+      </div>
+    </div>
+  </div>
+
+  <!-- Graphique Respect des délais -->
+  <div class="grid grid-cols-1 gap-6">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
+      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-[#ECECFF] dark:from-[#0C144E]/20 to-white dark:to-transparent rounded-t-2xl">
+        <div class="flex justify-between items-center">
+          <div>
+            <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Respect des délais</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Tickets résolus avant/après la date limite</p>
+          </div>
+        </div>
+      </div>
+      
+      <div class="p-5">
+        <apx-chart
+          *ngIf="chartResolution"
+          [series]="chartResolution.series"
+          [chart]="chartResolution.chart"
+          [plotOptions]="chartResolution.plotOptions"
+          [fill]="chartResolution.fill"
+          [stroke]="chartResolution.stroke"
+          [labels]="chartResolution.labels"
+          [colors]="chartResolution.colors">
+        </apx-chart>
+        <div *ngIf="!chartResolution" class="text-center py-8 text-gray-500 dark:text-gray-400">Chargement du graphique...</div>
+      </div>
+
+      <!-- Pied de page avec indicateurs - Dark mode adapté -->
+      <div class="flex items-center justify-around gap-5 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 rounded-b-2xl">
+        <div class="text-center">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Avant délai</p>
+          <p class="flex items-center justify-center gap-1 text-xl font-semibold text-green-600 dark:text-green-400">
+            {{ totalAvantDelai }}
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M7.60141 2.33683C7.73885 2.18084 7.9401 2.08243 8.16435 2.08243C8.16475 2.08243 8.16516 2.08243 8.16556 2.08243C8.35773 2.08219 8.54998 2.15535 8.69664 2.30191L12.6968 6.29924C12.9898 6.59203 12.9899 7.0669 12.6971 7.3599C12.4044 7.6529 11.9295 7.65306 11.6365 7.36027L8.91435 4.64004L8.91435 13.5C8.91435 13.9142 8.57856 14.25 8.16435 14.25C7.75013 14.25 7.41435 13.9142 7.41435 13.5L7.41435 4.64442L4.69679 7.36025C4.4038 7.65305 3.92893 7.6529 3.63613 7.35992C3.34333 7.06693 3.34348 6.59206 3.63646 6.29926L7.60141 2.33683Z" fill="#22C55E"></path>
+            </svg>
+          </p>
+        </div>
+        <div class="w-px bg-gray-300 dark:bg-gray-600 h-8"></div>
+        <div class="text-center">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Après délai</p>
+          <p class="flex items-center justify-center gap-1 text-xl font-semibold text-red-600 dark:text-red-400">
+            {{ totalApresDelai }}
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path fill-rule="evenodd" clip-rule="evenodd" d="M7.26816 13.6632C7.4056 13.8192 7.60686 13.9176 7.8311 13.9176C7.83148 13.9176 7.83187 13.9176 7.83226 13.9176C8.02445 13.9178 8.21671 13.8447 8.36339 13.6981L12.3635 9.70076C12.6565 9.40797 12.6567 8.9331 12.3639 8.6401C12.0711 8.34711 11.5962 8.34694 11.3032 8.63973L8.5811 11.36L8.5811 2.5C8.5811 2.08579 8.24531 1.75 7.8311 1.75C7.41688 1.75 7.0811 2.08579 7.0811 2.5L7.0811 11.3556L4.36354 8.63975C4.07055 8.34695 3.59568 8.3471 3.30288 8.64009C3.01008 8.93307 3.01023 9.40794 3.30321 9.70075L7.26816 13.6632Z" fill="#EF4444"></path>
+            </svg>
+          </p>
+        </div>
+        <div class="w-px bg-gray-300 dark:bg-gray-600 h-8"></div>
+        <div class="text-center">
+          <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Total résolus</p>
+          <p class="text-xl font-semibold text-gray-800 dark:text-gray-200">
+            {{ totalAvantDelai + totalApresDelai }}
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>

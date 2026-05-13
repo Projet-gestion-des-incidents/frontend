@@ -1,9 +1,9 @@
-  <!-- ==================== SECTION INCIDENTS ==================== -->
-  <div class="space-y-6 animate-fadeIn">
-    <!-- Bouton export -->
+<!-- ==================== SECTION INCIDENTS ==================== -->
+<div class="space-y-6 animate-fadeIn">
+  <!-- Bouton export -->
   <div class="flex justify-end mb-4">
     <button (click)="openExportModal()" 
-            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#8788FF] to-[#787AEA] text-white hover:from-[#787AEA] hover:to-[#0C144E]">
+            class="flex items-center gap-2 px-4 py-2 rounded-xl bg-gradient-to-r from-[#8788FF] to-[#787AEA] text-white hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200 shadow-sm hover:shadow-md">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
               d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -13,161 +13,164 @@
   </div>
 
   <!-- Modal d'export simplifié -->
-<!-- Modal d'export - Version corrigée avec fond flou -->
-<!-- Modal d'export - Version corrigée (sans l'option Année) -->
-<div *ngIf="showExportModal" 
-     class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
-     (click)="closeExportModal()">
-  <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
-       (click)="$event.stopPropagation()">
-    
-    <!-- En-tête avec dégradé -->
-    <div class="bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 px-6 py-4 border-b border-[#C5C6FF] dark:border-[#8788FF]/30">
-      <div class="flex items-center gap-3">
-        <div class="w-12 h-12 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/50 flex items-center justify-center shadow-inner">
-          <svg class="w-6 h-6 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-          </svg>
-        </div>
-        <div>
-          <h3 class="text-lg font-bold text-[#0C144E] dark:text-white">Exporter les données</h3>
-          <p class="text-xs text-gray-500 dark:text-gray-400">Choisissez la période pour les incidents</p>
-        </div>
-      </div>
-    </div>
-    
-    <!-- Corps -->
-    <div class="p-6 space-y-4">
-      <!-- Période -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Période</label>
-        <div class="grid grid-cols-3 gap-2">
-          <button (click)="exportPeriod = 'jour'" 
-                  [class.bg-[#8788FF]]="exportPeriod === 'jour'"
-                  [class.text-white]="exportPeriod === 'jour'"
-                  [class.bg-gray-100]="exportPeriod !== 'jour'"
-                  [class.dark:bg-gray-700]="exportPeriod !== 'jour'"
-                  [class.dark:text-gray-300]="exportPeriod !== 'jour'"
-                  class="px-3 py-2 rounded-lg text-sm transition">
-            Jour
-          </button>
-          <button (click)="exportPeriod = 'semaine'" 
-                  [class.bg-[#8788FF]]="exportPeriod === 'semaine'"
-                  [class.text-white]="exportPeriod === 'semaine'"
-                  [class.bg-gray-100]="exportPeriod !== 'semaine'"
-                  [class.dark:bg-gray-700]="exportPeriod !== 'semaine'"
-                  [class.dark:text-gray-300]="exportPeriod !== 'semaine'"
-                  class="px-3 py-2 rounded-lg text-sm transition">
-            Semaine
-          </button>
-          <button (click)="exportPeriod = 'mois'" 
-                  [class.bg-[#8788FF]]="exportPeriod === 'mois'"
-                  [class.text-white]="exportPeriod === 'mois'"
-                  [class.bg-gray-100]="exportPeriod !== 'mois'"
-                  [class.dark:bg-gray-700]="exportPeriod !== 'mois'"
-                  [class.dark:text-gray-300]="exportPeriod !== 'mois'"
-                  class="px-3 py-2 rounded-lg text-sm transition">
-            Mois
-          </button>
+  <div *ngIf="showExportModal" 
+       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
+       (click)="closeExportModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
+         (click)="$event.stopPropagation()">
+      
+      <!-- En-tête avec dégradé -->
+      <div class="bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 px-6 py-4 border-b border-[#C5C6FF] dark:border-[#8788FF]/30">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/50 flex items-center justify-center shadow-inner">
+            <svg class="w-6 h-6 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-[#0C144E] dark:text-white">Exporter les données</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Choisissez la période pour les incidents</p>
+          </div>
         </div>
       </div>
       
-      <!-- Sélecteur Mois (visible seulement pour Semaine) -->
-      <div *ngIf="exportPeriod === 'semaine'">
-        <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mois</label>
-        <select [(ngModel)]="selectedMonth" 
-                class="w-full px-3 py-2 border rounded-lg focus:ring-2 focus:ring-[#8788FF] focus:border-transparent dark:bg-gray-800 dark:border-gray-600 dark:text-white">
-          <option value="1">Janvier</option>
-          <option value="2">Février</option>
-          <option value="3">Mars</option>
-          <option value="4">Avril</option>
-          <option value="5">Mai</option>
-          <option value="6">Juin</option>
-          <option value="7">Juillet</option>
-          <option value="8">Août</option>
-          <option value="9">Septembre</option>
-          <option value="10">Octobre</option>
-          <option value="11">Novembre</option>
-          <option value="12">Décembre</option>
-        </select>
+      <!-- Corps -->
+      <div class="p-6 space-y-4">
+        <!-- Période -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Période</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button (click)="exportPeriod = 'jour'" 
+                    [class.bg-[#8788FF]]="exportPeriod === 'jour'"
+                    [class.text-white]="exportPeriod === 'jour'"
+                    [class.bg-gray-100]="exportPeriod !== 'jour'"
+                    [class.dark:bg-gray-700]="exportPeriod !== 'jour'"
+                    [class.dark:text-gray-300]="exportPeriod !== 'jour'"
+                    class="px-3 py-2 rounded-lg text-sm transition-all duration-200">
+              Jour
+            </button>
+            <button (click)="exportPeriod = 'semaine'" 
+                    [class.bg-[#8788FF]]="exportPeriod === 'semaine'"
+                    [class.text-white]="exportPeriod === 'semaine'"
+                    [class.bg-gray-100]="exportPeriod !== 'semaine'"
+                    [class.dark:bg-gray-700]="exportPeriod !== 'semaine'"
+                    [class.dark:text-gray-300]="exportPeriod !== 'semaine'"
+                    class="px-3 py-2 rounded-lg text-sm transition-all duration-200">
+              Semaine
+            </button>
+            <button (click)="exportPeriod = 'mois'" 
+                    [class.bg-[#8788FF]]="exportPeriod === 'mois'"
+                    [class.text-white]="exportPeriod === 'mois'"
+                    [class.bg-gray-100]="exportPeriod !== 'mois'"
+                    [class.dark:bg-gray-700]="exportPeriod !== 'mois'"
+                    [class.dark:text-gray-300]="exportPeriod !== 'mois'"
+                    class="px-3 py-2 rounded-lg text-sm transition-all duration-200">
+              Mois
+            </button>
+          </div>
+        </div>
+        
+        <!-- Sélecteur Mois (visible seulement pour Semaine) -->
+        <div *ngIf="exportPeriod === 'semaine'">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mois</label>
+          <select [(ngModel)]="selectedMonth" 
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#8788FF] focus:border-transparent dark:bg-gray-800 dark:text-white transition-all">
+            <option value="1">Janvier</option>
+            <option value="2">Février</option>
+            <option value="3">Mars</option>
+            <option value="4">Avril</option>
+            <option value="5">Mai</option>
+            <option value="6">Juin</option>
+            <option value="7">Juillet</option>
+            <option value="8">Août</option>
+            <option value="9">Septembre</option>
+            <option value="10">Octobre</option>
+            <option value="11">Novembre</option>
+            <option value="12">Décembre</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Pied de page -->
+      <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+        <button (click)="closeExportModal()" 
+                type="button"
+                class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+          Annuler
+        </button>
+        <button (click)="exportData()" 
+                class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-xl hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Exporter
+        </button>
       </div>
     </div>
-    
-    <!-- Pied de page -->
-    <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
-      <button (click)="closeExportModal()" 
-              type="button"
-              class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
-        Annuler
-      </button>
-      <button (click)="exportData()" 
-              class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-xl hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-        </svg>
-        Exporter
-      </button>
-    </div>
-  </div>
-</div>
-  <div *ngIf="loadingIncidents" class="flex justify-center items-center py-20">
-    <div class="animate-spin rounded-full h-12 w-12 border-4 border-[#C5C6FF] border-t-[#8788FF]"></div>
   </div>
 
-  <div *ngIf="errorIncidents" class="p-4 bg-red-50 text-red-600 rounded-xl border border-red-200">
+  <!-- Loading indicator -->
+  <div *ngIf="loadingIncidents" class="flex justify-center items-center py-20">
+    <div class="animate-spin rounded-full h-12 w-12 border-4 border-[#C5C6FF] dark:border-[#0C144E]/30 border-t-[#8788FF] dark:border-t-[#B2B3FF]"></div>
+  </div>
+
+  <!-- Error message -->
+  <div *ngIf="errorIncidents" class="p-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 rounded-xl border border-red-200 dark:border-red-800">
     {{ errorIncidents }}
   </div>
 
   <div *ngIf="!loadingIncidents && incidentData" class="space-y-6">
-    <!-- Cartes métriques Incidents -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-2">
-      <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-4 border border-purple-200 hover:shadow-md transition">
+    <!-- Cartes métriques Incidents - Dark mode adapté -->
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
+      <!-- Total incidents -->
+      <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/10 rounded-xl p-4 border border-purple-200 dark:border-purple-800 hover:shadow-md transition-all duration-300">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-purple-600 font-medium">Total incidents</p>
-            <p class="text-2xl font-bold text-purple-700">{{ incidentData.overview.totalIncidents }}</p>
+            <p class="text-sm text-purple-600 dark:text-purple-400 font-medium">Total incidents</p>
+            <p class="text-2xl font-bold text-purple-700 dark:text-purple-300">{{ incidentData.overview.totalIncidents }}</p>
           </div>
-          <div class="p-3 bg-purple-200 rounded-xl">
-            <svg class="w-6 h-6 text-purple-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="p-3 bg-purple-200 dark:bg-purple-800 rounded-xl">
+            <svg class="w-6 h-6 text-purple-700 dark:text-purple-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
             </svg>
           </div>
         </div>
       </div>
 
-      <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-4 border border-green-200 hover:shadow-md transition">
+      <!-- Taux de résolution -->
+      <div class="bg-gradient-to-br from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/10 rounded-xl p-4 border border-green-200 dark:border-green-800 hover:shadow-md transition-all duration-300">
         <div class="flex items-center justify-between">
           <div>
-            <p class="text-sm text-green-600 font-medium">Taux de résolution</p>
-            <p class="text-2xl font-bold text-green-700">{{ incidentData.statsResolution.tauxResolution }}%</p>
+            <p class="text-sm text-green-600 dark:text-green-400 font-medium">Taux de résolution</p>
+            <p class="text-2xl font-bold text-green-700 dark:text-green-300">{{ incidentData.statsResolution.tauxResolution }}%</p>
           </div>
-          <div class="p-3 bg-green-200 rounded-xl">
-            <svg class="w-6 h-6 text-green-700" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <div class="p-3 bg-green-200 dark:bg-green-800 rounded-xl">
+            <svg class="w-6 h-6 text-green-700 dark:text-green-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
         </div>
         <div class="mt-2">
           <div class="flex items-center gap-2">
-            <div class="flex-1 h-1.5 bg-green-200 rounded-full overflow-hidden">
-              <div class="h-full bg-green-500 rounded-full" [style.width]="incidentData.statsResolution.tauxResolution + '%'"></div>
+            <div class="flex-1 h-1.5 bg-green-200 dark:bg-green-800 rounded-full overflow-hidden">
+              <div class="h-full bg-green-500 dark:bg-green-400 rounded-full transition-all duration-300" 
+                   [style.width]="incidentData.statsResolution.tauxResolution + '%'"></div>
             </div>
-            <p class="text-xs font-medium text-green-600">{{ incidentData.statsResolution.tauxResolution }}%</p>
+            <p class="text-xs font-medium text-green-600 dark:text-green-400">{{ incidentData.statsResolution.tauxResolution }}%</p>
           </div>
-          <p class="text-xs text-green-500 mt-2">{{ incidentData.statsResolution.incidentsResolus }} / {{ incidentData.overview.totalIncidents }} résolus</p>
+          <p class="text-xs text-green-500 dark:text-green-400/70 mt-2">{{ incidentData.statsResolution.incidentsResolus }} / {{ incidentData.overview.totalIncidents }} résolus</p>
         </div>
       </div>
-
-   
     </div>
 
     <!-- Graphiques Incidents : Répartition par statut et Par sévérité -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
       
-      <div class="bg-white rounded-2xl border shadow-sm">
-        <div class="px-6 py-4 border-b bg-gradient-to-r from-[#ECECFF] to-white rounded-t-2xl">
-          <h3 class="text-lg font-semibold text-[#0C144E]">Répartition par statut</h3>
-          <p class="text-xs text-gray-500">Distribution des incidents selon leur statut</p>
+      <!-- Graphique Donut - Répartition par statut -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-[#ECECFF] dark:from-[#0C144E]/20 to-white dark:to-transparent rounded-t-2xl">
+          <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Répartition par statut</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Distribution des incidents selon leur statut</p>
         </div>
         <div class="p-5">
           <apx-chart *ngIf="chartIncidentDonut" [series]="chartIncidentDonut.series" [chart]="chartIncidentDonut.chart" 
@@ -177,54 +180,51 @@
         </div>
       </div>
 
-<div class="bg-white rounded-2xl border shadow-sm">
-  <div class="px-6 py-4 border-b bg-gradient-to-r from-[#ECECFF] to-white rounded-t-2xl">
-    <div class="flex items-center justify-between">
-      <div>
-        <h3 class="text-lg font-semibold text-[#0C144E]">Par sévérité</h3>
-        <p class="text-xs text-gray-500">Taux de résolution par niveau de criticité</p>
+      <!-- Graphique Radial Bar - Par sévérité -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-[#ECECFF] dark:from-[#0C144E]/20 to-white dark:to-transparent rounded-t-2xl">
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Par sévérité</h3>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Taux de résolution par niveau de criticité</p>
+            </div>
+            <div class="flex gap-1 flex-wrap">
+              <span class="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 text-gray-700 dark:text-gray-300 rounded-full">Non définie</span>
+              <span class="text-xs px-2 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">Faible</span>
+              <span class="text-xs px-2 py-1 bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400 rounded-full">Moyenne</span>
+              <span class="text-xs px-2 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full">Forte</span>
+            </div>
+          </div>
+        </div>
+        <div class="p-5">
+          <apx-chart *ngIf="chartSeveriteRadial" 
+                     [series]="chartSeveriteRadial.series" 
+                     [chart]="chartSeveriteRadial.chart"
+                     [plotOptions]="chartSeveriteRadial.plotOptions"
+                     [labels]="chartSeveriteRadial.labels"
+                     [colors]="chartSeveriteRadial.colors"
+                     [title]="chartSeveriteRadial.title"
+                     [stroke]="chartSeveriteRadial.stroke">
+          </apx-chart>
+          
+          <div *ngIf="!chartSeveriteRadial" class="text-center py-12">
+            <div class="text-gray-400 dark:text-gray-600 mb-2">
+              <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+              </svg>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Chargement du graphique...</p>
+          </div>
+        </div>
       </div>
-      <div class="flex gap-1">
-                <span class="text-xs px-2 py-1 bg-gray-100 text-gray-700 rounded-full">Non definie</span>
-        <span class="text-xs px-2 py-1 bg-green-100 text-green-700 rounded-full">Faible</span>
-        <span class="text-xs px-2 py-1 bg-yellow-100 text-yellow-700 rounded-full">Moyenne</span>
-        <span class="text-xs px-2 py-1 bg-red-100 text-red-700 rounded-full">Forte</span>
-      </div>
-    </div>
-  </div>
-  <div class="p-5">
-    <!-- Graphique Radial Bar -->
-    <apx-chart *ngIf="chartSeveriteRadial" 
-               [series]="chartSeveriteRadial.series" 
-               [chart]="chartSeveriteRadial.chart"
-               [plotOptions]="chartSeveriteRadial.plotOptions"
-               [labels]="chartSeveriteRadial.labels"
-               [colors]="chartSeveriteRadial.colors"
-               [title]="chartSeveriteRadial.title"
-               [stroke]="chartSeveriteRadial.stroke">
-    </apx-chart>
-    
-    <!-- Message si pas de données -->
-    <div *ngIf="!chartSeveriteRadial" class="text-center py-12">
-      <div class="text-gray-400 mb-2">
-        <svg class="w-12 h-12 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-        </svg>
-      </div>
-      <p class="text-sm text-gray-500">Chargement du graphique...</p>
-    </div>
-    
- 
-  </div>
-</div>
     </div>
 
-    <!-- Graphiques Incidents : Par type de problème -->
+    <!-- Graphique Par type de problème -->
     <div class="grid grid-cols-1 gap-6">
-      <div class="bg-white rounded-2xl border shadow-sm">
-        <div class="px-6 py-4 border-b bg-gradient-to-r from-[#ECECFF] to-white rounded-t-2xl">
-          <h3 class="text-lg font-semibold text-[#0C144E]">Par type de problème</h3>
-          <p class="text-xs text-gray-500">Distribution des incidents par catégorie</p>
+      <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-[#ECECFF] dark:from-[#0C144E]/20 to-white dark:to-transparent rounded-t-2xl">
+          <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Par type de problème</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Distribution des incidents par catégorie</p>
         </div>
         <div class="p-5">
           <apx-chart *ngIf="chartTypeProbleme" [series]="chartTypeProbleme.series" [chart]="chartTypeProbleme.chart"
@@ -235,21 +235,23 @@
         </div>
       </div>
     </div>
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+    <!-- Graphiques supplémentaires : Taux de panne par modèle et par gouvernorat -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                
-   <!-- Graphique: Taux de panne par modèle (Camembert) -->
-      <div class="bg-white rounded-2xl border shadow-sm">
-        <div class="px-6 py-4 border-b bg-gradient-to-r from-[#ECECFF] to-white rounded-t-2xl">
-          <div class="flex items-center justify-between">
+      <!-- Graphique: Taux de panne par modèle (Camembert) -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-[#ECECFF] dark:from-[#0C144E]/20 to-white dark:to-transparent rounded-t-2xl">
+          <div class="flex items-center justify-between flex-wrap gap-3">
             <div>
-              <h3 class="text-lg font-semibold text-[#0C144E]">Taux de panne par modèle</h3>
-              <p class="text-xs text-gray-500">Distribution des incidents par modèle de TPE</p>
+              <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Taux de panne par modèle</h3>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Distribution des incidents par modèle de TPE</p>
             </div>
- <div class="flex gap-1">
-  <span class="text-xs px-2 py-1 rounded-full" style="background-color: #FCA5A5; color: #7F1D1D;">Ingenico</span>
-  <span class="text-xs px-2 py-1 rounded-full" style="background-color: #A7F3D0; color: #064E3B;">Verifone</span>
-  <span class="text-xs px-2 py-1 rounded-full" style="background-color: #FDE047; color: #713F12;">PAX</span>
-</div>
+            <div class="flex gap-1 flex-wrap">
+              <span class="text-xs px-2 py-1 rounded-full bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400">Ingenico</span>
+              <span class="text-xs px-2 py-1 rounded-full bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400">Verifone</span>
+              <span class="text-xs px-2 py-1 rounded-full bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-400">PAX</span>
+            </div>
           </div>
         </div>
         <div class="p-5">
@@ -267,68 +269,70 @@
         </div>
       </div>
 
-
-<!-- Graphique: Taux de panne par gouvernorat (Barres horizontales) -->
-<div class="bg-white rounded-2xl border shadow-sm">
-  <div class="px-6 py-4 border-b bg-gradient-to-r from-[#ECECFF] to-white rounded-t-2xl">
-    <div class="flex items-center justify-between flex-wrap gap-3">
-      <div>
-        <h3 class="text-lg font-semibold text-[#0C144E]">Taux de panne par gouvernorat</h3>
-        <p class="text-xs text-gray-500">Classement par taux de panne décroissant</p>
-      </div>
-      <div class="flex gap-2 flex-wrap">
-        <span class="text-xs px-2.5 py-1 bg-green-100 text-green-700 rounded-full flex items-center gap-1 font-poppins">
-          <span class="w-2 h-2 rounded-full bg-green-500"></span>
-          Taux normal (≤100%)
-        </span>
-        <span class="text-xs px-2.5 py-1 bg-red-100 text-red-700 rounded-full flex items-center gap-1 font-poppins">
-          <span class="w-2 h-2 rounded-full bg-red-500"></span>
-          Taux critique (>100%)
-        </span>
-      </div>
-    </div>
-  </div>
-  
-  <div class="p-5">
-    <!-- Message si absence de données -->
-    <div *ngIf="!chartPannesParGovernorat" class="text-center py-12">
-      <div class="text-gray-400 mb-3">
-        <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2a3 3 0 013-3h0a3 3 0 013 3v2m-8 0h10m-10 0a2 2 0 01-2-2V9a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 01-2 2m-6-9h.01M12 7h.01" />
-        </svg>
-      </div>
-      <p class="text-sm text-gray-500 font-['Poppins']">Aucune donnée de gouvernorat disponible</p>
-      <p class="text-xs text-gray-400 mt-1 font-['Poppins']">Vérifiez les données d'adresse des commerçants</p>
-    </div>
-
-    <!-- Graphique -->
-    <apx-chart *ngIf="chartPannesParGovernorat" 
-               [series]="chartPannesParGovernorat.series" 
-               [chart]="chartPannesParGovernorat.chart"
-               [plotOptions]="chartPannesParGovernorat.plotOptions"
-               [xaxis]="chartPannesParGovernorat.xaxis"
-               [yaxis]="chartPannesParGovernorat.yaxis"
-               [colors]="chartPannesParGovernorat.colors"
-               [dataLabels]="chartPannesParGovernorat.dataLabels"
-               [tooltip]="chartPannesParGovernorat.tooltip"
-               [title]="chartPannesParGovernorat.title"
-               [grid]="chartPannesParGovernorat.grid"
-               [states]="chartPannesParGovernorat.states"
-               [responsive]="chartPannesParGovernorat.responsive">
-    </apx-chart>
-  </div>
-
-  <!-- Pied de page avec statistiques -->
-  <div *ngIf="govData.length > 0" class="px-5 py-3 border-t bg-gray-50 rounded-b-2xl">
-    <div class="flex justify-between items-center text-xs text-gray-500 font-poppins">
-      <div class="flex items-center gap-4">
-        <span class="flex items-center gap-1">Total: <strong class="text-gray-700">{{ govData.length }}</strong> gouvernorats</span>
-        <span class="flex items-center gap-1">TPEs: <strong class="text-gray-700">{{ totalTPEs }}</strong></span>
-        <span class="flex items-center gap-1">Incidents: <strong class="text-gray-700">{{ totalIncidents }}</strong></span>
-      </div>
-      <div>
-        <span class="flex items-center gap-1">Taux moyen: <strong class="text-[#8788FF]">{{ tauxMoyen | number:'1.0-0' }}%</strong></span>
-      </div>
-</div>
+      <!-- Graphique: Taux de panne par gouvernorat (Barres horizontales) -->
+      <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all duration-300">
+        <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-[#ECECFF] dark:from-[#0C144E]/20 to-white dark:to-transparent rounded-t-2xl">
+          <div class="flex items-center justify-between flex-wrap gap-3">
+            <div>
+              <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Taux de panne par gouvernorat</h3>
+              <p class="text-xs text-gray-500 dark:text-gray-400">Classement par taux de panne décroissant</p>
+            </div>
+            <div class="flex gap-2 flex-wrap">
+              <span class="text-xs px-2.5 py-1 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-green-500"></span>
+                Taux normal (≤100%)
+              </span>
+              <span class="text-xs px-2.5 py-1 bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-400 rounded-full flex items-center gap-1">
+                <span class="w-2 h-2 rounded-full bg-red-500"></span>
+                Taux critique (>100%)
+              </span>
+            </div>
+          </div>
         </div>
+        
+        <div class="p-5">
+          <!-- Message si absence de données -->
+          <div *ngIf="!chartPannesParGovernorat" class="text-center py-12">
+            <div class="text-gray-400 dark:text-gray-600 mb-3">
+              <svg class="w-16 h-16 mx-auto" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 17v-2a3 3 0 013-3h0a3 3 0 013 3v2m-8 0h10m-10 0a2 2 0 01-2-2V9a2 2 0 012-2h10a2 2 0 012 2v6a2 2 0 01-2 2m-6-9h.01M12 7h.01" />
+              </svg>
+            </div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">Aucune donnée de gouvernorat disponible</p>
+            <p class="text-xs text-gray-400 dark:text-gray-500 mt-1">Vérifiez les données d'adresse des commerçants</p>
+          </div>
+
+          <!-- Graphique -->
+          <apx-chart *ngIf="chartPannesParGovernorat" 
+                     [series]="chartPannesParGovernorat.series" 
+                     [chart]="chartPannesParGovernorat.chart"
+                     [plotOptions]="chartPannesParGovernorat.plotOptions"
+                     [xaxis]="chartPannesParGovernorat.xaxis"
+                     [yaxis]="chartPannesParGovernorat.yaxis"
+                     [colors]="chartPannesParGovernorat.colors"
+                     [dataLabels]="chartPannesParGovernorat.dataLabels"
+                     [tooltip]="chartPannesParGovernorat.tooltip"
+                     [title]="chartPannesParGovernorat.title"
+                     [grid]="chartPannesParGovernorat.grid"
+                     [states]="chartPannesParGovernorat.states"
+                     [responsive]="chartPannesParGovernorat.responsive">
+          </apx-chart>
+        </div>
+
+        <!-- Pied de page avec statistiques -->
+        <div *ngIf="govData.length > 0" class="px-5 py-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 rounded-b-2xl">
+          <div class="flex justify-between items-center text-xs text-gray-500 dark:text-gray-400">
+            <div class="flex items-center gap-4 flex-wrap">
+              <span class="flex items-center gap-1">Total: <strong class="text-gray-700 dark:text-gray-300">{{ govData.length }}</strong> gouvernorats</span>
+              <span class="flex items-center gap-1">TPEs: <strong class="text-gray-700 dark:text-gray-300">{{ totalTPEs }}</strong></span>
+              <span class="flex items-center gap-1">Incidents: <strong class="text-gray-700 dark:text-gray-300">{{ totalIncidents }}</strong></span>
+            </div>
+            <div>
+              <span class="flex items-center gap-1">Taux moyen: <strong class="text-[#8788FF] dark:text-[#B2B3FF]">{{ tauxMoyen | number:'1.0-0' }}%</strong></span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
+</div>

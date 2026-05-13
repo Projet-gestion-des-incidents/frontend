@@ -97,7 +97,15 @@ export class TechnicienPerformanceComponent implements OnInit {
   this.closeExportModal();
 }
 // technicien-performance.component.ts
-
+getTauxResolutionClass(taux: number): string {
+  if (taux >= 70) {
+    return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';
+  } else if (taux >= 50) {
+    return 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300';
+  } else {
+    return 'bg-red-100 dark:bg-red-900/30 text-red-700 dark:text-red-300';
+  }
+}
 get activeTechnicians() {
   if (!this.ticketData?.assignationParTechnicien) return [];
   return this.ticketData.assignationParTechnicien
