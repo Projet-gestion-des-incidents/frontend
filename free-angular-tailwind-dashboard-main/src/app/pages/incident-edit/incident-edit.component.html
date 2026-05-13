@@ -348,22 +348,22 @@
     </div>
 
 <!-- SECTION 2: Entités impactées (Admin seulement) -->
-<div *ngIf="isAdmin" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm">
-  <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white">
+<div *ngIf="isAdmin" class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+  <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
     <div class="flex items-center justify-between">
       <div class="flex items-center gap-3">
-        <div class="p-2 rounded-lg bg-[#ECECFF]">
-          <svg class="w-5 h-5 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+          <svg class="w-5 h-5 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
           </svg>
         </div>
         <div>
-          <h3 class="text-lg font-semibold text-[#0C144E]">Entités impactées</h3>
-          <p class="text-xs text-gray-500">Éléments affectés par l'incident</p>
+          <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">Entités impactées</h3>
+          <p class="text-xs text-gray-500 dark:text-gray-400">Éléments affectés par l'incident</p>
         </div>
       </div>
       <div class="flex items-center gap-3">
-        <span class="px-3 py-1 text-xs font-medium rounded-full bg-[#ECECFF] text-[#8788FF]">
+        <span class="px-3 py-1 text-xs font-medium rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/30 text-[#8788FF] dark:text-[#B2B3FF]">
           {{ incident.entitesImpactees?.length || 0 }}
         </span>
       </div>
@@ -374,113 +374,111 @@
     <!-- Liste des entités existantes -->
     <div *ngIf="incident.entitesImpactees && incident.entitesImpactees.length > 0" class="mb-6">
       <div class="flex items-center gap-2 mb-3">
-        <svg class="w-4 h-4 text-green-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <svg class="w-4 h-4 text-green-500 dark:text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
         </svg>
-        <h4 class="text-sm font-medium text-gray-700">Entités déjà impactées</h4>
+        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Entités déjà impactées</h4>
       </div>
       <div class="flex flex-wrap gap-2">
         <div *ngFor="let entite of incident.entitesImpactees; let i = index" 
-             class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-full group hover:bg-gray-200 transition-all">
+             class="flex items-center gap-2 px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded-full group hover:bg-gray-200 dark:hover:bg-gray-600 transition-all">
           <span class="text-sm text-gray-700 dark:text-gray-300">{{ getTypeEntiteLabel(entite.typeEntiteImpactee) }}</span>
-          <!-- Dans le template, modifiez ce bouton -->
-<button 
-  type="button"  
-  (ngModelChange)="checkForChanges()"
-  (click)="supprimerEntite(entite.id, i)" 
-  class="text-gray-400 hover:text-red-500 transition-colors" 
-  title="Supprimer">
-  <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-  </svg>
-</button>
+          <button 
+            type="button"  
+            (click)="supprimerEntite(entite.id, i)" 
+            class="text-gray-400 hover:text-red-500 dark:text-gray-500 dark:hover:text-red-400 transition-colors" 
+            title="Supprimer">
+            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
         </div>
       </div>
     </div>
 
     <!-- Message aucun entité -->
     <div *ngIf="!incident.entitesImpactees || incident.entitesImpactees.length === 0" 
-         class="text-center py-6 border-2 border-dashed border-gray-300 rounded-xl mb-6">
-      <p class="text-sm text-gray-500">Aucune entité impactée pour le moment</p>
+         class="text-center py-6 border-2 border-dashed border-gray-300 dark:border-gray-600 rounded-xl mb-6">
+      <svg class="w-12 h-12 mx-auto text-gray-400 dark:text-gray-500 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <p class="text-sm text-gray-500 dark:text-gray-400">Aucune entité impactée pour le moment</p>
     </div>
 
     <!-- Formulaire d'ajout avec checkboxes NATIVES -->
-    <div class="mt-6 pt-4 border-t border-gray-200">
+    <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
       <div class="flex items-center gap-2 mb-4">
-        <div class="p-1.5 rounded-lg bg-[#ECECFF]">
-          <svg class="w-4 h-4 text-[#8788FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <div class="p-1.5 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
+          <svg class="w-4 h-4 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
           </svg>
         </div>
-        <h4 class="text-sm font-medium text-gray-700">Ajouter des entités impactées</h4>
+        <h4 class="text-sm font-medium text-gray-700 dark:text-gray-300">Ajouter des entités impactées</h4>
       </div>
       
-      <!-- ✅ Version avec checkbox native + label -->
-  <div class="space-y-3">
-  <div *ngFor="let option of entitesDisponibles; trackBy: trackByOption" 
-       class="flex items-center gap-3 p-3 bg-gray-50 rounded-xl border border-gray-100 hover:border-[#8788FF] transition-all cursor-pointer"
-       (click)="toggleEntiteSelection(option.value)">
-    
-    <input 
-      type="checkbox"
-      [id]="'entite_' + option.value"
-      [checked]="selectedEntitesValues.includes(option.value)"
-      (click)="$event.stopPropagation()"
-      class="w-5 h-5 rounded border-gray-300 text-[#8788FF] focus:ring-[#8788FF] focus:ring-2 cursor-pointer pointer-events-none"
-    />
-    
-    <label [for]="'entite_' + option.value" 
-           class="flex items-center gap-2 flex-1 cursor-pointer pointer-events-none">
-      <span class="w-2 h-2 rounded-full" [ngClass]="{
-        'bg-blue-500': option.value === 1,
-        'bg-green-500': option.value === 2,
-        'bg-orange-500': option.value === 3,
-        'bg-purple-500': option.value === 4
-      }"></span>
-      <span class="text-sm font-medium text-gray-700">{{ option.label }}</span>
-    </label>
-  </div>
-</div>
+      <!-- Liste des options avec checkboxes -->
+      <div class="space-y-3">
+        <div *ngFor="let option of entitesDisponibles; trackBy: trackByOption" 
+             class="flex items-center gap-3 p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl border border-gray-100 dark:border-gray-600 hover:border-[#8788FF] dark:hover:border-[#B2B3FF] transition-all cursor-pointer"
+             (click)="toggleEntiteSelection(option.value)">
+          
+          <input 
+            type="checkbox"
+            [id]="'entite_' + option.value"
+            [checked]="selectedEntitesValues.includes(option.value)"
+            (click)="$event.stopPropagation()"
+            class="w-5 h-5 rounded border-gray-300 dark:border-gray-500 text-[#8788FF] focus:ring-[#8788FF] dark:focus:ring-[#B2B3FF] focus:ring-2 cursor-pointer pointer-events-none dark:bg-gray-700"
+          />
+          
+          <label [for]="'entite_' + option.value" 
+                 class="flex items-center gap-2 flex-1 cursor-pointer pointer-events-none">
+            <span class="w-2 h-2 rounded-full" [ngClass]="{
+              'bg-blue-500 dark:bg-blue-400': option.value === 1,
+              'bg-green-500 dark:bg-green-400': option.value === 2,
+              'bg-orange-500 dark:bg-orange-400': option.value === 3,
+              'bg-purple-500 dark:bg-purple-400': option.value === 4
+            }"></span>
+            <span class="text-sm font-medium text-gray-700 dark:text-gray-300">{{ option.label }}</span>
+          </label>
+        </div>
+      </div>
 
-<!-- Bouton avec type="button" obligatoire dans un form -->
-<div class="flex gap-3 mt-4">
-  <button 
-    type="button"
-    (click)="ajouterEntitesMultiples()" 
-    [disabled]="selectedEntitesValues.length === 0 || loading"
-    class="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-[#8788FF] to-[#787AEA] hover:from-[#787AEA] hover:to-[#0C144E] text-white rounded-xl transition-all duration-200 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
-    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-    </svg>
-    <span>Ajouter {{ selectedEntitesValues.length }} entité(s)</span>
-  </button>
-  
-  <button 
-    type="button"
-    *ngIf="selectedEntitesValues.length > 0"
-    (click)="clearSelectedEntites()"
-    class="px-4 py-2 text-sm text-gray-500 hover:text-gray-700 rounded-lg hover:bg-gray-100 transition-colors">
-    Effacer
-  </button>
-</div>
-      
-      
+      <!-- Boutons d'action -->
+      <div class="flex gap-3 mt-4">
+        <button 
+          type="button"
+          (click)="ajouterEntitesMultiples()" 
+          [disabled]="selectedEntitesValues.length === 0 || loading"
+          class="flex-1 inline-flex items-center justify-center gap-2 px-5 py-3 bg-gradient-to-r from-[#8788FF] to-[#787AEA] hover:from-[#787AEA] hover:to-[#0C144E] text-white rounded-xl transition-all duration-200 hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
+          </svg>
+          <span>Ajouter {{ selectedEntitesValues.length }} entité(s)</span>
+        </button>
+        
+        <button 
+          type="button"
+          *ngIf="selectedEntitesValues.length > 0"
+          (click)="clearSelectedEntites()"
+          class="px-4 py-2 text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors">
+          Effacer
+        </button>
+      </div>
       
       <!-- Indicateur de progression -->
       <div *ngIf="addingEntities" class="mt-4">
-        <div class="flex items-center gap-2 text-sm text-[#8788FF]">
-          <div class="animate-spin rounded-full h-4 w-4 border-2 border-[#8788FF] border-t-transparent"></div>
+        <div class="flex items-center gap-2 text-sm text-[#8788FF] dark:text-[#B2B3FF]">
+          <div class="animate-spin rounded-full h-4 w-4 border-2 border-[#8788FF] dark:border-[#B2B3FF] border-t-transparent"></div>
           <span>Ajout en cours... {{ entitiesAddedCount }}/{{ selectedEntitesValues.length }}</span>
         </div>
-        <div class="w-full bg-gray-200 rounded-full h-1.5 mt-2">
-          <div class="bg-[#8788FF] h-1.5 rounded-full transition-all duration-300" 
+        <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-1.5 mt-2">
+          <div class="bg-[#8788FF] dark:bg-[#B2B3FF] h-1.5 rounded-full transition-all duration-300" 
                [style.width]="(entitiesAddedCount / selectedEntitesValues.length) * 100 + '%'"></div>
         </div>
       </div>
     </div>
   </div>
 </div>
-
     <!-- SECTION 3: TPEs associés -->
     <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
       <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
@@ -620,7 +618,7 @@
       
 
     <!-- SECTION 4: Pièces jointes -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
+   <div *ngIf="(piecesJointesExistantes && piecesJointesExistantes.length > 0) || selectedFiles.length > 0 || canAddFiles()"  class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
       <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
         <div class="flex items-center gap-3">
           <div class="p-2 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
