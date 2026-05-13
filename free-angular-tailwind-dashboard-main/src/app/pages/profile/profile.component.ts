@@ -535,37 +535,11 @@ saveInfo(): void {
       this.saving = false;
       console.log('📥 Réponse API brute:', response);
       
-      // ✅ CORRECTION: Votre API retourne les données directement
-      // La réponse contient 'nom', 'prenom', 'email', etc. - c'est un succès
-      if (response && typeof response === 'object') {
-        // ✅ Si la réponse contient 'nom' ou 'email' ou 'prenom', c'est un succès
-        if (response.nom !== undefined || response.email !== undefined || response.prenom !== undefined) {
-          console.log('✅ Succès - Mise à jour réussie');
-          
-          // Afficher le message de succès
-          this.showGlobalSuccess('Profil mis à jour avec succès');
-          
-          // Mettre à jour l'utilisateur localement
-          if (response.nom !== undefined) this.user.nom = response.nom;
-          if (response.prenom !== undefined) this.user.prenom = response.prenom;
-          if (response.email !== undefined) this.user.email = response.email;
-          if (response.phoneNumber !== undefined) this.user.phoneNumber = response.phoneNumber;
-          if (response.birthDate !== undefined) this.user.birthDate = response.birthDate;
-          if (response.adresse !== undefined) this.user.adresse = response.adresse;
-          if (response.image !== undefined) this.user.image = response.image;
-          
-          // Nettoyer l'image sélectionnée
-          this.selectedImage = null;
-          this.imageBase64 = null;
-          
-          // Fermer le modal
-          this.closeInfoModal();
-          return;
-        }
-      }
+      // ✅ CORRECTION: Vérifier d'abord si c'est un succès via resultCode ou isSuccess
+      const isSuccess = response?.resultCode === 0 || response?.isSuccess === true;
       
-      // ✅ Cas OTP email (si votre API utilise ce code)
-      if (response.resultCode === 42) {
+      // ✅ Si c'est un OTP (code 42 ou 43)
+      if (response?.resultCode === 42) {
         this.closeInfoModal();
         this.clearAlert();
         this.pendingEmailChange = formValue.email;
@@ -574,8 +548,7 @@ saveInfo(): void {
         return;
       }
       
-      // ✅ Cas OTP password
-      if (response.resultCode === 43) {
+      if (response?.resultCode === 43) {
         this.closeInfoModal();
         this.clearAlert();
         this.pendingPasswordChange = this.passwordForm.value.newPassword;
@@ -584,9 +557,66 @@ saveInfo(): void {
         return;
       }
       
+      // ✅ Si succès
+      if (isSuccess) {
+        console.log('✅ Succès - Mise à jour réussie');
+        
+        // Afficher le message de succès
+        this.showGlobalSuccess('Profil mis à jour avec succès');
+        
+        // Mettre à jour l'utilisateur localement avec les données de la réponse ou du formulaire
+        if (response?.data) {
+          // Si la réponse a une propriété 'data'
+          const data = response.data;
+          if (data.nom !== undefined) this.user.nom = data.nom;
+          if (data.prenom !== undefined) this.user.prenom = data.prenom;
+          if (data.email !== undefined) this.user.email = data.email;
+          if (data.phoneNumber !== undefined) this.user.phoneNumber = data.phoneNumber;
+          if (data.birthDate !== undefined) this.user.birthDate = data.birthDate;
+          if (data.adresse !== undefined) this.user.adresse = data.adresse;
+          if (data.image !== undefined) this.user.image = data.image;
+        } else if (response) {
+          // Si la réponse est directement l'objet user
+          if (response.nom !== undefined) this.user.nom = response.nom;
+          if (response.prenom !== undefined) this.user.prenom = response.prenom;
+          if (response.email !== undefined) this.user.email = response.email;
+          if (response.phoneNumber !== undefined) this.user.phoneNumber = response.phoneNumber;
+          if (response.birthDate !== undefined) this.user.birthDate = response.birthDate;
+          if (response.adresse !== undefined) this.user.adresse = response.adresse;
+          if (response.image !== undefined) this.user.image = response.image;
+        } else {
+          // Sinon, utiliser les valeurs du formulaire
+          this.user.nom = formValue.nomMagasin || this.user.nom;
+          this.user.email = formValue.email || this.user.email;
+          this.user.phoneNumber = formValue.phoneNumber || this.user.phoneNumber;
+          this.user.adresse = formValue.adresse || this.user.adresse;
+        }
+        
+        // Nettoyer l'image sélectionnée
+        this.selectedImage = null;
+        this.imageBase64 = null;
+        
+        // Fermer le modal
+        this.closeInfoModal();
+        return;
+      }
+      
       // ✅ Cas erreur
       console.error('❌ Réponse non reconnue comme succès:', response);
-      this.showAlert('error', 'Erreur', response.message || 'Erreur lors de la mise à jour');
+      
+      // Extraire le message d'erreur
+      let errorMessage = response?.message || response?.title || 'Erreur lors de la mise à jour';
+      
+      // Personnaliser les messages d'erreur
+      if (errorMessage.includes('email') && errorMessage.includes('utilisé')) {
+        errorMessage = 'Cet email est déjà utilisé par un autre compte';
+      } else if (errorMessage.includes('téléphone') && errorMessage.includes('utilisé')) {
+        errorMessage = 'Ce numéro de téléphone est déjà utilisé';
+      } else if (errorMessage.includes('nom') && errorMessage.includes('utilisé')) {
+        errorMessage = 'Ce nom de magasin est déjà utilisé';
+      }
+      
+      this.showAlert('error', 'Erreur de mise à jour', errorMessage);
     },
     error: (err: any) => {
       console.error('❌ Erreur HTTP:', err);
@@ -599,6 +629,8 @@ saveInfo(): void {
           errorMessage = 'Cet email est déjà utilisé par un autre compte';
         } else if (errorMessage.includes('téléphone déjà utilisé')) {
           errorMessage = 'Ce numéro de téléphone est déjà utilisé';
+        } else if (errorMessage.includes('nom') && errorMessage.includes('utilisé')) {
+          errorMessage = 'Ce nom de magasin est déjà utilisé';
         }
       } else if (err.message) {
         errorMessage = err.message;
