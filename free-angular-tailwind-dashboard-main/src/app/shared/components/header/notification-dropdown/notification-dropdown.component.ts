@@ -47,25 +47,29 @@ ngOnInit(): void {
   });
 }
 
-toggleDropdown() {
-  this.isOpen = !this.isOpen;
-
-  if (this.isOpen) {
-    this.showAll = false;
-    this.loadNotifications();
-
-    // ✅ Appel API pour persister la consultation (multi-appareils)
-    this.notificationService.markAllAsConsulted().subscribe({
-      next: () => {
-        // Mettre à jour localement sans recharger
-        this.allNotifications.forEach(n => n.estConsulte = true);
-      },
-      error: (err) => console.error('Erreur consultation:', err)
-    });
-
-    this.unreadCount = 0; // Masquer le badge immédiatement
+ toggleDropdown() {
+    this.isOpen = !this.isOpen;
+ 
+    if (this.isOpen) {
+      this.showAll = false;
+      
+      // ✅ NE PAS appeler loadNotifications() ici - cela cause une race condition
+      // Les notifications sont déjà chargées en init() et toutes les 30 secondes
+      
+      // ✅ Appel API pour persister la consultation (multi-appareils)
+      this.notificationService.markAllAsConsulted().subscribe({
+        next: () => {
+          // Mettre à jour localement IMMÉDIATEMENT
+          this.allNotifications.forEach(n => n.estConsulte = true);
+          // ✅ Le compteur devient 0 car tout est marqué comme consulté
+          this.unreadCount = 0;
+          console.log('✅ Badges mis à jour immédiatement - unreadCount:', this.unreadCount);
+        },
+        error: (err) => console.error('Erreur consultation:', err)
+      });
+    }
   }
-}
+ 
 
 loadNotifications() {
   if (this.isLoading) return;
