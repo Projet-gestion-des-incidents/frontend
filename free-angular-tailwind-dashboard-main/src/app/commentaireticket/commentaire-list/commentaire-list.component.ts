@@ -57,7 +57,20 @@ export class CommentaireListComponent implements OnInit {
   showImageModal = false;
   currentImageUrl: string = '';
   currentImageName: string = '';
-  
+  // Ajoutez ces propriétés avec les autres déclarations
+showAddCommentModal: boolean = false;
+newCommentData = {
+  message: '',
+  estInterne: false
+};
+newCommentFiles: File[] = [];
+isAddingComment: boolean = false;
+addDragActive = false;
+addCommentError: string | null = null;  // ✅ ERREUR LOCALE POUR L'AJOUT
+
+
+// Pour l'édition
+editCommentError: string | null = null;  // ✅ ERREUR LOCALE POUR L'ÉDITION
   // ✅ NOUVEAUX MODALES (remplacent les anciens)
   showEditModal: boolean = false;
   editCommentData: any = null;
@@ -620,15 +633,19 @@ openEditModal(comment: any): void {
     estInterne: comment.estInterne,
     piecesJointes: comment.piecesJointes || []
   };
-    this.originalPiecesJointesCount = (comment.piecesJointes || []).length;  // ← AJOUTER
-
+  this.originalPiecesJointesCount = (comment.piecesJointes || []).length;
   this.editMessage = comment.message;
-  // ✅ Seul l'admin peut modifier le statut interne
   this.editEstInterne = this.isAdmin ? comment.estInterne : false;
   this.editFilesToAdd = [];
   this.editPiecesToDelete = [];
-  this.filesToDelete = [];
+  this.editCommentError = null;  // ✅ Réinitialiser l'erreur
   this.showEditModal = true;
+  
+  // ✅ Vérifier si on a déjà atteint la limite
+  const currentCount = (comment.piecesJointes || []).length;
+  if (currentCount >= this.maxFiles) {
+    this.editCommentError = `Ce commentaire a déjà ${currentCount} fichier(s). La limite maximale est de ${this.maxFiles} fichiers.`;
+  }
 }
 
 // Modifiez saveEdit()
@@ -734,10 +751,49 @@ get isAddCommentFormValid(): boolean {
     }
   }
 
-  private addFilesToEdit(files: File[]): void {
-    const validFiles = files.filter(f => f.size <= this.maxFileSize);
-    this.editFilesToAdd = [...this.editFilesToAdd, ...validFiles];
+private addFilesToEdit(files: File[]): void {
+  // Filtrer les fichiers trop volumineux
+  const validFiles = files.filter(f => {
+    if (f.size > this.maxFileSize) {
+      this.editCommentError = `Le fichier ${f.name} dépasse la limite de 10MB`;
+      setTimeout(() => this.editCommentError = null, 3000);
+      return false;
+    }
+    return true;
+  });
+  
+  // ✅ Calculer le nombre de fichiers existants (avant ajout)
+  const currentFilesCount = (this.editCommentData?.piecesJointes?.length || 0) - this.editPiecesToDelete.length;
+  const totalAfterAdd = currentFilesCount + this.editFilesToAdd.length + validFiles.length;
+  
+  if (totalAfterAdd > this.maxFiles) {
+    const placesRestantes = this.maxFiles - (currentFilesCount + this.editFilesToAdd.length);
+    if (placesRestantes <= 0) {
+      this.editCommentError = `Ce commentaire a déjà ${currentFilesCount} fichier(s). La limite maximale est de ${this.maxFiles} fichiers.`;
+    } else {
+      this.editCommentError = `Vous ne pouvez ajouter que ${placesRestantes} fichier(s) supplémentaire(s). Limite maximale : ${this.maxFiles} fichiers.`;
+    }
+    setTimeout(() => this.editCommentError = null, 3000);
+    return;
   }
+  
+  // Ajouter les fichiers valides
+  if (validFiles.length > 0) {
+    this.editFilesToAdd = [...this.editFilesToAdd, ...validFiles];
+    this.showSuccessMessage(`${validFiles.length} fichier(s) ajouté(s)`);
+    this.editCommentError = null; // Effacer l'erreur en cas de succès
+  }
+}
+
+showSuccessMessage(message: string): void {
+  this.successMessage = message;
+  this.scrollToTop();
+  setTimeout(() => {
+    if (this.successMessage === message) {
+      this.successMessage = null;
+    }
+  }, 3000);
+}
 
   removeEditFile(index: number): void {
     this.editFilesToAdd.splice(index, 1);
@@ -877,18 +933,12 @@ get isAddCommentFormValid(): boolean {
     this.confirmDeleteComment();
   }
   // Ajoutez ces propriétés avec les autres déclarations
-showAddCommentModal: boolean = false;
-newCommentData = {
-  message: '',
-  estInterne: false
-};
-newCommentFiles: File[] = [];
-isAddingComment: boolean = false;
-addDragActive = false;
+
 
 // Méthodes pour la modale d'ajout
 openAddCommentModal(): void {
   this.showAddCommentModal = true;
+  this.addCommentError = null; // ✅ Réinitialiser l'erreur
 }
 
 closeAddCommentModal(): void {
@@ -933,22 +983,35 @@ onAddDrop(event: DragEvent): void {
 }
 
 private addFilesToComment(files: File[]): void {
+  // Filtrer les fichiers trop volumineux
   const validFiles = files.filter(f => {
     if (f.size > this.maxFileSize) {
-      this.error = `Fichier ${f.name} trop volumineux (max 10MB)`;
-      setTimeout(() => this.error = null, 3000);
+      this.addCommentError = `Le fichier ${f.name} dépasse la limite de 10MB`;
+      setTimeout(() => this.addCommentError = null, 3000);
       return false;
     }
     return true;
   });
   
-  if (this.newCommentFiles.length + validFiles.length > this.maxFiles) {
-    this.error = `Maximum ${this.maxFiles} fichiers autorisés`;
-    setTimeout(() => this.error = null, 3000);
+  // ✅ Vérifier la limite de nombre de fichiers
+  const totalAfterAdd = this.newCommentFiles.length + validFiles.length;
+  if (totalAfterAdd > this.maxFiles) {
+    const placesRestantes = this.maxFiles - this.newCommentFiles.length;
+    if (placesRestantes <= 0) {
+      this.addCommentError = `Vous avez déjà ${this.maxFiles} fichier(s). La limite maximale est de ${this.maxFiles} fichiers.`;
+    } else {
+      this.addCommentError = `Vous ne pouvez ajouter que ${placesRestantes} fichier(s) supplémentaire(s). Limite maximale : ${this.maxFiles} fichiers.`;
+    }
+    setTimeout(() => this.addCommentError = null, 3000);
     return;
   }
   
-  this.newCommentFiles = [...this.newCommentFiles, ...validFiles];
+  // Ajouter les fichiers valides
+  if (validFiles.length > 0) {
+    this.newCommentFiles = [...this.newCommentFiles, ...validFiles];
+    this.showSuccessMessage(`${validFiles.length} fichier(s) ajouté(s)`);
+    this.addCommentError = null; // Effacer l'erreur en cas de succès
+  }
 }
 
 // Au lieu de supprimer directement, ouvrir la modale de confirmation

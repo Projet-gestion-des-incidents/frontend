@@ -130,7 +130,7 @@
 
   <!-- Modale liaison incident -->
   <div *ngIf="showLinkIncidentModal" 
-       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
+       class="fixed top-0 left-0 right-0 bottom-0 w-full h-full min-h-screen bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
        (click)="fermerModalLienIncident()">
     <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
          (click)="$event.stopPropagation()">
