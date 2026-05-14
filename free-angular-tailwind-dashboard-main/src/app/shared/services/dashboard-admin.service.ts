@@ -117,10 +117,16 @@ export interface IncidentDashboardOverviewDTO {
   totalIncidents: number;
   incidentsNonTraite: number;
   incidentsEnCours: number;
+  incidentsNonTraiteLiesTicket:number;
+    incidentsNonTraiteSansTicket:number;
+
   incidentsFerme: number;
   tauxNonTraite: number;
   tauxEnCours: number;
   tauxFerme: number;
+  tauxNonTraiteLiesTicket:number
+    tauxNonTraiteSansTicket:number
+
 }
 
 export interface IncidentStatutStatDTO {

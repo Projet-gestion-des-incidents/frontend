@@ -79,6 +79,8 @@ getPagedTPEs(params: {
   searchTerm?: string;
   modele?: string;
   commercantId?: string;
+    nonAssigne?: boolean;  // ✅ AJOUTER le paramètre booléen
+
   createdAt?: string;      // ✅ AJOUTER
   updatedAt?: string;      // ✅ AJOUTER
   createdById?: string;    // ✅ AJOUTER (optionnel)
@@ -94,7 +96,13 @@ getPagedTPEs(params: {
   if (params.modele) {
     httpParams = httpParams.set('Modele', params.modele);
   }
-  if (params.commercantId) {
+   // ✅ GESTION CORRECTE
+  if (params.nonAssigne === true) {
+    // Utiliser le paramètre booléen pour "Non assigné"
+    httpParams = httpParams.set('NonAssigne', 'true');
+  } 
+  else if (params.commercantId && params.commercantId !== 'null') {
+    // Filtrer par un commerçant spécifique (GUID valide)
     httpParams = httpParams.set('CommercantId', params.commercantId);
   }
   // ✅ AJOUTER les filtres de dates

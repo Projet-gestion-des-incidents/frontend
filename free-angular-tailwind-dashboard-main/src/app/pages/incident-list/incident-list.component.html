@@ -452,35 +452,75 @@
       </div>
     </div>
 
-    <!-- Non traités - Rouge -->
-    <div class="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/10 rounded-xl p-4 border border-red-200 dark:border-red-800 hover:shadow-md transition-all duration-300">
-      <div class="flex items-center justify-between">
-        <div>
-          <p class="text-sm text-red-600 dark:text-red-400 font-medium">Non traités</p>
-          <p class="text-2xl font-bold text-red-700 dark:text-red-300 mt-1">
-            {{ dashboardStats.overview.incidentsNonTraite }}
-          </p>
-        </div>
-        <div class="p-3 bg-red-200 dark:bg-red-800 rounded-xl">
-          <svg class="w-6 h-6 text-red-700 dark:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 8l8 8M16 8l-8 8" />
-          </svg>
-        </div>
+<!-- Non traités - Rouge - Avec sous-statistiques -->
+<div class="bg-gradient-to-br from-red-50 to-red-100 dark:from-red-900/20 dark:to-red-800/10 rounded-xl p-4 border border-red-200 dark:border-red-800 hover:shadow-md transition-all duration-300">
+  <div class="flex items-center justify-between">
+    <div>
+      <p class="text-sm text-red-600 dark:text-red-400 font-medium">Non traités</p>
+      <p class="text-2xl font-bold text-red-700 dark:text-red-300 mt-1">
+        {{ dashboardStats.overview.incidentsNonTraite }}
+      </p>
+    </div>
+    <div class="p-3 bg-red-200 dark:bg-red-800 rounded-xl">
+      <svg class="w-6 h-6 text-red-700 dark:text-red-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 8l8 8M16 8l-8 8" />
+      </svg>
+    </div>
+  </div>
+  
+  <!-- Barre de progression principale -->
+  <div class="mt-3">
+    <div class="flex items-center gap-2">
+      <div class="flex-1 h-2 bg-red-200 dark:bg-red-800 rounded-full overflow-hidden">
+        <div class="h-full bg-red-500 rounded-full transition-all duration-300" 
+             [style.width]="dashboardStats.overview.tauxNonTraite + '%'"></div>
       </div>
-      <!-- Barre de progression avec pourcentage à droite -->
-      <div class="mt-3">
-        <div class="flex items-center gap-2">
-          <div class="flex-1 h-2 bg-red-200 dark:bg-red-800 rounded-full overflow-hidden">
-            <div class="h-full bg-red-500 rounded-full transition-all duration-300" 
-                 [style.width]="dashboardStats.overview.tauxNonTraite + '%'"></div>
-          </div>
-          <span class="text-xs font-medium text-red-600 dark:text-red-400 min-w-[45px] text-right">
-            {{ dashboardStats.overview.tauxNonTraite }}%
+      <span class="text-xs font-medium text-red-600 dark:text-red-400 min-w-[45px] text-right">
+        {{ dashboardStats.overview.tauxNonTraite }}%
+      </span>
+    </div>
+  </div>
+
+  <!-- ✅ NOUVEAU : Sous-statistiques (liés à ticket vs sans ticket) -->
+  <div class="mt-3 pt-3 border-t border-red-200 dark:border-red-800/50">
+    <div class="grid grid-cols-2 gap-3">
+      <!-- Liés à un ticket -->
+      <div class="bg-white/50 dark:bg-white/5 rounded-lg p-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-red-500 dark:text-red-400 font-medium">Liés à ticket</span>
+          <span class="text-sm font-bold text-red-700 dark:text-red-300">
+            {{ dashboardStats.overview.incidentsNonTraiteLiesTicket || 0 }}
           </span>
         </div>
+        <div class="mt-1 h-1.5 bg-red-100 dark:bg-red-900 rounded-full overflow-hidden">
+          <div class="h-full bg-red-400 rounded-full" 
+               [style.width]="(dashboardStats.overview.tauxNonTraiteLiesTicket || 0) + '%'"></div>
+        </div>
+        <p class="text-xs text-red-400 dark:text-red-500 mt-1 text-right">
+          {{ dashboardStats.overview.tauxNonTraiteLiesTicket || 0 }}% des non traités
+        </p>
+      </div>
+
+      <!-- Sans ticket -->
+      <div class="bg-white/50 dark:bg-white/5 rounded-lg p-2">
+        <div class="flex items-center justify-between">
+          <span class="text-xs text-red-500 dark:text-red-400 font-medium">Sans ticket</span>
+          <span class="text-sm font-bold text-red-700 dark:text-red-300">
+            {{ dashboardStats.overview.incidentsNonTraiteSansTicket || 0 }}
+          </span>
+        </div>
+        <div class="mt-1 h-1.5 bg-red-100 dark:bg-red-900 rounded-full overflow-hidden">
+          <div class="h-full bg-red-400 rounded-full" 
+               [style.width]="(dashboardStats.overview.tauxNonTraiteSansTicket || 0) + '%'"></div>
+        </div>
+        <p class="text-xs text-red-400 dark:text-red-500 mt-1 text-right">
+          {{ dashboardStats.overview.tauxNonTraiteSansTicket || 0 }}% des non traités
+        </p>
       </div>
     </div>
+  </div>
+</div>
 
     <!-- En cours - Orange -->
     <div class="bg-gradient-to-br from-orange-50 to-orange-100 dark:from-orange-900/20 dark:to-orange-800/10 rounded-xl p-4 border border-orange-200 dark:border-orange-800 hover:shadow-md transition-all duration-300">
@@ -556,7 +596,7 @@
           </div>
           <input 
             type="text" 
-            placeholder="Rechercher par code..." 
+            placeholder="Rechercher par code,nom commerçant..." 
             [(ngModel)]="searchTerm"
             (input)="onSearch()"
             class="h-11 w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-11 pr-10 text-sm text-gray-800 placeholder:text-gray-400 focus:border-[#8788FF] focus:outline-none focus:ring-2 focus:ring-[#8788FF]/20 dark:border-gray-700 dark:bg-gray-800 dark:text-white/90 dark:placeholder:text-white/30 transition-all"

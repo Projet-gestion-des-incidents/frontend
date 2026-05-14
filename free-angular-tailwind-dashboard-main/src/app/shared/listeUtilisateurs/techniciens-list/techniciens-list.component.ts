@@ -233,11 +233,18 @@ loadTechniciens(): void {
 
     this.confirmUsers.forEach(user => {
       this.userService.deleteUser(user.id).subscribe({
-        next: () => {
-          const index = this.techniciens.findIndex(u => u.id === user.id);
-          if (index !== -1) this.techniciens.splice(index, 1);
-          this.selectedTechniciens.delete(user.id);
-          successCount++;
+next: (response: any) => {
+  const isSuccess = typeof response === 'boolean'
+    ? response
+    : (response?.isSuccess === true);
+
+  if (isSuccess) {
+    const index = this.techniciens.findIndex(u => u.id === user.id);
+    if (index !== -1) this.techniciens.splice(index, 1);
+    this.selectedTechniciens.delete(user.id);
+    successCount++;
+  }
+
           completed++;
           
           if (completed === total) {
@@ -323,30 +330,40 @@ loadTechniciens(): void {
     this.deleting = false;
   }
 
-  confirmDelete(): void {
-    if (!this.confirmUser) return;
+// ✅ APRÈS (technicien)
+confirmDelete(): void {
+  if (!this.confirmUser) return;
 
-    this.deleting = true;
-    
-    const userToDelete = this.confirmUser;
-    const userName = `${userToDelete.prenom} ${userToDelete.nom}`;
-    
-    this.userService.deleteUser(userToDelete.id).subscribe({
-      next: () => {
+  this.deleting = true;
+  const userToDelete = this.confirmUser;
+  const userName = `${userToDelete.prenom} ${userToDelete.nom}`;
+
+  this.userService.deleteUser(userToDelete.id).subscribe({
+    next: (response: any) => {
+      const isSuccess = typeof response === 'boolean'
+        ? response
+        : (response?.isSuccess === true);
+
+      if (isSuccess) {
         this.techniciens = this.techniciens.filter(u => u.id !== userToDelete.id);
-        this.confirmUser = null;
-        this.deleting = false;
         this.showAlert('success', 'Succès', `${userName} a été supprimé avec succès.`);
         this.loadTechniciens();
-      },
-      error: (err) => {
-        console.error('Erreur suppression', err);
-        this.deleting = false;
-        this.showAlert('error', 'Erreur', err.error?.message || `Impossible de supprimer ${userName}.`);
-        this.confirmUser = null;
+      } else {
+        const errorMsg = response?.message || 'Impossible de supprimer ce technicien.';
+        this.showAlert('error', 'Erreur', errorMsg);
       }
-    });
-  }
+      this.deleting = false;
+      this.confirmUser = null;
+    },
+    error: (err) => {
+      console.error('Erreur suppression', err);
+      this.deleting = false;
+      const errorMessage = err.error?.message || err.message || 'Erreur inconnue';
+      this.showAlert('error', 'Erreur', errorMessage);
+      this.confirmUser = null;
+    }
+  });
+}
 
   getStatutCount(statut: string): number {
     return this.techniciens.filter(t => t.statut === statut).length;

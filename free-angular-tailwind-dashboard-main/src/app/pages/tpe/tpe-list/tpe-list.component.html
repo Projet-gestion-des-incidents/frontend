@@ -368,18 +368,20 @@ Associer des TPEs
           </div>
 
           <!-- Filtre par commerçant -->
-          <div>
-            <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Commerçant</label>
-            <select
-              [(ngModel)]="tempFilters.commercantId"
-              class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-[#8788FF] focus:ring-1 focus:ring-[#8788FF] dark:border-gray-600 dark:bg-gray-800 transition-colors"
-            >
-              <option value="">Tous les commerçants</option>
-              <option *ngFor="let c of commercants" [value]="c.id">
-                {{ c.nomMagasin }}
-              </option>
-            </select>
-          </div>
+    <div>
+  <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Commerçant</label>
+  <select
+    [(ngModel)]="tempFilters.commercantId"
+    class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-[#8788FF] focus:ring-1 focus:ring-[#8788FF] dark:border-gray-600 dark:bg-gray-800 transition-colors"
+  >
+    <!-- ✅ Utiliser [ngValue] au lieu de value -->
+    <option [ngValue]="null">Tous les commerçants</option>
+    <option [ngValue]="'__NON_ASSIGNE__'">Non assigné</option>  <!-- ← VALEUR SPÉCIALE -->
+    <option *ngFor="let c of commercants" [ngValue]="c.id">
+      {{ c.nomMagasin }}
+    </option>
+  </select>
+</div>
 
  <!-- Filtre par date de création -->
 <div>

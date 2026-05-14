@@ -559,6 +559,10 @@ dashboardStats = {
     overview: {
       totalIncidents: 0,
       incidentsNonTraite: 0,
+          incidentsNonTraiteLiesTicket: 0,    // ✅ AJOUTÉ
+    incidentsNonTraiteSansTicket: 0,    // ✅ AJOUTÉ
+    tauxNonTraiteLiesTicket: 0,         // ✅ AJOUTÉ
+    tauxNonTraiteSansTicket: 0,   
       incidentsEnCours: 0,
       incidentsFerme: 0,
       tauxNonTraite: 0,

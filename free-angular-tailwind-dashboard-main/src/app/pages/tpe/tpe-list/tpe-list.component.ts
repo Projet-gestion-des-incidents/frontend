@@ -48,7 +48,9 @@ bulkDeleting = false;  // État de suppression en cours
   // Filtres
   searchTerm = '';
   selectedModele = '';
-  selectedCommercantId = '';
+selectedCommercantId: string | null = null;
+  selectedNonAssigne: boolean = false;  // ← NOUVEAU
+
   commercants: any[] = [];
   
   // Options de modèles
@@ -119,9 +121,16 @@ Math = Math;
 // Dans TpeListComponent, ajoutez :
 
 // Variables pour les filtres temporaires
-tempFilters = {
+tempFilters: {
+  modele: string;
+  commercantId: string | null;  // ← CHANGER de 'string' à 'string | null'
+  nonAssigne: boolean;
+  createdAt: string;
+  updatedAt: string;
+} = {
   modele: '',
-  commercantId: '',
+  commercantId: null,  // ← CHANGER de '' à null
+  nonAssigne: false,
   createdAt: '',
   updatedAt: ''
 };
@@ -502,36 +511,84 @@ cancelMultiDelete(): void {
 // ✅ Ajouter ces propriétés pour les dates
 selectedCreatedAt = '';
 selectedUpdatedAt = '';
-
-// Méthodes pour les filtres
 toggleFilters(): void {
   this.showFilters = !this.showFilters;
   if (this.showFilters) {
-    // Initialiser les filtres temporaires avec les valeurs actuelles
+    // Initialiser la valeur pour le select
+    let commercantIdValue: any = this.selectedCommercantId;
+    
+    // Si on est en mode "Non assigné", mettre la valeur spéciale
+    if (this.selectedNonAssigne) {
+      commercantIdValue = '__NON_ASSIGNE__';
+    }
+    // Si selectedCommercantId est null et nonAssigne est false, garder null
+    
     this.tempFilters = {
       modele: this.selectedModele,
-      commercantId: this.selectedCommercantId,
+      commercantId: commercantIdValue,
+      nonAssigne: this.selectedNonAssigne,
       createdAt: this.selectedCreatedAt,
       updatedAt: this.selectedUpdatedAt
     };
+    
+    console.log('📂 toggleFilters - tempFilters:', {
+      commercantId: this.tempFilters.commercantId,
+      type: typeof this.tempFilters.commercantId,
+      nonAssigne: this.tempFilters.nonAssigne
+    });
   }
 }
 
+// ✅ Remplacer cancelFilters()
 cancelFilters(): void {
   this.showFilters = false;
-  // Restaurer les valeurs depuis les filtres temporaires (inchangés)
+  
+  // Restaurer correctement les valeurs
+  let commercantIdValue: any = this.selectedCommercantId;
+  
+  if (this.selectedNonAssigne) {
+    commercantIdValue = '__NON_ASSIGNE__';
+  }
+  
   this.tempFilters = {
     modele: this.selectedModele,
-    commercantId: this.selectedCommercantId,
+    commercantId: commercantIdValue,
+    nonAssigne: this.selectedNonAssigne,
     createdAt: this.selectedCreatedAt,
-      updatedAt: this.selectedUpdatedAt
+    updatedAt: this.selectedUpdatedAt
   };
 }
 
 applyFilters(): void {
-  // Appliquer les filtres temporaires aux filtres actifs
+  console.log('🔍 applyFilters - tempFilters.commercantId:', 
+    this.tempFilters.commercantId, 
+    'type:', typeof this.tempFilters.commercantId);
+  
+  // ✅ Détecter la valeur spéciale '__NON_ASSIGNE__'
+  if (this.tempFilters.commercantId === '__NON_ASSIGNE__') {
+    this.selectedCommercantId = null;
+    this.selectedNonAssigne = true;
+    console.log('✅ Filtre "Non assigné" activé');
+  } 
+  // ✅ Valeur null signifie "Tous les commerçants"
+  else if (this.tempFilters.commercantId === null) {
+    this.selectedCommercantId = null;
+    this.selectedNonAssigne = false;
+    console.log('✅ Filtre "Tous les commerçants"');
+  }
+  // ✅ Un GUID valide
+  else if (typeof this.tempFilters.commercantId === 'string' && this.tempFilters.commercantId) {
+    this.selectedCommercantId = this.tempFilters.commercantId;
+    this.selectedNonAssigne = false;
+    console.log('✅ Filtre commerçant spécifique:', this.selectedCommercantId);
+  }
+  // ✅ Fallback
+  else {
+    this.selectedCommercantId = null;
+    this.selectedNonAssigne = false;
+  }
+  
   this.selectedModele = this.tempFilters.modele;
-  this.selectedCommercantId = this.tempFilters.commercantId;
   this.selectedCreatedAt = this.tempFilters.createdAt;
   this.selectedUpdatedAt = this.tempFilters.updatedAt;
   this.currentPage = 1;
@@ -539,16 +596,18 @@ applyFilters(): void {
   this.showFilters = false;
 }
 
+// ✅ Correction
 clearFilters(): void {
-  // Réinitialiser tous les filtres
   this.tempFilters = {
     modele: '',
-    commercantId: '',
+    commercantId: null,  // null = "Tous les commerçants"
+    nonAssigne: false,
     createdAt: '',
     updatedAt: ''
   };
   this.selectedModele = '';
-  this.selectedCommercantId = '';
+  this.selectedCommercantId = null;
+  this.selectedNonAssigne = false;
   this.selectedCreatedAt = '';
   this.selectedUpdatedAt = '';
   this.searchTerm = '';
@@ -556,7 +615,6 @@ clearFilters(): void {
   this.loadTPEs();
   this.showFilters = false;
 }
-
 // Modifier resetFilters pour utiliser clearFilters
 resetFilters(): void {
   this.clearFilters();
@@ -706,6 +764,8 @@ loadTPEs(): void {
       searchTerm: this.searchTerm,
       modele: this.selectedModele || undefined,
       commercantId: this.selectedCommercantId || undefined,
+            nonAssigne: this.selectedNonAssigne,  // ← AJOUTER CE PARAMÈTRE
+
       createdAt: this.selectedCreatedAt || undefined,
       updatedAt: this.selectedUpdatedAt || undefined
     }).subscribe({
