@@ -1657,8 +1657,8 @@ showTemporaryMessage(message: string, type: 'success' | 'error' | 'warning' = 's
     }
   }
 
+// Dans addFiles() - ACTUEL (correct mais vérifiez que c'est bien présent)
 private addFiles(files: File[]): void {
-  // Filtrer les fichiers trop volumineux
   const validFiles = files.filter(file => {
     if (file.size > this.maxFileSize) {
       this.showError(`Le fichier ${file.name} dépasse la limite de 10MB`);
@@ -1667,10 +1667,9 @@ private addFiles(files: File[]): void {
     return true;
   });
 
-  // ✅ Calculer le nombre total de fichiers (existants + nouveaux)
+  // ✅ Total = existants + nouveaux déjà sélectionnés + nouveaux à ajouter
   const totalFilesAfterAdd = this.piecesJointesExistantes.length + this.selectedFiles.length + validFiles.length;
   
-  // ✅ Vérifier la limite de nombre de fichiers TOTAL (existants + nouveaux)
   if (totalFilesAfterAdd > this.maxFiles) {
     const placesRestantes = this.maxFiles - (this.piecesJointesExistantes.length + this.selectedFiles.length);
     if (placesRestantes <= 0) {
@@ -1678,20 +1677,15 @@ private addFiles(files: File[]): void {
     } else {
       this.showError(`Vous ne pouvez ajouter que ${placesRestantes} fichier(s) supplémentaire(s). Limite maximale : ${this.maxFiles} fichiers.`);
     }
-    return;
+    return; // ← Ne pas ajouter les fichiers
   }
 
-  // Ajouter les fichiers à la liste locale
   if (validFiles.length > 0) {
     this.selectedFiles = [...this.selectedFiles, ...validFiles];
-    // Effacer l'erreur si ajout réussi
     this.error = null;
-    
-    // ✅ Vérifier les changements
     this.checkForChanges();
   }
 }
-
 // Nouvelle méthode pour uploader les fichiers lors de la sauvegarde
 // Dans incident-edit.component.ts
 

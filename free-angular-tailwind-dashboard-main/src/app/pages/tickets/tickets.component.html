@@ -801,7 +801,7 @@
                   </svg>
                 </button>
                 
-                <button *ngIf="isAdmin && ticket.statutTicketLibelle === 'Assigné'"
+<button *ngIf="isAdmin && (ticket.statutTicketLibelle === 'Assigné' || ticket.statutTicketLibelle === 'Non assigné')"
                   (click)="deleteTicket(ticket)"
                   class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                   title="Supprimer"

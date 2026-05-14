@@ -482,10 +482,10 @@ confirmDeleteMultiple(): void {
     next: (res) => {
       const allTickets = res.data.items;
       // ✅ Ne garder que les tickets avec statut "Assigné"
-      this.confirmDeleteTickets = allTickets.filter((t: TicketDTO) => 
-        this.selectedTickets.has(t.id) && 
-        t.statutTicketLibelle === 'Assigné'
-      );
+   this.confirmDeleteTickets = allTickets.filter((t: TicketDTO) => 
+  this.selectedTickets.has(t.id) && 
+  (t.statutTicketLibelle === 'Assigné' || t.statutTicketLibelle === 'Non assigné')
+);
       
       this.pendingDeleteIds = this.confirmDeleteTickets.map((t: TicketDTO) => t.id);
       this.showMultiDeleteModal = true;
