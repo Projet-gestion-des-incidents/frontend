@@ -939,6 +939,7 @@ confirmDelete() {
       // Ajuster la page si nécessaire
       if (this.filteredIncidents.length === 0 && this.currentPage > 1) {
         this.currentPage--;
+        this.adjustPageAfterBulkAction(1);
         if (this.userRole === 'Admin') {
           this.loadIncidents();
         } else {
@@ -1561,7 +1562,13 @@ confirmArchiveMultiple(): void {
     }
   });
 }
-
+private adjustPageAfterBulkAction(deletedCount: number): void {
+  const remainingTotal = this.totalCount - deletedCount;
+  const maxPage = Math.ceil(remainingTotal / this.pageSize) || 1;
+  if (this.currentPage > maxPage) {
+    this.currentPage = maxPage;
+  }
+}
 executeMultiArchive(): void {
   if (this.pendingArchiveIds.length === 0) return;
   
@@ -1599,6 +1606,7 @@ executeMultiArchive(): void {
           this.showAlert(variant, variant === 'success' ? 'Succès' : (variant === 'warning' ? 'Archivage partiel' : 'Échec'), message);
           
           setTimeout(() => {
+            this.adjustPageAfterBulkAction(successCount);
             if (this.userRole === 'Admin') {
               this.loadIncidents();
             } else {
@@ -1717,6 +1725,7 @@ executeMultiDelete(): void {
           this.showAlert(variant, variant === 'success' ? 'Succès' : (variant === 'warning' ? 'Suppression partielle' : 'Échec'), message);
           
           setTimeout(() => {
+this.adjustPageAfterBulkAction(successCount);
             if (this.userRole === 'Admin') {
               this.loadIncidents();
             } else {

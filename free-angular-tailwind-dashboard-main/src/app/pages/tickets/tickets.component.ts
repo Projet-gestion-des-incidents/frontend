@@ -378,7 +378,13 @@ confirmArchiveMultiple(): void {
     }
   });
 }
-
+private adjustPageAfterBulkAction(deletedCount: number): void {
+  const remainingTotal = this.totalCount - deletedCount;
+  const maxPage = Math.ceil(remainingTotal / this.pageSize) || 1;
+  if (this.currentPage > maxPage) {
+    this.currentPage = maxPage;
+  }
+}
 /**
  * Exécute l'archivage multiple
  */
@@ -421,6 +427,8 @@ executeMultiArchive(): void {
             this.error = `${successCount} ticket(s) archivé(s), ${total - successCount} échec(s).`;
             setTimeout(() => this.error = null, 5000);
           }
+          this.adjustPageAfterBulkAction(successCount);
+
           this.loadTickets();
         }
       },
@@ -544,6 +552,7 @@ executeMultiDelete(): void {
             this.error = `Aucun ticket n'a pu être supprimé.`;
             setTimeout(() => this.error = null, 5000);
           }
+          this.adjustPageAfterBulkAction(successCount);
           this.loadTickets();
         }
       },
@@ -558,6 +567,8 @@ executeMultiDelete(): void {
           this.updateSelectionStats();
           this.error = `${successCount}/${total} ticket(s) supprimé(s).`;
           setTimeout(() => this.error = null, 5000);
+          this.adjustPageAfterBulkAction(1);
+
           this.loadTickets();
         }
       }
@@ -1189,6 +1200,8 @@ deleteSelectedTickets(): void {
           
 this.selectedTickets.clear();
           this.ticketsToDelete = null;
+          this.adjustPageAfterBulkAction(1);
+
           this.loadTickets();
         })
       ).subscribe({
@@ -1208,6 +1221,8 @@ this.selectedTickets.clear();
             
 this.selectedTickets.delete(this.confirmTicket!.id);
             this.confirmTicket = null;
+            this.adjustPageAfterBulkAction(1);
+
             this.loadTickets();
           } else {
             this.showAlert('error', 'Erreur', response.message || `Impossible de supprimer le ticket "${this.confirmTicket!.titreTicket}".`);

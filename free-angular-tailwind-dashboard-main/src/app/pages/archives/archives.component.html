@@ -664,19 +664,19 @@
   </div>
 </div>
 
-<!-- Modale de confirmation restauration TOUS les tickets -->
-<div *ngIf="globalTicketSelectionMode && showMultiRestoreTicketModal" 
+<!-- Modale restauration TOUS les tickets -->
+<div *ngIf="showGlobalRestoreTicketModal" 
      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
      (click)="cancelMultiRestoreTicket()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
        (click)="$event.stopPropagation()">
-    
-    <!-- En-tête -->
+
+    <!-- En-tête amber identique incidents -->
     <div class="bg-gradient-to-r from-amber-50 to-amber-100 dark:from-amber-900/30 dark:to-amber-800/20 px-6 py-4 border-b border-amber-200 dark:border-amber-800">
       <div class="flex items-center gap-3">
         <div class="w-12 h-12 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center shadow-inner">
           <svg class="w-6 h-6 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
           </svg>
         </div>
         <div>
@@ -685,13 +685,13 @@
         </div>
       </div>
     </div>
-    
+
     <!-- Corps -->
     <div class="p-6">
       <div class="flex flex-col items-center text-center mb-4">
         <div class="w-16 h-16 rounded-full bg-amber-100 dark:bg-amber-900/30 flex items-center justify-center mb-4">
           <svg class="w-8 h-8 text-amber-600 dark:text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
           </svg>
         </div>
         <p class="text-gray-600 dark:text-gray-300 mb-2 font-medium">
@@ -701,37 +701,34 @@
           Soit un total de <strong>{{ ticketsTotalCount }}</strong> ticket(s)
         </p>
       </div>
-      
+
       <div class="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-4 mt-4">
         <div class="flex gap-2">
           <svg class="w-5 h-5 text-amber-600 dark:text-amber-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
           </svg>
           <div>
-            <p class="text-sm font-medium text-amber-800 dark:text-amber-200">
-              Note importante
-            </p>
+            <p class="text-sm font-medium text-amber-800 dark:text-amber-200">Note importante</p>
             <p class="text-sm text-amber-700 dark:text-amber-300">
-            
               Les tickets seront déplacés dans la liste des tickets actifs.
             </p>
           </div>
         </div>
       </div>
     </div>
-    
-    <!-- Pied de page - mêmes boutons -->
+
+    <!-- Pied de page -->
     <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
-      <button (click)="cancelMultiRestoreTicket()" 
+      <button (click)="cancelMultiRestoreTicket()"
               class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
         Annuler
       </button>
-      <button (click)="confirmMultiRestoreTicket()" 
+      <button (click)="confirmMultiRestoreTicket()"
               [disabled]="bulkRestoring"
               class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-amber-600 rounded-xl hover:bg-amber-700 transition-all duration-200 shadow-sm hover:shadow-md disabled:opacity-50 disabled:cursor-not-allowed">
         <span *ngIf="!bulkRestoring" class="flex items-center justify-center gap-2">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/>
           </svg>
           Restaurer tous ({{ ticketsTotalCount }})
         </span>
@@ -744,7 +741,7 @@
   </div>
 </div>
 <!-- Modale de confirmation restauration multiple incidents -->
-<div *ngIf="showMultiRestoreIncidentModal" 
+<div *ngIf="showMultiRestoreIncidentModal && !globalIncidentSelectionMode" 
      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
      (click)="cancelMultiRestoreIncident()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
@@ -823,7 +820,7 @@
 </div>
 
 <!-- Modale de confirmation restauration TOUS les incidents -->
-<div *ngIf="globalIncidentSelectionMode && showMultiRestoreIncidentModal" 
+<div *ngIf="showGlobalRestoreIncidentModal" 
      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
      (click)="cancelMultiRestoreIncident()">
   <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"

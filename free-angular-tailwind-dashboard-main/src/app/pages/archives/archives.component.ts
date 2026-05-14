@@ -30,17 +30,19 @@ export class ArchivesComponent implements OnInit {
   incidentsPageSize = 5;
   incidentsTotalPages = 1;
   incidentsSearchTerm = '';
-  
+  showGlobalRestoreTicketModal = false;
+
   // ✅ Pour la sélection multiple des tickets archivés
   selectedTickets: Set<string> = new Set<string>();
   showMultiRestoreTicketModal = false;
+  showMultiRestoreIncidentModal = false;      // pour sélection partielle
+showGlobalRestoreIncidentModal = false;     // pour "tous"
   confirmRestoreTickets: TicketDTO[] = [];
   bulkRestoring = false;
   pendingRestoreIds: string[] = [];
 
   // ✅ Pour la sélection multiple des incidents archivés (optionnel)
   selectedIncidents: Set<string> = new Set<string>();
-  showMultiRestoreIncidentModal = false;
   confirmRestoreIncidents: Incident[] = [];
   bulkRestoringIncidents = false;
   pendingRestoreIncidentIds: string[] = [];
@@ -593,17 +595,14 @@ isTicketIndeterminate(): boolean {
 // Ouvrir la modale de restauration multiple pour tickets
 openMultiRestoreTicketModal(): void {
   if (this.globalTicketSelectionMode) {
-    // Mode global: restaurer tous les tickets de toutes les pages
-   this.showMultiRestoreTicketModal = true;
-    this.confirmRestoreTickets = []; // Vide car on va restaurer tous
+    this.showGlobalRestoreTicketModal = true; // ← flag dédié
+    this.confirmRestoreTickets = [];
     return;
   }
-  
   if (this.selectedTickets.size === 0) return;
-  
   const selectedIds = Array.from(this.selectedTickets);
-  this.confirmRestoreTickets = this.archivedTickets.filter(ticket => 
-    selectedIds.includes(ticket.id)
+  this.confirmRestoreTickets = this.archivedTickets.filter(t =>
+    selectedIds.includes(t.id)
   );
   this.showMultiRestoreTicketModal = true;
 }
@@ -733,21 +732,16 @@ isIncidentIndeterminate(): boolean {
 
 openMultiRestoreIncidentModal(): void {
   if (this.globalIncidentSelectionMode) {
-    // ✅ OUVERTURE DE LA MODALE au lieu de confirm()
-    this.showMultiRestoreIncidentModal = true;
-    this.confirmRestoreIncidents = []; // Vide car on va restaurer tous
+    this.showGlobalRestoreIncidentModal = true; // modale massive
     return;
   }
-  
   if (this.selectedIncidents.size === 0) return;
-  
   const selectedIds = Array.from(this.selectedIncidents);
-  this.confirmRestoreIncidents = this.archivedIncidents.filter(incident => 
-    selectedIds.includes(incident.id)
+  this.confirmRestoreIncidents = this.archivedIncidents.filter(i =>
+    selectedIds.includes(i.id)
   );
-  this.showMultiRestoreIncidentModal = true;
+  this.showMultiRestoreIncidentModal = true; // modale normale
 }
-
 restoreAllIncidents(): void {
   this.bulkRestoringIncidents = true;
   
@@ -1031,6 +1025,7 @@ formatDate(date: Date | string | null | undefined): string {
 
 cancelMultiRestoreTicket(): void {
   this.showMultiRestoreTicketModal = false;
+  this.showGlobalRestoreTicketModal = false; // ← ferme les deux
   this.confirmRestoreTickets = [];
   this.pendingRestoreIds = [];
   this.bulkRestoring = false;
@@ -1040,7 +1035,7 @@ confirmMultiRestoreTicket(): void {
   // 👉 CAS 1: Mode global (tous les tickets)
   if (this.globalTicketSelectionMode && this.confirmRestoreTickets.length === 0) {
     this.restoreAllTickets();
-    this.showMultiRestoreTicketModal = false;
+    this.showGlobalRestoreTicketModal = false; // ← bon flag
     return;
   }
   
@@ -1093,11 +1088,16 @@ confirmMultiRestoreTicket(): void {
 }
 
 // ========== MÉTHODES POUR LA RESTAURATION MULTIPLE INCIDENTS ==========
-
 cancelMultiRestoreIncident(): void {
   this.showMultiRestoreIncidentModal = false;
+  this.showGlobalRestoreIncidentModal = false; // ← ajouter cette ligne
   this.confirmRestoreIncidents = [];
   this.pendingRestoreIncidentIds = [];
+  this.bulkRestoringIncidents = false;
+}
+
+cancelGlobalRestoreIncident(): void {
+  this.showGlobalRestoreIncidentModal = false;
   this.bulkRestoringIncidents = false;
 }
 
@@ -1105,7 +1105,7 @@ confirmMultiRestoreIncident(): void {
   // 👉 CAS 1: Mode global (tous les incidents)
   if (this.globalIncidentSelectionMode && this.confirmRestoreIncidents.length === 0) {
     this.restoreAllIncidents();
-    this.showMultiRestoreIncidentModal = false;
+    this.showGlobalRestoreIncidentModal = false; // ← était showMultiRestoreIncidentModal
     return;
   }
   
