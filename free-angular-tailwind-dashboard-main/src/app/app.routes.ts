@@ -47,6 +47,7 @@ import { IncidentsComponent } from './pages/dashboard/admin-dashboard/incidents/
 import { TechnicienPerformanceComponent } from './pages/dashboard/admin-dashboard/technicien-performance/technicien-performance.component';
 import { TicketsDashboardComponent } from './pages/dashboard/admin-dashboard/tickets-dashboard/tickets-dashboard.component';
 import { ArchivesComponent } from './pages/archives/archives.component';
+import { PredictionComponent } from './pages/prediction/prediction.component';
 
 export const routes: Routes = [
   {
@@ -256,6 +257,13 @@ export const routes: Routes = [
         title:'Angular Blank Dashboard | TailAdmin - Angular Admin Dashboard Template'
       },
       // support tickets
+            {
+        path: 'predictions',
+        component: PredictionComponent,
+        canActivate: [AuthGuard],
+        data: { roles: ['Admin'] },
+        title: 'Prévisions des incidents | Dashboard'
+      },
       {
         path:'invoice',
         component:InvoicesComponent,
