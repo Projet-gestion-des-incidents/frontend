@@ -262,7 +262,7 @@ export const routes: Routes = [
         component: PredictionComponent,
         canActivate: [AuthGuard],
         data: { roles: ['Admin'] },
-        title: 'Prévisions des incidents | Dashboard'
+        title: 'Prévisions des incidents'
       },
       {
         path:'invoice',

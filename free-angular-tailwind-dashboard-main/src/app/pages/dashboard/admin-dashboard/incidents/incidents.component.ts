@@ -8,6 +8,8 @@ import { NgApexchartsModule } from 'ng-apexcharts';
 import { TunisiaGovernoratesService } from '../../../../shared/services/tunisia-governorates.service';
 import { TunisiaMapComponent } from '../tunisia-map-data/tunisia-map-data.component';
 import { ExportExcelService } from '../../../../shared/services/export-excel.service';
+import { ButtonComponent } from '../../../../shared/components/ui/button/button.component';
+import { Router } from '@angular/router';
 
 @Component({
   selector: 'app-incidents',
@@ -18,7 +20,7 @@ import { ExportExcelService } from '../../../../shared/services/export-excel.ser
     NgApexchartsModule,
     DropdownComponent,
     TunisiaMapComponent,
-    DropdownItemComponent
+    DropdownItemComponent,ButtonComponent
   ],
   templateUrl: './incidents.component.html',
   styleUrls: ['./incidents.component.css']
@@ -58,7 +60,8 @@ export class IncidentsComponent implements OnInit {
   constructor(
     private dashboardService: DashboardAdminService,
     private govService: TunisiaGovernoratesService,
-    private exportExcelService: ExportExcelService
+    private exportExcelService: ExportExcelService,
+    private router: Router
   ) {
     this.initYears();
   }
@@ -912,6 +915,17 @@ updateStatsFromGovData() {
     tauxMoyen: this.tauxMoyen
   });
 }
+  isNavigating = false;
+
+ navigateToPredictions() {
+    this.isNavigating = true;
+    
+    // Petit délai pour l'animation (optionnel)
+    setTimeout(() => {
+      this.router.navigate(['/predictions']);
+    }, 300);
+  }
+
   closeDropdown() {
     this.isOpen = false;
   }

@@ -7,6 +7,7 @@ import {
   PredictionResultDTO, 
   PredictionService 
 } from '../../shared/services/prediction.service';
+import { Router } from '@angular/router';
 
 interface TypeConfig {
   key: string;
@@ -58,7 +59,8 @@ export class PredictionComponent implements OnInit {
     return this.barChartOptions.series.map((s: any) => s.color);
   }
 
-  constructor(private svc: PredictionService) {}
+  constructor(private svc: PredictionService,    private router: Router
+) {}
 
   ngOnInit() {
     this.loadData();
@@ -311,7 +313,9 @@ export class PredictionComponent implements OnInit {
       theme: { mode: 'dark' }
     };
   }
-
+  goBack(): void {
+    this.router.navigate(['/admin-dashboard/incidents']);
+  }
   private getHistValue(d: DailyIncidentCountDTO, type: string): number {
     const map: Record<string, number> = {
       TotalIncidents: d.totalIncidents,
