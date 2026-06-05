@@ -514,10 +514,13 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
           </svg>
           Filtrer
-          <span *ngIf="selectedPriorite !== undefined || selectedStatut !== undefined || selectedDate" 
-                class="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-brand-500 rounded-full">
-            {{ (selectedPriorite !== undefined ? 1 : 0) + (selectedStatut !== undefined ? 1 : 0) + (selectedDate ? 1 : 0) }}
-          </span>
+<span *ngIf="selectedPriorite !== undefined || selectedStatut !== undefined || selectedDate !== null || selectedDateLimiteStatut !== undefined" 
+      class="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-brand-500 rounded-full">
+  {{ (selectedPriorite !== undefined ? 1 : 0) + 
+     (selectedStatut !== undefined ? 1 : 0) + 
+     (selectedDate !== null ? 1 : 0) + 
+     (selectedDateLimiteStatut !== undefined ? 1 : 0) }}
+</span>
         </button>
 
 <!-- Actions groupées quand des tickets sont sélectionnés -->
@@ -563,7 +566,7 @@
 </div>
 
         <!-- Indicateur de filtres actifs -->
-        <div *ngIf="selectedPriorite !== undefined || selectedStatut !== undefined || selectedDate" 
+      <div *ngIf="selectedPriorite !== undefined || selectedStatut !== undefined || selectedDate !== null || selectedDateLimiteStatut !== undefined" 
              class="flex items-center gap-2 px-3 py-1.5 bg-brand-50 dark:bg-brand-900/20 rounded-lg">
           <span class="text-xs text-brand-600 dark:text-brand-400">Filtres actifs</span>
           <button (click)="clearFilters()" class="text-brand-600 hover:text-brand-700 dark:text-brand-400">
@@ -595,9 +598,11 @@
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Statut</label>
       <select [(ngModel)]="tempFilters.statut" 
               class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors">
-        <option [ngValue]="undefined">Tous statuts</option>
         <!-- Admin voit tous les statuts -->
         <ng-container >
+              <option [ngValue]="undefined">Tous statuts</option>
+
+            <option [ngValue]="null">Non assigné</option>
           <option [ngValue]="1">Assigné</option>
           <option [ngValue]="2">En cours</option>
           <option [ngValue]="3">Résolu</option>
@@ -630,7 +635,21 @@
     </button>
   </div>
 </div>
-    
+        <!-- ✅ NOUVEAU : Filtre par statut de date limite -->
+    <div>
+      <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+        Statut date limite
+      </label>
+      <select
+        [(ngModel)]="tempFilters.dateLimiteStatut"
+        class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-brand-300 focus:ring-1 focus:ring-brand-300 dark:border-gray-600 dark:bg-gray-800 transition-colors"
+      >
+        <option [ngValue]="undefined">Tous</option>
+        <option *ngFor="let option of dateLimiteStatutOptions" [ngValue]="option.value">
+          {{ option.label }}
+        </option>
+      </select>
+    </div>
     <!-- Espace vide pour l'alignement (optionnel) -->
     <div></div>
   </div>
@@ -788,23 +807,40 @@
                 </button>
                 
             <button 
+       *ngIf="isAdmin"       
   [routerLink]="['/tickets/edit', ticket.id]"
-  [disabled]="ticket.statutTicketLibelle === 'Résolu'"
   class="p-2 text-gray-400 hover:text-warning-600 rounded-lg hover:bg-warning-50 
          dark:hover:bg-warning-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-  title="Modifier"
->
+     [disabled]="ticket.statutTicketLibelle === 'Résolu'"
+      [title]="ticket.statutTicketLibelle === 'Résolu' ? 'Impossible de modifier un ticket résolu' : 'Modifier'">
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                       d="M11 4h2m-1-1v2m7.071 2.929a2 2 0 010 2.828l-8.486 8.486a2 2 0 01-.878.515l-4 1a1 1 0 01-1.213-1.213l1-4a2 2 0 01.515-.878l8.486-8.486a2 2 0 012.828 0z">
                     </path>
                   </svg>
                 </button>
-                
-<button *ngIf="isAdmin && (ticket.statutTicketLibelle === 'Assigné' || ticket.statutTicketLibelle === 'Non assigné')"
+                  <button 
+      *ngIf="!isAdmin && isTechnicien && ticket.assigneeNom && ticket.statutTicketLibelle !== 'Résolu'"
+      [routerLink]="['/tickets/edit', ticket.id]"
+      class="p-2 text-gray-400 hover:text-warning-600 rounded-lg hover:bg-warning-50 dark:hover:bg-warning-900/20 transition-colors"
+      title="Modifier"
+    >
+      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+          d="M11 4h2m-1-1v2m7.071 2.929a2 2 0 010 2.828l-8.486 8.486a2 2 0 01-.878.515l-4 1a1 1 0 01-1.213-1.213l1-4a2 2 0 01.515-.878l8.486-8.486a2 2 0 012.828 0z">
+        </path>
+      </svg>
+    </button>
+<button *ngIf="isAdmin && (ticket.statutTicketLibelle === 'Assigné' || ticket.statutTicketLibelle === 'Non assigné' || ticket.statutTicketLibelle === 'En cours')"
                   (click)="deleteTicket(ticket)"
                   class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
-                  title="Supprimer"
+                     [disabled]="ticket.statutTicketLibelle === 'En cours'"
+      [ngClass]="{
+        'text-gray-400 cursor-not-allowed opacity-50': ticket.statutTicketLibelle === 'En cours',
+        'text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20': ticket.statutTicketLibelle !== 'En cours'
+      }"
+      [title]="ticket.statutTicketLibelle === 'En cours' ? 'Impossible de supprimer un ticket en cours de traitement' : 'Supprimer'"
+                  
                 >
                   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />

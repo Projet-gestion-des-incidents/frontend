@@ -106,8 +106,8 @@ export class UpdateTechnicienComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       nom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
       prenom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
-      phoneNumber: ['', [Validators.required,Validators.pattern('^[0-9]{8}$')]],
-  birthDate: ['', [ Validators.required,birthDateValidator]]     });
+  phoneNumber: ['', [Validators.pattern('^[0-9]{8}$')]],   // ✅ plus required
+  birthDate: ['', [birthDateValidator]]  });
  // Calculer la date maximale (18 ans minimum)
     const today = new Date();
     const minDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
@@ -173,10 +173,32 @@ validateAge(control: any): { [key: string]: boolean } | null {
     this.formChanged = JSON.stringify(currentValues) !== JSON.stringify(this.originalFormValues);
   }
 
-  // ✅ Vérifier si le bouton doit être désactivé
-  isSubmitDisabled(): boolean {
-    return this.technicienForm.invalid || this.loading || !this.formChanged;
-  }
+// Corriger isSubmitDisabled()
+isSubmitDisabled(): boolean {
+  // ✅ Désactivé seulement si :
+  // - formulaire invalide (erreurs de format)
+  // - en cours de chargement
+  // - aucun changement
+  // - les deux champs optionnels sont TOUS LES DEUX remplis mais l'un est invalide
+  const phone = this.technicienForm.get('phoneNumber');
+  const birth = this.technicienForm.get('birthDate');
+
+  // Si les deux sont remplis ET l'un est invalide → désactiver
+  const bothFilledButInvalid =
+    phone?.value && birth?.value &&
+    (phone?.invalid || birth?.invalid);
+
+  // Si un seul est rempli mais invalide → désactiver aussi
+  const oneFilledButInvalid =
+    (phone?.value && phone?.invalid) ||
+    (birth?.value && birth?.invalid);
+
+  return (
+    this.technicienForm.invalid ||
+    this.loading ||
+    !this.formChanged
+  );
+}
   
 loadTechnicienData(): void {
     this.loading = true;

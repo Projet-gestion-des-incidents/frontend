@@ -328,7 +328,21 @@ confirmerResoudreIncident(incidentId: string, incidentCode: string, incidentDesc
   };
   this.showResolveIncidentModal = true;
 }
-
+/**
+ * Met à jour l'état initial du ticket (appelé après une action qui modifie le ticket)
+ */
+updateInitialTicketState(): void {
+  if (this.initialTicketState && this.ticket) {
+    this.initialTicketState = {
+      titreTicket: this.ticket.titreTicket,
+      descriptionTicket: this.ticket.descriptionTicket,
+      statutTicket: this.ticket.statutTicket,
+      assigneeId: this.ticket.assigneeId,
+      dateLimite: this.ticket.dateLimite
+    };
+    console.log('🔄 initialTicketState mis à jour:', this.initialTicketState);
+  }
+}
 /**
  * Exécuter la résolution de l'incident
  */
@@ -343,7 +357,7 @@ executerResoudreIncident(): void {
         // Mettre à jour le statut de l'incident dans la liste locale
         const incidentResolu = this.incidentsLies.find(i => i.id === this.incidentToResolve!.id);
         if (incidentResolu) {
-          incidentResolu.statutIncident = 2; // Statut Résolu/Fermé
+          incidentResolu.statutIncident = 2;
           incidentResolu.statutIncidentLibelle = 'Résolu';
         }
         
@@ -358,11 +372,22 @@ executerResoudreIncident(): void {
         if (tousResolus && this.ticket.statutTicket !== 'Resolu') {
           this.ticket.statutTicket = 'Resolu';
           this.showSuccess(`Tous les incidents sont résolus. Le ticket a été automatiquement fermé.`);
+          
+          // ✅ METTRE À JOUR l'état initial APRÈS modification
+          this.updateInitialTicketState();
+          
           setTimeout(() => {
             this.router.navigate(['/tickets']);
           }, 5000);
         } else {
           this.showSuccess(`Incident ${this.incidentToResolve!.code} résolu avec succès`);
+          
+          // ✅ METTRE À JOUR l'état initial APRÈS modification
+          // (le statut du ticket n'a pas changé, mais l'incident a changé)
+          // Pour l'incident, on ne peut pas le mettre dans initialTicketState car ce n'est pas le ticket
+          // Donc on force hasChanges à true
+          this.hasChanges = true;
+          console.log('🔄 hasChanges forcé à true (incident résolu)');
         }
         
         // Fermer la modale
@@ -579,7 +604,7 @@ loadData(): void {
         this.titreTouched = false;
         this.descriptionTouched = false;
         
-        this.showAssignmentSection = !this.ticket.assigneeId;
+      //  this.showAssignmentSection = !this.ticket.assigneeId;
         this.tempAssigneeId = this.ticket.assigneeId;
 
         // ✅ Incidents disponibles (sans ticket lié)
@@ -827,6 +852,7 @@ get descriptionInvalid(): boolean {
 }
 
 // Méthode pour vérifier si des changements ont été effectués
+// Méthode pour vérifier si des changements ont été effectués
 checkForChanges(): void {
   if (!this.initialTicketState || !this.ticket) {
     this.hasChanges = false;
@@ -839,6 +865,7 @@ checkForChanges(): void {
   if (this.isAdmin) {
     if (this.ticket.titreTicket !== this.initialTicketState.titreTicket) {
       hasAnyChange = true;
+      console.log('🔄 Changement détecté: Titre');
     }
   }
   
@@ -846,6 +873,7 @@ checkForChanges(): void {
   if (this.isAdmin) {
     if (this.ticket.descriptionTicket !== this.initialTicketState.descriptionTicket) {
       hasAnyChange = true;
+      console.log('🔄 Changement détecté: Description');
     }
   }
   
@@ -853,13 +881,17 @@ checkForChanges(): void {
   if (this.isTechnicien) {
     if (this.ticket.statutTicket !== this.initialTicketState.statutTicket) {
       hasAnyChange = true;
+      console.log('🔄 Changement détecté: Statut');
     }
   }
   
-  // Vérifier l'assignation (pour admin)
+  // ✅ Vérifier l'assignation (pour admin) - TOUJOURS vérifier
   if (this.isAdmin) {
-    if (this.ticket.assigneeId !== this.initialTicketState.assigneeId) {
+    const currentAssigneeId = this.ticket.assigneeId || null;
+    const originalAssigneeId = this.initialTicketState.assigneeId || null;
+    if (currentAssigneeId !== originalAssigneeId) {
       hasAnyChange = true;
+      console.log('🔄 Changement détecté: Assignation (', originalAssigneeId, '->', currentAssigneeId, ')');
     }
   }
   
@@ -867,21 +899,21 @@ checkForChanges(): void {
   if (this.isAdmin) {
     if (this.ticket.dateLimite !== this.initialTicketState.dateLimite) {
       hasAnyChange = true;
+      console.log('🔄 Changement détecté: Date limite');
     }
   }
   
-  // ✅ NOUVEAU: Vérifier si la liste des incidents a changé
+  // Vérifier si la liste des incidents a changé
   const currentIncidentsList = this.incidentsLies.map((i: any) => i.id).sort();
   const originalIncidentsList = this.originalIncidentsList.sort();
   
   if (JSON.stringify(currentIncidentsList) !== JSON.stringify(originalIncidentsList)) {
     hasAnyChange = true;
+    console.log('🔄 Changement détecté: Liste des incidents');
   }
   
   this.hasChanges = hasAnyChange;
-  console.log('🔄 Changements détectés:', this.hasChanges);
-  console.log('  - Incidents originaux:', originalIncidentsList);
-  console.log('  - Incidents actuels:', currentIncidentsList);
+  console.log('🔄 hasChanges =', this.hasChanges);
 }
 // Ajoutez la méthode pour confirmer la suppression d'un commentaire
 confirmerSuppressionCommentaire(commentaireId: string, auteurNom: string): void {

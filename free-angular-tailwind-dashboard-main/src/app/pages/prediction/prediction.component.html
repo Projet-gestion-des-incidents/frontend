@@ -237,62 +237,53 @@
       </div>
     </div>
 
-    <!-- Tableau détail -->
-    <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all overflow-hidden">
-      <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-[#ECECFF] dark:from-[#0C144E]/20 to-white dark:to-transparent">
+<!-- Graphique IC 95% - Version avec zone ombrée visible -->
+<div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm hover:shadow-md transition-all">
+  <div class="px-6 py-4 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-[#F0EFFF] dark:from-[#0C144E]/10 to-white dark:to-transparent rounded-t-2xl">
+    <div class="flex items-center justify-between flex-wrap gap-3">
+      <div>
         <h3 class="text-lg font-semibold text-[#0C144E] dark:text-white/90">
-          <i class="bi bi-table me-2"></i>Détail des prévisions
+     
+          Intervalle de confiance 95%
         </h3>
-        <p class="text-xs text-gray-500 dark:text-gray-400">Vue détaillée par {{ activeTab === 'semaine' ? 'jour' : 'semaine' }}</p>
+        <p class="text-xs text-gray-500 dark:text-gray-400">Zone de confiance autour des prévisions</p>
       </div>
-      <div class="overflow-x-auto">
-        <table class="w-full">
-          <thead class="bg-gray-50 dark:bg-gray-900/50">
-            <tr>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                {{ activeTab === 'semaine' ? 'Jour' : 'Semaine' }}
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Total</th>
-              <th *ngFor="let t of types.slice(1)" class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                {{ t.label }}
-              </th>
-              <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">IC 95%</th>
-            </tr>
-          </thead>
-          <tbody class="divide-y divide-gray-200 dark:divide-gray-700">
-            <tr *ngFor="let p of currentPredictions; let i = index" class="hover:bg-gray-50 dark:hover:bg-gray-900/30 transition-colors">
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
-                <span *ngIf="activeTab === 'semaine'">
-                  {{ p.date | date:'EEE dd/MM' }}
-                </span>
-                <span *ngIf="activeTab === 'mois'">Semaine {{ i + 1 }}</span>
-                <span class="block text-xs text-gray-500 dark:text-gray-400" *ngIf="activeTab === 'semaine'">
-                  {{ p.date | date:'yyyy' }}
-                </span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap">
-                <span class="inline-flex items-center justify-center px-2.5 py-1 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300">
-                  {{ p.totalIncidents }}
-                </span>
-              </td>
-              <td *ngFor="let t of types.slice(1)" class="px-6 py-4 whitespace-nowrap">
-                <span *ngIf="(p.incidentsParType[t.key] ?? 0) > 0" 
-                      class="inline-flex items-center justify-center px-2 py-0.5 rounded text-xs font-medium"
-                      [style.background]="t.color + '22'"
-                      [style.color]="t.color">
-                  {{ p.incidentsParType[t.key] ?? 0 }}
-                </span>
-                <span *ngIf="(p.incidentsParType[t.key] ?? 0) === 0" class="text-gray-400 dark:text-gray-600">—</span>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                <span class="text-green-600 dark:text-green-400">↓{{ p.confidenceLower | number:'1.0-0' }}</span>
-                <span class="mx-1">–</span>
-                <span class="text-orange-600 dark:text-orange-400">↑{{ p.confidenceUpper | number:'1.0-0' }}</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
+      <!-- Légende avec couleurs visibles -->
+      <div class="flex flex-wrap items-center gap-4 text-xs">
+        <span class="flex items-center gap-1.5">
+          <span class="w-5 h-0.5 bg-[#8788FF] rounded-full"></span>
+          <span class="text-gray-700 dark:text-gray-300">Prévision</span>
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="w-5 h-2 bg-[#FDA4AF] rounded-full"></span>
+          <span class="text-gray-700 dark:text-gray-300">Borne haute (95%)</span>
+        </span>
+        <span class="flex items-center gap-1.5">
+          <span class="w-5 h-2 bg-[#A7F3D0] rounded-full"></span>
+          <span class="text-gray-700 dark:text-gray-300">Borne basse (95%)</span>
+        </span>
+    
       </div>
     </div>
   </div>
+  
+  <div class="p-5">
+    <apx-chart *ngIf="confidenceChartOptions.series"
+      [series]="confidenceChartOptions.series"
+      [chart]="confidenceChartOptions.chart"
+      [colors]="confidenceChartOptions.colors"
+      [stroke]="confidenceChartOptions.stroke"
+      [fill]="confidenceChartOptions.fill"
+      [markers]="confidenceChartOptions.markers"
+      [xaxis]="confidenceChartOptions.xaxis"
+      [yaxis]="confidenceChartOptions.yaxis"
+      [legend]="confidenceChartOptions.legend"
+      [tooltip]="confidenceChartOptions.tooltip"
+      [grid]="confidenceChartOptions.grid"
+      [annotations]="confidenceChartOptions.annotations"
+      [title]="confidenceChartOptions.title">
+    </apx-chart>
+  </div>
+  
+
 </div>

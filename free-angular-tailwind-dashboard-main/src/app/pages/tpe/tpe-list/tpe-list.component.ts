@@ -373,10 +373,13 @@ executeMultiDelete(): void {
   const total = this.pendingDeleteIds.length;
   let successCount = 0;
 
+  // ✅ Sauvegarder l'état avant suppression
+  const currentPageBefore = this.currentPage;
+  const wasLastItemOnPage = this.tpes.length === this.pendingDeleteIds.length;
+
   this.pendingDeleteIds.forEach(id => {
     this.tpeService.deleteTPE(id).subscribe({
       next: () => {
-        // Retirer des listes locales si présent
         const index = this.tpes.findIndex(t => t.id === id);
         if (index !== -1) this.tpes.splice(index, 1);
         
@@ -389,22 +392,31 @@ executeMultiDelete(): void {
           this.showMultiDeleteModal = false;
           this.pendingDeleteIds = [];
           
-          // Mettre à jour les compteurs
-          this.totalCount = this.tpes.length;
-          this.totalPages = Math.ceil(this.totalCount / this.pageSize);
-          if (this.currentPage > this.totalPages && this.totalPages > 0) {
-            this.currentPage = this.totalPages;
+          // ✅ Mettre à jour les compteurs
+          this.totalCount = this.totalCount - successCount;
+          
+          // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+          const newTotalPages = Math.ceil(this.totalCount / this.pageSize);
+          
+          if (wasLastItemOnPage && currentPageBefore > 1 && newTotalPages < currentPageBefore) {
+            this.currentPage = newTotalPages;
+          } else if (this.currentPage > newTotalPages && newTotalPages > 0) {
+            this.currentPage = newTotalPages;
+          } else if (newTotalPages === 0) {
+            this.currentPage = 1;
           }
           
-          if (successCount === total) {
-  this.showAlert('success', 'Succès', `${total} TPE(s) supprimé(s) avec succès.`);
-} else if (successCount > 0) {
-  this.showAlert('warning', 'Suppression partielle', `${successCount} TPE(s) supprimé(s), ${total - successCount} échec(s).`);
-} else {
-  this.showAlert('error', 'Échec', `Aucun TPE n'a pu être supprimé.`);
-}
+          this.totalPages = newTotalPages;
           
-          // Recharger la page courante
+          if (successCount === total) {
+            this.showAlert('success', 'Succès', `${total} TPE(s) supprimé(s) avec succès.`);
+          } else if (successCount > 0) {
+            this.showAlert('warning', 'Suppression partielle', `${successCount} TPE(s) supprimé(s), ${total - successCount} échec(s).`);
+          } else {
+            this.showAlert('error', 'Échec', `Aucun TPE n'a pu être supprimé.`);
+          }
+          
+          // ✅ Recharger la liste
           this.loadTPEs();
         }
       },
@@ -415,6 +427,18 @@ executeMultiDelete(): void {
           this.bulkDeleting = false;
           this.showMultiDeleteModal = false;
           this.pendingDeleteIds = [];
+          
+          // ✅ Recalculer les pages
+          this.totalCount = this.totalCount - successCount;
+          const newTotalPages = Math.ceil(this.totalCount / this.pageSize);
+          
+          if (this.currentPage > newTotalPages && newTotalPages > 0) {
+            this.currentPage = newTotalPages;
+          } else if (newTotalPages === 0) {
+            this.currentPage = 1;
+          }
+          
+          this.totalPages = newTotalPages;
           this.showAlert('error', 'Erreur', `${successCount}/${total} TPE(s) supprimé(s).`);
           this.loadTPEs();
         }

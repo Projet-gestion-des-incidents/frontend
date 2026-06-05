@@ -1,4 +1,4 @@
-<div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+<div class="w-full px-4 sm:px-6 lg:px-8 space-y-6 pb-12">
 
   <!-- Bouton retour amélioré -->
   <div class="mb-6">
@@ -332,7 +332,9 @@
   <!-- Fermeture du conteneur principal -->
 </div>  <!-- Fermeture du div avec class="max-w-4xl mx-auto..." -->
 
-<!-- ⚠️ MODALE D'APERÇU IMAGE - PLACÉE EN DEHORS DU CONTENEUR PRINCIPAL -->
+<!-- ======================================================== -->
+<!-- MODALE D'APERÇU IMAGE - VERSION AMÉLIORÉE (comme commentaire-list) -->
+<!-- ======================================================== -->
 <div *ngIf="showImageModal" 
      class="fixed inset-0 bg-black/80 flex items-center justify-center z-[99999] p-4 transition-all duration-300"
      (click)="closeImageModal()">
@@ -343,21 +345,24 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
       </svg>
     </button>
-    <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
+    <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden shadow-2xl">
       <img [src]="currentImageUrl" 
            [alt]="currentImageName" 
-           class="w-full h-auto max-h-[80vh] object-contain">
+           class="w-full h-auto max-h-[80vh] object-contain"
+           (error)="currentImageUrl = ''">
       <div class="p-3 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center">
-        <p class="text-gray-700 dark:text-gray-300 text-sm">
+        <p class="text-gray-700 dark:text-gray-300 text-sm truncate flex-1">
           {{ currentImageName }}
         </p>
-   
+
       </div>
     </div>
   </div>
 </div>
 
-<!-- Modale d'aperçu PDF -->
+<!-- ======================================================== -->
+<!-- MODALE D'APERÇU PDF - VERSION AMÉLIORÉE -->
+<!-- ======================================================== -->
 <div *ngIf="showPdfModal" 
      class="fixed inset-0 bg-black/80 flex items-center justify-center z-[99999] p-4 transition-all duration-300"
      (click)="closePdfModal()">
@@ -369,43 +374,12 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
       </svg>
     </button>
-    <iframe [src]="pdfUrl" class="w-full h-full" frameborder="0"></iframe>
-  </div>
-</div>
-<!-- Modale d'aperçu image -->
-<div *ngIf="showImageModal" 
-     class="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4 transition-all duration-300"
-     (click)="closeImageModal()">
-  <div class="relative max-w-4xl w-full max-h-[90vh]" (click)="$event.stopPropagation()">
-    <button (click)="closeImageModal()" 
-            class="absolute -top-12 right-0 p-2 text-white hover:text-gray-300 transition-colors">
-      <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-      </svg>
-    </button>
-    <div class="bg-white dark:bg-gray-800 rounded-lg overflow-hidden">
-      <img [src]="currentImageUrl" 
-           [alt]="currentImageName" 
-           class="w-full h-auto max-h-[80vh] object-contain">
-      <p class="text-center text-gray-700 dark:text-gray-300 text-sm p-3 border-t border-gray-200 dark:border-gray-700">
+    <div class="p-2 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-gray-800">
+      <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate flex-1">
         {{ currentImageName }}
       </p>
+   
     </div>
-  </div>
-</div>
-
-<!-- Modale d'aperçu PDF -->
-<div *ngIf="showPdfModal" 
-     class="fixed inset-0 bg-black/80 flex items-center justify-center z-[9999] p-4 transition-all duration-300"
-     (click)="closePdfModal()">
-  <div class="relative w-full max-w-4xl h-[80vh] bg-white dark:bg-gray-800 rounded-lg overflow-hidden" 
-       (click)="$event.stopPropagation()">
-    <button (click)="closePdfModal()" 
-            class="absolute top-2 right-2 z-10 p-2 bg-white dark:bg-gray-700 rounded-full shadow-md hover:bg-gray-100 dark:hover:bg-gray-600 transition-colors">
-      <svg class="w-5 h-5 text-gray-600 dark:text-gray-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-      </svg>
-    </button>
-    <iframe [src]="pdfUrl" class="w-full h-full" frameborder="0"></iframe>
+    <iframe [src]="pdfUrl" class="w-full h-[calc(80vh-50px)]" frameborder="0"></iframe>
   </div>
 </div>

@@ -596,6 +596,10 @@ saveInfo(): void {
         this.selectedImage = null;
         this.imageBase64 = null;
         
+          setTimeout(() => {
+    window.location.reload();
+  }, 1000);
+  
         // Fermer le modal
         this.closeInfoModal();
         return;
@@ -1269,6 +1273,16 @@ private scrollToAlertInModal(): void {
       });
     }
   }, 250);
+}
+// Dans le fichier .ts du composant Mon Profil
+getInitials(user: any): string {
+  if (user.role === 'Commercant') {
+    return user.nom?.charAt(0)?.toUpperCase() || 'M';
+  } else {
+    const prenomInitial = user.prenom?.charAt(0)?.toUpperCase() || '';
+    const nomInitial = user.nom?.charAt(0)?.toUpperCase() || '';
+    return `${prenomInitial}${nomInitial}`;
+  }
 }
   showOtpModal = false;
 otpPurpose: 'email' | 'password' = 'email';

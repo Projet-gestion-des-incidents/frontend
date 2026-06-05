@@ -68,13 +68,15 @@ cachedSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
   showFilters = false;
   tempFilters = {
     priorite: undefined as number | undefined,
-    statut: undefined as number | undefined,
-    dateDebut: ''
+  statut: undefined as number | null | undefined,  // ✅ Modifier ici
+    dateDebut: '',
+      dateLimiteStatut: undefined as number | undefined  
+
   };
   
   // Filtres
   selectedPriorite?: number;
-  selectedStatut?: number;
+selectedStatut?: number | null;
   selectedDate: Date | null = null;
   selectedYear: string = '';
   
@@ -396,6 +398,10 @@ executeMultiArchive(): void {
   const total = this.pendingArchiveIds.length;
   let successCount = 0;
   
+  // Sauvegarder l'état avant l'archivage
+  const currentPageBefore = this.currentPage;
+  const wasLastItemOnPage = this.tickets.length === this.pendingArchiveIds.length;
+  
   this.pendingArchiveIds.forEach(id => {
     this.ticketService.archiverTicket(id).subscribe({
       next: (response) => {
@@ -417,19 +423,32 @@ executeMultiArchive(): void {
           this.totalCount = this.tickets.length;
           this.totalPages = Math.ceil(this.totalCount / this.pageSize);
           
-          this.updateSelectionStats();
+          // ✅ CORRECTION: Réinitialiser la sélection et le type
+          this.selectedTickets.clear();
+          this.currentSelectionType = null;
+          this.cachedSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
+          this.globalSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
           
           if (successCount === total) {
-            // ✅ Utiliser successMessage
             this.successMessage = `${total} ticket(s) archivé(s) avec succès.`;
             setTimeout(() => this.successMessage = '', 5000);
           } else if (successCount > 0) {
             this.error = `${successCount} ticket(s) archivé(s), ${total - successCount} échec(s).`;
             setTimeout(() => this.error = null, 5000);
           }
-          this.adjustPageAfterBulkAction(successCount);
-
+          
+          // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+          if (wasLastItemOnPage && currentPageBefore > 1) {
+            this.currentPage = currentPageBefore - 1;
+          }
+          
           this.loadTickets();
+          
+          if (this.isAdmin) {
+            this.loadDashboardStats();
+          } else if (this.isTechnicien) {
+            this.loadTechnicienDashboardStats();
+          }
         }
       },
       error: (err) => {
@@ -440,10 +459,28 @@ executeMultiArchive(): void {
           this.showMultiArchiveModal = false;
           this.pendingArchiveIds = [];
           this.confirmArchiveTickets = [];
-          this.updateSelectionStats();
+          
+          // ✅ CORRECTION: Aussi réinitialiser en cas d'erreur partielle
+          this.selectedTickets.clear();
+          this.currentSelectionType = null;
+          this.cachedSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
+          this.globalSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
+          
           this.error = `${successCount}/${total} ticket(s) archivé(s).`;
           setTimeout(() => this.error = null, 5000);
+          
+          // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+          if (wasLastItemOnPage && currentPageBefore > 1) {
+            this.currentPage = currentPageBefore - 1;
+          }
+          
           this.loadTickets();
+          
+          if (this.isAdmin) {
+            this.loadDashboardStats();
+          } else if (this.isTechnicien) {
+            this.loadTechnicienDashboardStats();
+          }
         }
       }
     });
@@ -514,6 +551,10 @@ executeMultiDelete(): void {
   const total = this.pendingDeleteIds.length;
   let successCount = 0;
   
+  // Sauvegarder l'état avant la suppression
+  const currentPageBefore = this.currentPage;
+  const wasLastItemOnPage = this.tickets.length === this.pendingDeleteIds.length;
+  
   this.pendingDeleteIds.forEach(id => {
     this.ticketService.deleteTicket(id).subscribe({
       next: (response) => {
@@ -535,14 +576,17 @@ executeMultiDelete(): void {
           this.totalCount = this.tickets.length;
           this.totalPages = Math.ceil(this.totalCount / this.pageSize);
           
-          this.updateSelectionStats();
+          // ✅ CORRECTION: Réinitialiser la sélection et le type
+          this.selectedTickets.clear();
+          this.currentSelectionType = null;
+          this.cachedSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
+          this.globalSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
           
           if (this.selectedTickets.size === 0) {
             this.currentSelectionType = null;
           }
           
           if (successCount === total) {
-            // ✅ Utiliser successMessage
             this.successMessage = `${total} ticket(s) supprimé(s) avec succès.`;
             setTimeout(() => this.successMessage = '', 5000);
           } else if (successCount > 0) {
@@ -552,7 +596,12 @@ executeMultiDelete(): void {
             this.error = `Aucun ticket n'a pu être supprimé.`;
             setTimeout(() => this.error = null, 5000);
           }
-          this.adjustPageAfterBulkAction(successCount);
+          
+          // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+          if (wasLastItemOnPage && currentPageBefore > 1) {
+            this.currentPage = currentPageBefore - 1;
+          }
+          
           this.loadTickets();
         }
       },
@@ -564,18 +613,27 @@ executeMultiDelete(): void {
           this.showMultiDeleteModal = false;
           this.pendingDeleteIds = [];
           this.confirmDeleteTickets = [];
-          this.updateSelectionStats();
+          
+          // ✅ CORRECTION: Réinitialiser aussi en cas d'erreur
+          this.selectedTickets.clear();
+          this.currentSelectionType = null;
+          this.cachedSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
+          this.globalSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
+          
           this.error = `${successCount}/${total} ticket(s) supprimé(s).`;
           setTimeout(() => this.error = null, 5000);
-          this.adjustPageAfterBulkAction(1);
-
+          
+          // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+          if (wasLastItemOnPage && currentPageBefore > 1) {
+            this.currentPage = currentPageBefore - 1;
+          }
+          
           this.loadTickets();
         }
       }
     });
   });
 }
-
 /**
  * Annule la suppression multiple
  */
@@ -613,16 +671,31 @@ confirmArchive(): void {
   
   this.archiving = true;
   
+  // Sauvegarder l'état avant l'archivage
+  const currentPageBefore = this.currentPage;
+  const wasLastItemOnPage = this.tickets.length === 1;
+  
   this.ticketService.archiverTicket(this.ticketToArchive.id).subscribe({
     next: (response) => {
       if (response.isSuccess) {
-        // ✅ Utiliser successMessage au lieu de showAlert
         this.successMessage = `Ticket "${this.ticketToArchive!.referenceTicket}" archivé avec succès.`;
         setTimeout(() => {
           this.successMessage = '';
         }, 5000);
         
+        // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+        if (wasLastItemOnPage && currentPageBefore > 1) {
+          this.currentPage = currentPageBefore - 1;
+        }
+        
         this.loadTickets();
+        
+        if (this.isAdmin) {
+          this.loadDashboardStats();
+        } else if (this.isTechnicien) {
+          this.loadTechnicienDashboardStats();
+        }
+        
         this.selectedTickets.delete(this.ticketToArchive!.id);
       } else {
         const errorMessage = response.message || 'Impossible d\'archiver le ticket.';
@@ -850,16 +923,17 @@ loadTechnicienDashboardStats(): void {
     }
   });
 }
-  toggleFilters(): void {
-    this.showFilters = !this.showFilters;
-    if (this.showFilters) {
-      this.tempFilters = {
-        priorite: this.selectedPriorite,
-        statut: this.selectedStatut,
-        dateDebut: this.tempFilters.dateDebut
-      };
-    }
+toggleFilters(): void {
+  this.showFilters = !this.showFilters;
+  if (this.showFilters) {
+    this.tempFilters = {
+      priorite: this.selectedPriorite,
+      statut: this.selectedStatut,
+      dateDebut: this.selectedDate ? this.formatDateForInput(this.selectedDate) : '',
+      dateLimiteStatut: this.selectedDateLimiteStatut
+    };
   }
+}
 
   formatDate(date: Date): string {
     return new Date(date).toLocaleDateString('fr-FR', {
@@ -875,39 +949,43 @@ loadTechnicienDashboardStats(): void {
     return new Date(date).getFullYear().toString();
   }
 
-  applyFilters(): void {
-    this.selectedPriorite = this.tempFilters.priorite;
-    this.selectedStatut = this.tempFilters.statut;
-    this.selectedYear = this.tempFilters.dateDebut;
-    
-    this.currentPage = 1;
-    this.loadTickets();
-    this.showFilters = false;
-  }
+applyFilters(): void {
+  this.selectedPriorite = this.tempFilters.priorite;
+  this.selectedStatut = this.tempFilters.statut;
+  this.selectedDate = this.tempFilters.dateDebut
+    ? new Date(this.tempFilters.dateDebut) : null;
+  this.selectedDateLimiteStatut = this.tempFilters.dateLimiteStatut; // ✅
+  this.currentPage = 1;
+  this.loadTickets();
+  this.showFilters = false;
+}
 
-  cancelFilters(): void {
-    this.showFilters = false;
-    this.tempFilters = {
-      priorite: this.selectedPriorite,
-      statut: this.selectedStatut,
-      dateDebut: this.tempFilters.dateDebut || ''
-    };
-  }
+clearFilters(): void {
+  this.tempFilters = {
+    priorite: undefined,
+    statut: undefined,
+    dateDebut: '',
+    dateLimiteStatut: undefined  // ✅
+  };
+  this.selectedPriorite = undefined;
+  this.selectedStatut = undefined;
+  this.selectedDate = null;
+  this.selectedDateLimiteStatut = undefined; // ✅
+  this.searchTerm = '';
+  this.currentPage = 1;
+  this.loadTickets();
+  this.showFilters = false;
+}
 
-  clearFilters(): void {
-    this.tempFilters = {
-      priorite: undefined,
-      statut: undefined,
-      dateDebut: ''
-    };
-    this.selectedPriorite = undefined;
-    this.selectedStatut = undefined;
-    this.selectedDate = null;
-    this.searchTerm = '';
-    this.currentPage = 1;
-    this.loadTickets();
-    this.showFilters = false;
-  }
+cancelFilters(): void {
+  this.showFilters = false;
+  this.tempFilters = {
+    priorite: this.selectedPriorite,
+    statut: this.selectedStatut === undefined ? undefined : this.selectedStatut,
+    dateDebut: this.selectedDate ? this.formatDateForInput(this.selectedDate) : '',
+    dateLimiteStatut: this.selectedDateLimiteStatut // ✅
+  };
+}
 
   onSearch(): void {
     if (this.searchTimeout) clearTimeout(this.searchTimeout);
@@ -938,18 +1016,30 @@ loadTickets() {
   const previousSelectionType = this.currentSelectionType;
 
   // ADMIN: voir tous les tickets
-  if (this.isAdmin) {
-    console.log('👑 Admin: Chargement de tous les tickets');
-    const request = {
-      page: this.currentPage,
-      pageSize: this.pageSize,
-      searchTerm: this.searchTerm || null,
-      statut: this.selectedStatut ?? null,
-      priorite: this.selectedPriorite ?? null,
-      dateDebut: this.tempFilters.dateDebut || null,
-      sortBy: "date",
-      sortDescending: true
-    };
+if (this.isAdmin) {
+  console.log('👑 === ADMIN LOAD TICKETS ===');
+  console.log('📌 selectedStatut valeur:', this.selectedStatut);
+  console.log('📌 selectedStatut === null:', this.selectedStatut === null);
+  console.log('📌 selectedStatut === undefined:', this.selectedStatut === undefined);
+  
+  const request = {
+    page: this.currentPage,
+    pageSize: this.pageSize,
+    searchTerm: this.searchTerm || null,
+    nonAssigne: this.selectedStatut === null ? true : undefined,
+    statut: this.selectedStatut === null ? undefined : this.selectedStatut,
+    priorite: this.selectedPriorite ?? null,
+    dateDebut: this.selectedDate ? this.formatDateForInput(this.selectedDate) : null,
+    dateLimiteStatut: this.selectedDateLimiteStatut ?? null,
+    sortBy: "date",
+    sortDescending: true
+  };
+  
+  console.log('📦 REQUEST envoyée au backend:', JSON.stringify(request, null, 2));
+  console.log('📦 Paramètres URL:', {
+    nonAssigne: request.nonAssigne,
+    statut: request.statut
+  });
 
     this.ticketService.getTicketsPaged(request).subscribe({
       next: (res) => {
@@ -1038,7 +1128,9 @@ else if (this.isTechnicien) {
   });
 }
 }
-
+formatDateForInput(date: Date): string {
+  return date.toISOString().split('T')[0];
+}
  // ========== GESTION DE LA SÉLECTION MULTIPLE ==========
 
 toggleSelection(ticketId: string, checked: boolean, ticket?: any): void {
@@ -1160,84 +1252,51 @@ deleteSelectedTickets(): void {
     this.showAlert('info', 'Aucune action', 'Aucun ticket sélectionné ne peut être supprimé ou archivé.');
   }
 }
+// Ajouter avec les autres propriétés
+selectedDateLimiteStatut?: number;
+dateLimiteStatutOptions = [
+  { value: 1, label: 'Expiré (date limite dépassée)' },
+  { value: 2, label: 'Réalisé avant délai' },
+  { value: 3, label: 'Réalisé après délai' },
+  { value: 4, label: 'Jours restants (délai non dépassé)' }
+];
 
-  confirmDelete() {
-    // Cas suppression multiple
-    if (this.ticketsToDelete && this.ticketsToDelete.length > 0) {
-      this.deletingSelected = true;
-      
-      let successCount = 0;
-      let errorCount = 0;
-      
-      const deleteObservables = this.ticketsToDelete.map(id =>
-        this.ticketService.deleteTicket(id).pipe(
-          catchError(error => {
-            console.error(`❌ Erreur suppression ticket ${id}:`, error);
-            errorCount++;
-            return of(null);
-          }),
-          tap(result => {
-            if (result && result.isSuccess) {
-              successCount++;
-            } else if (result && !result.isSuccess) {
-              errorCount++;
-            }
-          })
-        )
-      );
 
-      forkJoin(deleteObservables).pipe(
-        finalize(() => {
-          this.deletingSelected = false;
+confirmDelete() {
+  // Cas suppression simple
+  if (this.confirmTicket) {
+    // Sauvegarder l'état avant la suppression
+    const currentPageBefore = this.currentPage;
+    const wasLastItemOnPage = this.tickets.length === 1;
+    
+    this.ticketService.deleteTicket(this.confirmTicket.id).subscribe({
+      next: (response) => {
+        if (response.isSuccess) {
+          this.showAlert('success', 'Ticket supprimé', `Le ticket "${this.confirmTicket!.titreTicket}" a été supprimé.`);
           
-          if (successCount === this.ticketsToDelete!.length) {
-            this.showAlert('success', 'Succès', `${successCount} ticket(s) supprimé(s) avec succès.`);
-          } else if (successCount > 0) {
-            this.showAlert('warning', 'Suppression partielle', `${successCount} ticket(s) supprimé(s), ${errorCount} échec(s).`);
-          } else {
-            this.showAlert('error', 'Échec', `Impossible de supprimer les tickets sélectionnés.`);
+          this.selectedTickets.delete(this.confirmTicket!.id);
+          this.confirmTicket = null;
+          
+          // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+          if (wasLastItemOnPage && currentPageBefore > 1) {
+            this.currentPage = currentPageBefore - 1;
           }
           
-this.selectedTickets.clear();
-          this.ticketsToDelete = null;
-          this.adjustPageAfterBulkAction(1);
-
           this.loadTickets();
-        })
-      ).subscribe({
-        error: (err) => {
-          console.error('❌ Erreur fatale:', err);
-          this.deletingSelected = false;
-          this.showAlert('error', 'Erreur', 'Une erreur inattendue est survenue.');
-        }
-      });
-    } 
-    // Cas suppression simple
-    else if (this.confirmTicket) {
-      this.ticketService.deleteTicket(this.confirmTicket.id).subscribe({
-        next: (response) => {
-          if (response.isSuccess) {
-            this.showAlert('success', 'Ticket supprimé', `Le ticket "${this.confirmTicket!.titreTicket}" a été supprimé.`);
-            
-this.selectedTickets.delete(this.confirmTicket!.id);
-            this.confirmTicket = null;
-            this.adjustPageAfterBulkAction(1);
-
-            this.loadTickets();
-          } else {
-            this.showAlert('error', 'Erreur', response.message || `Impossible de supprimer le ticket "${this.confirmTicket!.titreTicket}".`);
-            this.confirmTicket = null;
-          }
-        },
-        error: (err) => {
-          console.error('❌ Erreur:', err);
-          const errorMessage = err.error?.message || err.message || 'Erreur inconnue';
-          this.showAlert('error', 'Erreur', `Impossible de supprimer le ticket: ${errorMessage}`);
+        } else {
+          this.showAlert('error', 'Erreur', response.message || `Impossible de supprimer le ticket "${this.confirmTicket!.titreTicket}".`);
           this.confirmTicket = null;
         }
-      });
-    }
+      },
+      error: (err) => {
+        console.error('❌ Erreur:', err);
+        const errorMessage = err.error?.message || err.message || 'Erreur inconnue';
+        this.showAlert('error', 'Erreur', `Impossible de supprimer le ticket: ${errorMessage}`);
+        this.confirmTicket = null;
+      }
+    });
   }
+}
 
   cancelDelete() {
     this.confirmTicket = null;

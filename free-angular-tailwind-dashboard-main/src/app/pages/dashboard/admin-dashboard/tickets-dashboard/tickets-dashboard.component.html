@@ -12,105 +12,7 @@
     </button>
   </div>
 
-  <!-- Modal d'export Tickets - Version corrigée dark mode -->
-  <div *ngIf="showExportModal" 
-       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
-       (click)="closeExportModal()">
-    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
-         (click)="$event.stopPropagation()">
-      
-      <!-- En-tête avec dégradé -->
-      <div class="bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 px-6 py-4 border-b border-[#C5C6FF] dark:border-[#8788FF]/30">
-        <div class="flex items-center gap-3">
-          <div class="w-12 h-12 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/50 flex items-center justify-center shadow-inner">
-            <svg class="w-6 h-6 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-            </svg>
-          </div>
-          <div>
-            <h3 class="text-lg font-bold text-[#0C144E] dark:text-white">Exporter les données</h3>
-            <p class="text-xs text-gray-500 dark:text-gray-400">Choisissez la période pour les tickets</p>
-          </div>
-        </div>
-      </div>
-      
-      <!-- Corps -->
-      <div class="p-6 space-y-4">
-        <!-- Période -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Période</label>
-          <div class="grid grid-cols-3 gap-2">
-            <button (click)="exportPeriod = 'jour'" 
-                    [class.bg-[#8788FF]]="exportPeriod === 'jour'"
-                    [class.text-white]="exportPeriod === 'jour'"
-                    [class.bg-gray-100]="exportPeriod !== 'jour'"
-                    [class.dark:bg-gray-700]="exportPeriod !== 'jour'"
-                    [class.dark:text-gray-300]="exportPeriod !== 'jour'"
-                    [class.text-gray-700]="exportPeriod !== 'jour'"
-                    class="px-3 py-2 rounded-lg text-sm transition-all duration-200">
-              Jour
-            </button>
-            <button (click)="exportPeriod = 'semaine'" 
-                    [class.bg-[#8788FF]]="exportPeriod === 'semaine'"
-                    [class.text-white]="exportPeriod === 'semaine'"
-                    [class.bg-gray-100]="exportPeriod !== 'semaine'"
-                    [class.dark:bg-gray-700]="exportPeriod !== 'semaine'"
-                    [class.dark:text-gray-300]="exportPeriod !== 'semaine'"
-                    [class.text-gray-700]="exportPeriod !== 'semaine'"
-                    class="px-3 py-2 rounded-lg text-sm transition-all duration-200">
-              Semaine
-            </button>
-            <button (click)="exportPeriod = 'mois'" 
-                    [class.bg-[#8788FF]]="exportPeriod === 'mois'"
-                    [class.text-white]="exportPeriod === 'mois'"
-                    [class.bg-gray-100]="exportPeriod !== 'mois'"
-                    [class.dark:bg-gray-700]="exportPeriod !== 'mois'"
-                    [class.dark:text-gray-300]="exportPeriod !== 'mois'"
-                    [class.text-gray-700]="exportPeriod !== 'mois'"
-                    class="px-3 py-2 rounded-lg text-sm transition-all duration-200">
-              Mois
-            </button>
-          </div>
-        </div>
-        
-        <!-- Sélecteur Mois (visible seulement pour Semaine) -->
-        <div *ngIf="exportPeriod === 'semaine'">
-          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mois</label>
-          <select [(ngModel)]="selectedMonth" 
-                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#8788FF] focus:border-transparent dark:bg-gray-800 dark:text-white transition-all">
-            <option value="1">Janvier</option>
-            <option value="2">Février</option>
-            <option value="3">Mars</option>
-            <option value="4">Avril</option>
-            <option value="5">Mai</option>
-            <option value="6">Juin</option>
-            <option value="7">Juillet</option>
-            <option value="8">Août</option>
-            <option value="9">Septembre</option>
-            <option value="10">Octobre</option>
-            <option value="11">Novembre</option>
-            <option value="12">Décembre</option>
-          </select>
-        </div>
-      </div>
-      
-      <!-- Pied de page -->
-      <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
-        <button (click)="closeExportModal()" 
-                type="button"
-                class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
-          Annuler
-        </button>
-        <button (click)="exportData()" 
-                class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-xl hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2">
-          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-          </svg>
-          Exporter
-        </button>
-      </div>
-    </div>
-  </div>
+
 
   <!-- Cartes métriques Tickets - Dark mode adapté -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -304,5 +206,103 @@
       </div>
     </div>
   </div>
-
+  <!-- Modal d'export Tickets - Version corrigée dark mode -->
+  <div *ngIf="showExportModal" 
+       class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
+       (click)="closeExportModal()">
+    <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
+         (click)="$event.stopPropagation()">
+      
+      <!-- En-tête avec dégradé -->
+      <div class="bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 px-6 py-4 border-b border-[#C5C6FF] dark:border-[#8788FF]/30">
+        <div class="flex items-center gap-3">
+          <div class="w-12 h-12 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/50 flex items-center justify-center shadow-inner">
+            <svg class="w-6 h-6 text-[#8788FF] dark:text-[#B2B3FF]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-[#0C144E] dark:text-white">Exporter les données</h3>
+            <p class="text-xs text-gray-500 dark:text-gray-400">Choisissez la période pour les tickets</p>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Corps -->
+      <div class="p-6 space-y-4">
+        <!-- Période -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Période</label>
+          <div class="grid grid-cols-3 gap-2">
+            <button (click)="exportPeriod = 'jour'" 
+                    [class.bg-[#8788FF]]="exportPeriod === 'jour'"
+                    [class.text-white]="exportPeriod === 'jour'"
+                    [class.bg-gray-100]="exportPeriod !== 'jour'"
+                    [class.dark:bg-gray-700]="exportPeriod !== 'jour'"
+                    [class.dark:text-gray-300]="exportPeriod !== 'jour'"
+                    [class.text-gray-700]="exportPeriod !== 'jour'"
+                    class="px-3 py-2 rounded-lg text-sm transition-all duration-200">
+              Jour
+            </button>
+            <button (click)="exportPeriod = 'semaine'" 
+                    [class.bg-[#8788FF]]="exportPeriod === 'semaine'"
+                    [class.text-white]="exportPeriod === 'semaine'"
+                    [class.bg-gray-100]="exportPeriod !== 'semaine'"
+                    [class.dark:bg-gray-700]="exportPeriod !== 'semaine'"
+                    [class.dark:text-gray-300]="exportPeriod !== 'semaine'"
+                    [class.text-gray-700]="exportPeriod !== 'semaine'"
+                    class="px-3 py-2 rounded-lg text-sm transition-all duration-200">
+              Semaine
+            </button>
+            <button (click)="exportPeriod = 'mois'" 
+                    [class.bg-[#8788FF]]="exportPeriod === 'mois'"
+                    [class.text-white]="exportPeriod === 'mois'"
+                    [class.bg-gray-100]="exportPeriod !== 'mois'"
+                    [class.dark:bg-gray-700]="exportPeriod !== 'mois'"
+                    [class.dark:text-gray-300]="exportPeriod !== 'mois'"
+                    [class.text-gray-700]="exportPeriod !== 'mois'"
+                    class="px-3 py-2 rounded-lg text-sm transition-all duration-200">
+              Mois
+            </button>
+          </div>
+        </div>
+        
+        <!-- Sélecteur Mois (visible seulement pour Semaine) -->
+        <div *ngIf="exportPeriod === 'semaine'">
+          <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Mois</label>
+          <select [(ngModel)]="selectedMonth" 
+                  class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-[#8788FF] focus:border-transparent dark:bg-gray-800 dark:text-white transition-all">
+            <option value="1">Janvier</option>
+            <option value="2">Février</option>
+            <option value="3">Mars</option>
+            <option value="4">Avril</option>
+            <option value="5">Mai</option>
+            <option value="6">Juin</option>
+            <option value="7">Juillet</option>
+            <option value="8">Août</option>
+            <option value="9">Septembre</option>
+            <option value="10">Octobre</option>
+            <option value="11">Novembre</option>
+            <option value="12">Décembre</option>
+          </select>
+        </div>
+      </div>
+      
+      <!-- Pied de page -->
+      <div class="flex gap-3 p-6 pt-0 border-t border-gray-100 dark:border-gray-700">
+        <button (click)="closeExportModal()" 
+                type="button"
+                class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
+          Annuler
+        </button>
+        <button (click)="exportData()" 
+                class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-gradient-to-r from-[#8788FF] to-[#787AEA] rounded-xl hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200 shadow-sm hover:shadow-md flex items-center justify-center gap-2">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+          </svg>
+          Exporter
+        </button>
+      </div>
+    </div>
+  </div>
 </div>

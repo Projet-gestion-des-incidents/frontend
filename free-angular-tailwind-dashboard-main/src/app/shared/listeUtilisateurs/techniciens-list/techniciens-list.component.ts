@@ -86,10 +86,10 @@ onEdit(technicien: any): void {
     return this.filteredTechniciens.slice(start, end);
   }
 
-loadTechniciens(): void {
+loadTechniciens(keepCurrentPage: boolean = false): void {
   this.loading = true;
   const request = {
-    page: this.currentPage,
+    page: 1,  // ✅ Toujours charger depuis la page 1
     pageSize: 100,
     sortBy: 'nom',
     sortDescending: false,
@@ -101,29 +101,21 @@ loadTechniciens(): void {
       console.log('📦 Réponse reçue:', response);
       
       if (response && response.data) {
-        // ✅ Log pour voir les valeurs de emailConfirmed
-        console.log('📧 emailConfirmed des techniciens:', response.data.map((t: any) => ({
-          nom: t.nom,
-          emailConfirmed: t.emailConfirmed
-        })));
-        
-        // ✅ Filtrer les techniciens avec email confirmé
         this.techniciens = response.data.filter((t: any) => t.emailConfirmed === true);
+        console.log('✅ Techniciens après filtrage:', this.techniciens.length);
         
-        console.log('✅ Techniciens après filtrage (email confirmé):', this.techniciens.length);
+        // ✅ Mettre à jour la pagination
+        this.updateTotalPages();
         
-        if (response.pagination) {
-          this.totalPages = response.pagination.totalPages || 1;
-          this.currentPage = response.pagination.page || 1;
-        } else {
-          this.updateTotalPages();
+        // ✅ Si on a supprimé des éléments, ajuster la page courante
+        if (!keepCurrentPage && this.currentPage > this.totalPages && this.totalPages > 0) {
+          this.currentPage = this.totalPages;
         }
       } else {
         this.techniciens = [];
       }
       
       this.loading = false;
-      this.updateTotalPages();
     },
     error: (err) => {
       console.error('Erreur chargement techniciens:', err);
@@ -133,13 +125,15 @@ loadTechniciens(): void {
   });
 }
 
-
-  updateTotalPages(): void {
-    this.totalPages = Math.ceil(this.filteredTechniciens.length / this.pageSize) || 1;
-    if (this.currentPage > this.totalPages && this.totalPages > 0) {
-      this.currentPage = this.totalPages;
-    }
+updateTotalPages(): void {
+  const totalFiltered = this.filteredTechniciens.length;
+  this.totalPages = Math.ceil(totalFiltered / this.pageSize) || 1;
+  
+  // ✅ Ajuster la page courante si elle dépasse le nombre total de pages
+  if (this.currentPage > this.totalPages && this.totalPages > 0) {
+    this.currentPage = this.totalPages;
   }
+}
 
   onSearch(): void {
     this.currentPage = 1;
@@ -170,34 +164,60 @@ loadTechniciens(): void {
     }
   }
 
-  onSelectAll(checked: boolean): void {
-    if (checked) {
-      this.paginatedTechniciens.forEach(t => this.selectedTechniciens.add(t.id));
-    } else {
-      this.selectedTechniciens.clear();
-    }
-  }
-
-  onSelect(technicien: User, checked: boolean): void {
-    if (checked) {
-      this.selectedTechniciens.add(technicien.id);
-    } else {
-      this.selectedTechniciens.delete(technicien.id);
-    }
-  }
-
-  isSelected(id: string): boolean {
-    return this.selectedTechniciens.has(id);
-  }
-
-  get isAllSelected(): boolean {
-    return this.paginatedTechniciens.length > 0 && 
-           this.selectedTechniciens.size === this.paginatedTechniciens.length;
-  }
-
-  clearSelection(): void {
+onSelectAll(checked: boolean): void {
+  if (checked) {
+    // ✅ Sélectionner TOUS les éléments filtrés (toutes pages confondues)
+    this.filteredTechniciens.forEach(c => this.selectedTechniciens.add(c.id));
+    this.selectedAllFiltered = true;
+  } else {
     this.selectedTechniciens.clear();
+    this.selectedAllFiltered = false;
   }
+}
+
+// Remplacer la méthode onSelect
+onSelect(commercant: any, checked: boolean): void {
+  if (checked) {
+    this.selectedTechniciens.add(commercant.id);
+  } else {
+    this.selectedTechniciens.delete(commercant.id);
+    // Si on désélectionne manuellement, sortir du mode "tout sélectionner"
+    this.selectedAllFiltered = false;
+  }
+}
+
+// Ajouter une méthode pour la sélection par lot (toutes les pages)
+selectAllFiltered(): void {
+  if (this.selectedAllFiltered) {
+    // Déjà sélectionné, on désélectionne tout
+    this.selectedTechniciens.clear();
+    this.selectedAllFiltered = false;
+  } else {
+    // Sélectionner tous les éléments filtrés
+    this.filteredTechniciens.forEach(c => this.selectedTechniciens.add(c.id));
+    this.selectedAllFiltered = true;
+  }
+}
+
+// Modifier isSelected pour prendre en compte le mode "tout sélectionner"
+isSelected(id: string): boolean {
+  if (this.selectedAllFiltered) {
+    // Vérifier si l'élément fait partie des éléments filtrés
+    return this.filteredTechniciens.some(t => t.id === id);
+  }
+  return this.selectedTechniciens.has(id);
+}
+
+// Modifier get isAllSelected
+get isAllSelected(): boolean {
+  if (this.filteredTechniciens.length === 0) return false;
+  return this.filteredTechniciens.every(c => this.selectedTechniciens.has(c.id));
+}
+
+clearSelection(): void {
+  this.selectedTechniciens.clear();
+  this.selectedAllFiltered = false;
+}
 
   // ================= ALERT =================
   showAlert(variant: 'success' | 'error', title: string, message: string): void {
@@ -211,11 +231,21 @@ loadTechniciens(): void {
 
   // ================= SUPPRESSION MULTIPLE =================
   
-  confirmDeleteMultiple(): void {
+confirmDeleteMultiple(): void {
+  let selectedIds: string[];
+  
+  if (this.selectedAllFiltered) {
+    // Sélectionner TOUS les éléments filtrés (toutes pages)
+    this.confirmUsers = [...this.filteredTechniciens];
+  } else {
     if (this.selectedTechniciens.size === 0) return;
-    this.confirmUsers = this.paginatedTechniciens.filter(u => this.selectedTechniciens.has(u.id));
-    this.showMultiDeleteModal = true;
+    selectedIds = Array.from(this.selectedTechniciens);
+    this.confirmUsers = this.techniciens.filter(t => selectedIds.includes(t.id));
   }
+  
+  if (this.confirmUsers.length === 0) return;
+  this.showMultiDeleteModal = true;
+}
 
   cancelMultiDelete(): void {
     this.showMultiDeleteModal = false;
@@ -223,59 +253,68 @@ loadTechniciens(): void {
     this.bulkDeleting = false;
   }
 
-  executeMultiDelete(): void {
-    if (this.confirmUsers.length === 0) return;
+executeMultiDelete(): void {
+  if (this.confirmUsers.length === 0) return;
 
-    this.bulkDeleting = true;
-    let completed = 0;
-    const total = this.confirmUsers.length;
-    let successCount = 0;
+  this.bulkDeleting = true;
+  let completed = 0;
+  const total = this.confirmUsers.length;
+  let successCount = 0;
 
-    this.confirmUsers.forEach(user => {
-      this.userService.deleteUser(user.id).subscribe({
-next: (response: any) => {
-  const isSuccess = typeof response === 'boolean'
-    ? response
-    : (response?.isSuccess === true);
+  this.confirmUsers.forEach(user => {
+    this.userService.deleteUser(user.id).subscribe({
+      next: (response: any) => {
+        const isSuccess = typeof response === 'boolean'
+          ? response
+          : (response?.isSuccess === true);
 
-  if (isSuccess) {
-    const index = this.techniciens.findIndex(u => u.id === user.id);
-    if (index !== -1) this.techniciens.splice(index, 1);
-    this.selectedTechniciens.delete(user.id);
-    successCount++;
-  }
+        if (isSuccess) {
+          const index = this.techniciens.findIndex(u => u.id === user.id);
+          if (index !== -1) this.techniciens.splice(index, 1);
+          this.selectedTechniciens.delete(user.id);
+          successCount++;
+        }
 
-          completed++;
+        completed++;
+        
+        if (completed === total) {
+          this.bulkDeleting = false;
+          this.showMultiDeleteModal = false;
+          this.confirmUsers = [];
           
-          if (completed === total) {
-            this.bulkDeleting = false;
-            this.showMultiDeleteModal = false;
-            this.confirmUsers = [];
-            
-            if (successCount === total) {
-              this.showAlert('success', 'Succès', `${total} technicien(s) supprimé(s) avec succès.`);
-            } else if (successCount > 0) {
-              this.showAlert('error', 'Attention', `${successCount} technicien(s) supprimé(s), ${total - successCount} échec(s).`);
-            } else {
-              this.showAlert('error', 'Erreur', `Aucun technicien n'a pu être supprimé.`);
-            }
-            this.loadTechniciens();
-          }
-        },
-        error: (err) => {
-          console.error(`Erreur suppression ${user.prenom} ${user.nom}:`, err);
-          completed++;
-          if (completed === total) {
-            this.bulkDeleting = false;
-            this.showMultiDeleteModal = false;
-            this.confirmUsers = [];
-            this.showAlert('error', 'Erreur', `${successCount}/${total} technicien(s) supprimé(s).`);
-            this.loadTechniciens();
+          // ✅ Réinitialiser le mode "tout sélectionner"
+          this.selectedAllFiltered = false;
+          this.selectedTechniciens.clear();
+          
+          // ✅ Recharger la liste complète depuis le backend
+          this.loadTechniciens();
+          
+          if (successCount === total) {
+            this.showAlert('success', 'Succès', `${total} technicien(s) supprimé(s) avec succès.`);
+          } else if (successCount > 0) {
+            this.showAlert('error', 'Attention', `${successCount} technicien(s) supprimé(s), ${total - successCount} échec(s).`);
+          } else {
+            this.showAlert('error', 'Erreur', `Aucun technicien n'a pu être supprimé.`);
           }
         }
-      });
+      },
+      error: (err) => {
+        console.error(`Erreur suppression ${user.prenom} ${user.nom}:`, err);
+        completed++;
+        if (completed === total) {
+          this.bulkDeleting = false;
+          this.showMultiDeleteModal = false;
+          this.confirmUsers = [];
+          this.selectedAllFiltered = false;
+          this.selectedTechniciens.clear();
+          this.loadTechniciens();
+          this.showAlert('error', 'Erreur', `${successCount}/${total} technicien(s) supprimé(s).`);
+        }
+      }
     });
-  }
+  });
+}
+selectedAllFiltered = false;  // Mode "Sélectionner tout sur toutes les pages"
 
   // ================= ACTIONS SIMPLES =================
   

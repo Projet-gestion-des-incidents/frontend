@@ -161,24 +161,40 @@ confirmArchive(): void {
   
   this.archiving = true;
   
-  const incidentId = this.incidentToArchive.id;
-  const isFerme = this.getStatutNumber(this.incidentToArchive.statutIncident) === StatutIncident.Ferme;
+  const currentPageBeforeArchive = this.currentPage;
+  const wasLastItemOnPage = this.filteredIncidents.length === 1; // C'était le dernier élément
   
-  this.incidentService.archiverIncident(incidentId).subscribe({
+  this.incidentService.archiverIncident(this.incidentToArchive.id).subscribe({
     next: (response) => {
       if (response.isSuccess) {
         this.showAlert('success', 'Succès', `L'incident "${this.incidentToArchive!.codeIncident}" a été archivé.`);
         
-        // ✅ RECHARGER LA PAGE AUTOMATIQUEMENT
+        // ✅ RECHARGER LA LISTE
         if (this.userRole === 'Admin') {
           this.loadIncidents();
+          this.loadDashboardStats();
         } else {
           this.loadMyIncidentsWithFilters();
+          if (this.userRole === 'Commercant') {
+            this.loadCommercantDashboardStats();
+          }
+        }
+        
+        // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+        if (wasLastItemOnPage && currentPageBeforeArchive > 1) {
+          this.currentPage = currentPageBeforeArchive - 1;
+          // Recharger avec la nouvelle page
+          if (this.userRole === 'Admin') {
+            this.loadIncidents();
+          } else {
+            this.loadMyIncidentsWithFilters();
+          }
         }
         
         // Désélectionner et mettre à jour les stats
-        if (this.selectedIncidents.has(incidentId)) {
-          this.selectedIncidents.delete(incidentId);
+        if (this.selectedIncidents.has(this.incidentToArchive!.id)) {
+          this.selectedIncidents.delete(this.incidentToArchive!.id);
+          const isFerme = this.getStatutNumber(this.incidentToArchive!.statutIncident) === StatutIncident.Ferme;
           if (isFerme) {
             this.cachedSelectionStats.archivable--;
           } else {
@@ -187,7 +203,6 @@ confirmArchive(): void {
           this.cachedSelectionStats.total--;
         }
         
-        // Si plus d'éléments sélectionnés, réinitialiser le type global
         if (this.selectedIncidents.size === 0) {
           this.currentSelectionType = null;
           this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
@@ -412,96 +427,67 @@ loadIncidents(): void {
     SortDescending: true
   };
 
+  // Sévérité
   if (this.selectedSeverite != null) {
     searchParams.SeveriteIncident = this.selectedSeverite;
   }
 
- if (this.selectedStatut != null) {
+  // Statut
+  if (this.selectedStatut != null) {
     let statutLibelle = '';
-    switch(this.selectedStatut) {
-      case StatutIncident.NonTraite:
-        statutLibelle = 'Non traité';
-        break;
-      case StatutIncident.EnCours:
-        statutLibelle = 'En cours';
-        break;
-      case StatutIncident.Ferme:
-        statutLibelle = 'Fermé';
-        break;
-      default:
-        statutLibelle = '';
+    switch (this.selectedStatut) {
+      case StatutIncident.NonTraite: statutLibelle = 'Non traité'; break;
+      case StatutIncident.EnCours:   statutLibelle = 'En cours';   break;
+      case StatutIncident.Ferme:     statutLibelle = 'Fermé';      break;
     }
-    if (statutLibelle) {
-      searchParams.StatutLibelle = statutLibelle;
-    }
+    if (statutLibelle) searchParams.StatutLibelle = statutLibelle;
   }
 
-  // ✅ Ajout des filtres par date
-  if (this.selectedDateDetection) {
-    searchParams.DateDetection = this.selectedDateDetection;
-  }
-
-  if (this.selectedDateResolution) {
-    searchParams.DateResolution = this.selectedDateResolution;
-  }
+  // ✅ Type problème (manquait dans loadIncidents Admin)
   if (this.selectedTypeProbleme != null) {
     searchParams.TypeProbleme = this.selectedTypeProbleme;
   }
 
-  // ✅ NOUVEAU : Filtre par entité impactée (pour Commercant)
+  // ✅ Entité impactée (manquait dans loadIncidents Admin)
   if (this.selectedEntiteImpactee != null) {
     searchParams.EntiteImpactee = this.selectedEntiteImpactee;
   }
 
-  console.log('🔍 Envoi requête avec params:', searchParams);
+  // Dates
+  if (this.selectedDateDetection) {
+    searchParams.DateDetection = this.selectedDateDetection;
+  }
+  if (this.selectedDateResolution) {
+    searchParams.DateResolution = this.selectedDateResolution;
+  }
+
+  // ✅ Année (manquait dans loadIncidents Admin)
+  if (this.selectedYear) {
+    searchParams.YearDetection = Number(this.selectedYear);
+  }
 
   this.incidentService.searchIncidents(searchParams).subscribe({
     next: (response: any) => {
-      console.log('📦 Réponse brute:', response);
-      
-      // Vérifier la structure de la réponse
-      if (response) {
-        // Cas 1: Response avec propriété 'data'
-        if (response.data) {
-          if (Array.isArray(response.data)) {
-            // Si data est un tableau
-            this.incidents = response.data;
-            this.filteredIncidents = response.data;
-            this.totalCount = response.data.length;
-            this.totalPages = Math.ceil(response.data.length / this.pageSize);
-          } else if (response.data.items) {
-            // Si data a une propriété 'items' (format PagedResult)
-            this.incidents = response.data.items;
-            this.filteredIncidents = response.data.items;
-            this.totalCount = response.data.totalCount || response.data.items.length;
-            this.totalPages = response.data.totalPages || Math.ceil(this.totalCount / this.pageSize);
-          }
-        }
-        // Cas 2: Response avec propriété 'items' directement
-        else if (response.items) {
-          this.incidents = response.items;
-          this.filteredIncidents = response.items;
-          this.totalCount = response.totalCount || response.items.length;
-          this.totalPages = response.totalPages || Math.ceil(this.totalCount / this.pageSize);
-        }
-        // Cas 3: Response est un tableau direct
-        else if (Array.isArray(response)) {
-          this.incidents = response;
-          this.filteredIncidents = response;
-          this.totalCount = response.length;
-          this.totalPages = Math.ceil(response.length / this.pageSize);
-        }
-        
-        console.log('✅ Incidents chargés:', this.incidents.length);
-        console.log('📊 Total count:', this.totalCount);
-        console.log('📄 Pages:', this.totalPages);
+      if (response?.data?.items) {
+        this.incidents = response.data.items;
+        this.filteredIncidents = response.data.items;
+        this.totalCount = response.data.totalCount || response.data.items.length;
+        this.totalPages = response.data.totalPages || Math.ceil(this.totalCount / this.pageSize);
+      } else if (response?.items) {
+        this.incidents = response.items;
+        this.filteredIncidents = response.items;
+        this.totalCount = response.totalCount || response.items.length;
+        this.totalPages = response.totalPages || Math.ceil(this.totalCount / this.pageSize);
+      } else if (Array.isArray(response)) {
+        this.incidents = response;
+        this.filteredIncidents = response;
+        this.totalCount = response.length;
+        this.totalPages = Math.ceil(response.length / this.pageSize);
       }
-      
       this.loading = false;
     },
     error: (err) => {
-      console.error('❌ Erreur détaillée:', err);
-      this.error = 'Impossible de charger la liste des incidents: ' + (err.message || 'Erreur inconnue');
+      this.error = 'Impossible de charger la liste des incidents';
       this.loading = false;
       this.incidents = [];
       this.filteredIncidents = [];
@@ -780,67 +766,62 @@ getTypeProblemeLibelle(typeProbleme: any): string {
       }
     });
   }
- applyFilters(): void {
-    console.log('🎯 Filtres appliqués - Sévérité:', this.tempFilters.severite,
-       'Statut:', this.tempFilters.statut,
-        'TypeProbleme:', this.tempFilters.typeProbleme,
-              'EntiteImpactee:', this.tempFilters.entiteImpactee);
-    
-    this.selectedSeverite = this.tempFilters.severite;
-    this.selectedStatut = this.tempFilters.statut;
-      this.selectedTypeProbleme = this.tempFilters.typeProbleme;
+applyFilters(): void {
+  this.selectedSeverite = this.tempFilters.severite;
+  this.selectedStatut = this.tempFilters.statut;
+  this.selectedTypeProbleme = this.tempFilters.typeProbleme;
   this.selectedEntiteImpactee = this.tempFilters.entiteImpactee;
-    this.selectedDateDetection = this.tempFilters.dateDetection;
-    this.selectedDateResolution = this.tempFilters.dateResolution;
-    
-    // ✅ Mettre à jour les objets Date pour le DatePicker
-    if (this.selectedDateDetection) {
-      const parts = this.selectedDateDetection.split('-');
-      this.selectedDetectionDateObj = new Date(
-        parseInt(parts[0]),
-        parseInt(parts[1]) - 1,
-        parseInt(parts[2])
-      );
-    } else {
-      this.selectedDetectionDateObj = null;
-    }
-    
-    if (this.selectedDateResolution) {
-      const parts = this.selectedDateResolution.split('-');
-      this.selectedResolutionDateObj = new Date(
-        parseInt(parts[0]),
-        parseInt(parts[1]) - 1,
-        parseInt(parts[2])
-      );
-    } else {
-      this.selectedResolutionDateObj = null;
-    }
-    
-    this.currentPage = 1;
-    
-    if (this.userRole === 'Admin') {
-      this.loadIncidents();
-    } else {
-      this.loadMyIncidentsWithFilters();
-    }
-    
-    this.showFilters = false;
+  this.selectedDateDetection = this.tempFilters.dateDetection;
+  this.selectedDateResolution = this.tempFilters.dateResolution;
+
+  // Sync objets Date pour DatePicker
+  this.selectedDetectionDateObj = this.selectedDateDetection
+    ? new Date(this.selectedDateDetection) : null;
+  this.selectedResolutionDateObj = this.selectedDateResolution
+    ? new Date(this.selectedDateResolution) : null;
+
+  this.currentPage = 1;
+
+  if (this.userRole === 'Admin') {
+    this.loadIncidents();
+  } else {
+    this.loadMyIncidentsWithFilters();
   }
+
+  this.showFilters = false;
+}
 
 
 
 
 // Reset des filtres
 resetFilters(): void {
-  console.log('🔄 Reset tous les filtres');
   this.searchTerm = '';
   this.selectedSeverite = undefined;
   this.selectedStatut = undefined;
   this.selectedYear = '';
+  this.selectedTypeProbleme = undefined;      // ✅ manquait
+  this.selectedEntiteImpactee = undefined;    // ✅ manquait
+  this.selectedDateDetection = '';            // ✅ manquait
+  this.selectedDateResolution = '';           // ✅ manquait
+  this.selectedDetectionDateObj = null;       // ✅ manquait
+  this.selectedResolutionDateObj = null;      // ✅ manquait
+  this.tempFilters = {
+    severite: undefined,
+    statut: undefined,
+    dateDetection: '',
+    dateResolution: '',
+    typeProbleme: undefined,
+    entiteImpactee: undefined
+  };
   this.currentPage = 1;
-  this.loadIncidents();
-}
 
+  if (this.userRole === 'Admin') {
+    this.loadIncidents();
+  } else {
+    this.loadMyIncidentsWithFilters();
+  }
+}
  onPageChange(page: number): void {
   if (page >= 1 && page <= this.totalPages) {
     this.currentPage = page;
@@ -895,29 +876,23 @@ StatutIncident = StatutIncident;
 confirmDelete() {
   if (!this.confirmIncident) return;
 
-  // ✅ VÉRIFICATION 1: Incident lié à un ticket ?
   if (this.isIncidentLieATicket(this.confirmIncident)) {
-    this.showAlert('error', 'Suppression impossible', 
-      'Cet incident ne peut pas être supprimé.');
+    this.showAlert('error', 'Suppression impossible', 'Cet incident ne peut pas être supprimé.');
     this.confirmIncident = null;
     this.deleting = false;
     return;
   }
 
-  // ✅ VÉRIFICATION 2: Incident en cours ?
   const statutValue = this.getStatutNumber(this.confirmIncident.statutIncident);
   if (statutValue === StatutIncident.EnCours) {
-    this.showAlert('error', 'Suppression impossible', 
-      'Impossible de supprimer un incident en cours de traitement.');
+    this.showAlert('error', 'Suppression impossible', 'Impossible de supprimer un incident en cours de traitement.');
     this.confirmIncident = null;
     this.deleting = false;
     return;
   }
 
-  // ✅ VÉRIFICATION 3: Incident déjà archivé ?
   if (this.confirmIncident.dateArchivage) {
-    this.showAlert('error', 'Suppression impossible', 
-      'Impossible de supprimer un incident déjà archivé.');
+    this.showAlert('error', 'Suppression impossible', 'Impossible de supprimer un incident déjà archivé.');
     this.confirmIncident = null;
     this.deleting = false;
     return;
@@ -925,37 +900,27 @@ confirmDelete() {
 
   this.deleting = true;
   
+  const currentPageBeforeDelete = this.currentPage;
+  const wasLastItemOnPage = this.filteredIncidents.length === 1;
+  
   this.incidentService.deleteIncident(this.confirmIncident.id).subscribe({
     next: () => {
       this.showAlert('success', 'Incident supprimé', `L'incident "${this.confirmIncident!.codeIncident}" a été supprimé.`);
       
-      // Supprimer localement de la liste
-      const deletedId = this.confirmIncident!.id;
-      this.filteredIncidents = this.filteredIncidents.filter(i => i.id !== deletedId);
-      this.incidents = this.filteredIncidents;
-      this.totalCount = this.filteredIncidents.length;
-      this.totalPages = Math.ceil(this.totalCount / this.pageSize);
-      
-      // Ajuster la page si nécessaire
-      if (this.filteredIncidents.length === 0 && this.currentPage > 1) {
-        this.currentPage--;
-        this.adjustPageAfterBulkAction(1);
-        if (this.userRole === 'Admin') {
-          this.loadIncidents();
-        } else {
-          this.loadMyIncidentsWithFilters();
-        }
+      // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+      if (wasLastItemOnPage && currentPageBeforeDelete > 1) {
+        this.currentPage = currentPageBeforeDelete - 1;
       }
       
-      // Recharger les dashboards
-      if (this.userRole === 'Commercant') {
-        this.loadCommercantDashboardStats();
-      } else if (this.userRole === 'Admin') {
+      if (this.userRole === 'Admin') {
+        this.loadIncidents();
         this.loadDashboardStats();
+      } else if (this.userRole === 'Commercant') {
+        this.loadMyIncidentsWithFilters();
+        this.loadCommercantDashboardStats();
       }
       
-      // Nettoyer la sélection
-      this.selectedIncidents.delete(deletedId);
+      this.selectedIncidents.delete(this.confirmIncident!.id);
       if (this.selectedIncidents.size === 0) {
         this.currentSelectionType = null;
         this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
@@ -1099,76 +1064,77 @@ toggleSelection(incidentId: string, checked: boolean): void {
   const incident = this.filteredIncidents.find(i => i.id === incidentId);
   if (!incident) return;
 
-  const incidentStatut = this.getStatutNumber(incident.statutIncident);
-  const isFerme = incidentStatut === StatutIncident.Ferme;
-  const isNonFerme = incidentStatut === StatutIncident.NonTraite || incidentStatut === StatutIncident.EnCours;
+  const statutValue = this.getStatutNumber(incident.statutIncident);
+  const isFerme = statutValue === StatutIncident.Ferme;
+  const isNonTraite = statutValue === StatutIncident.NonTraite;
+  const hasNoTicket = !this.isIncidentLieATicket(incident);
+  const canSelect = this.canSelectIncident(incident);
+
+  if (!canSelect) return;
 
   if (checked) {
-    // Si c'est le premier élément sélectionné, définir le type global
     if (this.selectedIncidents.size === 0 && !this.globalSelectionMode) {
+      if (this.userRole === 'Admin') {
+        this.currentSelectionType = isFerme ? 'ferme' : 'nonFerme';
+      } else if (this.userRole === 'Commercant') {
+        if (isFerme) {
+          this.currentSelectionType = 'ferme';
+        } else if (isNonTraite && hasNoTicket) {
+          this.currentSelectionType = 'nonFerme';
+        }
+      }
+      
       this.selectedIncidents.add(incidentId);
-      // Définir le type global
+      this.selectedIncidentsMap.set(incidentId, incident); // ✅ AJOUTER
+      
       if (isFerme) {
-        this.currentSelectionType = 'ferme';
-      } else if (isNonFerme) {
-        this.currentSelectionType = 'nonFerme';
+        this.cachedSelectionStats.archivable++;
+      } else {
+        this.cachedSelectionStats.deletable++;
       }
-      // Mettre à jour les stats en cache
-      if (isFerme) {
-        this.cachedSelectionStats = { ...this.cachedSelectionStats, archivable: this.cachedSelectionStats.archivable + 1, total: this.cachedSelectionStats.total + 1 };
-      } else if (isNonFerme) {
-        this.cachedSelectionStats = { ...this.cachedSelectionStats, deletable: this.cachedSelectionStats.deletable + 1, total: this.cachedSelectionStats.total + 1 };
-      }
+      this.cachedSelectionStats.total++;
       return;
     }
 
-    // Vérifier la compatibilité avec le type global
     if (this.currentSelectionType === 'ferme' && !isFerme) {
-      this.showAlert('warning', 'Sélection impossible', 
-        'Vous avez déjà sélectionné des incidents fermés. Vous ne pouvez sélectionner que des incidents fermés.');
       return;
     }
     
-    if (this.currentSelectionType === 'nonFerme' && !isNonFerme) {
-      this.showAlert('warning', 'Sélection impossible', 
-        'Vous avez déjà sélectionné des incidents à traiter (Non traités ou En cours). Vous ne pouvez sélectionner que des incidents du même type.');
+    if (this.currentSelectionType === 'nonFerme' && isFerme) {
       return;
     }
 
     this.selectedIncidents.add(incidentId);
-    // Mettre à jour les stats en cache
+    this.selectedIncidentsMap.set(incidentId, incident); // ✅ AJOUTER
+    
     if (isFerme) {
       this.cachedSelectionStats.archivable++;
-    } else if (isNonFerme) {
-      this.cachedSelectionStats.deletable++;
     } else {
-      this.cachedSelectionStats.other++;
+      this.cachedSelectionStats.deletable++;
     }
     this.cachedSelectionStats.total++;
     
-    // Si c'était le mode global, désactiver
     if (this.globalSelectionMode) {
       this.globalSelectionMode = false;
     }
   } else {
     this.selectedIncidents.delete(incidentId);
+    this.selectedIncidentsMap.delete(incidentId); // ✅ AJOUTER
     if (this.globalSelectionMode) this.globalSelectionMode = false;
     
-    // Mettre à jour les stats en cache
     if (isFerme) {
       this.cachedSelectionStats.archivable--;
-    } else if (isNonFerme) {
-      this.cachedSelectionStats.deletable--;
     } else {
-      this.cachedSelectionStats.other--;
+      this.cachedSelectionStats.deletable--;
     }
     this.cachedSelectionStats.total--;
     
-    // Si plus d'éléments sélectionnés, réinitialiser le type global
     if (this.selectedIncidents.size === 0) {
       this.currentSelectionType = null;
     }
   }
+  
+  this.updateSelectionStats();
 }
 
 // Ajoutez cette propriété avec les autres
@@ -1312,21 +1278,133 @@ selectAllIncidentsAcrossPages(): void {
   });
 }
 currentSelectionType: 'ferme' | 'nonFerme' | null = null;
-
-canSelectIncident(incident: any): boolean {
-  // Si aucune sélection existante, tout est sélectionnable
-  if (this.selectedIncidents.size === 0 && !this.globalSelectionMode && this.currentSelectionType === null) {
+// Vérifie si le bouton de suppression doit être affiché
+// Vérifie si le bouton de suppression doit être affiché
+canShowDeleteButton(incident: any): boolean {
+  // Ne pas afficher pour les incidents Fermés (remplacé par Archiver)
+  if (incident.statutIncidentLibelle === 'Fermé') {
+    return false;
+  }
+  
+  if (this.userRole === 'Admin') {
+    // Admin : afficher pour tous sauf Fermé
     return true;
   }
   
-  const incidentStatut = this.getStatutNumber(incident.statutIncident);
-  const isFerme = incidentStatut === StatutIncident.Ferme;
+  if (this.userRole === 'Commercant') {
+    // ✅ Commerçant : afficher pour "Non traité" ET "En cours"
+    // "Non traité" avec ticket sera disabled, "En cours" sera disabled
+    return incident.statutIncidentLibelle === 'Non traité' || 
+           incident.statutIncidentLibelle === 'En cours';
+  }
   
-  // Utiliser le type global stocké
-  if (this.currentSelectionType === 'ferme' && !isFerme) return false;
-  if (this.currentSelectionType === 'nonFerme' && isFerme) return false;
+  return false;
+}
+
+// Vérifie si l'utilisateur peut supprimer cet incident (bouton actif)
+canDeleteIncident(incident: any): boolean {
+  if (this.userRole === 'Admin') {
+    // Admin : peut supprimer tous sauf "En cours"
+    return incident.statutIncidentLibelle !== 'En cours';
+  }
   
-  return true;
+  if (this.userRole === 'Commercant') {
+    // Commerçant : ne peut supprimer que les incidents "Non traité" ET sans ticket
+    const isNonTraite = incident.statutIncidentLibelle === 'Non traité';
+    const hasNoTicket = !this.isIncidentLieATicket(incident);
+    return isNonTraite && hasNoTicket;
+  }
+  
+  return false;
+}
+
+// Récupère le message d'erreur pour le tooltip
+getDeleteDisabledReason(incident: any): string {
+  if (!this.canShowDeleteButton(incident)) {
+    return '';
+  }
+  
+  if (this.userRole === 'Admin') {
+    if (incident.statutIncidentLibelle === 'En cours') {
+      return 'Impossible de supprimer un incident en cours de traitement.';
+    }
+    return 'Supprimer l\'incident';
+  }
+  
+  if (this.userRole === 'Commercant') {
+    if (incident.statutIncidentLibelle !== 'Non traité') {
+      return 'Vous ne pouvez supprimer que les incidents non traités.';
+    }
+    if (this.isIncidentLieATicket(incident)) {
+      return 'Impossible de supprimer un incident lié à un ticket.';
+    }
+    return 'Supprimer l\'incident';
+  }
+  
+  return 'Suppression non autorisée';
+}
+canSelectIncident(incident: any): boolean {
+  // ✅ Règle ABSOLUE : Incident "En cours" JAMAIS sélectionnable
+  if (incident.statutIncidentLibelle === 'En cours') {
+    return false;
+  }
+  
+  // ✅ Règle : Incident déjà archivé JAMAIS sélectionnable
+  if (incident.dateArchivage) {
+    return false;
+  }
+  
+  // ✅ ADMIN : Logique de sélection par type
+  if (this.userRole === 'Admin') {
+    const isFerme = incident.statutIncidentLibelle === 'Fermé';
+    
+    // Si aucune sélection existante, les deux types sont sélectionnables
+    if (this.selectedIncidents.size === 0 && this.currentSelectionType === null) {
+      return true;
+    }
+    
+    // Si on a déjà sélectionné des incidents Fermés
+    if (this.currentSelectionType === 'ferme') {
+      // On ne peut sélectionner que des incidents Fermés
+      return isFerme;
+    }
+    
+    // Si on a déjà sélectionné des incidents non Fermés
+    if (this.currentSelectionType === 'nonFerme') {
+      // On ne peut sélectionner que des incidents non Fermés
+      return !isFerme;
+    }
+    
+    return true;
+  }
+  
+  // ✅ COMMERCANT : Logique de sélection par type
+  if (this.userRole === 'Commercant') {
+    const isNonTraite = incident.statutIncidentLibelle === 'Non traité';
+    const isFerme = incident.statutIncidentLibelle === 'Fermé';
+    const hasNoTicket = !this.isIncidentLieATicket(incident);
+    
+    // Si aucune sélection existante, les deux types sont sélectionnables
+    if (this.selectedIncidents.size === 0 && this.currentSelectionType === null) {
+      if (isNonTraite && hasNoTicket) return true;
+      if (isFerme) return true;
+      return false;
+    }
+    
+    // Si on a déjà sélectionné des incidents Fermés
+    if (this.currentSelectionType === 'ferme') {
+      return isFerme;
+    }
+    
+    // Si on a déjà sélectionné des incidents Non traités
+    if (this.currentSelectionType === 'nonFerme') {
+      return isNonTraite && hasNoTicket;
+    }
+    
+    return false;
+  }
+  
+  return false;
 }
   // Vérifier si un incident est sélectionné
   isSelected(incidentId: string): boolean {
@@ -1348,32 +1426,40 @@ canSelectIncident(incident: any): boolean {
   }
 
 
-  getSelectionStats(): { deletable: number, archivable: number, other: number } {
-    let deletable = 0;  // Non traités ou En cours
-    let archivable = 0; // Fermés
-    let other = 0;
+getSelectionStats(): { deletable: number, archivable: number, other: number } {
+  let deletable = 0;
+  let archivable = 0;
+  let other = 0;
+  
+  // ✅ Utiliser le Map qui contient TOUS les incidents sélectionnés
+  this.selectedIncidentsMap.forEach(incident => {
+    const statutValue = this.getStatutNumber(incident.statutIncident);
+    const isFerme = statutValue === StatutIncident.Ferme;
+    const isNonTraite = statutValue === StatutIncident.NonTraite;
+    const hasTicket = this.isIncidentLieATicket(incident);
     
-    const selectedIds = Array.from(this.selectedIncidents);
-    
-    selectedIds.forEach(id => {
-      const incident = this.filteredIncidents.find(i => i.id === id);
-      if (incident) {
-        const statutValue = typeof incident.statutIncident === 'number' 
-          ? incident.statutIncident 
-          : this.getStatutNumber(incident.statutIncident);
-        
-        if (statutValue === StatutIncident.Ferme) {
-          archivable++;
-        } else if (statutValue === StatutIncident.NonTraite || statutValue === StatutIncident.EnCours) {
-          deletable++;
-        } else {
-          other++;
-        }
+    if (this.userRole === 'Admin') {
+      if (isFerme) {
+        archivable++;
+      } else {
+        deletable++;
       }
-    });
-    
-    return { deletable, archivable, other };
-  }
+    } else if (this.userRole === 'Commercant') {
+      if (isNonTraite && !hasTicket) {
+        deletable++;
+      } else if (isFerme) {
+        archivable++;
+      } else {
+        other++;
+      }
+    } else {
+      other++;
+    }
+  });
+  
+  return { deletable, archivable, other };
+}
+
 
   // Helper pour convertir le statut en nombre
   private getStatutNumber(statut: any): number {
@@ -1385,43 +1471,57 @@ canSelectIncident(incident: any): boolean {
     }
     return StatutIncident.NonTraite;
   }
-
+// Ajoutez cette méthode dans la classe IncidentListComponent
+updateSelectionStats(): void {
+  const stats = this.getSelectionStats();
+  this.cachedSelectionStats = {
+    deletable: stats.deletable,
+    archivable: stats.archivable,
+    other: stats.other,
+    total: this.selectedIncidents.size
+  };
+}
   // Action principale du bouton (Supprimer ou Archiver selon la sélection)
-  onBulkAction(): void {
-    const stats = this.getSelectionStats();
-    
-    if (stats.archivable > 0 && stats.deletable === 0) {
-      // Uniquement des incidents fermés → Archiver
-      this.confirmArchiveMultiple();
-    } else if (stats.deletable > 0 && stats.archivable === 0) {
-      // Uniquement des incidents non fermés → Supprimer
-      this.confirmDeleteMultiple();
-    } else if (stats.deletable > 0 && stats.archivable > 0) {
-      // Mixte → Afficher un message d'erreur
-      this.showAlert('warning', 'Action impossible', 
-        `Vous ne pouvez pas mélanger des incidents à supprimer (${stats.deletable}) et à archiver (${stats.archivable}) dans la même sélection.`);
-    } else {
-      this.showAlert('info', 'Aucune action', 'Aucun incident sélectionné ne peut être supprimé ou archivé.');
-    }
+onBulkAction(): void {
+  this.updateSelectionStats();
+    // ✅ AJOUTER CE LOG POUR DIAGNOSTIC
+  console.log('=== BULK ACTION DEBUG ===');
+  console.log('cachedSelectionStats:', this.cachedSelectionStats);
+  console.log('selectedIncidents size:', this.selectedIncidents.size);
+  console.log('selectedIncidentsMap size:', this.selectedIncidentsMap.size);
+  
+  if (this.cachedSelectionStats.archivable > 0 && this.cachedSelectionStats.deletable === 0) {
+    // Uniquement des incidents Fermés → Archiver
+    this.confirmArchiveMultiple();
+  } 
+  else if (this.cachedSelectionStats.deletable > 0 && this.cachedSelectionStats.archivable === 0) {
+    // Uniquement des incidents supprimables → Supprimer
+    this.confirmDeleteMultiple();
+  } 
+  else if (this.cachedSelectionStats.deletable > 0 && this.cachedSelectionStats.archivable > 0) {
+    // Mixte → Message d'erreur
+    this.showAlert('warning', 'Action impossible', 
+      `Vous ne pouvez pas mélanger des incidents à supprimer (${this.cachedSelectionStats.deletable}) et à archiver (${this.cachedSelectionStats.archivable}) dans la même sélection.`);
+  } 
+  else {
+    this.showAlert('info', 'Aucune action', 'Aucun incident sélectionné ne peut être supprimé ou archivé.');
   }
+}
 confirmDeleteMultiple(): void {
   if (this.selectedIncidents.size === 0) return;
   
   const selectedIds = Array.from(this.selectedIncidents);
   
-  // Afficher un indicateur de chargement
   this.loading = true;
   
-  // Récupérer TOUS les incidents sélectionnés via l'API
   const params: any = {
     Page: 1,
-    PageSize: this.totalCount, // Récupérer TOUS
+    PageSize: this.totalCount,
     SearchTerm: this.searchTerm || '',
     SortBy: 'DateDetection',
     SortDescending: true
   };
   
-  // Ajouter les filtres actuels pour correspondre à la sélection globale
   if (this.selectedSeverite != null) params.SeveriteIncident = this.selectedSeverite;
   if (this.selectedStatut != null) {
     let statutLibelle = '';
@@ -1442,45 +1542,35 @@ confirmDeleteMultiple(): void {
       else if (response?.items) allIncidents = response.items;
       else if (Array.isArray(response)) allIncidents = response;
       
-      // ✅ CORRECTION : Filtrer par statut NON FERMÉ ET non lié à un ticket
+      // ✅ Filtrer selon les règles de suppression
       this.confirmIncidents = allIncidents.filter(incident => {
-        const statutValue = this.getStatutNumber(incident.statutIncident);
-        const isNonFerme = statutValue !== StatutIncident.Ferme;
-        const hasNoTicket = !this.isIncidentLieATicket(incident);
+        if (!selectedIds.includes(incident.id)) return false;
         
-        // On ne peut supprimer que les incidents :
-        // 1. Non fermés (NonTraite ou EnCours) 
-        // 2. ET non liés à un ticket
-        return selectedIds.includes(incident.id) && isNonFerme && hasNoTicket;
+        const statutValue = this.getStatutNumber(incident.statutIncident);
+        const isFerme = statutValue === StatutIncident.Ferme;
+        const isEnCours = statutValue === StatutIncident.EnCours;
+        const hasTicket = this.isIncidentLieATicket(incident);
+        
+        if (this.userRole === "Admin") {
+          // ADMIN : Supprimer sauf EnCours
+          return !isEnCours;
+        } else if (this.userRole === 'Commercant') {
+          // COMMERCANT : Supprimer uniquement NonTraite ET sans ticket
+          return statutValue === StatutIncident.NonTraite && !hasTicket;
+        }
+        
+        return false;
       });
       
       this.pendingDeleteIds = this.confirmIncidents.map(i => i.id);
       this.pendingDeleteCount = this.confirmIncidents.length;
       this.showMultiDeleteModal = true;
       this.loading = false;
-      
-      // Message d'information si certains incidents ont été exclus
-      const totalEligible = this.confirmIncidents.length;
-      const totalSelected = selectedIds.length;
-      if (totalEligible < totalSelected) {
-        const excluded = totalSelected - totalEligible;
-        
-      }
     },
     error: (err) => {
       console.error('Erreur chargement incidents pour suppression:', err);
       this.loading = false;
-      // Fallback: utiliser les incidents de la page courante avec le même filtre
-      this.confirmIncidents = this.filteredIncidents.filter(incident => {
-        const statutValue = this.getStatutNumber(incident.statutIncident);
-        const isNonFerme = statutValue !== StatutIncident.Ferme;
-        const hasNoTicket = !this.isIncidentLieATicket(incident);
-        return selectedIds.includes(incident.id) && isNonFerme && hasNoTicket;
-      });
-      this.pendingDeleteIds = this.confirmIncidents.map(i => i.id);
-      this.pendingDeleteCount = this.confirmIncidents.length;
-      this.showMultiDeleteModal = true;
-      this.loading = false;
+      this.showAlert('error', 'Erreur', 'Impossible de charger les incidents pour suppression');
     }
   });
 }
@@ -1490,10 +1580,8 @@ confirmArchiveMultiple(): void {
   
   const selectedIds = Array.from(this.selectedIncidents);
   
-  // Afficher un indicateur de chargement
   this.loading = true;
   
-  // ✅ Utiliser la bonne API selon le rôle
   const searchMethod = this.userRole === 'Admin' 
     ? this.incidentService.searchIncidents.bind(this.incidentService)
     : this.incidentService.searchMyIncidents.bind(this.incidentService);
@@ -1519,7 +1607,6 @@ confirmArchiveMultiple(): void {
   if (this.selectedDateDetection) params.DateDetection = this.selectedDateDetection;
   if (this.selectedDateResolution) params.DateResolution = this.selectedDateResolution;
   
-  // Pour le commerçant, ajouter le filtre de statut en string
   if (this.userRole !== 'Admin' && this.selectedStatut != null) {
     let statutString = '';
     switch(this.selectedStatut) {
@@ -1537,7 +1624,7 @@ confirmArchiveMultiple(): void {
       else if (response?.items) allIncidents = response.items;
       else if (Array.isArray(response)) allIncidents = response;
       
-      // Filtrer pour ne garder que les incidents fermés qui sont sélectionnés
+      // ✅ Filtrer pour ne garder que les incidents Fermés
       this.confirmArchives = allIncidents.filter(incident => {
         const statutValue = this.getStatutNumber(incident.statutIncident);
         return selectedIds.includes(incident.id) && statutValue === StatutIncident.Ferme;
@@ -1551,14 +1638,7 @@ confirmArchiveMultiple(): void {
     error: (err) => {
       console.error('Erreur chargement incidents pour archivage:', err);
       this.loading = false;
-      // Fallback: utiliser les incidents de la page courante
-      this.confirmArchives = this.filteredIncidents.filter(incident => {
-        const statutValue = this.getStatutNumber(incident.statutIncident);
-        return selectedIds.includes(incident.id) && statutValue === StatutIncident.Ferme;
-      });
-      this.pendingArchiveIds = this.confirmArchives.map(i => i.id);
-      this.pendingArchiveCount = this.confirmArchives.length;
-      this.showMultiArchiveModal = true;
+      this.showAlert('error', 'Erreur', 'Impossible de charger les incidents pour archivage');
     }
   });
 }
@@ -1576,6 +1656,9 @@ executeMultiArchive(): void {
   let completed = 0;
   const total = this.pendingArchiveIds.length;
   let successCount = 0;
+  
+  const currentPageBeforeArchive = this.currentPage;
+  const wasLastItemOnPage = this.filteredIncidents.length === this.pendingArchiveIds.length;
 
   this.pendingArchiveIds.forEach(id => {
     this.incidentService.archiverIncident(id).subscribe({
@@ -1606,15 +1689,19 @@ executeMultiArchive(): void {
           this.showAlert(variant, variant === 'success' ? 'Succès' : (variant === 'warning' ? 'Archivage partiel' : 'Échec'), message);
           
           setTimeout(() => {
-            this.adjustPageAfterBulkAction(successCount);
-            if (this.userRole === 'Admin') {
-              this.loadIncidents();
-            } else {
-              this.loadMyIncidentsWithFilters();
+            // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+            if (wasLastItemOnPage && currentPageBeforeArchive > 1) {
+              this.currentPage = currentPageBeforeArchive - 1;
             }
             
-            if (this.userRole === 'Commercant') {
-              this.loadCommercantDashboardStats();
+            if (this.userRole === 'Admin') {
+              this.loadIncidents();
+              this.loadDashboardStats();
+            } else {
+              this.loadMyIncidentsWithFilters();
+              if (this.userRole === 'Commercant') {
+                this.loadCommercantDashboardStats();
+              }
             }
             
             this.selectedIncidents.clear();
@@ -1626,7 +1713,6 @@ executeMultiArchive(): void {
       },
       error: () => {
         completed++;
-        
         if (completed === total) {
           this.bulkArchiving = false;
           this.showMultiArchiveModal = false;
@@ -1650,10 +1736,19 @@ executeMultiArchive(): void {
           this.showAlert(variant, variant === 'success' ? 'Succès' : (variant === 'warning' ? 'Archivage partiel' : 'Échec'), message);
           
           setTimeout(() => {
+            // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+            if (wasLastItemOnPage && currentPageBeforeArchive > 1) {
+              this.currentPage = currentPageBeforeArchive - 1;
+            }
+            
             if (this.userRole === 'Admin') {
               this.loadIncidents();
+              this.loadDashboardStats();
             } else {
               this.loadMyIncidentsWithFilters();
+              if (this.userRole === 'Commercant') {
+                this.loadCommercantDashboardStats();
+              }
             }
             
             this.selectedIncidents.clear();
@@ -1669,6 +1764,7 @@ executeMultiArchive(): void {
 
 clearSelection(): void {
   this.selectedIncidents.clear();
+  this.selectedIncidentsMap.clear(); // ✅ VIDER LE MAP
   this.globalSelectionMode = false;
   this.currentSelectionType = null;
   this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
@@ -1981,6 +2077,8 @@ tempFilters = {
 };
 selectedTypeProbleme?: number;
 selectedEntiteImpactee?: number;
+selectedIncidentsMap: Map<string, Incident> = new Map();
+
   toggleFilters(): void {
     this.showFilters = !this.showFilters;
     if (this.showFilters) {
@@ -2116,5 +2214,20 @@ selectedDetectionDateObj: Date | null = null;
 selectedResolutionDateObj: Date | null = null;
 
 deleting = false;
-
+// Ajoutez cette méthode dans la classe IncidentListComponent
+getModificationDisabledReason(incident: any): string {
+  // ✅ Vérifier d'abord le statut "Fermé" (plus spécifique)
+  if (incident.statutIncidentLibelle === 'Fermé') {
+    return 'Impossible de modifier un incident fermé.';
+  }
+  // ✅ Ensuite "En cours"
+  if (incident.statutIncidentLibelle === 'En cours') {
+    return 'Impossible de modifier un incident en cours de traitement.';
+  }
+  // ✅ Enfin la liaison à un ticket
+  if (this.isIncidentLieATicket(incident)) {
+    return 'Cet incident est lié à un ticket et ne peut pas être modifié.';
+  }
+  return 'Modifier l\'incident';
+}
 }

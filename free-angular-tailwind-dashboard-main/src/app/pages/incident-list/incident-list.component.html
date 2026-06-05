@@ -623,8 +623,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path>
             </svg>
             Filtrer
-            <span *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedDateDetection || selectedDateResolution" class="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-[#8788FF] rounded-full">
-              {{ (selectedSeverite !== undefined ? 1 : 0) + (selectedStatut !== undefined ? 1 : 0) + (selectedDateDetection ? 1 : 0) + (selectedDateResolution ? 1 : 0) }}
+            <span *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedDateDetection || selectedDateResolution || selectedEntiteImpactee !== undefined || selectedTypeProbleme !== undefined"   class="ml-1 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-[#8788FF] rounded-full">
+              {{ (selectedSeverite !== undefined ? 1 : 0) + (selectedStatut !== undefined ? 1 : 0) + (selectedDateDetection ? 1 : 0) + (selectedDateResolution ? 1 : 0) +  (selectedEntiteImpactee !== undefined ? 1 : 0) +    (selectedTypeProbleme !== undefined ? 1 : 0) }}
             </span>
           </button>
 <div *ngIf="selectedIncidents.size > 0" class="flex items-center gap-2">
@@ -688,7 +688,7 @@
     </ng-container>
   </button>
 </div>
-          <div *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedDateDetection || selectedDateResolution" class="flex items-center gap-2 px-3 py-1.5 bg-[#ECECFF] dark:bg-[#0C144E]/20 rounded-lg">
+          <div *ngIf="selectedSeverite !== undefined || selectedStatut !== undefined || selectedDateDetection || selectedDateResolution || selectedEntiteImpactee !== undefined  || selectedTypeProbleme !== undefined"  class="flex items-center gap-2 px-3 py-1.5 bg-[#ECECFF] dark:bg-[#0C144E]/20 rounded-lg">
             <span class="text-xs text-[#8788FF] dark:text-[#B2B3FF]">Filtres actifs</span>
             <button (click)="clearFilters()" class="text-[#8788FF] hover:text-[#0C144E] dark:text-[#B2B3FF]">
               <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -760,7 +760,21 @@
         </option>
       </select>
     </div>
-
+ <!-- ✅ NOUVEAU : Filtre par type de problème (pour Commerçant) -->
+  <div *ngIf="userRole === 'Commercant'">
+    <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
+      Type de problème
+    </label>
+    <select
+      [(ngModel)]="tempFilters.typeProbleme"
+      class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-[#8788FF] focus:ring-1 focus:ring-[#8788FF] dark:border-gray-600 dark:bg-gray-800 transition-colors"
+    >
+      <option [ngValue]="undefined">Tous les types</option>
+      <option *ngFor="let option of typeProblemeOptions" [ngValue]="option.value">
+        {{ option.label }}
+      </option>
+    </select>
+  </div>
         <!-- Filtre par date -->
         <div>
           <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
@@ -932,34 +946,38 @@
                 </svg>
               </button>
 
-<!-- Bouton Modifier - UN SEUL BOUTON -->
-<!-- Bouton Modifier - UN SEUL BOUTON -->
+
 <!-- Bouton Modifier - DÉSACTIVÉ si lié à un ticket -->
 <button 
-  [disabled]="isIncidentLieATicket(incident)"
-  (click)="!isIncidentLieATicket(incident) && viewIncidentEdit(incident.id)"
+  [disabled]="isIncidentLieATicket(incident) || incident.statutIncidentLibelle === 'En cours' || incident.statutIncidentLibelle === 'Fermé'"
+  (click)="!isIncidentLieATicket(incident) && incident.statutIncidentLibelle !== 'En cours' && incident.statutIncidentLibelle !== 'Fermé' && viewIncidentEdit(incident.id)"
   class="p-2 rounded-lg transition-colors"
   [ngClass]="{
-    'text-gray-400 cursor-not-allowed opacity-50': isIncidentLieATicket(incident),
-    'text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20': !isIncidentLieATicket(incident)
+    'text-gray-400 cursor-not-allowed opacity-50': isIncidentLieATicket(incident) || incident.statutIncidentLibelle === 'En cours' || incident.statutIncidentLibelle === 'Fermé',
+    'text-gray-400 hover:text-amber-600 hover:bg-amber-50 dark:hover:bg-amber-900/20': !isIncidentLieATicket(incident) && incident.statutIncidentLibelle !== 'En cours' && incident.statutIncidentLibelle !== 'Fermé'
   }"
-  [title]="isIncidentLieATicket(incident) ? 'Cet incident est lié à un ticket et ne peut pas être modifié' : 'Modifier l\'incident'"
+  [title]="getModificationDisabledReason(incident)"
 >
   <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 4h2m-1-1v2m7.071 2.929a2 2 0 010 2.828l-8.486 8.486a2 2 0 01-.878.515l-4 1a1 1 0 01-1.213-1.213l1-4a2 2 0 01.515-.878l8.486-8.486a2 2 0 012.828 0z"></path>
   </svg>
 </button>
-              
-              <button
-                *ngIf=" incident.statutIncident?.toString() !== 'Ferme'"
-                (click)="onDelete(incident)"
-                class="p-2 text-gray-400 hover:text-red-600 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                [title]="'Supprimer l\'incident'"
-              >
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
-                </svg>
-              </button>
+   <!-- Bouton Supprimer -->
+<button
+  *ngIf="canShowDeleteButton(incident)"
+  (click)="onDelete(incident)"
+  class="p-2 rounded-lg transition-colors"
+  [disabled]="!canDeleteIncident(incident)"
+  [ngClass]="{
+    'text-gray-400 cursor-not-allowed opacity-50': !canDeleteIncident(incident),
+    'text-gray-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20': canDeleteIncident(incident)
+  }"
+  [title]="getDeleteDisabledReason(incident)"
+>
+  <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m2 0H7m3-3h4a1 1 0 011 1v1H9V5a1 1 0 011-1z" />
+  </svg>
+</button>
                  <button
       *ngIf=" incident.statutIncident?.toString() === 'Ferme'"
       (click)="onArchive(incident)"
@@ -974,17 +992,17 @@
           </td>
         </tr>
         
-        <tr *ngIf="filteredIncidents.length === 0">
-          <td [attr.colspan]="userRole !== 'Commercant' ? 7 : 6" class="px-6 py-16 text-center">
-            <div class="flex flex-col items-center justify-center">
-              <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
-              </svg>
-              <p class="text-gray-500 dark:text-gray-400 text-lg font-medium">Aucun incident trouvé</p>
-              <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Essayez de modifier vos filtres ou d'ajouter un nouvel incident</p>
-            </div>
-          </td>
-        </tr>
+   <tr *ngIf="filteredIncidents.length === 0">
+  <td [attr.colspan]="userRole !== 'Commercant' ? 9 : 8" class="px-6 py-16 text-center">
+    <div class="flex flex-col items-center justify-center w-full">
+      <svg class="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+      </svg>
+      <p class="text-gray-500 dark:text-gray-400 text-lg font-medium">Aucun incident trouvé</p>
+      <p class="text-gray-400 dark:text-gray-500 text-sm mt-1">Essayez de modifier vos filtres ou d'ajouter un nouvel incident</p>
+    </div>
+  </td>
+</tr>
       </tbody>
     </table>
   </div>
