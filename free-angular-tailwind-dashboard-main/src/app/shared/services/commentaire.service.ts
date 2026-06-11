@@ -19,11 +19,9 @@ export class CommentaireService {
       })
     };
   }
-  /**
-   * Récupère tous les commentaires d'un ticket
-   */
+  /** Récupère tous les commentaires d'un ticket */
   getAllCommentaires(ticketId: string): Observable<CommentaireDTO[]> {
-    console.log('🔍 Récupération de tous les commentaires pour le ticket:', ticketId);
+    console.log(' Récupération de tous les commentaires pour le ticket:', ticketId);
     
     return this.http.get<ApiResponse<CommentaireDTO[]>>(
       `https://localhost:7063/api/commentaires?ticketId=${ticketId}`,
@@ -31,36 +29,35 @@ export class CommentaireService {
     ).pipe(
       map(response => response.data || []),
       catchError(error => {
-        console.error('❌ Erreur récupération commentaires:', error);
+        console.error(' Erreur récupération commentaires:', error);
         return of([]);
       })
     );
   }
-  /**
-   * Supprimer un commentaire
-   */
+  /** Supprimer un commentaire   */
   deleteCommentaire(commentaireId: string): Observable<ApiResponse<boolean>> {
-    console.log('🗑️ Suppression du commentaire:', commentaireId);
+    console.log(' Suppression du commentaire:', commentaireId);
     
     return this.http.delete<ApiResponse<boolean>>(
       `https://localhost:7063/api/commentaires/${commentaireId}`,
       this.getAuthHeaders()
     ).pipe(
       tap(response => {
-        console.log('📥 Réponse suppression commentaire:', response);
+        console.log(' Réponse suppression commentaire:', response);
       }),
       catchError(error => {
-        console.error('❌ Erreur suppression commentaire:', error);
+        console.error(' Erreur suppression commentaire:', error);
         return throwError(() => error);
       })
     );
   }
+    /** Ajouter un commentaire   */
   addCommentaire(ticketId: string, formData: FormData) {
-    console.log('📤 ENVOI COMMENTAIRE - Début');
-    console.log('📤 Ticket ID:', ticketId);
-    
+    console.log(' ENVOI COMMENTAIRE - Début');
+    console.log(' Ticket ID:', ticketId);
+  
     // Afficher TOUT le contenu du FormData
-    console.log('📤 Contenu du FormData:');
+    console.log(' Contenu du FormData:');
     formData.forEach((value, key) => {
       if (value instanceof File) {
         console.log(`  - ${key}: ${value.name} (${value.size} bytes, type: ${value.type})`);
@@ -70,7 +67,7 @@ export class CommentaireService {
     });
   
     const headers = this.getAuthHeaders1(true);
-    console.log('📤 Headers:', headers);
+    console.log(' Headers:', headers);
   
     return this.http.post<ApiResponse<CommentaireDTO>>(
       `https://localhost:7063/api/commentaires?ticketId=${ticketId}`,
@@ -78,10 +75,10 @@ export class CommentaireService {
       headers
     ).pipe(
       tap(response => {
-        console.log('📥 Réponse commentaire SUCCÈS:', response);
+        console.log(' Réponse commentaire SUCCÈS:', response);
       }),
       catchError(error => {
-        console.error('📥 ERREUR commentaire DÉTAILLÉE:', {
+        console.error(' ERREUR commentaire DÉTAILLÉE:', {
           status: error.status,
           statusText: error.statusText,
           message: error.error?.message,
@@ -99,19 +96,17 @@ export class CommentaireService {
     'Authorization': `Bearer ${token}`
   });
 
-  // ❌ Ne pas mettre Content-Type pour FormData
+  //  Ne pas mettre Content-Type pour FormData
   if (!isFormData) {
     headers = headers.set('Content-Type', 'application/json');
   }
 
   return { headers };
 }
-  /**
-   * Mettre à jour un commentaire avec ses pièces jointes
-   */
+  /** Mettre à jour un commentaire avec ses pièces jointes */
   updateCommentaire(commentaireId: string, formData: FormData): Observable<ApiResponse<CommentaireDTO>> {
-    console.log('📤 updateCommentaire - ID:', commentaireId);
-    console.log('📤 FormData entries:');
+    console.log(' updateCommentaire - ID:', commentaireId);
+    console.log(' FormData entries:');
     formData.forEach((value, key) => {
       if (value instanceof File) {
         console.log(`  - ${key}: ${value.name} (${value.size} bytes)`);
@@ -126,20 +121,18 @@ export class CommentaireService {
       this.getAuthHeaders1(true) // true = isFormData
     ).pipe(
       tap(response => {
-        console.log('✅ Réponse updateCommentaire:', response);
+        console.log(' Réponse updateCommentaire:', response);
       }),
       catchError(error => {
-        console.error('❌ Erreur updateCommentaire:', error);
-        console.error('❌ Détails:', error.error);
+        console.error(' Erreur updateCommentaire:', error);
+        console.error(' Détails:', error.error);
         return throwError(() => error);
       })
     );
   }
-  /**
-   * Récupère les commentaires du technicien connecté pour un ticket spécifique
-   */
+  /** Récupère les commentaires du technicien connecté pour un ticket spécifique */
   getMesCommentaires(ticketId: string): Observable<CommentaireDTO[]> {
-    console.log('🔍 Récupération de mes commentaires pour le ticket:', ticketId);
+    console.log(' Récupération de mes commentaires pour le ticket:', ticketId);
     
     return this.http.get<ApiResponse<CommentaireDTO[]>>(
       `https://localhost:7063/api/commentaires/mes-commentaires?ticketId=${ticketId}`,
@@ -147,7 +140,7 @@ export class CommentaireService {
     ).pipe(
       map(response => response.data || []),
       catchError(error => {
-        console.error('❌ Erreur récupération mes commentaires:', error);
+        console.error(' Erreur récupération mes commentaires:', error);
         return of([]);
       })
     );

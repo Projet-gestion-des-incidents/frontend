@@ -1,4 +1,3 @@
-// shared/models/Commentaire.models.ts
 export interface CommentaireDTO {
   id: string;
   message: string;

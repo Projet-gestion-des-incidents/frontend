@@ -1,8 +1,7 @@
-// services/notification.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AuthService } from './auth.service'; // ✅ Importer AuthService
+import { AuthService } from './auth.service'; 
 
 export interface Notification {
   id: string;
@@ -11,7 +10,7 @@ export interface Notification {
   titre: string;
   message: string;
   dateEnvoi: Date;
-    estConsulte: boolean;          // ✅ NOUVEAU
+    estConsulte: boolean;        
   dateConsultation?: Date; 
   estLu: boolean;
   dateLecture?: Date;
@@ -22,7 +21,6 @@ export interface Notification {
   commentaireId?: string;
   tpeId?: string;
 }
-
 @Injectable({
   providedIn: 'root'
 })
@@ -31,7 +29,7 @@ export class NotificationService {
 
   constructor(
     private http: HttpClient,
-    private authService: AuthService  // ✅ Injecter AuthService
+    private authService: AuthService 
   ) {}
 
   /**
@@ -46,6 +44,7 @@ export class NotificationService {
       })
     };
   }
+  // Marquer toutes les notifications comme consultées
 markAllAsConsulted(): Observable<void> {
   return this.http.put<void>(`${this.apiUrl}/consulter`, {}, this.getAuthHeaders());
 }
@@ -64,11 +63,6 @@ markAllAsConsulted(): Observable<void> {
     return this.http.get<number>(`${this.apiUrl}/unread/count`, this.getAuthHeaders());
   }
 
-  // Récupérer les notifications par type
-  getNotificationsByType(type: number): Observable<Notification[]> {
-    return this.http.get<Notification[]>(`${this.apiUrl}/type/${type}`, this.getAuthHeaders());
-  }
-
   // Marquer une notification comme lue
   markAsRead(notificationId: string): Observable<void> {
     return this.http.put<void>(`${this.apiUrl}/${notificationId}/read`, {}, this.getAuthHeaders());
@@ -83,6 +77,7 @@ markAllAsConsulted(): Observable<void> {
   deleteNotification(notificationId: string): Observable<void> {
     return this.http.delete<void>(`${this.apiUrl}/${notificationId}`, this.getAuthHeaders());
   }
+    // Supprimer toutes les notifications
   deleteAllMyNotifications(): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.apiUrl}/cleanup`, this.getAuthHeaders());
   }

@@ -79,9 +79,7 @@ export class TunisiaGovernoratesService {
     
     // Priorité: longueur du mot-clé (le plus spécifique d'abord)
     matches.sort((a, b) => b.keyword.length - a.keyword.length);
-    
-    console.log(`   🔍 Matches trouvés: ${matches.map(m => `${m.name} (via "${m.keyword}")`).join(', ')}`);
-    console.log(`   ✅ Sélectionné: ${matches[0].name}`);
+  
     
     return matches[0].name;
   }
@@ -90,16 +88,13 @@ export class TunisiaGovernoratesService {
     const gov = this.governorates.find(g => g.name === govName);
     return gov?.color || '#9CA3AF';
   }
-
   getGovernorateByAddress(address: string): Governorate | null {
     const govName = this.extractGovernorateFromAddress(address);
     return this.governorates.find(g => g.name === govName) || null;
   }
-
   getGovernorateByName(name: string): Governorate | null {
     return this.governorates.find(g => g.name === name) || null;
   }
-
   getAllGovernorates(): Governorate[] {
     return this.governorates;
   }

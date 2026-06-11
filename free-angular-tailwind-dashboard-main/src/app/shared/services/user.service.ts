@@ -5,35 +5,6 @@ import { AuthService } from './auth.service';
 import { User } from '../models/User.model';
 import { PagedResponse } from '../models/PagedResponse.model';
 
-
-export interface CreateUserDto {
-  // Doit correspondre EXACTEMENT au backend C#
-  userName: string;     
-  email: string;        
-  nom: string;          
-  prenom: string;       
-  phoneNumber?: string;       
-  roleId: string;  
-  image?: string | null; 
-  password: string;  
-  birthDate?: string; 
-   
-}
-export interface EditProfileDto {
-  userName: string;
-  email: string;
-  nom: string;
-  prenom: string;
-  phoneNumber?: string;
-  birthDate?: string;
-  image?: File | null;
-  password?: string;
-}
-
-export interface RoleOption {
-  id: string;
-  name: string;
-}
 @Injectable({
   providedIn: 'root'
 })
@@ -56,24 +27,27 @@ export class UserService {
     };
   }
  
+  //desactiver un utilisateur
 desactivateUser(id: string) {
   return this.http.delete(
     `${this.apiUrl}/desactivate/${id}`,
     this.getAuthHeaders()
   );
 }
+  //activer un utilisateur
+  activateUser(id: string) {
+  return this.http.put(`${this.apiUrl}/${id}/activate`, {}, this.getAuthHeaders());
+}
 
-
-// Dans user.service.ts
+// deconnexion
 logout(): void {
   this.authService.logout();
 }
  
 
-// Dans user.service.ts, ajoutez cette méthode
-
+// Récupérer la liste des commercants avec pagination
 getCommercants(): Observable<any[]> {
-  console.log('🔍 Récupération des commerçants...');
+  console.log(' Récupération des commerçants...');
     let params = new HttpParams();
 
  
@@ -112,159 +86,12 @@ getCommercants(): Observable<any[]> {
         return [];
       }),
       catchError(error => {
-        console.error('❌ Erreur récupération tous commerçants:', error);
+        console.error(' Erreur récupération tous commerçants:', error);
         return of([]);
       })
     );
 }
-searchUsers(request: any): Observable<PagedResponse<User>> {
-  let params = new HttpParams()
-    .set('Page', request.page.toString())
-    .set('PageSize', request.pageSize.toString())
-    .set('SortBy', request.sortBy || 'nom')
-    .set('SortDescending', request.sortDescending.toString());
 
-  if (request.searchTerm?.trim()) {
-    params = params.set('SearchTerm', request.searchTerm.trim());
-  }
-  if (request.role) params = params.set('Role', request.role);
-  if (request.statut) params = params.set('Statut', request.statut);
-
-  return this.http.get<any>(`${this.apiUrl}/search`, {
-    params,
-    headers: this.getAuthHeaders().headers
-  }).pipe(
-    map(res => {
-      console.log('Réponse API:', res);
-            console.log('Réponse API:', res.data.items);
-
-      // CAS 1: Format ApiResponse avec data qui contient PagedResult
-      if (res?.data?.items) {
-        return {
-          data: this.mapUsers(res.data.items),
-          pagination: {
-            page: res.data.page || 1,
-            pageSize: res.data.pageSize || request.pageSize,
-            totalCount: res.data.totalCount || 0,
-            totalPages: res.data.totalPages || 1,
-            hasPreviousPage: res.data.hasPreviousPage || false,
-            hasNextPage: res.data.hasNextPage || false
-          }
-        };
-      }
-      
-      // CAS 2: Format direct PagedResult
-      if (res?.items) {
-        return {
-          data: this.mapUsers(res.items),
-          pagination: {
-            page: res.page || 1,
-            pageSize: res.pageSize || request.pageSize,
-            totalCount: res.totalCount || 0,
-            totalPages: res.totalPages || 1,
-            hasPreviousPage: res.hasPreviousPage || false,
-            hasNextPage: res.hasNextPage || false
-          }
-        };
-      }
-      
-      // CAS 3: Format avec data et pagination séparés
-      if (res?.data && res?.pagination) {
-        return {
-          data: this.mapUsers(res.data),
-          pagination: {
-            page: res.pagination.page || 1,
-            pageSize: res.pagination.pageSize || request.pageSize,
-            totalCount: res.pagination.totalCount || 0,
-            totalPages: res.pagination.totalPages || 1,
-            hasPreviousPage: res.pagination.hasPreviousPage || false,
-            hasNextPage: res.pagination.hasNextPage || false
-          }
-        };
-      }
-      
-      // Fallback
-      console.warn('Format inattendu:', res);
-      return {
-        data: [],
-        pagination: {
-          page: 1,
-          pageSize: request.pageSize,
-          totalCount: 0,
-          totalPages: 1,
-          hasPreviousPage: false,
-          hasNextPage: false
-        }
-      };
-    })
-  );
-}
-
-// Helper pour mapper les utilisateurs
-private mapUsers(users: any[]): User[] {
-  if (!users || !Array.isArray(users)) {
-    return [];
-  }
-  
-  return users.map(user => {
-    // CONVERTIR birthDate en objet Date POUR TOUS LES UTILISATEURS
-    let birthDate: Date | undefined = undefined;
-    
-    if (user.birthDate) {
-      try {
-        // Si c'est une string ISO "1999-01-25T00:00:00"
-        if (typeof user.birthDate === 'string') {
-          birthDate = new Date(user.birthDate);
-        }
-        // Si c'est déjà une Date
-        else if (user.birthDate instanceof Date) {
-          birthDate = user.birthDate;
-        }
-        // Autre format
-        else {
-          birthDate = new Date(user.birthDate);
-        }
-      } catch (e) {
-        console.warn('Erreur conversion date:', user.birthDate);
-      }
-    }
-    
-    return {
-      id: user.id || user.Id || '',
-      nom: user.nom || user.Nom || '',
-      prenom: user.prenom || user.Prenom || '',
-      email: user.email || user.Email || '',
-      phoneNumber: user.phoneNumber || user.PhoneNumber || user.phone || '',
-      role: user.role || user.Role || 'User',
-      image: this.getFullImageUrl(user.image || user.Image),
-      birthDate: birthDate, // Maintenant c'est un vrai objet Date
-      statut: this.determineStatut(user)
-    };
-  });
-}
-private parseBirthDate(user: any): Date | undefined {
-  const birthDateValue = user.birthDate 
-  
-  if (!birthDateValue) return undefined;
-  
-  try {
-    // Si c'est une string, la convertir en Date
-    if (typeof birthDateValue === 'string') {
-      // Gérer différents formats
-      if (birthDateValue.includes('T')) {
-        return new Date(birthDateValue); // Format ISO
-      } else {
-        // Format YYYY-MM-DD
-        return new Date(birthDateValue + 'T00:00:00');
-      }
-    }
-    // Si c'est déjà une Date
-    return new Date(birthDateValue);
-  } catch (e) {
-    console.warn('Erreur parsing date:', birthDateValue, e);
-    return undefined;
-  }
-}
 
 // Helper pour déterminer le statut
 private determineStatut(user: any): 'Actif' | 'Inactif' {
@@ -283,7 +110,7 @@ private determineStatut(user: any): 'Actif' | 'Inactif' {
   
   return 'Actif'; // Par défaut
 }
-
+// Récupérer mon profil
  getMyProfile(): Observable<User> {
   return this.http.get<User>(
     `${this.apiUrl}/me`,
@@ -297,12 +124,9 @@ private determineStatut(user: any): 'Actif' | 'Inactif' {
     }))
   );
 }
-// Dans user.service.ts
-
-// Dans user.service.ts - Modifiez la méthode getTechniciens pour accepter les paramètres de pagination
-
+// Récupérer la liste des techniciens avec pagination
 getTechniciens(request?: any): Observable<any> {
-  console.log('🔍 Récupération des techniciens...', request);
+  console.log(' Récupération des techniciens...', request);
   
   let params = new HttpParams();
   if (request) {
@@ -320,7 +144,7 @@ getTechniciens(request?: any): Observable<any> {
     headers: this.getAuthHeaders().headers
   }).pipe(
     tap(response => {
-      console.log('📦 Réponse API techniciens:', response);
+      console.log(' Réponse API techniciens:', response);
     }),
     map(response => {
       // Extraire les données de la réponse ApiResponse
@@ -369,23 +193,22 @@ getTechniciens(request?: any): Observable<any> {
       };
     }),
     catchError(error => {
-      console.error('❌ Erreur récupération techniciens:', error);
+      console.error(' Erreur récupération techniciens:', error);
       return of({ data: [], pagination: null });
     })
   );
 }
-// Dans user.service.ts - Ajoutez ces méthodes
 
-// Récupérer un technicien par son ID
+// Récupérer un technicien par son id
 getTechnicienById(id: string): Observable<any> {
-  console.log('🔍 Récupération du technicien par ID:', id);
+  console.log(' Récupération du technicien par ID:', id);
   
   return this.http.get<any>(
     `${this.apiUrl}/technicien/${id}`,
     this.getAuthHeaders()
   ).pipe(
     tap(response => {
-      console.log('📦 Réponse API getTechnicienById:', response);
+      console.log(' Réponse API getTechnicienById:', response);
     }),
     map(response => {
       // Extraire les données de la réponse ApiResponse
@@ -404,22 +227,22 @@ getTechnicienById(id: string): Observable<any> {
       };
     }),
     catchError(error => {
-      console.error('❌ Erreur getTechnicienById:', error);
+      console.error(' Erreur getTechnicienById:', error);
       throw error;
     })
   );
 }
 
-// Récupérer un commerçant par son ID
+// Récupérer un commerçant par son id
 getCommercantById(id: string): Observable<any> {
-  console.log('🔍 Récupération du commerçant par ID:', id);
+  console.log(' Récupération du commerçant par ID:', id);
   
   return this.http.get<any>(
     `${this.apiUrl}/commercant/${id}`,
     this.getAuthHeaders()
   ).pipe(
     tap(response => {
-      console.log('📦 Réponse API getCommercantById:', response);
+      console.log(' Réponse API getCommercantById:', response);
     }),
     map(response => {
       // Extraire les données de la réponse ApiResponse
@@ -436,13 +259,12 @@ getCommercantById(id: string): Observable<any> {
       };
     }),
     catchError(error => {
-      console.error('❌ Erreur getCommercantById:', error);
+      console.error(' Erreur getCommercantById:', error);
       throw error;
     })
   );
 }
-// user.service.ts - Ajouter les nouvelles méthodes
-
+//  admin : modifier profile
 updateMyProfile(data: any): Observable<any> {
   return this.http.put<any>(
     `${this.apiUrl}/me`,
@@ -457,7 +279,7 @@ updateMyProfile(data: any): Observable<any> {
   );
 }
 
-// ✅ Pour le technicien uniquement - méthode spécifique
+//  technicien : modifier profile
 updateTechnicienProfile(data: any): Observable<any> {
   return this.http.put<any>(
     `${this.apiUrl}/me/technicien`,
@@ -472,7 +294,7 @@ updateTechnicienProfile(data: any): Observable<any> {
   );
 }
 
-// ✅ Pour le commerçant uniquement - méthode spécifique
+//  commerçant : modifier profile
 updateCommercantProfile(data: any): Observable<any> {
   return this.http.put<any>(
     `${this.apiUrl}/me/commercant`,
@@ -487,7 +309,7 @@ updateCommercantProfile(data: any): Observable<any> {
   );
 }
 
-// Méthode pour obtenir l'URL complète de l'image
+// obtenir l'URL complète de l'image
 private getFullImageUrl(imagePath: string | null | undefined): string {
   if (!imagePath) {
     return '/assets/default-avatar.png';
@@ -508,26 +330,20 @@ private getFullImageUrl(imagePath: string | null | undefined): string {
   return imagePath;
 }
 
-
+//supprimer un utilisateur
   deleteUser(id: string): Observable<any> {
     return this.http.delete(`${this.apiUrl}/${id}`, this.getAuthHeaders());
   }
 
- 
-
-  activateUser(id: string) {
-  return this.http.put(`${this.apiUrl}/${id}/activate`, {}, this.getAuthHeaders());
-}
-// Dans user.service.ts, ajoutez ces méthodes :
-
+//creer un compte technicien
 createTechnicien(data: { prenom: string; nom: string; email: string; userName: string }): Observable<any> {
   return this.http.post(`${this.apiUrl}/technicien`, data, this.getAuthHeaders());
 }
-
+//creer un compte commerçant
 createCommercant(data: { nomMagasin: string; adresse: string; email: string; phoneNumber: string }): Observable<any> {
   return this.http.post(`${this.apiUrl}/commercant`, data, this.getAuthHeaders());
 }
-// Dans user.service.ts - Méthode pour l'admin qui met à jour un commerçant
+// modifier un compte commerçant
 adminUpdateCommercant(id: string, data: { 
   nomMagasin?: string; 
   email?: string; 
@@ -547,7 +363,7 @@ adminUpdateCommercant(id: string, data: {
     })
   );
 }
-// Dans user.service.ts - Méthode pour l'admin qui met à jour un technicien
+// modifier un compte technicien
 adminUpdateTechnicien(id: string, data: { 
   userName?: string; 
   email?: string; 

@@ -29,9 +29,7 @@ export class IncidentService {
     private authService: AuthService
   ) {}
 
-  /**
-   * Récupère les headers d'authentification
-   */
+  /** Récupère les headers d'authentification */
   private getAuthHeaders(): { headers: HttpHeaders } {
     const token = this.authService.getAccessToken();
     return {
@@ -42,54 +40,36 @@ export class IncidentService {
     };
   }
 
-  /**
-   * Récupère tous les incidents (GET all)
-   */
-  getAllIncidents(): Observable<Incident[]> {
-    return this.http.get<ApiResponse<Incident[]>>(
-      `${this.apiUrl}/all`, 
-      this.getAuthHeaders()
-    ).pipe(
-      map(response => response.data)
-    );
-  }
-  // Dans incident.service.ts
 
-/**
- * Archive un incident résolu (statut Fermé)
- */
+/** Archive un incident résolu (statut Fermé)*/
 archiverIncident(incidentId: string): Observable<ApiResponse<any>> {
-  console.log('📦 Archivage de l\'incident:', incidentId);
+  console.log(' Archivage de l\'incident:', incidentId);
   
   return this.http.post<ApiResponse<any>>(
     `${this.apiUrl}/${incidentId}/archiver`,
     {},
     this.getAuthHeaders()
   ).pipe(
-    tap(response => console.log('📥 Réponse archivage:', response))
+    tap(response => console.log(' Réponse archivage:', response))
   );
 }
 
-/**
- * Restaure un incident archivé
- */
+/** Restaure un incident archivé*/
 restaurerIncident(incidentId: string): Observable<ApiResponse<any>> {
-  console.log('📦 Restauration de l\'incident:', incidentId);
+  console.log(' Restauration de l\'incident:', incidentId);
   
   return this.http.post<ApiResponse<any>>(
     `${this.apiUrl}/${incidentId}/restaurer`,
     {},
     this.getAuthHeaders()
   ).pipe(
-    tap(response => console.log('📥 Réponse restauration:', response))
+    tap(response => console.log(' Réponse restauration:', response))
   );
 }
 
-/**
- * Récupère les incidents archivés par l'utilisateur connecté
- */
+/** Récupère les incidents archivés par l'utilisateur connecté (avec pagination )*/
 getIncidentsArchives(params: any): Observable<any> {
-  console.log('📦 Récupération des incidents archivés, params:', params);
+  console.log(' Récupération des incidents archivés, params:', params);
   
   let httpParams = new HttpParams()
     .set('Page', params.Page?.toString() || '1')
@@ -114,12 +94,10 @@ getIncidentsArchives(params: any): Observable<any> {
     { headers: this.getAuthHeaders().headers, params: httpParams }
   ).pipe(
     map(response => response.data || response),
-    tap(data => console.log('📦 Incidents archivés reçus:', data))
+    tap(data => console.log(' Incidents archivés reçus:', data))
   );
 }
-/**
- * Récupère les statistiques du dashboard incidents
- */
+/** Récupère les statistiques du dashboard incidents */
 getIncidentDashboard(): Observable<any> {
   return this.http.get<ApiResponse<any>>(
     `${this.apiUrl}/dashboard`,
@@ -132,9 +110,7 @@ getIncidentDashboard(): Observable<any> {
     })
   );
 }
-  /**
-   * Récupère les détails d'un incident par ID
-   */
+  /** Récupère les détails d'un incident par ID*/
   getIncidentDetails(id: string): Observable<IncidentDetail> {
     return this.http.get<ApiResponse<IncidentDetail>>(
       `${this.apiUrl}/${id}/details`, 
@@ -144,9 +120,7 @@ getIncidentDashboard(): Observable<any> {
     );
   }
 
-  /**
-   * Récupère un incident par son ID (version simple)
-   */
+  /** Récupère un incident par son ID */
   getIncidentById(id: string): Observable<Incident> {
     return this.http.get<ApiResponse<Incident>>(
       `${this.apiUrl}/${id}`, 
@@ -156,9 +130,7 @@ getIncidentDashboard(): Observable<any> {
     );
   }
 
-  /**
-   * Crée un nouvel incident
-   */
+  /** Crée un nouvel incident*/
  createIncident(formData: FormData): Observable<Incident> {
 
   const token = this.authService.getAccessToken();
@@ -176,72 +148,7 @@ getIncidentDashboard(): Observable<any> {
   );
 }
 
-  /**
-   * Récupère toutes les entités impactées disponibles
-   */
-  getEntitesImpactees(): Observable<any[]> {
-    return this.http.get<ApiResponse<any[]>>(
-      this.entiteApiUrl, 
-      this.getAuthHeaders()
-    ).pipe(
-      map(response => response.data)
-    );
-  }
-
-  /**
-   * Récupère les entités impactées par type
-   */
-  getEntitesImpacteesByType(type: number): Observable<any[]> {
-    return this.http.get<ApiResponse<any[]>>(
-      `${this.entiteApiUrl}/by-type/${type}`, 
-      this.getAuthHeaders()
-    ).pipe(
-      map(response => response.data)
-    );
-  }
-
-  /**
-   * Récupère les entités impactées par incident
-   */
-  getEntitesImpacteesByIncident(incidentId: string): Observable<any[]> {
-    return this.http.get<ApiResponse<any[]>>(
-      `${this.entiteApiUrl}/by-incident/${incidentId}`, 
-      this.getAuthHeaders()
-    ).pipe(
-      map(response => response.data)
-    );
-  }
-
-
-
-  /**
-   * Crée une nouvelle entité impactée
-   */
-  createEntiteImpactee(dto: { typeEntiteImpactee: number; nom: string }): Observable<any> {
-    return this.http.post<ApiResponse<any>>(
-      this.entiteApiUrl, 
-      dto, 
-      this.getAuthHeaders()
-    ).pipe(
-      map(response => response.data)
-    );
-  }
-
-  /**
-   * Assigne des entités impactées à un incident
-   */
-  assignerEntitesImpactees(incidentId: string, entiteIds: string[]): Observable<any> {
-    return this.http.post<ApiResponse<any>>(
-      `${this.apiUrl}/${incidentId}/entites-impactees`,
-      entiteIds,
-      this.getAuthHeaders()
-    ).pipe(
-      map(response => response.data)
-    );
-  }
-  /**
- * Met à jour un incident
- */
+  /** Met à jour un incident*/
 updateIncident(id: string, dto: {
   titreIncident: string;
   descriptionIncident: string;
@@ -266,15 +173,12 @@ updateIncident(id: string, dto: {
     })
   );
 }
+//supprimer un incident
 deleteIncident(id: string) {
   return this.http.delete<ApiResponse<boolean>>(`${this.apiUrl}/${id}`, this.getAuthHeaders())
     .pipe(map(response => response.data));
 }
-
-
-
-
-
+  /** Récupère mes incidents (commercant) */
   getMyIncidents(): Observable<Incident[]> {
     return this.http.get<ApiResponse<Incident[]>>(
       `${this.apiUrl}/my-incidents`, 
@@ -284,25 +188,19 @@ deleteIncident(id: string) {
     );
   }
 
-
+  /** Récupère la liste des incidents (avec pagination et recherche) */
 searchIncidents(params: any) {
   const url = `${this.apiUrl}/withFilters`;
   console.log('=== SERVICE: searchIncidents ===');
   console.log('Params reçus:', params);
-  
-  // Construire les HttpParams
   let httpParams = new HttpParams();
-  
-  // Ajouter tous les paramètres non vides
   Object.keys(params).forEach(key => {
     const value = params[key];
     if (value !== undefined && value !== null && value !== '') {
       httpParams = httpParams.set(key, value.toString());
     }
   });
-
   console.log('HttpParams finaux:', httpParams.toString());
-
   return this.http.get<any>(url, { 
     params: httpParams, 
     headers: this.getAuthHeaders().headers 
@@ -313,9 +211,9 @@ searchIncidents(params: any) {
     })
   );
 }
-// Dans incident.service.ts - Corrigez searchMyIncidents
+  /** Récupère la liste de mes incidents (avec pagination et recherche) */
 searchMyIncidents(params: any): Observable<any> {
-  console.log('📤 SERVICE - Paramètres reçus:', params);
+  console.log(' SERVICE - Paramètres reçus:', params);
   
   let httpParams = new HttpParams()
     .set('Page', params.Page?.toString() || '1')
@@ -327,70 +225,60 @@ searchMyIncidents(params: any): Observable<any> {
     httpParams = httpParams.set('SearchTerm', params.SearchTerm);
   }
   
-  // ✅ CORRECTION: Ajouter StatutIncident (string)
   if (params.StatutIncident) {
     httpParams = httpParams.set('StatutIncident', params.StatutIncident);
   }
   
-  // ✅ CORRECTION: Ajouter DateDetection
   if (params.DateDetection) {
     httpParams = httpParams.set('DateDetection', params.DateDetection);
-    console.log('📤 SERVICE - Ajout DateDetection:', params.DateDetection);
+    console.log(' SERVICE - Ajout DateDetection:', params.DateDetection);
   }
    if (params.TypeProbleme !== undefined && params.TypeProbleme !== null) {
     httpParams = httpParams.set('TypeProbleme', params.TypeProbleme.toString());
-    console.log('📤 SERVICE - Ajout TypeProbleme:', params.TypeProbleme);
+    console.log(' SERVICE - Ajout TypeProbleme:', params.TypeProbleme);
   } else {
-    console.log('📤 SERVICE - TypeProbleme non trouvé dans les params');
+    console.log(' SERVICE - TypeProbleme non trouvé dans les params');
   }
-  // ✅ CORRECTION: Ajouter DateResolution
   if (params.DateResolution) {
     httpParams = httpParams.set('DateResolution', params.DateResolution);
-    console.log('📤 SERVICE - Ajout DateResolution:', params.DateResolution);
+    console.log(' SERVICE - Ajout DateResolution:', params.DateResolution);
   }
   
   if (params.YearDetection) {
     httpParams = httpParams.set('YearDetection', params.YearDetection.toString());
   }
   
-  console.log('📤 SERVICE - Params finaux:', httpParams.toString());
+  console.log(' SERVICE - Params finaux:', httpParams.toString());
   
   return this.http.get<ApiResponse<any>>(
     `${this.apiUrl}/my-incidents`, 
     { headers: this.getAuthHeaders().headers, params: httpParams }
   ).pipe(
     map(response => {
-      console.log('📥 SERVICE - Réponse brute:', response);
+      console.log(' SERVICE - Réponse brute:', response);
       return response.data || response;
     })
   );
 }
-
+//Liaison TPEs - Incident
  lierPlusieursTpes(incidentId: string, tpeIds: string[]): Observable<ApiResponse<IncidentTPEDTO[]>> {
-    console.log('➕ Liaison de plusieurs TPEs - Incident:', incidentId, 'TPEs:', tpeIds);
+    console.log(' Liaison de plusieurs TPEs - Incident:', incidentId, 'TPEs:', tpeIds);
     
     return this.http.post<ApiResponse<IncidentTPEDTO[]>>(
       `${this.apiUrl}/${incidentId}/tpes`,
       tpeIds, // Envoyer directement le tableau d'IDs
       this.getAuthHeaders()
     ).pipe(
-      tap(response => console.log('📥 Réponse liaison TPEs:', response))
+      tap(response => console.log(' Réponse liaison TPEs:', response))
     );
   }
 
-  /**
-   * 🔹 Lier un seul TPE à un incident (pour compatibilité)
-   * Utilise le nouvel endpoint avec un tableau d'un seul élément
-   */
   lierTpe(incidentId: string, tpeId: string): Observable<ApiResponse<IncidentTPEDTO[]>> {
     return this.lierPlusieursTpes(incidentId, [tpeId]);
   }
 
 
-/**
- * 🔹 Ajouter des pièces jointes à un incident
- * POST /api/incident/{incidentId}/upload
- */
+/**  Ajouter des pièces jointes à un incident*/
 ajouterPiecesJointes(incidentId: string, fichiers: File[]): Observable<ApiResponse<PieceJointeDTO[]>> {
   const formData = new FormData();
   
@@ -404,62 +292,54 @@ ajouterPiecesJointes(incidentId: string, fichiers: File[]): Observable<ApiRespon
     // NE PAS mettre Content-Type
   });
   
-  console.log('📤 Upload de', fichiers.length, 'fichier(s) pour l\'incident:', incidentId);
+  console.log(' Upload de', fichiers.length, 'fichier(s) pour l\'incident:', incidentId);
   
-  // ✅ CORRECTION : Utiliser l'URL correcte avec pieces-jointes
   return this.http.post<ApiResponse<PieceJointeDTO[]>>(
     `https://localhost:7063/api/pieces-jointes/incident/${incidentId}/upload`,
     formData,
     { headers }
   ).pipe(
-    tap(response => console.log('📥 Réponse upload:', response))
+    tap(response => console.log(' Réponse upload:', response))
   );
 }
-// Dans incident.service.ts
+// Récupèrer les incidents disponibles (sans ticket)
 getIncidentsSansTicket(): Observable<Incident[]> {
-  console.log('🔍 Récupération des incidents sans ticket lié');
+  console.log(' Récupération des incidents sans ticket lié');
   
   return this.http.get<ApiResponse<Incident[]>>(
     `${this.apiUrl}/disponibles`,
     this.getAuthHeaders()
   ).pipe(
     map(response => response.data),
-    tap(incidents => console.log(`📦 ${incidents.length} incident(s) sans ticket trouvé(s)`)),
+    tap(incidents => console.log(` ${incidents.length} incident(s) sans ticket trouvé(s)`)),
     catchError(error => {
-      console.error('❌ Erreur récupération incidents sans ticket:', error);
+      console.error(' Erreur récupération incidents sans ticket:', error);
       return of([]);
     })
   );
 }
-// Dans incident.service.ts
-
+// Récupèrer les Pièces jointes d un incident
 getPiecesJointesByIncident(incidentId: string): Observable<PieceJointeDTO[]> {
   return this.http.get<ApiResponse<PieceJointeDTO[]>>(
     `https://localhost:7063/api/pieces-jointes/incident/${incidentId}`,
     this.getAuthHeaders()
   ).pipe(
     map(response => response.data || []),
-    tap(pieces => console.log(`📦 Pièces jointes chargées:`, pieces.length))
+    tap(pieces => console.log(` Pièces jointes chargées:`, pieces.length))
   );
 }
 
-/**
- * 🔹 Supprimer une pièce jointe
- * DELETE /api/pieces-jointes/{pieceId}
- */
+/**  Supprimer une pièce jointe*/
 supprimerPieceJointe(pieceId: string): Observable<ApiResponse<boolean>> {
   return this.http.delete<ApiResponse<boolean>>(
     `https://localhost:7063/api/pieces-jointes/${pieceId}`,
     this.getAuthHeaders()
   );
 }
-/**
- * Retirer un TPE d'un incident
- */
+/** Retirer un TPE d'un incident */
 retirerTpe(incidentId: string, tpeId: string): Observable<ApiResponse<boolean>> {
-  // URL avec "tpes" (pluriel) comme dans votre contrôleur
   return this.http.delete<ApiResponse<boolean>>(
-    `${this.apiUrl}/${incidentId}/tpes/${tpeId}`, // ← Changé de "tpe" à "tpes"
+    `${this.apiUrl}/${incidentId}/tpes/${tpeId}`, 
     this.getAuthHeaders()
   );
 }

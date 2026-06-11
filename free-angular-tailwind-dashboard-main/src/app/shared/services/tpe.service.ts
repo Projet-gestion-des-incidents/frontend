@@ -18,13 +18,15 @@ export class TPEService {
     const token = this.authService.getAccessToken();
     return { headers: new HttpHeaders({ 'Authorization': `Bearer ${token}` }) };
   }
+      // Récupérer la liste des TPE 
 getAllTPEs(): Observable<any[]> {
   return this.http.get<any[]>(this.apiUrl, this.getAuthHeaders());
 }
-
+  // supprimer un TPE
 deleteTPE(id: string): Observable<any> {
   return this.http.delete(`${this.apiUrl}/${id}`, this.getAuthHeaders());
 }
+  // creer un TPE
  createTPE(tpeData: { numSerie?: string; modele: number; commercantId: string }): Observable<any> {
     const payload: any = {
       commercantId: tpeData.commercantId,
@@ -38,6 +40,7 @@ deleteTPE(id: string): Observable<any> {
     
     return this.http.post(this.apiUrl, payload, this.getAuthHeaders());
   }
+    // Modifier un TPE
   updateTPE(id: string, tpeData: { modele: number; commercantId: string | null }): Observable<any> {
     const payload: any = {
       modele: tpeData.modele
@@ -50,11 +53,11 @@ deleteTPE(id: string): Observable<any> {
     
     return this.http.put(`${this.apiUrl}/${id}`, payload, this.getAuthHeaders());
   }
- /** récupère seulement les utilisateurs ayant le rôle "Commercant" */
-private userApi = 'https://localhost:7063/api/users/roles';
+    // Récupérer un TPE avec son id
 getTPEById(id: string): Observable<any> {
   return this.http.get(`${this.apiUrl}/${id}`, this.getAuthHeaders());
 }
+  // Récupérer mes TPE
 getMyTpes(): Observable<any[]> {
   // Récupérer l'utilisateur connecté avec son id
   return this.userService.getMyProfile().pipe(
@@ -72,19 +75,18 @@ getMyTpes(): Observable<any[]> {
   );
 }
 
-// Dans tpe.service.ts, modifier getPagedTPEs
+      // Récupérer la liste des TPE avec pagination
 getPagedTPEs(params: {
   page: number;
   pageSize: number;
   searchTerm?: string;
   modele?: string;
   commercantId?: string;
-    nonAssigne?: boolean;  // ✅ AJOUTER le paramètre booléen
-
-  createdAt?: string;      // ✅ AJOUTER
-  updatedAt?: string;      // ✅ AJOUTER
-  createdById?: string;    // ✅ AJOUTER (optionnel)
-  updatedById?: string;    // ✅ AJOUTER (optionnel)
+    nonAssigne?: boolean;  
+  createdAt?: string;    
+  updatedAt?: string;     
+  createdById?: string;   
+  updatedById?: string;    
 }): Observable<PagedResponse<any>> {
   let httpParams = new HttpParams()
     .set('Page', params.page.toString())
@@ -94,24 +96,24 @@ getPagedTPEs(params: {
     httpParams = httpParams.set('SearchTerm', params.searchTerm.trim());
   }
   if (params.modele) {
+        // Filtrer par Modele
     httpParams = httpParams.set('Modele', params.modele);
   }
-   // ✅ GESTION CORRECTE
   if (params.nonAssigne === true) {
-    // Utiliser le paramètre booléen pour "Non assigné"
     httpParams = httpParams.set('NonAssigne', 'true');
   } 
   else if (params.commercantId && params.commercantId !== 'null') {
-    // Filtrer par un commerçant spécifique (GUID valide)
+    // Filtrer par un commerçant spécifique
     httpParams = httpParams.set('CommercantId', params.commercantId);
   }
-  // ✅ AJOUTER les filtres de dates
+  //  Filtrer par date de creaction et date de modification
   if (params.createdAt) {
     httpParams = httpParams.set('CreatedAt', params.createdAt);
   }
   if (params.updatedAt) {
     httpParams = httpParams.set('UpdatedAt', params.updatedAt);
   }
+    //  Filtrer par createur et modificateur
   if (params.createdById) {
     httpParams = httpParams.set('CreatedById', params.createdById);
   }
@@ -155,9 +157,7 @@ getPagedTPEs(params: {
 }
 
 
-// Dans tpe.service.ts
-
-// ✅ Nouvelle méthode pour le commerçant (avec pagination, recherche et filtres)
+//liste de mes tpes (avec pagination, recherche et filtres)
 getMesTPEsPaged(params: {
   page: number;
   pageSize: number;
@@ -175,7 +175,6 @@ getMesTPEsPaged(params: {
   if (params.modele) {
     httpParams = httpParams.set('Modele', params.modele);
   }
- // ✅ AJOUTER le filtre par date
   if (params.createdAt) {
     httpParams = httpParams.set('CreatedAt', params.createdAt);
   }

@@ -1,4 +1,3 @@
-// dashboard-admin.service.ts
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
@@ -81,8 +80,8 @@ export interface TicketDashboardDTO {
     prenom: string;
     nomComplet: string;
     ticketsResolus: number;
-      ticketsResolusAvantDateLimite: number;   // ✅ AJOUTÉ
-    ticketsResolusApresDateLimite: number;   // ✅ AJOUTÉ
+      ticketsResolusAvantDateLimite: number;  
+    ticketsResolusApresDateLimite: number;   
     ticketsEnCours: number;
     ticketsAssignes: number;
     ticketsTotal: number;
@@ -101,8 +100,8 @@ export interface TicketDashboardDTO {
     ticketsResolus: number;
     totalTicketsTechnicien: number;
     pourcentageAssignation: number;
-          ticketsResolusAvantDateLimite: number;   // ✅ AJOUTÉ
-    ticketsResolusApresDateLimite: number;   // ✅ AJOUTÉ
+          ticketsResolusAvantDateLimite: number;   
+    ticketsResolusApresDateLimite: number;   
     tauxResolution: number;
   }>;
   assignationGlobale?: {
@@ -111,7 +110,50 @@ export interface TicketDashboardDTO {
     tauxAssignation: number;
   };
 }
+export interface TicketTechnicienDashboardDTO {
+  overview: {
+    totalTickets: number;
+    ticketsAssignes: number;
+    ticketsEnCours: number;
+    ticketsResolus: number;
+    ticketsNonArchive: number;
+    ticketsArchives: number;
+    tauxAssignes: number;
+    tauxEnCours: number;
+    tauxResolus: number;
+    tauxResolution: number;
+  };
+  statsParStatut: Array<{
+    statut: string;
+    count: number;
+    color: string;
+    pourcentage: number;
+  }>;
+  statsParJour: Array<{
+    date: string;
+    dateFormatee: string;
+    jour: string;
+    crees: number;
+    assignes: number;
+    enCours: number;
+    resolus: number;
+  }>;
+  statsParSemaine: Array<any>;
+  statsParMois: Array<any>;
+  statsResolution: Array<{
+    periode: string;
+    date: string;
+    ticketsResolus: number;
+    tempsMoyenResolutionHeures: number;
+    tempsMoyenResolutionJours: number;
+  }>;
+}
 
+export interface TicketTechnicienDashboardResponse {
+  data: TicketTechnicienDashboardDTO;
+  isSuccess: boolean;
+  message?: string;
+}
 // ==================== INCIDENT DTOs ====================
 export interface IncidentDashboardOverviewDTO {
   totalIncidents: number;
@@ -186,53 +228,7 @@ export interface IncidentDashboardDTO {
   resolutionParSeverite: ResolutionParSeveriteDTO[];
   resolutionParTypeProbleme: ResolutionParTypeProblemeDTO[];
 }
-// dashboard-admin.service.ts - Ajouter ces DTOs
 
-export interface TicketTechnicienDashboardDTO {
-  overview: {
-    totalTickets: number;
-    ticketsAssignes: number;
-    ticketsEnCours: number;
-    ticketsResolus: number;
-    ticketsNonArchive: number;
-    ticketsArchives: number;
-    tauxAssignes: number;
-    tauxEnCours: number;
-    tauxResolus: number;
-    tauxResolution: number;
-  };
-  statsParStatut: Array<{
-    statut: string;
-    count: number;
-    color: string;
-    pourcentage: number;
-  }>;
-  statsParJour: Array<{
-    date: string;
-    dateFormatee: string;
-    jour: string;
-    crees: number;
-    assignes: number;
-    enCours: number;
-    resolus: number;
-  }>;
-  statsParSemaine: Array<any>;
-  statsParMois: Array<any>;
-  statsResolution: Array<{
-    periode: string;
-    date: string;
-    ticketsResolus: number;
-    tempsMoyenResolutionHeures: number;
-    tempsMoyenResolutionJours: number;
-  }>;
-}
-
-export interface TicketTechnicienDashboardResponse {
-  data: TicketTechnicienDashboardDTO;
-  isSuccess: boolean;
-  message?: string;
-}
-// dashboard-admin.service.ts - Ajouter
 
 export interface CommercantIncidentOverviewDTO {
   totalIncidents: number;
@@ -263,7 +259,6 @@ export interface CommercantIncidentDashboardDTO {
     color: string;
   }>;
 }
-// ==================== SERVICE ====================
 @Injectable({ providedIn: 'root' })
 export class DashboardAdminService {
   private baseUrl = 'https://localhost:7063/api';
@@ -291,31 +286,27 @@ export class DashboardAdminService {
       `${this.baseUrl}/incident/dashboard`, this.getAuthHeaders()
     );
   }
-  // dashboard-admin.service.ts - AJOUTER CES DTOs
 
 
-// Dans la classe DashboardAdminService, AJOUTER CETTE MÉTHODE :
-// dashboard-admin.service.ts - Ajouter cette méthode
+getTPEDashboard(): Observable<ApiResponse<TPEDashboardDTO>> {
+  return this.http.get<ApiResponse<TPEDashboardDTO>>(
+    `${this.baseUrl}/tpe/dashboard`, this.getAuthHeaders()
+  );
+}
 
-/**
- * Récupère le dashboard pour le technicien connecté (ses tickets assignés)
- */
+/** Récupère le dashboard pour le technicien connecté (ses tickets assignés) */
 getTechnicienDashboard(): Observable<ApiResponse<TicketTechnicienDashboardDTO>> {
   return this.http.get<ApiResponse<TicketTechnicienDashboardDTO>>(
     `${this.baseUrl}/ticket/technicien-dashboard`,
     this.getAuthHeaders()
   );
 }
-// Dans incident.service.ts
+/** Récupère le dashboard pour le commercant connecté (ses incidents )*/
 getCommercantDashboard(): Observable<ApiResponse<CommercantIncidentDashboardDTO>> {
   return this.http.get<ApiResponse<CommercantIncidentDashboardDTO>>(
     `${this.baseUrl}/incident/commercant-dashboard`,
     this.getAuthHeaders()
   );
 }
-getTPEDashboard(): Observable<ApiResponse<TPEDashboardDTO>> {
-  return this.http.get<ApiResponse<TPEDashboardDTO>>(
-    `${this.baseUrl}/tpe/dashboard`, this.getAuthHeaders()
-  );
-}
+
 }

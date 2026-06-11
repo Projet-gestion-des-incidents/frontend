@@ -1,4 +1,3 @@
-// shared/services/export-excel.service.ts
 import { Injectable } from '@angular/core';
 import * as XLSX from 'xlsx-js-style';
 
@@ -28,7 +27,7 @@ export interface ExcelWithColorsConfig {
   firstColumnBold?: boolean;
   colorHeadersWithColumnColors?: boolean;
   excludeFirstColumnDataFromColoring?: boolean;
-  excludeFirstColumnHeaderFromColoring?: boolean;  // ✅ NOUVEAU
+  excludeFirstColumnHeaderFromColoring?: boolean;  
 }
 
 @Injectable({ providedIn: 'root' })
@@ -57,8 +56,8 @@ export class ExportExcelService {
   }
   
   exportToExcelWithColors(config: ExcelWithColorsConfig): void {
-    console.log('📊 === DÉBUT exportToExcelWithColors ===');
-    console.log('📊 Config reçue:', {
+    console.log(' === DÉBUT exportToExcelWithColors ===');
+    console.log(' Config reçue:', {
       filename: config.filename,
       sheetName: config.sheetName,
       dataLength: config.data.length,
@@ -70,36 +69,36 @@ export class ExportExcelService {
     });
     
     const headers = Object.keys(config.data[0] || {});
-    console.log('📊 Headers détectés:', headers);
+    console.log(' Headers détectés:', headers);
     
     const wsData = [headers, ...config.data.map(item => headers.map(h => item[h]))];
     const worksheet = XLSX.utils.aoa_to_sheet(wsData);
     
     // Appliquer les styles selon le mode (ligne ou colonne)
     if (config.columnColors) {
-      console.log('🎨 Mode: coloration par colonne');
+      console.log(' Mode: coloration par colonne');
       this.applyColumnColors(worksheet, config.data, headers, config.columnColors, config.excludeFirstColumnDataFromColoring);
       
       if (config.colorHeadersWithColumnColors) {
-        console.log('🎨 Application des couleurs aux en-têtes');
+        console.log(' Application des couleurs aux en-têtes');
         this.applyColoredHeaders(worksheet, headers, config.columnColors, config.excludeFirstColumnDataFromColoring);
       } else {
-        console.log('🎨 Pas de coloration des en-têtes');
+        console.log(' Pas de coloration des en-têtes');
       }
     } else if (config.colorRules) {
-      console.log('🎨 Mode: coloration par ligne');
+      console.log(' Mode: coloration par ligne');
       this.applyRowColors(worksheet, config.data, headers, config.colorRules, config.boldFirstColumn);
     }
     
-    // Appliquer le style à la ligne d'en-tête (si pas déjà fait)
+    // Appliquer le style à la ligne d'en-tête 
     if (!config.colorHeadersWithColumnColors) {
-      console.log('🎨 Application style en-tête par défaut');
+      console.log(' Application style en-tête par défaut');
       this.applyHeaderStyle(worksheet, headers.length, config.headerStyle);
     }
     
     // Mettre la première colonne en gras si demandé
     if (config.firstColumnBold) {
-      console.log('🔤 Mise en gras de la première colonne');
+      console.log(' Mise en gras de la première colonne');
       this.applyFirstColumnBold(worksheet, config.data.length, headers);
     }
     
@@ -111,12 +110,12 @@ export class ExportExcelService {
     XLSX.utils.book_append_sheet(workbook, worksheet, config.sheetName);
     XLSX.writeFile(workbook, `${config.filename}.xlsx`);
     
-    console.log('✅ Fichier généré:', `${config.filename}.xlsx`);
-    console.log('📊 === FIN exportToExcelWithColors ===');
+    console.log(' Fichier généré:', `${config.filename}.xlsx`);
+    console.log(' === FIN exportToExcelWithColors ===');
   }
   
   private applyFirstColumnBold(worksheet: any, rowCount: number, headers: string[]): void {
-    console.log('🔤 applyFirstColumnBold - rows:', rowCount);
+    console.log(' applyFirstColumnBold - rows:', rowCount);
     for (let row = 1; row <= rowCount; row++) {
       const cellAddress = XLSX.utils.encode_cell({ r: row, c: 0 });
       if (worksheet[cellAddress]) {
@@ -131,16 +130,16 @@ export class ExportExcelService {
   }
   
   private applyColoredHeaders(worksheet: any, headers: string[], columnColors: { [key: string]: { bgColor: string; fontColor: string } }, excludeFirstColumn?: boolean): void {
-    console.log('🎨 applyColoredHeaders - headers:', headers);
-    console.log('🎨 excludeFirstColumn:', excludeFirstColumn);
+    console.log(' applyColoredHeaders - headers:', headers);
+    console.log(' excludeFirstColumn:', excludeFirstColumn);
     
     for (let colIdx = 0; colIdx < headers.length; colIdx++) {
       const columnName = headers[colIdx];
-      console.log(`🎨 Traitement colonne ${colIdx}: ${columnName}`);
+      console.log(` Traitement colonne ${colIdx}: ${columnName}`);
       
-      // ✅ Si on exclut la première colonne
+      //  Si on exclut la première colonne
       if (excludeFirstColumn && colIdx === 0) {
-        console.log(`🎨 Colonne 0 exclue - fond BLANC`);
+        console.log(` Colonne 0 exclue - fond BLANC`);
         const cellAddress = XLSX.utils.encode_cell({ r: 0, c: colIdx });
         if (worksheet[cellAddress]) {
           if (!worksheet[cellAddress].s) {
@@ -160,9 +159,9 @@ export class ExportExcelService {
       if (colors) {
         bgColor = colors.bgColor;
         fontColor = colors.fontColor;
-        console.log(`🎨 Couleur trouvée pour ${columnName}: bg=${bgColor}, font=${fontColor}`);
+        console.log(` Couleur trouvée pour ${columnName}: bg=${bgColor}, font=${fontColor}`);
       } else {
-        console.log(`🎨 Aucune couleur trouvée pour ${columnName}, utilisation defaut`);
+        console.log(` Aucune couleur trouvée pour ${columnName}, utilisation defaut`);
       }
       
       const cellAddress = XLSX.utils.encode_cell({ r: 0, c: colIdx });
@@ -178,7 +177,7 @@ export class ExportExcelService {
   }
   
   private applyColumnColors(worksheet: any, data: any[], headers: string[], columnColors: { [key: string]: { bgColor: string; fontColor: string } }, excludeFirstColumnData?: boolean): void {
-    console.log('🎨 applyColumnColors - rows:', data.length, 'excludeFirstColumnData:', excludeFirstColumnData);
+    console.log(' applyColumnColors - rows:', data.length, 'excludeFirstColumnData:', excludeFirstColumnData);
     
     for (let rowIdx = 0; rowIdx < data.length; rowIdx++) {
       const row = data[rowIdx];

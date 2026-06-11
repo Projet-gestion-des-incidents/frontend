@@ -1,4 +1,3 @@
-// User.model.ts - Ajouter le champ adresse
 export interface User {
   id: string;           
   nom: string;
@@ -9,6 +8,6 @@ export interface User {
   email: string;
   birthDate?: Date | string;
   statut: 'Actif' | 'Inactif';
-  adresse?: string;  // ✅ AJOUTER CETTE LIGNE
+  adresse?: string; 
   emailConfirmed?: boolean;
 }

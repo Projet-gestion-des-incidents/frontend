@@ -4,9 +4,8 @@ export enum SeveriteIncident {
   Forte = 3
 }
 
-// Dans votre fichier incident.model.ts, vérifiez que l'enum contient :
 export enum StatutIncident {
-  NonTraite = 0,  // ou la valeur appropriée
+  NonTraite = 0, 
   EnCours = 1,
   Ferme = 2
 }
@@ -48,7 +47,7 @@ export interface Incident {
   updatedAt?: Date;
   createdById?: string;
   createdByName?: string;
-  typeProbleme?: TypeProbleme;  // ← Changé de string à TypeProbleme
+  typeProbleme?: TypeProbleme;  
   nombreTickets: number;
   nombreEntitesImpactees: number;
   
@@ -60,7 +59,7 @@ export interface Incident {
 export interface IncidentDetail extends Incident {
   tickets: IncidentTicket[];
   entitesImpactees: EntiteImpactee[];
-  tpEs?: TpeLiaison[]; // Note: c'est "tpEs" dans la réponse, pas "tpes"
+  tpEs?: TpeLiaison[]; 
   piecesJointes?: PieceJointeDTO[];
 }
 export interface IncidentTPEDTO {
@@ -99,7 +98,7 @@ export interface UpdateIncidentDTO {
   descriptionIncident?: string;
   emplacement?: string;
   typeProbleme?: TypeProbleme;
-  severiteIncident?: SeveriteIncident; // Admin only
+  severiteIncident?: SeveriteIncident; 
 
 }
 
@@ -118,7 +117,6 @@ export interface ApiResponse<T> {
   isSuccess: boolean;
 }
 
-// Interfaces supplémentaires
 export interface IncidentSearchRequest {
   searchTerm?: string;
   severiteIncident?: number;

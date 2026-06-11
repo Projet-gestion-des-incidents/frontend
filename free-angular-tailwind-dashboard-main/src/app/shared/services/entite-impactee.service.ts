@@ -24,7 +24,7 @@ export interface AddEntiteImpacteeToIncidentDTO {
   providedIn: 'root'
 })
 export class EntiteImpacteeService {
-  private apiUrl = 'https://localhost:7063/api/entites-impactees'; // Vérifiez le port
+  private apiUrl = 'https://localhost:7063/api/entites-impactees'; 
 
   constructor(
     private http: HttpClient,
@@ -41,21 +41,16 @@ export class EntiteImpacteeService {
     };
   }
 
-
   // AJOUTER une entité impactée à un incident
-// entite-impactee.service.ts
-// Dans entite-impactee.service.ts
-
 addToIncident(incidentId: string, typeEntiteImpactee: TypeEntiteImpactee | number): Observable<ApiResponse<EntiteImpactee>> {
-  // ✅ Convertir le nombre en chaîne (nom de l'enum)
   const typeString = this.getTypeEntiteImpacteeString(typeEntiteImpactee as number);
-  
+
   const dto = {
     incidentId: incidentId,
     typeEntiteImpactee: typeString
   };
   
-  console.log('📦 Ajout entité à l\'incident:', dto);
+  console.log(' Ajout entité à l\'incident:', dto);
   
   return this.http.post<ApiResponse<EntiteImpactee>>(
     `${this.apiUrl}/add-to-incident`,
@@ -64,7 +59,7 @@ addToIncident(incidentId: string, typeEntiteImpactee: TypeEntiteImpactee | numbe
   );
 }
 
-// Méthode utilitaire pour convertir l'énumération en chaîne
+// M convertir l'énumération en chaîne
 private getTypeEntiteImpacteeString(type: number): string {
   switch(type) {
     case 1:
@@ -80,12 +75,9 @@ private getTypeEntiteImpacteeString(type: number): string {
   }
 }
 
-
-
-
   // RETIRER une entité impactée d'un incident
   removeFromIncident(entiteId: string): Observable<ApiResponse<boolean>> {
-    console.log('🗑️ Retrait entité de l\'incident:', entiteId);
+    console.log(' Retrait entité de l\'incident:', entiteId);
     
     return this.http.delete<ApiResponse<boolean>>(
       `${this.apiUrl}/${entiteId}`,

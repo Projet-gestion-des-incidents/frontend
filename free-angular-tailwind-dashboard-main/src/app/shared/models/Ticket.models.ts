@@ -26,25 +26,17 @@ export interface TicketDTO {
   nombrePiecesJointes: number;
   
 }
-// Dans Ticket.models.ts
-export interface TechnicianUpdateTicketDTO {
-  assigneeId?: string | null;
-  statutTicket?: number;
-}
+
 export interface CreateTicketDTO {
   titreTicket: string;
   descriptionTicket?: string;
   prioriteTicket: number;
   statutTicket: number;
-    commentaireInitial?: string;  // nouveau champ
+    commentaireInitial?: string; 
   commentaireInterne?: boolean;
     piecesJointes?: File[];
 }
-export interface CreatePieceJointeDTO {
-  nomFichier: string;
-  contentType: string;
-  contenuBase64: string; 
-}
+
 export interface ApiResponse<T> {
   isSuccess: boolean;
   message: string;
@@ -64,15 +56,14 @@ export interface CommentaireDTO {
   estInterne: boolean;
   auteurId: string;
   auteurNom: string;
-  piecesJointes: PieceJointeDTO[]; // ← Corriger ici : tableau de PieceJointeDTO, pas de File
+  piecesJointes: PieceJointeDTO[]; 
 
 }
 
 export interface TicketDetailDTO extends TicketDTO {
   commentaires: CommentaireDTO[];
-    dateLimite?: string; // ou Date selon votre API
-
-    incidents?: IncidentLiaison[]; // Ajouter cette ligne
+    dateLimite?: string; 
+    incidents?: IncidentLiaison[]; 
 
 }
 export interface IncidentLiaison {

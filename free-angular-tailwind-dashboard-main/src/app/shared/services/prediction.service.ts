@@ -2,7 +2,7 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams, HttpHeaders } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { AuthService } from './auth.service'; // À importer selon votre structure
+import { AuthService } from './auth.service'; 
 
 export interface DailyIncidentCountDTO {
   date: string;
@@ -43,17 +43,14 @@ export interface ApiResponse<T> {
 
 @Injectable({ providedIn: 'root' })
 export class PredictionService {
-  // ✅ URL en dur (à adapter selon votre environnement)
   private readonly baseUrl = 'https://localhost:7063/api/prediction';
-  // ou utilisez une variable globale
-  // private readonly baseUrl = window['apiUrl'] || 'https://localhost:7000/api/prediction';
 
   constructor(
     private http: HttpClient,
-    private authService: AuthService // Injectez votre service d'authentification
+    private authService: AuthService 
   ) {}
 
-  // ✅ Méthode pour les headers d'authentification
+  //  les headers d'authentification
   private getAuthHeaders(): { headers: HttpHeaders } {
     const token = this.authService.getAccessToken();
     return {
@@ -67,7 +64,7 @@ export class PredictionService {
   getPredictions(): Observable<ApiResponse<IncidentPredictionResponseDTO>> {
     return this.http.get<ApiResponse<IncidentPredictionResponseDTO>>(
       `${this.baseUrl}/incidents`,
-      this.getAuthHeaders() // ✅ Ajout des headers d'auth
+      this.getAuthHeaders() 
     );
   }
 
@@ -75,7 +72,7 @@ export class PredictionService {
     const params = new HttpParams().set('monthsBack', monthsBack.toString());
     return this.http.get<ApiResponse<DailyIncidentCountDTO[]>>(
       `${this.baseUrl}/historical`,
-      { params, ...this.getAuthHeaders() } // ✅ Ajout des headers d'auth
+      { params, ...this.getAuthHeaders() } 
     );
   }
 }

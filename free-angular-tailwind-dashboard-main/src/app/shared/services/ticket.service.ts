@@ -11,20 +11,12 @@ import { Incident, PagedResult } from '../models/incident.model';
 export class TicketService {
 
   private baseUrl = 'https://localhost:7063/api/ticket'; 
-  private incidentBaseUrl = 'https://localhost:7063/api/incident'; // Ajouter cette ligne
+  private incidentBaseUrl = 'https://localhost:7063/api/incident'; 
 
   constructor(private http: HttpClient,    private authService: AuthService
   ) { }
 
-  /**
-   * 🔹 Récupérer tous les tickets
-   */
-  getAllTickets(): Observable<ApiResponse<TicketDTO[]>> {
-    return this.http.get<ApiResponse<TicketDTO[]>>(
-      `${this.baseUrl}/all`,
-          this.getAuthHeaders()
-    );
-  }
+
  private getAuthHeaders(): { headers: HttpHeaders } {
     const token = this.authService.getAccessToken();
     return {
@@ -40,21 +32,18 @@ export class TicketService {
   let headers = new HttpHeaders({
     'Authorization': `Bearer ${token}`
   });
-
-  // ❌ Ne pas mettre Content-Type pour FormData
   if (!isFormData) {
     headers = headers.set('Content-Type', 'application/json');
   }
 
   return { headers };
 }
-// Dans ticket.service.ts, ajoutez :
 
 /**
  * Récupère les tickets archivés par l'utilisateur connecté
  */
 getArchivedTickets(params: any): Observable<any> {
-  console.log('📦 Récupération des tickets archivés, params:', params);
+  console.log(' Récupération des tickets archivés, params:', params);
   
   let httpParams = new HttpParams()
     .set('Page', params.Page?.toString() || '1')
@@ -75,75 +64,74 @@ getArchivedTickets(params: any): Observable<any> {
     { headers: this.getAuthHeaders().headers, params: httpParams }
   ).pipe(
     map(response => response.data || response),
-    tap(data => console.log('📦 Tickets archivés reçus:', data))
+    tap(data => console.log(' Tickets archivés reçus:', data))
   );
 }
 
 /**
- * Restaure un ticket archivé
+ * Restaurer un ticket archivé
  */
 restaurerTicket(ticketId: string): Observable<ApiResponse<any>> {
-  console.log('📦 Restauration du ticket:', ticketId);
+  console.log(' Restauration du ticket:', ticketId);
   
   return this.http.post<ApiResponse<any>>(
     `${this.baseUrl}/${ticketId}/restaurer`,
     {},
     this.getAuthHeaders()
   ).pipe(
-    tap(response => console.log('📥 Réponse restauration:', response))
+    tap(response => console.log(' Réponse restauration:', response))
   );
 }
-/**
- * Archive un ticket
- */
+// Archiver un ticket
 archiverTicket(ticketId: string): Observable<ApiResponse<any>> {
-  console.log('📦 Archivage du ticket:', ticketId);
+  console.log(' Archivage du ticket:', ticketId);
   
   return this.http.post<ApiResponse<any>>(
     `${this.baseUrl}/${ticketId}/archiver`,
     {},
     this.getAuthHeaders()
   ).pipe(
-    tap(response => console.log('📥 Réponse archivage:', response))
+    tap(response => console.log(' Réponse archivage:', response))
   );
 }
 
-// Dans ticket.service.ts
+// Récupérer les incidents d un ticket
 getIncidentsByTicket(ticketId: string): Observable<Incident[]> {
-  console.log('🔍 Récupération des incidents pour le ticket:', ticketId);
+  console.log(' Récupération des incidents pour le ticket:', ticketId);
   
   return this.http.get<ApiResponse<Incident[]>>(
     `${this.baseUrl}/${ticketId}/incidents`,
     this.getAuthHeaders()
   ).pipe(
     map(response => {
-      console.log('📦 Incidents reçus:', response);
+      console.log(' Incidents reçus:', response);
       return response.data || [];
     }),
     catchError(error => {
-      console.error('❌ Erreur récupération incidents:', error);
+      console.error(' Erreur récupération incidents:', error);
       return of([]);
     })
   );
 }
+//technicien : modifier ticket
 technicianUpdateTicket(id: string, dto: TechnicianUpdateTicketDTO): Observable<ApiResponse<TicketDTO>> {
-  console.log('🔧 Mise à jour technicien - Ticket:', id, 'DTO:', dto);
+  console.log(' Mise à jour technicien - Ticket:', id, 'DTO:', dto);
   
   return this.http.put<ApiResponse<TicketDTO>>(
     `${this.baseUrl}/${id}/technician-update`,
     dto,
     this.getAuthHeaders()
   ).pipe(
-    tap(response => console.log('📥 Réponse mise à jour technicien:', response)),
+    tap(response => console.log(' Réponse mise à jour technicien:', response)),
     catchError(error => {
-      console.error('❌ Erreur mise à jour technicien:', error);
+      console.error(' Erreur mise à jour technicien:', error);
       return throwError(() => error);
     })
   );
 }
 
 
-
+ /** Modifier un ticket  */
   updateTicket(id: string, formData: FormData): Observable<ApiResponse<UpdateTicketResponseDTO>> {
     return this.http.put<ApiResponse<UpdateTicketResponseDTO>>(
       `${this.baseUrl}/${id}`,
@@ -165,40 +153,40 @@ getTicketDetails(id: string): Observable<ApiResponse<TicketDetailDTO>> {
     this.getAuthHeaders()
   );
 }
-// Dans ticket.service.ts
+//Ajouter liaison incident ticket
 lierIncidents(ticketId: string, incidentIds: string[]): Observable<ApiResponse<any>> {
-  // Le backend attend List<Guid> directement dans le body
-  // Pas besoin de wrapper dans un objet
   return this.http.post<ApiResponse<any>>(
     `${this.baseUrl}/${ticketId}/lier-incidents`,
-    incidentIds, // ← Envoyer directement le tableau
-    this.getAuthHeaders() // Utiliser getAuthHeaders() qui a Content-Type: application/json
+    incidentIds, 
+    this.getAuthHeaders() 
   );
 }
+//Suppression liaison incident ticket
 delierIncident(ticketId: string, incidentId: string): Observable<ApiResponse<boolean>> {
-  console.log('🗑️ Suppression liaison - Ticket:', ticketId, 'Incident:', incidentId);
+  console.log(' Suppression liaison - Ticket:', ticketId, 'Incident:', incidentId);
   
   return this.http.delete<ApiResponse<boolean>>(
     `${this.baseUrl}/${ticketId}/incidents/${incidentId}`,
-    
+  
     this.getAuthHeaders()
   ).pipe(
     tap(response => {
-      console.log('📥 Réponse suppression liaison:', response);
+      console.log(' Réponse suppression liaison:', response);
     }),
     catchError(error => {
-      console.error('❌ Erreur suppression liaison:', error);
+      console.error(' Erreur suppression liaison:', error);
       return throwError(() => error);
     })
   );
 }
-  /** Supprimer un ticket */
+  // Supprimer un ticket 
   deleteTicket(id: string): Observable<ApiResponse<any>> {
     return this.http.delete<ApiResponse<any>>(
       `${this.baseUrl}/${id}`,
       this.getAuthHeaders()
     );
   }
+  //  Récupérer la liste des tickets avec pagination
 getTicketsPaged(request: any) {
   const params = new URLSearchParams();
 
@@ -213,18 +201,7 @@ getTicketsPaged(request: any) {
     this.getAuthHeaders()
   );
 }
-  /**
-   * 🔹 Créer un ticket
-   */
-// createTicket(dto: any): Observable<TicketDTO> {
-//   return this.http.post<ApiResponse<TicketDTO>>(
-//     this.baseUrl,
-//     dto,
-//     this.getAuthHeaders()
-//   ).pipe(
-//     map(response => response.data)
-//   );
-// }
+  // Créer un ticket
   createTicket(formData: FormData): Observable<ApiResponse<TicketDTO>> {
     return this.http.post<ApiResponse<TicketDTO>>(
       this.baseUrl,
@@ -232,9 +209,9 @@ getTicketsPaged(request: any) {
       this.getAuthHeaders1(true) // true = isFormData
     );
   }
- 
+ //Résolution d un incident
   resoudreIncident(incidentId: string): Observable<ApiResponse<boolean>> {
-    console.log('🔧 Résolution de l\'incident:', incidentId);
+    console.log(' Résolution de l\'incident:', incidentId);
     
     return this.http.put<ApiResponse<boolean>>(
       `${this.incidentBaseUrl}/${incidentId}/resoudre`,
@@ -242,19 +219,16 @@ getTicketsPaged(request: any) {
       this.getAuthHeaders()
     ).pipe(
       tap(response => {
-        console.log('📥 Réponse résolution incident:', response);
+        console.log(' Réponse résolution incident:', response);
       }),
       catchError(error => {
-        console.error('❌ Erreur résolution incident:', error);
+        console.error(' Erreur résolution incident:', error);
         return throwError(() => error);
       })
     );
   }
 
-/**
- * 🔹 Récupérer les tickets assignés à l'utilisateur connecté (technicien) avec pagination
- * GET /api/ticket/mes-tickets
- */
+//  Récupérer les tickets assignés à l'utilisateur connecté (technicien) avec pagination
 getMesTicketsAssignes(request: any): Observable<ApiResponse<PagedResult<TicketDTO>>> {
   // Construire les paramètres de requête avec HttpParams
   let params = new HttpParams()
@@ -282,11 +256,8 @@ getMesTicketsAssignes(request: any): Observable<ApiResponse<PagedResult<TicketDT
     { params, headers: this.getAuthHeaders().headers }
   );
 }
-// Dans ticket.service.ts
 
-/**
- * Récupère les statistiques du dashboard tickets
- */
+// Récupère les statistiques du dashboard tickets
 getTicketDashboard(): Observable<any> {
   return this.http.get<ApiResponse<any>>(
     `${this.baseUrl}/dashboard`,
