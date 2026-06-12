@@ -40,7 +40,6 @@ export class IncidentDetailComponent implements OnInit {
     [TypeEntiteImpactee.ServiceApplicatif]: 'Service Applicatif'
   };
 
-  // Mapping pour les valeurs string venant du backend
   stringToEnumMap: { [key: string]: TypeEntiteImpactee } = {
     'MachineTPE': TypeEntiteImpactee.MachineTPE,
     'FluxTransactionnel': TypeEntiteImpactee.FluxTransactionnel,
@@ -227,15 +226,6 @@ getSeveriteLibelle(severite: any, severiteLibelle?: string): string {
   return 'Non définie';
 }
 
-  private getSeveriteLabelFromValue(severite: number): string {
-    switch(severite) {
-      case 1: return 'Faible';
-      case 2: return 'Moyenne';
-      case 3: return 'Forte';
-      default: return 'Non définie';
-    }
-  }
-
 getSeveriteBadgeColor(severite: any): BadgeColor {
   // Cas 1: La sévérité est 0 ou null
   if (severite === 0 || severite === null || severite === undefined) {
@@ -308,11 +298,11 @@ getStatutBadgeClasses(statut: any): string {
   
   switch(statutValue) {
     case 0: // Non traité
-      return 'bg-[#C5C6FF] text-[#0C144E]';   // Digital Blue 48%
+      return 'bg-[#C5C6FF] text-[#0C144E]';   
     case 1: // En cours
-      return 'bg-[#8788FF] text-white';        // Digital Purple
+      return 'bg-[#8788FF] text-white';       
     case 2: // Fermé
-      return 'bg-[#D4B8FF] text-[#0C144E]';   // Digital Blue 64%
+      return 'bg-[#D4B8FF] text-[#0C144E]';   
     default:
       return 'bg-[#D4B8FF] text-[#0C144E]';
   }
@@ -395,30 +385,17 @@ getSeveriteBadgeClasses(severite: any): string {
   }
 // ========== GESTION DES PIÈCES JOINTES ==========
 
-
-
 // Ouvrir une image dans un modal
 openImage(url: string): void {
-  console.log('🖼️ openImage - URL:', url);
-  console.log('🔗 Type:', typeof url);
-  console.log('📏 Longueur URL:', url?.length);
-  
   if (!url) {
-    console.error('❌ URL de l\'image manquante');
+    console.error(' URL de l\'image manquante');
     return;
   }
   
   this.selectedImage = url;
   this.selectedImageUrl = url;
-  console.log('✅ Image ouverte avec succès');
+  console.log(' Image ouverte avec succès');
 }
-
-
-
-
-
-   
- // Dans IncidentDetailComponent, ajoutez ces propriétés avec les autres déclarations
 selectedImageUrl: string | null = null;
 currentImageUrl: string = '';
 currentImageName: string = '';
@@ -432,30 +409,30 @@ getImageUrl(pieceId: string): string {
 }
 
 openImageModal(pieceId: string, imageName: string): void {
-  console.log('🖼️ Ouverture du modal image:', pieceId, imageName);
+  console.log(' Ouverture du modal image:', pieceId, imageName);
   this.currentImageUrl = this.getImageUrl(pieceId);
   this.currentImageName = imageName;
   this.showImageModal = true;
 }
 
 closeImageModal(): void {
-  console.log('❌ Fermeture du modal image');
+  console.log(' Fermeture du modal image');
   this.showImageModal = false;
   this.currentImageUrl = '';
   this.currentImageName = '';
 }
 
-// Vérifier si c'est une image par content-type (plus fiable que l'extension)
+// Vérifier si c'est une image par content-type 
 isImage(contentType: string | null | undefined): boolean {
   if (!contentType) {
-    // Fallback: vérifier par extension si contentType est null
+    // vérifier par extension si contentType est null
     return false;
   }
   const imageTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/webp', 'image/bmp', 'image/svg+xml'];
   return imageTypes.includes(contentType.toLowerCase());
 }
 
-// Vérifier si c'est une image par extension (fallback)
+// Vérifier si c'est une image par extension 
 isImageByExtension(filename: string): boolean {
   if (!filename) return false;
   const ext = filename.substring(filename.lastIndexOf('.')).toLowerCase();
@@ -472,31 +449,31 @@ isPdf(contentType: string | null | undefined, filename: string): boolean {
 
 // Ouvrir un PDF dans un modal
 openPdf(url: string): void {
-  console.log('📑 openPdf - URL:', url);
+  console.log(' openPdf - URL:', url);
   if (!url) {
-    console.error('❌ URL du PDF manquante');
+    console.error(' URL du PDF manquante');
     return;
   }
   
   try {
     this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
     this.showPdfModal = true;
-    console.log('✅ PDF ouvert avec succès dans le modal');
+    console.log(' PDF ouvert avec succès dans le modal');
   } catch (error) {
-    console.error('❌ Erreur lors de l\'ouverture du PDF:', error);
+    console.error(' Erreur lors de l\'ouverture du PDF:', error);
   }
 }
 
 // Fermer le modal PDF
 closePdfModal(): void {
-  console.log('❌ Fermeture du modal PDF');
+  console.log(' Fermeture du modal PDF');
   this.showPdfModal = false;
   this.pdfUrl = null;
 }
 
 // Télécharger un fichier
 downloadFile(piece: PieceJointeDTO): void {
-  console.log('💾 Téléchargement:', piece.nomFichier);
+  console.log(' Téléchargement:', piece.nomFichier);
   const downloadUrl = `https://localhost:7063/api/pieces-jointes/${piece.id}`;
   
   const link = document.createElement('a');

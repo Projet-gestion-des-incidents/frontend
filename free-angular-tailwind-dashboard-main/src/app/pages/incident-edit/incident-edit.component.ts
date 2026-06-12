@@ -36,13 +36,11 @@ export class IncidentEditComponent implements OnInit {
   userRole: string = '';
 uploadingFiles: boolean = false;
 uploadError: string | null = null;
-  // Options pour les selects
   severiteOptions = [
     { value: 'Faible', label: 'Faible' },
     { value: 'Moyenne', label: 'Moyenne' },
     { value: 'Forte', label: 'Forte' }
   ];
-// Dans IncidentEditComponent, ajoutez cette propriété
 selectedEntiteValue: number | null = null;
   severiteStringToEnum: { [key: string]: SeveriteIncident } = {
     'Faible': SeveriteIncident.Faible,
@@ -60,7 +58,7 @@ initialIncidentState: any = null;
   maxFiles = 10;
 piecesJointesExistantes: any[] = [];
 selectedEntiteToAdd: TypeEntiteImpactee | null = null;
-entitesAAjouter: TypeEntiteImpactee[] = []; // Liste des entités à ajouter (optionnel)
+entitesAAjouter: TypeEntiteImpactee[] = []; // Liste des entités 
   severiteEnumToString: { [key: number]: string } = {
     [SeveriteIncident.Faible]: 'Faible',
     [SeveriteIncident.Moyenne]: 'Moyenne',
@@ -140,7 +138,7 @@ ngOnInit(): void {
       const incidentId = this.route.snapshot.paramMap.get('id');
       if (incidentId) {
         this.loadIncident(incidentId, () => {
-          // ✅ Vérifier si l'incident est lié à un ticket
+          //  Vérifier si l'incident est lié à un ticket
           if (this.isIncidentLieATicket) {
             this.error = 'Cet incident ne peut pas être modifié car il est déjà lié à un ticket.';
             // Rediriger après 3 secondes
@@ -167,9 +165,8 @@ ngOnInit(): void {
   }
 
   // ========== GESTION DES TPES DISPONIBLES ==========
-
 loadTpesDisponibles() {
-  console.log('📦 Chargement des TPEs disponibles...');
+  console.log(' Chargement des TPEs disponibles...');
   
   // Pour le commerçant : ses propres TPEs via getMyTpes()
   const tpeObservable = this.isCommercant 
@@ -177,10 +174,9 @@ loadTpesDisponibles() {
     : this.tpeService.getAllTPEs();
   
   tpeObservable.subscribe({
-    next: (response: any) => {  // ⚠️ Utiliser 'any' pour éviter les erreurs de type
-      console.log('📦 Réponse brute TPEs:', response);
-      
-      // ✅ CORRECTION: Extraire le tableau correctement
+    next: (response: any) => {  
+      console.log(' Réponse brute TPEs:', response);
+      // Extraire le tableau 
       let tpes: any[] = [];
       
       // Vérifier le type de response
@@ -190,17 +186,17 @@ loadTpesDisponibles() {
       // Cas 1: Response est directement un tableau
       else if (Array.isArray(response)) {
         tpes = response;
-        console.log('✅ Cas 1 - Response est un tableau');
+        console.log(' Cas 1 - Response est un tableau');
       }
       // Cas 2: Response a une propriété 'data' qui est un tableau
       else if (response.data && Array.isArray(response.data)) {
         tpes = response.data;
-        console.log('✅ Cas 2 - data est un tableau');
+        console.log(' Cas 2 - data est un tableau');
       }
       // Cas 3: Response a une propriété 'items' (pagination)
       else if (response.items && Array.isArray(response.items)) {
         tpes = response.items;
-        console.log('✅ Cas 3 - items est un tableau');
+        console.log(' Cas 3 - items est un tableau');
       }
       // Cas 4: Response est un objet avec d'autres propriétés
       else if (typeof response === 'object') {
@@ -208,26 +204,18 @@ loadTpesDisponibles() {
         for (const key in response) {
           if (response.hasOwnProperty(key) && Array.isArray(response[key])) {
             tpes = response[key];
-            console.log(`✅ Cas 4 - trouvé tableau dans propriété '${key}'`);
+            console.log(` Cas 4 - trouvé tableau dans propriété '${key}'`);
             break;
           }
         }
       }
-      
-      console.log('📦 TPEs extraits:', tpes);
-      console.log('📦 TPEs déjà liés:', this.incident?.tpEs);
-      
-      // ✅ Filtrer pour exclure les TPEs déjà liés
+      //  Filtrer pour exclure les TPEs déjà liés
       const tpesAssociesIds = this.incident?.tpEs?.map(t => t.tpeId) || [];
       this.tpEsDisponibles = (tpes || []).filter(tpe => !tpesAssociesIds.includes(tpe.id));
-      
-      console.log('📦 TPEs disponibles (non liés):', this.tpEsDisponibles.length);
-      console.log('📦 Détails TPEs disponibles:', this.tpEsDisponibles);
-      
-      this.updateTpeOptions();
+     this.updateTpeOptions();
     },
     error: (err) => {
-      console.error('❌ Erreur chargement TPEs:', err);
+      console.error(' Erreur chargement TPEs:', err);
       this.tpEsDisponibles = [];
       this.tpeOptions = [];
       this.error = 'Impossible de charger la liste des TPEs';
@@ -235,18 +223,11 @@ loadTpesDisponibles() {
   });
 }
 
-
-// Dans incident-edit.component.ts, ajoutez ces propriétés :
-
 // Pour la sélection multiple des entités
 selectedEntitesValues: number[] = [];
 showEntiteDropdown = false;
 addingEntities = false;
 entitiesAddedCount = 0;
-
-// Méthodes pour la sélection multiple :
-
-
 
 // Vérifier si une entité est sélectionnée
 isEntiteSelected(value: any): boolean {
@@ -255,12 +236,9 @@ isEntiteSelected(value: any): boolean {
 }
 
 // Basculer la sélection d'une entité
-// Assurez-vous que cette méthode est correcte
-// Dans toggleEntiteSelection, gardez les logs que vous avez déjà
+
 toggleEntiteSelection(value: number) {
-  const numValue = Number(value);
-  console.log('🖱️ TOGGLE APPELÉ avec:', numValue);
-  
+  const numValue = Number(value);  
   const index = this.selectedEntitesValues.findIndex(v => v === numValue);
   if (index === -1) {
     this.selectedEntitesValues = [...this.selectedEntitesValues, numValue];
@@ -269,7 +247,7 @@ toggleEntiteSelection(value: number) {
   }
   console.log('selectedEntitesValues après:', this.selectedEntitesValues);
   
-  // ✅ Vérifier les changements
+  //  Vérifier les changements
   this.checkForChanges();
 }
 
@@ -294,7 +272,6 @@ getTypeEntiteLabelFromId(id: number): string {
   return mapping[id] || 'Inconnu';
 }
 
-// Ajouter plusieurs entités à la fois
 // Ajouter plusieurs entités à la fois
 ajouterEntitesMultiples() {
   if (this.selectedEntitesValues.length === 0) {
@@ -356,13 +333,13 @@ ajouterEntitesMultiples() {
           this.selectedEntitesValues = [];
           this.showEntiteDropdown = false;
           
-          // ✅ Met à jour la liste des disponibles
+          //  Met à jour la liste des disponibles
           this.updateEntitesDisponibles();
           
-          // ✅ Met à jour l'état initial après les ajouts
+          //  Met à jour l'état initial après les ajouts
           this.initialIncidentState.entitesImpactees = JSON.parse(JSON.stringify(this.incident.entitesImpactees || []));
           
-          // ✅ Vérifie les changements
+          //  Vérifie les changements
           this.checkForChanges();
           
           if (successCount > 0) {
@@ -387,13 +364,13 @@ ajouterEntitesMultiples() {
           this.selectedEntitesValues = [];
           this.showEntiteDropdown = false;
           
-          // ✅ Met à jour la liste des disponibles même en cas d'erreur partielle
+          //  Met à jour la liste des disponibles même en cas d'erreur partielle
           this.updateEntitesDisponibles();
           
-          // ✅ Met à jour l'état initial
+          //  Met à jour l'état initial
           this.initialIncidentState.entitesImpactees = JSON.parse(JSON.stringify(this.incident.entitesImpactees || []));
           
-          // ✅ Vérifie les changements
+          //  Vérifie les changements
           this.checkForChanges();
           
           this.showTemporaryMessage(`${successCount} entité(s) ajoutée(s), ${errorCount} erreur(s)`, 'warning');
@@ -412,7 +389,6 @@ updateTpeOptions() {
     text: `${tpe.numSerieComplet} - ${tpe.modele}`,
     selected: false // Toujours false car ce sont les TPEs disponibles (non liés)
   }));
-  console.log('📦 Options TPE mises à jour:', this.tpeOptions);
 }
 
   // Obtenir le code d'un TPE à partir de son ID
@@ -421,9 +397,7 @@ updateTpeOptions() {
     return tpe ? tpe.numSerieComplet : 'TPE';
   }
 
-  onTpeSelectionChange(selectedIds: string[]) {
-    console.log('📦 TPEs sélectionnés:', selectedIds);
-    
+  onTpeSelectionChange(selectedIds: string[]) {    
     // Vérifier si la sélection a changé par rapport aux TPEs déjà liés
     const tpesActuels = this.incident.tpEs?.map(t => t.tpeId) || [];
     const triActuels = [...tpesActuels].sort();
@@ -440,13 +414,6 @@ updateTpeOptions() {
       }, 5000);
     }
   }
-
-  // Dans incident-edit.component.ts, ajoutez cette méthode
-onEntiteSelectionChange(value: any) {
-  console.log('Sélection changée:', value);
-  // Vous pouvez ajouter d'autres logiques ici si nécessaire
-}
-
   sauvegarderTpes(): Promise<boolean> {
     return new Promise((resolve) => {
       if (!this.tpeIdsModifies) {
@@ -455,15 +422,10 @@ onEntiteSelectionChange(value: any) {
       }
 
       const tpesActuels = this.incident.tpEs?.map(t => t.tpeId) || [];
-      
-      // TPEs à ajouter (dans selected mais pas dans actuels)
+      // TPEs à ajouter
       const aAjouter = this.selectedTpeIds.filter(id => !tpesActuels.includes(id));
-      
-      // TPEs à supprimer (dans actuels mais pas dans selected)
+      // TPEs à supprimer
       const aSupprimer = tpesActuels.filter(id => !this.selectedTpeIds.includes(id));
-
-      console.log('📊 TPEs à ajouter:', aAjouter);
-      console.log('📊 TPEs à supprimer:', aSupprimer);
 
       // Si rien à faire
       if (aAjouter.length === 0 && aSupprimer.length === 0) {
@@ -490,24 +452,24 @@ onEntiteSelectionChange(value: any) {
             if (aAjouter.length > 0) {
               this.incidentService.lierPlusieursTpes(this.incident.id, aAjouter).subscribe({
                 next: () => {
-                  console.log('✅ TPEs mis à jour avec succès');
+                  console.log(' TPEs mis à jour avec succès');
                   this.tpeIdsModifies = false;
                   resolve(true);
                 },
                 error: (err) => {
-                  console.error('❌ Erreur ajout TPEs:', err);
+                  console.error(' Erreur ajout TPEs:', err);
                   this.error = 'Erreur lors de l\'ajout des TPEs';
                   resolve(false);
                 }
               });
             } else {
-              console.log('✅ TPEs supprimés avec succès');
+              console.log(' TPEs supprimés avec succès');
               this.tpeIdsModifies = false;
               resolve(true);
             }
           },
           error: (err) => {
-            console.error('❌ Erreur suppression TPEs:', err);
+            console.error(' Erreur suppression TPEs:', err);
             this.error = 'Erreur lors de la suppression des TPEs';
             resolve(false);
           }
@@ -516,12 +478,12 @@ onEntiteSelectionChange(value: any) {
         // Seulement des ajouts
         this.incidentService.lierPlusieursTpes(this.incident.id, aAjouter).subscribe({
           next: () => {
-            console.log('✅ TPEs ajoutés avec succès');
+            console.log(' TPEs ajoutés avec succès');
             this.tpeIdsModifies = false;
             resolve(true);
           },
           error: (err) => {
-            console.error('❌ Erreur ajout TPEs:', err);
+            console.error(' Erreur ajout TPEs:', err);
             this.error = 'Erreur lors de l\'ajout des TPEs';
             resolve(false);
           }
@@ -530,16 +492,14 @@ onEntiteSelectionChange(value: any) {
     });
   }
 
-  /**
-   * Ajouter un TPE à l'incident
-   */
+  /** Ajouter un TPE à l'incident */
   ajouterTpe(tpeId: string) {
     if (!this.isCommercant) {
       this.error = 'Seul le commerçant peut ajouter des TPEs';
       return;
     }
     
-    console.log('➕ Ajout TPE:', tpeId);
+    console.log(' Ajout TPE:', tpeId);
       if (this.isIncidentLieATicket) {
         
     this.showErrorDialog(' Impossible de modifier les TPEs : cet incident est déjà lié à un support.');
@@ -553,7 +513,7 @@ onEntiteSelectionChange(value: any) {
 
     this.incidentService.lierTpe(this.incident.id, tpeId).subscribe({
       next: (response) => {
-        console.log('✅ Réception réponse:', response);
+        console.log(' Réception réponse:', response);
         
         if (response.isSuccess) {
           // Ajouter le TPE à la liste locale
@@ -582,18 +542,16 @@ onEntiteSelectionChange(value: any) {
         }
       },
       error: (err) => {
-        console.error('❌ Erreur liaison TPE:', err);
+        console.error(' Erreur liaison TPE:', err);
         this.error = err.error?.message || 'Erreur lors de la liaison du TPE';
       }
     });
   }
 
   // ========== GESTION DES SUPPRESSIONS AVEC MODALES ==========
-
   showDeleteTpeModal: boolean = false;
 tpeToDelete: { id: string; index: number; label: string } | null = null;
 
-// Modifiez la méthode supprimerTpe pour vérifier si c'est le dernier TPE
 supprimerTpe(tpeId: string, index: number) {
   if (!this.isCommercant) {
     this.error = 'Seul le commerçant peut supprimer des TPEs';
@@ -603,7 +561,7 @@ supprimerTpe(tpeId: string, index: number) {
     this.showErrorDialog(' Impossible de modifier les TPEs : cet incident est déjà lié à un support.');
     return;
   }
-  // ✅ Vérifier si c'est le dernier TPE
+  //  Vérifier si c'est le dernier TPE
   if (this.incident.tpEs && this.incident.tpEs.length === 1) {
     this.showErrorDialog(' Impossible de retirer le dernier TPE associé. Un incident doit avoir au moins un TPE associé pour être traité.');
     return;
@@ -630,7 +588,7 @@ showErrorDialog(message: string, resultCode?: number): void {
     this.error = message;
   }
   
-  // ✅ Scroll automatique vers le haut pour voir l'erreur
+  //  Scroll automatique vers le haut pour voir l'erreur
   window.scrollTo({ top: 0, behavior: 'smooth' });
   
   // Auto-fermeture après 5 secondes
@@ -643,21 +601,21 @@ showErrorDialog(message: string, resultCode?: number): void {
  confirmerSuppressionTpe() {
   if (!this.tpeToDelete) return;
 
-  console.log('🗑️ Suppression TPE:', this.tpeToDelete.id);
+  console.log(' Suppression TPE:', this.tpeToDelete.id);
   
   this.loading = true;
   
   this.incidentService.retirerTpe(this.incident.id, this.tpeToDelete.id).subscribe({
     next: (response) => {
       if (response.isSuccess) {
-        // ✅ Récupérer le TPE retiré pour le remettre dans la liste des disponibles
+        //  Récupérer le TPE retiré pour le remettre dans la liste des disponibles
         const tpeRetire = this.incident.tpEs?.[this.tpeToDelete!.index];
         
-        // ✅ Retirer de la liste des TPEs liés
+        //  Retirer de la liste des TPEs liés
         this.incident.tpEs?.splice(this.tpeToDelete!.index, 1);
         this.selectedTpeIds = this.selectedTpeIds.filter(id => id !== this.tpeToDelete!.id);
         
-        // ✅ Remettre le TPE dans la liste des disponibles
+        //  Remettre le TPE dans la liste des disponibles
         if (tpeRetire) {
           // Créer un objet TPE complet pour la liste des disponibles
           const tpeComplet = {
@@ -669,9 +627,7 @@ showErrorDialog(message: string, resultCode?: number): void {
           };
           this.tpEsDisponibles.push(tpeComplet);
         }
-        
-        // ✅ Mettre à jour les options
-        this.updateTpeOptions();
+                this.updateTpeOptions();
         
         this.showTemporaryMessage(`TPE ${this.tpeToDelete!.label} retiré avec succès`, 'success');
       } else {
@@ -681,7 +637,7 @@ showErrorDialog(message: string, resultCode?: number): void {
       this.fermerModalTpe();
     },
     error: (err) => {
-      console.error('❌ Erreur retrait TPE:', err);
+      console.error(' Erreur retrait TPE:', err);
       this.error = err.error?.message || 'Erreur lors du retrait du TPE';
       this.loading = false;
       this.fermerModalTpe();
@@ -690,9 +646,7 @@ showErrorDialog(message: string, resultCode?: number): void {
 }
 showLinkTpeModal: boolean = false;
 tpeToLink: { id: string; label: string; modele: string; numSerieComplet: string } | null = null;
-/**
- * Confirmer la liaison d'un TPE (ouvre la modale)
- */
+/** Confirmer la liaison d'un TPE (ouvre la modale) */
 confirmerLierTpe(tpe: any) {
   this.tpeToLink = {
     id: tpe.id,
@@ -703,13 +657,11 @@ confirmerLierTpe(tpe: any) {
   this.showLinkTpeModal = true;
 }
 
-/**
- * Exécuter la liaison du TPE
- */
+/** Exécuter la liaison du TPE*/
 executerLierTpe() {
   if (!this.tpeToLink) return;
 
-  console.log('➕ Ajout TPE via modale:', this.tpeToLink.id);
+  console.log(' Ajout TPE via modale:', this.tpeToLink.id);
   
   if (this.isIncidentLieATicket) {
     this.showErrorDialog('Impossible de modifier les TPEs : cet incident est déjà lié à un support.');
@@ -717,7 +669,7 @@ executerLierTpe() {
     return;
   }
   
-  // ✅ Vérifier si le TPE est déjà dans la liste des TPEs liés
+  //  Vérifier si le TPE est déjà dans la liste des TPEs liés
   const dejaLie = this.incident.tpEs?.some(t => t.tpeId === this.tpeToLink!.id) || false;
   if (dejaLie) {
     this.showTemporaryMessage(`Le TPE ${this.tpeToLink!.label} est déjà associé à cet incident`, 'error');
@@ -725,7 +677,7 @@ executerLierTpe() {
     return;
   }
   
-  // ✅ Vérifier si le TPE est encore disponible
+  //  Vérifier si le TPE est encore disponible
   const tpeToujoursDisponible = this.tpEsDisponibles.some(t => t.id === this.tpeToLink!.id);
   if (!tpeToujoursDisponible) {
     this.showTemporaryMessage(`Le TPE ${this.tpeToLink!.label} n'est plus disponible`, 'error');
@@ -747,7 +699,7 @@ executerLierTpe() {
           this.incident.tpEs = [];
         }
         
-        // ✅ Double vérification avant d'ajouter
+        //  Double vérification avant d'ajouter
         const dejaExistant = this.incident.tpEs.some(t => t.tpeId === this.tpeToLink!.id);
         if (!dejaExistant) {
           this.incident.tpEs.push({
@@ -759,13 +711,13 @@ executerLierTpe() {
             dateAssociation: new Date().toISOString()
           });
           
-          // ✅ Retirer de la liste des disponibles
+          //  Retirer de la liste des disponibles
           this.tpEsDisponibles = this.tpEsDisponibles.filter(t => t.id !== this.tpeToLink!.id);
           this.updateTpeOptions();
           
           this.showTemporaryMessage(`TPE ${this.tpeToLink!.label} lié avec succès`, 'success');
           
-          // ✅ Mettre à jour selectedTpeIds
+          //  Mettre à jour selectedTpeIds
           if (!this.selectedTpeIds.includes(this.tpeToLink!.id)) {
             this.selectedTpeIds.push(this.tpeToLink!.id);
             this.tpeIdsModifies = true;
@@ -774,16 +726,16 @@ executerLierTpe() {
           this.showTemporaryMessage(`Le TPE ${this.tpeToLink!.label} est déjà associé à cet incident`, 'error');
         }
         
-        // ✅ Fermer la modale et le sélecteur
+        //  Fermer la modale et le sélecteur
         this.fermerModalLienTpe();
         this.showTpeSelector = false;
         
       } else if (response.message && response.message.includes('déjà lié')) {
-        // ✅ Cas où l'API retourne une erreur "déjà lié"
+        //  Cas où l'API retourne une erreur "déjà lié"
         this.showTemporaryMessage(`Le TPE ${this.tpeToLink!.label} est déjà associé à cet incident`, 'error');
         this.fermerModalLienTpe();
         
-        // ✅ Rafraîchir les listes
+        //  Rafraîchir les listes
         this.loadTpesDisponibles();
       } else {
         this.error = response.message || 'Erreur lors de la liaison';
@@ -792,8 +744,8 @@ executerLierTpe() {
       this.loading = false;
     },
     error: (err) => {
-      console.error('❌ Erreur liaison TPE:', err);
-      // ✅ Vérifier si l'erreur est "déjà lié"
+      console.error(' Erreur liaison TPE:', err);
+      //  Vérifier si l'erreur est "déjà lié"
       if (err.error?.message && err.error.message.includes('déjà lié')) {
         this.showTemporaryMessage(`Le TPE ${this.tpeToLink!.label} est déjà associé à cet incident`, 'error');
       } else {
@@ -801,15 +753,13 @@ executerLierTpe() {
       }
       this.loading = false;
       this.fermerModalLienTpe();
-      // ✅ Rafraîchir les listes
+      //  Rafraîchir les listes
       this.loadTpesDisponibles();
     }
   });
 }
 
-/**
- * Fermer la modale de liaison
- */
+/** Fermer la modale de liaison */
 fermerModalLienTpe() {
   this.showLinkTpeModal = false;
   this.tpeToLink = null;
@@ -822,7 +772,6 @@ get isIncidentModifiable(): boolean {
   // 2. ET il n'est pas lié à un ticket
   
   let estNonTraite = false;
-  
   // Vérifier par la valeur numérique
   if (typeof this.incident?.statutIncident === 'number') {
     estNonTraite = this.incident.statutIncident === 0; // 0 = Non traité
@@ -852,7 +801,7 @@ get isIncidentModifiable(): boolean {
 
   // Pour les entités
 supprimerEntite(entiteId: string | undefined, index: number) {
-  // ✅ Empêcher la propagation de l'événement pour éviter toute action par défaut
+  //  Empêcher la propagation de l'événement pour éviter toute action par défaut
   event?.stopPropagation();
   
   if (!this.isAdmin) {
@@ -861,9 +810,9 @@ supprimerEntite(entiteId: string | undefined, index: number) {
   }
   
   if (!entiteId) {
-    console.warn('⚠️ Entité sans ID - suppression locale seulement');
+    console.warn(' Entité sans ID - suppression locale seulement');
     this.incident.entitesImpactees.splice(index, 1);
-    this.updateEntitesDisponibles(); // ← Ajoutez ceci
+    this.updateEntitesDisponibles(); 
     return;
   }
 
@@ -879,7 +828,6 @@ supprimerEntite(entiteId: string | undefined, index: number) {
   this.showDeleteEntiteModal = true;
 }
 
-// APRÈS (corrigé) :
 confirmerSuppressionEntite() {
   if (!this.entiteToDelete) return;
 
@@ -890,10 +838,10 @@ confirmerSuppressionEntite() {
         this.updateEntitesDisponibles();
         this.showTemporaryMessage('Entité supprimée avec succès', 'success');
         
-        // ✅ AJOUTEZ CETTE LIGNE - Met à jour l'état initial pour refléter la suppression
+        // Met à jour l'état initial pour refléter la suppression
         this.initialIncidentState.entitesImpactees = JSON.parse(JSON.stringify(this.incident.entitesImpactees || []));
         
-        // ✅ AJOUTEZ CETTE LIGNE - Vérifie les changements après suppression
+        //  Vérifie les changements après suppression
         this.checkForChanges();
       } else {
         this.error = response.message || 'Erreur lors de la suppression';
@@ -901,7 +849,7 @@ confirmerSuppressionEntite() {
       this.fermerModalEntite();
     },
     error: (err: any) => {
-      console.error('❌ Erreur:', err);
+      console.error(' Erreur:', err);
       if (err.status === 404) {
         this.error = 'Entité non trouvée';
       } else if (err.status === 403) {
@@ -976,7 +924,7 @@ checkForChanges() {
   }
   
   this.hasChanges = hasAnyChange;
-  console.log('🔄 Changements détectés:', this.hasChanges);
+  console.log(' Changements détectés:', this.hasChanges);
 }
 
   // ========== CHARGEMENT DE L'INCIDENT ==========
@@ -993,7 +941,7 @@ loadIncident(id: string, callback?: () => void) {
       this.updateEntitesDisponibles();
       this.piecesJointesExistantes = results.piecesJointes;
       
-      // ✅ Sauvegarder l'état initial de l'incident
+      //  Sauvegarder l'état initial de l'incident
       this.initialIncidentState = {
         descriptionIncident: this.incident.descriptionIncident,
         typeProbleme: this.incident.typeProbleme,
@@ -1004,10 +952,6 @@ loadIncident(id: string, callback?: () => void) {
       
       // Initialiser hasChanges à false
       this.hasChanges = false;
-      
-      console.log('📦 Incident chargé:', this.incident.codeIncident);
-      console.log('📦 Entités impactées:', this.incident.entitesImpactees?.length || 0);
-      console.log('📦 TPEs associés:', this.incident.tpEs?.length || 0);
       
       // Initialiser les TPEs liés
       if (this.incident.tpEs) {
@@ -1047,21 +991,18 @@ loadIncident(id: string, callback?: () => void) {
       }
     },
     error: (err: any) => {
-      console.error('❌ Erreur:', err);
+      console.error(' Erreur:', err);
       this.error = 'Erreur lors du chargement de l\'incident.';
       this.loading = false;
     }
   });
 }
-// Dans incident-edit.component.ts, ajoutez ces propriétés avec les autres modales
 
 showDeletePieceModal: boolean = false;
 pieceToDelete: { id: string; index: number; nom: string } | null = null;
-// Votre méthode est correcte
 // ========== GESTION DES FICHIERS ==========
 
-// Méthode pour supprimer une pièce jointe
-// Cette méthode doit seulement ouvrir la modale, PAS supprimer directement
+// supprimer une pièce jointe: ouvrir la modale, PAS supprimer directement
 supprimerPieceJointe(pieceId: string, index: number) {
   if (this.isIncidentLieATicket) {
     this.error = this.isCommercant 
@@ -1086,14 +1027,14 @@ supprimerPieceJointe(pieceId: string, index: number) {
   this.showDeletePieceModal = true;
 }
 
-// Méthode pour vérifier si l'utilisateur peut ajouter des fichiers
+//  vérifier si l'utilisateur peut ajouter des fichiers
 canAddFiles(): boolean {
-  // ✅ Admin: ne peut JAMAIS ajouter de fichiers
+  //  Admin: ne peut JAMAIS ajouter de fichiers
   if (this.isAdmin) {
     return false;
   }
   
-  // ✅ Commerçant: peut ajouter SEULEMENT si incident non lié
+  //  Commerçant: peut ajouter SEULEMENT si incident non lié
   if (this.isCommercant) {
     return !this.isIncidentLieATicket;
   }
@@ -1101,19 +1042,19 @@ canAddFiles(): boolean {
   return false;
 }
 
-// Méthode pour vérifier si l'utilisateur peut supprimer des fichiers
+//  vérifier si l'utilisateur peut supprimer des fichiers
 canDeleteFiles(): boolean {
-  // ✅ Si incident lié à un ticket → personne ne peut supprimer
+  //  Si incident lié à un ticket → personne ne peut supprimer
   if (this.isIncidentLieATicket) {
     return false;
   }
   
-  // ✅ Admin peut supprimer (incident non lié)
+  //  Admin peut supprimer (incident non lié)
   if (this.isAdmin) {
     return true;
   }
   
-  // ✅ Commerçant peut supprimer (incident non lié)
+  //  Commerçant peut supprimer (incident non lié)
   if (this.isCommercant) {
     return true;
   }
@@ -1123,10 +1064,8 @@ canDeleteFiles(): boolean {
 confirmerSuppressionPiece() {
   if (!this.pieceToDelete) return;
 
-  console.log('🗑️ Suppression pièce jointe:', this.pieceToDelete.id);
+  console.log(' Suppression pièce jointe:', this.pieceToDelete.id);
   
-  // Optionnel : mettre loading si tu veux un spinner dans la modale
-  // this.loading = true;
 
   this.incidentService.supprimerPieceJointe(this.pieceToDelete.id).subscribe({
     next: (response) => {
@@ -1134,7 +1073,7 @@ confirmerSuppressionPiece() {
         // Mise à jour locale
         this.piecesJointesExistantes.splice(this.pieceToDelete!.index, 1);
         
-        // ✅ Message de succès APRÈS confirmation (comme pour TPE)
+        //  Message de succès APRÈS confirmation 
         this.showTemporaryMessage(`Fichier "${this.pieceToDelete!.nom}" supprimé avec succès`, 'success');
         
         // Mise à jour de l'état des changements
@@ -1144,20 +1083,17 @@ confirmerSuppressionPiece() {
       }
       
       this.fermerModalPiece();
-      // this.loading = false; // si tu l'avais activé
     },
     error: (err) => {
-      console.error('❌ Erreur suppression pièce jointe:', err);
+      console.error(' Erreur suppression pièce jointe:', err);
       this.error = err.error?.message || 'Erreur lors de la suppression du fichier';
       this.fermerModalPiece();
-      // this.loading = false;
     }
   });
 }
 
-// Ajoutez ces propriétés avec les autres
 submitted = false;
-descriptionError: string | null = null; // ✅ Nouvelle propriété pour l'erreur sous le champ
+descriptionError: string | null = null; 
 
 
 private showErrorWithScroll(message: string): void {
@@ -1177,10 +1113,10 @@ fermerModalPiece() {
 async save() {
   if (!this.incident) return;
   
-  // ✅ VALIDATION AU DÉBUT
+  //  VALIDATION AU DÉBUT
   this.submitted = true;
   
-  // ✅ Vérifier d'abord si le formulaire est valide
+  //  Vérifier d'abord si le formulaire est valide
   if (!this.isFormValid()) {
     // Afficher l'erreur uniquement sous le champ concerné
     if (!this.incident.descriptionIncident || this.incident.descriptionIncident.length < 10) {
@@ -1196,7 +1132,7 @@ async save() {
   }
   
   this.loading = true;
-  this.error = null; // ✅ Ne pas utiliser this.error pour les erreurs de description
+  this.error = null;
 
   try {
     // 1. Uploader les nouveaux fichiers
@@ -1232,29 +1168,29 @@ async save() {
                                      this.incident.severiteIncident : undefined);
     }
 
-    console.log('📦 Mise à jour incident:', updateDto);
+    console.log(' Mise à jour incident:', updateDto);
 
     // 4. Mettre à jour l'incident
     this.incidentService.updateIncident(this.incident.id, updateDto).subscribe({
       next: (updated) => {
-        console.log('✅ Incident mis à jour:', updated);
+        console.log(' Incident mis à jour:', updated);
         
-        // ✅ Afficher le message de succès
+        //  Afficher le message de succès
         this.successMessage = 'Incident modifié avec succès !';
         
-        // ✅ Scroll vers le haut
+        // Scroll vers le haut
         window.scrollTo({ top: 0, behavior: 'smooth' });
         
-        // ✅ Désactiver le loading
+        // Désactiver le loading
         this.loading = false;
         
-        // ✅ Rediriger après 5 secondes
+        // Rediriger après 5 secondes
         setTimeout(() => {
           this.router.navigate(['/incidents']);
         }, 5000);
       },
       error: (err: any) => {
-        console.error('❌ Erreur:', err);
+        console.error(' Erreur:', err);
         const resultCode = err.error?.resultCode;
         const errorMessage = err.error?.message || 'Erreur lors de la mise à jour.';
         this.showErrorDialog(errorMessage, resultCode);
@@ -1263,7 +1199,7 @@ async save() {
     });
 
   } catch (error) {
-    console.error('❌ Erreur:', error);
+    console.error(' Erreur:', error);
     this.error = 'Erreur lors de la sauvegarde';
     this.loading = false;
   }
@@ -1282,14 +1218,9 @@ async save() {
     }
   }
 
-// Dans la méthode ajouterEntite, ajoutez ces logs
-// Dans incident-edit.component.ts
+
 
 ajouterEntite() {
-  console.log('=== AJOUT ENTITÉ ===');
-  console.log('selectedEntiteValue AVANT conversion:', this.selectedEntiteValue);
-  console.log('Type de selectedEntiteValue:', typeof this.selectedEntiteValue);
-  
   if (!this.isAdmin) {
     this.showTemporaryMessage('Action réservée aux administrateurs', 'error');
     return;
@@ -1300,17 +1231,13 @@ ajouterEntite() {
     return;
   }
   
-  // ✅ CORRECTION CRITIQUE: Convertir correctement la valeur
   let typeEntiteValue: number;
-  
   // Si c'est une string, la convertir en nombre
   if (typeof this.selectedEntiteValue === 'string') {
     typeEntiteValue = parseInt(this.selectedEntiteValue, 10);
   } else {
     typeEntiteValue = this.selectedEntiteValue;
   }
-  
-  console.log('typeEntiteValue APRÈS conversion:', typeEntiteValue);
   
   // Vérifier si c'est un nombre valide
   if (isNaN(typeEntiteValue) || typeEntiteValue < 1 || typeEntiteValue > 4) {
@@ -1336,10 +1263,6 @@ ajouterEntite() {
     }
     return 0;
   });
-  
-  console.log('entitesExistantes (nombres):', entitesExistantes);
-  console.log('typeEntiteValue à ajouter:', typeEntiteValue);
-  
   if (entitesExistantes.includes(typeEntiteValue)) {
     const label = this.getTypeEntiteLabelFromNumber(typeEntiteValue);
     this.showTemporaryMessage(`L'entité "${label}" est déjà impactée par cet incident`, 'error');
@@ -1350,8 +1273,8 @@ ajouterEntite() {
   this.loading = true;
   this.refreshKey++;
 
-  // ✅ Envoyer la valeur numérique, pas la string
-  console.log('📦 Payload envoyé à l\'API:', {
+  //  Envoyer la valeur numérique, pas la string
+  console.log(' Payload envoyé à l\'API:', {
     incidentId: this.incident.id,
     typeEntiteImpactee: typeEntiteValue
   });
@@ -1359,14 +1282,13 @@ ajouterEntite() {
   this.entiteService.addToIncident(this.incident.id, typeEntiteValue).subscribe({
     next: (response) => {
       this.loading = false;
-      console.log('✅ Réponse API:', response);
+      console.log(' Réponse API:', response);
       
       if (response.isSuccess && response.data) {
         if (!this.incident.entitesImpactees) {
           this.incident.entitesImpactees = [];
         }
-        
-        // ✅ Ajouter l'entité avec la valeur numérique
+        //  Ajouter l'entité avec la valeur numérique
         this.incident.entitesImpactees.push({
           id: response.data.id,
           typeEntiteImpactee: typeEntiteValue as TypeEntiteImpactee
@@ -1383,14 +1305,14 @@ ajouterEntite() {
     },
     error: (err) => {
       this.loading = false;
-      console.error('❌ Erreur ajout entité:', err);
+      console.error(' Erreur ajout entité:', err);
       console.error('Détails erreur:', err.error);
       this.showTemporaryMessage(err.error?.message || 'Erreur lors de l\'ajout de l\'entité', 'error');
     }
   });
 }
 
-// Méthode utilitaire pour obtenir le libellé à partir d'un nombre
+//  obtenir le libellé à partir d'un nombre
 getTypeEntiteLabelFromNumber(type: number): string {
   const mapping: { [key: number]: string } = {
     1: 'Machine TPE',
@@ -1403,7 +1325,7 @@ getTypeEntiteLabelFromNumber(type: number): string {
 trackByOption(index: number, option: any): number {
   return option.value;
 }
-// Ajoutez cette méthode pour ajouter plusieurs entités d'un coup (optionnel)
+//  ajouter plusieurs entités d'un coup 
 ajouterPlusieursEntites() {
   if (!this.isAdmin) return;
   if (this.entitesAAjouter.length === 0) {
@@ -1457,15 +1379,9 @@ ajouterPlusieursEntites() {
     });
   });
 }
-// Ajoutez cette propriété avec les autres
-// Dans votre composant, ajoutez ce getter et loggez les valeurs
-// Supprimez l'ancien getter et remplacez-le par cette version simplifiée
-// Dans incident-edit.component.ts
 
-// Remplacez le getter par une propriété simple
 entitesDisponibles: { value: number; label: string }[] = [];
 
-// Appelez cette méthode après chaque changement d'entitesImpactees
 updateEntitesDisponibles() {
   const toutesOptions = [
     { value: 1, label: 'Machine TPE' },
@@ -1523,7 +1439,6 @@ updateEntitesDisponibles() {
     return 'Inconnu';
   }
 
-// Ajoutez cette propriété pour les timeouts
 private messageTimeout: any = null;
 
 isFormValid(): boolean {
@@ -1545,11 +1460,11 @@ isFormValid(): boolean {
   return true;
 }
 
-// Méthode appelée quand la description change
+// quand la description change
 onDescriptionChange(): void {
   this.checkForChanges();
   
-  // ✅ Validation en temps réel - stocker l'erreur localement, pas dans this.error
+  //  Validation en temps réel - stocker l'erreur localement
   if (this.incident.descriptionIncident && this.incident.descriptionIncident.length > 0 && this.incident.descriptionIncident.length < 10) {
     this.descriptionError = `La description doit contenir au moins 10 caractères (${this.incident.descriptionIncident.length}/10)`;
   } else {
@@ -1557,13 +1472,10 @@ onDescriptionChange(): void {
   }
 }
 
-// Ajoutez avec les autres propriétés
 showDeleteSingleNewFileModal: boolean = false;
 singleNewFileToDelete: { index: number; fileName: string } | null = null;
 
-/**
- * Ouvre la modale de confirmation pour supprimer un nouveau fichier spécifique
- */
+/** Ouvre la modale de confirmation pour supprimer un nouveau fichier spécifique */
 confirmDeleteSingleNewFile(index: number, fileName: string): void {
   this.singleNewFileToDelete = {
     index: index,
@@ -1572,9 +1484,7 @@ confirmDeleteSingleNewFile(index: number, fileName: string): void {
   this.showDeleteSingleNewFileModal = true;
 }
 
-/**
- * Exécute la suppression d'un nouveau fichier spécifique
- */
+/** Exécute la suppression d'un nouveau fichier spécifique*/
 executeDeleteSingleNewFile(): void {
   if (!this.singleNewFileToDelete) return;
   
@@ -1585,9 +1495,7 @@ executeDeleteSingleNewFile(): void {
   this.closeDeleteSingleNewFileModal();
 }
 
-/**
- * Ferme la modale de suppression d'un nouveau fichier
- */
+/** Ferme la modale de suppression d'un nouveau fichier*/
 closeDeleteSingleNewFileModal(): void {
   this.showDeleteSingleNewFileModal = false;
   this.singleNewFileToDelete = null;
@@ -1604,7 +1512,7 @@ showTemporaryMessage(message: string, type: 'success' | 'error' | 'warning' = 's
     this.error = message;
   }
 
-  // ✅ Scroll automatique vers le haut pour voir le message
+  //  Scroll automatique vers le haut pour voir le message
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
   const duration = type === 'warning' ? 7000 : 5000;
@@ -1625,7 +1533,7 @@ showTemporaryMessage(message: string, type: 'success' | 'error' | 'warning' = 's
 
 
 
-  // ========== GESTION DES FICHIERS AMÉLIORÉE ==========
+  // ========== GESTION DES FICHIERS  ==========
 
   onFileSelected(event: any): void {
     const files: FileList = event.target.files;
@@ -1657,7 +1565,6 @@ showTemporaryMessage(message: string, type: 'success' | 'error' | 'warning' = 's
     }
   }
 
-// Dans addFiles() - ACTUEL (correct mais vérifiez que c'est bien présent)
 private addFiles(files: File[]): void {
   const validFiles = files.filter(file => {
     if (file.size > this.maxFileSize) {
@@ -1667,7 +1574,7 @@ private addFiles(files: File[]): void {
     return true;
   });
 
-  // ✅ Total = existants + nouveaux déjà sélectionnés + nouveaux à ajouter
+  //  Total = existants + nouveaux déjà sélectionnés + nouveaux à ajouter
   const totalFilesAfterAdd = this.piecesJointesExistantes.length + this.selectedFiles.length + validFiles.length;
   
   if (totalFilesAfterAdd > this.maxFiles) {
@@ -1686,9 +1593,7 @@ private addFiles(files: File[]): void {
     this.checkForChanges();
   }
 }
-// Nouvelle méthode pour uploader les fichiers lors de la sauvegarde
-// Dans incident-edit.component.ts
-
+// uploader les fichiers lors de la sauvegarde
 async uploaderFichiers(): Promise<boolean> {
   if (this.selectedFiles.length === 0) {
     return true;
@@ -1720,7 +1625,7 @@ async uploaderFichiers(): Promise<boolean> {
         }
       },
       error: (err) => {
-        console.error('❌ Erreur upload:', err);
+        console.error(' Erreur upload:', err);
         this.uploadError = err.error?.message || 'Erreur lors de l\'upload des fichiers';
         // this.showError(this.uploadError);
         this.uploadingFiles = false;
@@ -1748,10 +1653,10 @@ private showError(message: string): void {
 removeFile(index: number): void {
   this.selectedFiles.splice(index, 1);
   this.updateIncidentFiles();
-  this.checkForChanges(); // ✅ Ajouter cette ligne
+  this.checkForChanges(); 
 }
 
-// ✅ Getter pour obtenir le nombre total de fichiers (existants + nouveaux)
+//  Getter pour obtenir le nombre total de fichiers (existants + nouveaux)
 get totalFilesCount(): number {
   return (this.piecesJointesExistantes?.length || 0) + this.selectedFiles.length;
 }
@@ -1759,7 +1664,7 @@ get totalFilesCount(): number {
 clearAllFiles(): void {
   this.selectedFiles = [];
   this.updateIncidentFiles();
-  this.checkForChanges(); // ✅ Ajouter cette ligne
+  this.checkForChanges(); 
 }
 
   isImage(contentType: string | null | undefined): boolean {
@@ -1776,8 +1681,8 @@ clearAllFiles(): void {
   private updateIncidentFiles(): void {
     this.incident.piecesJointes = this.selectedFiles as any;
   }
-// Ajoutez cette propriété dans la classe IncidentEditComponent
-get tpEsDisponiblesFiltres(): any[] {
+
+  get tpEsDisponiblesFiltres(): any[] {
   // Filtrer les TPEs qui ne sont pas déjà associés
   const tpesAssociesIds = this.incident.tpEs?.map(t => t.tpeId) || [];
   return this.tpEsDisponibles.filter(tpe => !tpesAssociesIds.includes(tpe.id));
@@ -1789,39 +1694,32 @@ get tpEsDisponiblesFiltres(): any[] {
     const i = Math.floor(Math.log(bytes) / Math.log(k));
     return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
   }
-  // Dans IncidentEditComponent, ajoutez cette méthode pour gérer le changement de type de problème
-
+  //  gérer le changement de type de problème
 onTypeProblemeChange() {
   if (!this.isAdmin && this.isCommercant) {
     // Seul le commerçant peut modifier le type de problème
-    console.log('🔄 Type de problème changé:', this.typeProblemeString);
+    console.log(' Type de problème changé:', this.typeProblemeString);
     
     // Afficher un message informatif
     this.showTemporaryMessage(
       'Le type de problème a été modifié.',
       'success'
     );
-    
-    // Optionnel: Marquer que les entités ont changé pour rafraîchir l'affichage
+    //  Marquer que les entités ont changé pour rafraîchir l'affichage
     this.entitesImpacteesModifiees = true;
   }
 }
 
-// Ajoutez avec les autres propriétés
 showDeleteAllFilesModal: boolean = false;
 
-/**
- * Ouvre la modale de confirmation pour supprimer tous les nouveaux fichiers sélectionnés
- */
+/**Ouvre la modale de confirmation pour supprimer tous les nouveaux fichiers sélectionnés*/
 confirmDeleteAllNewFiles(): void {
   if (this.selectedFiles.length === 0) return;
   
   this.showDeleteAllFilesModal = true;
 }
 
-/**
- * Exécute la suppression de tous les nouveaux fichiers sélectionnés
- */
+/**Exécute la suppression de tous les nouveaux fichiers sélectionnés*/
 executeDeleteAllNewFiles(): void {
   this.selectedFiles = [];
   this.updateIncidentFiles();
@@ -1830,15 +1728,11 @@ executeDeleteAllNewFiles(): void {
   this.closeDeleteAllFilesModal();
 }
 
-/**
- * Ferme la modale de suppression de tous les fichiers
- */
+/**Ferme la modale de suppression de tous les fichiers*/
 closeDeleteAllFilesModal(): void {
   this.showDeleteAllFilesModal = false;
 }
 
-// Ajoutez cette propriété
 entitesImpacteesModifiees = false;
 
-// Modifiez le template pour appeler onTypeProblemeChange
 }

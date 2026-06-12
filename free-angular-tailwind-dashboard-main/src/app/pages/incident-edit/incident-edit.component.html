@@ -4,7 +4,7 @@
 
 <div *ngIf="!loading && incident" class="w-full px-4 sm:px-6 lg:px-8 space-y-6 pb-12">
   
-  <!-- En-tête amélioré -->
+  <!-- En-tête  -->
   <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
     <div class="flex items-center gap-4">
       <button 
@@ -191,7 +191,6 @@
   </div>
 
 <!-- Modale suppression pièce jointe -->
-<!-- Modale suppression pièce jointe -->
 <div *ngIf="showDeletePieceModal" 
      class="fixed top-0 left-0 right-0 bottom-0 w-full h-full min-h-screen bg-black/50 backdrop-blur-sm flex items-center justify-center z-[99999] p-4"
      (click)="fermerModalPiece()">
@@ -222,7 +221,7 @@
   </div>
 </div>
 
-<!-- Message de succès (comme l'erreur) -->
+<!-- Message de succès  -->
 <div *ngIf="successMessage" class="rounded-xl border border-green-200 bg-green-50 p-4 flex items-center justify-between animate-slide-down dark:border-green-800 dark:bg-green-900/20 mb-6">
   <div class="flex items-center gap-3">
     <div class="flex-shrink-0">
@@ -295,7 +294,7 @@
     placeholder="Décrivez l'incident en détail..."
   ></textarea>
   
-  <!-- ✅ Message d'erreur sous le champ (pas en haut) -->
+  <!--  Message d'erreur sous le champ  -->
   <div *ngIf="descriptionError" 
        class="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-2 animate-shake">
     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -405,7 +404,7 @@
       <p class="text-sm text-gray-500 dark:text-gray-400">Aucune entité impactée pour le moment</p>
     </div>
 
-    <!-- Formulaire d'ajout avec checkboxes NATIVES -->
+    <!-- Formulaire d'ajout avec checkboxes  -->
     <div class="mt-6 pt-4 border-t border-gray-200 dark:border-gray-700">
       <div class="flex items-center gap-2 mb-4">
         <div class="p-1.5 rounded-lg bg-[#ECECFF] dark:bg-[#0C144E]/30">
@@ -578,7 +577,7 @@
     </div>
   </div>
 
-  <!-- ✅ Message "Aucun TPE disponible" -->
+  <!--  Message "Aucun TPE disponible" -->
   <div *ngIf="tpEsDisponibles.length === 0 || tpEsDisponiblesFiltres.length === 0" 
        class="p-6 text-center bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-200 dark:border-amber-800">
     <svg class="w-12 h-12 mx-auto text-amber-400 mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -667,7 +666,7 @@
         </div>
       </div>
       
-      <!-- ✅ Bouton CORRIGÉ -->
+      <!--  Bouton  -->
       <button 
         type="button"
         *ngIf="canDeleteFiles()" 
@@ -704,7 +703,6 @@
             <p class="text-xs text-gray-500 mt-1">Images, PDF, documents (max 10MB par fichier)</p>
           </div>
         </div>
-<!-- Après la zone de drop, avant les nouveaux fichiers sélectionnés -->
 <div *ngIf="(piecesJointesExistantes.length + selectedFiles.length) >= maxFiles"
      class="mt-3 p-3 rounded-lg bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800">
   <div class="flex items-center gap-2">
@@ -731,13 +729,11 @@
   <div class="space-y-2 max-h-60 overflow-y-auto">
     <div *ngFor="let file of selectedFiles; let i = index" class="flex items-center justify-between p-3 bg-gray-50 dark:bg-gray-700/30 rounded-xl">
       <div class="flex items-center gap-3 flex-1 min-w-0">
-        <!-- ... icônes ... -->
         <div class="flex-1 min-w-0">
           <p class="text-sm font-medium text-gray-700 dark:text-gray-300 truncate">{{ file.name }}</p>
           <p class="text-xs text-gray-500">{{ formatFileSize(file.size) }}</p>
         </div>
       </div>
-      <!-- ✅ MODIFICATION: Ajouter type="button" et appeler la méthode avec modale -->
       <button type="button" (click)="confirmDeleteSingleNewFile(i, file.name)" 
               class="p-1.5 text-gray-400 hover:text-red-500 rounded-lg transition-all">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
