@@ -9,7 +9,7 @@
     class="w-full border rounded-lg px-3 py-2 shadow-sm focus:ring focus:ring-blue-200"
   />
 
-  <!-- suggestions - avec z-index élevé -->
+  <!-- suggestions-->
   <div
     *ngIf="suggestions.length"
     class="absolute z-[9999] w-full bg-white border rounded-lg shadow-lg max-h-48 overflow-auto"
@@ -24,7 +24,7 @@
     </div>
   </div>
 
-  <!-- carte - avec z-index plus bas -->
+  <!-- carte  -->
   <div
     id="map"
     class="rounded-xl border shadow relative z-[1]"

@@ -5,7 +5,7 @@ import { ActivatedRoute, Router, RouterModule } from '@angular/router';
 import { CommentaireService } from '../../shared/services/commentaire.service';
 import { TicketService } from '../../shared/services/ticket.service';
 import { UserService } from '../../shared/services/user.service';
-import { CommentaireDTO, PieceJointeDTO } from '../../shared/models/Commentaire.models';
+import { CommentaireDTO } from '../../shared/models/Commentaire.models';
 import { BadgeComponent } from '../../shared/components/ui/badge/badge.component';
 import { AvatarTextComponent } from '../../shared/components/ui/avatar/avatar-text.component';
 
@@ -29,7 +29,7 @@ export class CommentaireListComponent implements OnInit {
   commentaires: CommentaireDTO[] = [];
   loading = true;
   error: string | null = null;
-  successMessage: string | null = null;  // ✅ AJOUTER cette propriété
+  successMessage: string | null = null;  
   userRole: string = '';
   userId: string | null = null;
   
@@ -48,7 +48,7 @@ export class CommentaireListComponent implements OnInit {
   newFiles: File[] = [];
   isDragActive = false;
   
-  // Pour la suppression (ancien modal)
+  // Pour la suppression 
   showDeleteModal = false;
   commentaireToDelete: CommentaireDTO | null = null;
   deleting = false;
@@ -57,8 +57,9 @@ export class CommentaireListComponent implements OnInit {
   showImageModal = false;
   currentImageUrl: string = '';
   currentImageName: string = '';
-  // Ajoutez ces propriétés avec les autres déclarations
-showAddCommentModal: boolean = false;
+
+
+  showAddCommentModal: boolean = false;
 newCommentData = {
   message: '',
   estInterne: false
@@ -66,18 +67,19 @@ newCommentData = {
 newCommentFiles: File[] = [];
 isAddingComment: boolean = false;
 addDragActive = false;
-addCommentError: string | null = null;  // ✅ ERREUR LOCALE POUR L'AJOUT
+addCommentError: string | null = null;  //  ERREUR LOCALE POUR L'AJOUT
 
 
 // Pour l'édition
-editCommentError: string | null = null;  // ✅ ERREUR LOCALE POUR L'ÉDITION
-  // ✅ NOUVEAUX MODALES (remplacent les anciens)
+editCommentError: string | null = null;  //  ERREUR LOCALE POUR L'ÉDITION
+
+  //  MODALES 
   showEditModal: boolean = false;
   editCommentData: any = null;
   showDeleteCommentModal: boolean = false;
   commentToDelete: any = null;
   isDeleting: boolean = false;
-  filesToDelete: string[] = [];  // ✅ AJOUTER cette propriété
+  filesToDelete: string[] = [];  
   
   maxFileSize = 10 * 1024 * 1024;
   maxFiles = 10;
@@ -88,7 +90,7 @@ editCommentError: string | null = null;  // ✅ ERREUR LOCALE POUR L'ÉDITION
   constructor(
     private route: ActivatedRoute,
     private router: Router,
-      private cdr: ChangeDetectorRef,  // Ajoutez ceci
+      private cdr: ChangeDetectorRef,  
 
     private commentaireService: CommentaireService,
     private ticketService: TicketService,
@@ -109,21 +111,17 @@ editCommentError: string | null = null;  // ✅ ERREUR LOCALE POUR L'ÉDITION
     return this.isAdmin;
   }
 
-  // ✅ AJOUTER cette méthode pour afficher les succès
- // ✅ MODIFIER cette méthode pour ajouter le scroll
 showSuccess(message: string): void {
   this.successMessage = message;
-  this.scrollToTop(); // ← AJOUTER CETTE LIGNE
+  this.scrollToTop(); 
   setTimeout(() => {
     this.successMessage = null;
   }, 5000);
 }
 
-  // ✅ AJOUTER cette méthode pour afficher les erreurs
-// ✅ MODIFIER cette méthode pour ajouter le scroll
 showError(message: string): void {
   this.error = message;
-  this.scrollToTop(); // ← AJOUTER CETTE LIGNE
+  this.scrollToTop(); 
   setTimeout(() => {
     if (this.error === message) {
       this.error = null;
@@ -131,29 +129,17 @@ showError(message: string): void {
   }, 5000);
 }
 
-  /**
-   * Détermine si un commentaire doit être affiché pour l'utilisateur courant
-   */
-/**
- * Détermine si un commentaire doit être affiché pour l'utilisateur courant
- * 
- * Règles de visibilité :
- * 1. L'auteur voit TOUS ses commentaires (internes et publics)
- * 2. Les Admins voient TOUS les commentaires
- * 3. Les Techniciens voient UNIQUEMENT les commentaires publics des autres
- * 4. Les commentaires internes des autres Techniciens sont masqués
- */
+/** Détermine si un commentaire doit être affiché pour l'utilisateur courant*/
 shouldDisplayComment(comment: CommentaireDTO): boolean {
   // Règle 1: L'auteur voit toujours son commentaire
   if (comment.auteurId === this.userId) {
     return true;
   }
-  
   // Règle 2: Les Admins voient tout
   if (this.isAdmin) {
     return true;
   }
-  
+
   // Règle 3: Si commentaire interne, seul l'auteur ou l'admin le voit
   if (comment.estInterne) {
     return false; // Technicien non-auteur ne voit pas les internes
@@ -162,25 +148,20 @@ shouldDisplayComment(comment: CommentaireDTO): boolean {
   // Règle 4: Technicien voit les commentaires publics
   return this.isTechnicien;
 }
-// Ajoutez cette méthode
-
-/**
- * Détermine si l'utilisateur peut voir l'option "commentaire interne"
- * Seuls les Admins peuvent choisir si un commentaire est interne
- */
+/** Détermine si l'utilisateur peut voir l'option "commentaire interne" */
 get canChooseVisibility(): boolean {
   return this.isAdmin;  // Seul l'admin peut choisir
 }
 
 canEditComment(commentaire: CommentaireDTO): boolean {
-  // ✅ Si le ticket est résolu, on ne peut pas modifier
+  //  Si le ticket est résolu, on ne peut pas modifier
   if (this.isTicketResolu) return false;
   // Sinon, seul l'auteur peut modifier
   return commentaire.auteurId === this.userId;
 }
 
 canDeleteComment(commentaire: CommentaireDTO): boolean {
-  // ✅ Si le ticket est résolu, on ne peut pas supprimer
+  //  Si le ticket est résolu, on ne peut pas supprimer
   if (this.isTicketResolu) return false;
   
   // Admin peut tout supprimer
@@ -196,7 +177,7 @@ ngOnInit(): void {
     next: (user) => {
       this.userRole = user.role;
       this.userId = user.id;
-      // ✅ Charger d'abord les infos du ticket, puis les commentaires
+      //  Charger d'abord les infos du ticket, puis les commentaires
       this.loadTicketInfoAndComments();
     },
     error: (err) => {
@@ -220,7 +201,7 @@ loadTicketInfoAndComments(): void {
         this.ticketReference = response.data.referenceTicket;
         this.ticketTitre = response.data.titreTicket;
         
-        // ✅ Utiliser statutTicketLibelle (qui est une chaîne) au lieu de statutTicket
+        //  Utiliser statutTicketLibelle (qui est une chaîne) au lieu de statutTicket
         const statutLibelle = response.data.statutTicketLibelle;
         if (statutLibelle === 'Résolu') {
           this.ticketStatut = 3;
@@ -243,7 +224,6 @@ loadTicketInfoAndComments(): void {
     }
   });
 }
-// Modifiez loadCommentaires pour ne plus gérer le loading tout seul
 loadCommentaires(): void {
   this.commentaireService.getAllCommentaires(this.ticketId).subscribe({
     next: (commentaires) => {
@@ -325,21 +305,15 @@ loadCommentaires(): void {
     this.newFiles = [];
   }
 
-  // Ajoutez cette méthode après les propriétés
-// Ajoutez cette propriété avec les autres déclarations
 editHasChanges: boolean = false;
-/**
- * Vérifie si le formulaire d'édition de commentaire a des changements
- * Le bouton est activé uniquement si le message a changé OU des fichiers ont été ajoutés/supprimés
- */
-// Remplacez isEditFormValid par cette version améliorée
+/** Vérifie si le formulaire d'édition de commentaire a des changements */
 get isEditFormValid(): boolean {
   if (!this.editCommentData) return false;
 
   const messageChanged = this.editMessage !== this.editCommentData.message;
   const filesAdded = this.editFilesToAdd.length > 0;
 
-  // ✅ FIX : comparer avec le count ORIGINAL sauvegardé à l'ouverture
+  // comparer avec le count ORIGINAL sauvegardé à l'ouverture
   const currentFilesCount = this.editCommentData.piecesJointes?.length || 0;
   const filesDeleted = this.originalPiecesJointesCount !== currentFilesCount;
 
@@ -356,15 +330,10 @@ get isEditFormValid(): boolean {
 
   return hasChanges && hasContent;
 }
-// Ajoutez ces propriétés avec les autres déclarations
+
 showConfirmDeleteFileModal: boolean = false;
 fileToDelete: { pieceId?: string; fileName: string; isDeleteAll: boolean } | null = null;
-
-// Ajoutez ces méthodes
-
-/**
- * Ouvre la modale de confirmation pour supprimer une pièce jointe spécifique
- */
+/**Ouvre la modale de confirmation pour supprimer une pièce jointe spécifique*/
 confirmDeleteSingleFile(pieceId: string, fileName: string): void {
   this.fileToDelete = {
     pieceId: pieceId,
@@ -374,9 +343,7 @@ confirmDeleteSingleFile(pieceId: string, fileName: string): void {
   this.showConfirmDeleteFileModal = true;
 }
 
-/**
- * Ouvre la modale de confirmation pour supprimer toutes les pièces jointes
- */
+/**Ouvre la modale de confirmation pour supprimer toutes les pièces jointes*/
 confirmDeleteAllFiles(): void {
   const totalFiles = this.editCommentData?.piecesJointes?.length || 0;
   if (totalFiles === 0) return;
@@ -389,17 +356,6 @@ confirmDeleteAllFiles(): void {
 }
 private originalPiecesJointesCount: number = 0;
 
-/**
- * Exécute la suppression des fichiers après confirmation
- */
-// Modifiez executeDeleteFiles() pour une suppression immédiate
-// Ajoutez cette méthode pour vérifier les changements dans l'édition
-checkEditChanges(): void {
-  // Force la mise à jour des getters
-  // Angular recalcule automatiquement isEditFormValid
-}
-
-// Modifiez executeDeleteFiles()
 executeDeleteFiles(): void {
   if (!this.fileToDelete) return;
   
@@ -412,7 +368,6 @@ executeDeleteFiles(): void {
       }
     });
     this.editCommentData.piecesJointes = [];
-    // Pas de message de succès
   } else if (this.fileToDelete.pieceId) {
     const pieceIndex = this.editCommentData.piecesJointes.findIndex(
       (piece: any) => piece.id === this.fileToDelete!.pieceId
@@ -422,7 +377,6 @@ executeDeleteFiles(): void {
         this.editPiecesToDelete.push(this.fileToDelete.pieceId);
       }
       this.editCommentData.piecesJointes.splice(pieceIndex, 1);
-      // Pas de message de succès
     }
   }
   
@@ -430,13 +384,10 @@ executeDeleteFiles(): void {
   this.cdr.detectChanges();
 }
 
-// Ajoutez ces propriétés avec les autres déclarations
 showConfirmDeleteAddFileModal: boolean = false;
 addFileToDelete: { index: number; fileName: string; isDeleteAll: boolean } | null = null;
 
-/**
- * Ouvre la modale de confirmation pour supprimer une pièce jointe spécifique dans l'ajout
- */
+/** Ouvre la modale de confirmation pour supprimer une pièce jointe spécifique dans l'ajout */
 confirmDeleteSingleAddFile(index: number, fileName: string): void {
   this.addFileToDelete = {
     index: index,
@@ -446,9 +397,7 @@ confirmDeleteSingleAddFile(index: number, fileName: string): void {
   this.showConfirmDeleteAddFileModal = true;
 }
 
-/**
- * Ouvre la modale de confirmation pour supprimer toutes les pièces jointes dans l'ajout
- */
+/** Ouvre la modale de confirmation pour supprimer toutes les pièces jointes dans l'ajout*/
 confirmDeleteAllAddFiles(): void {
   const totalFiles = this.newCommentFiles.length;
   if (totalFiles === 0) return;
@@ -461,9 +410,7 @@ confirmDeleteAllAddFiles(): void {
   this.showConfirmDeleteAddFileModal = true;
 }
 
-/**
- * Exécute la suppression des fichiers après confirmation pour l'ajout
- */
+/** Exécute la suppression des fichiers après confirmation pour l'ajout*/
 executeDeleteAddFiles(): void {
   if (!this.addFileToDelete) return;
   
@@ -478,9 +425,7 @@ executeDeleteAddFiles(): void {
 // Propriétés pour la modale de suppression des fichiers en édition
 showConfirmDeleteFileEditModal: boolean = false;
 fileToDeleteEdit: { pieceId?: string; fileName: string; isDeleteAll: boolean } | null = null;
-/**
- * Ouvre la modale de confirmation pour supprimer une pièce jointe spécifique dans l'édition
- */
+/** Ouvre la modale de confirmation pour supprimer une pièce jointe spécifique dans l'édition*/
 confirmDeleteSingleFileEdit(pieceId: string, fileName: string): void {
   this.fileToDeleteEdit = {
     pieceId: pieceId,
@@ -490,9 +435,7 @@ confirmDeleteSingleFileEdit(pieceId: string, fileName: string): void {
   this.showConfirmDeleteFileEditModal = true;
 }
 
-/**
- * Ouvre la modale de confirmation pour supprimer toutes les pièces jointes dans l'édition
- */
+/**Ouvre la modale de confirmation pour supprimer toutes les pièces jointes dans l'édition*/
 confirmDeleteAllFilesEdit(): void {
   const totalFiles = this.editCommentData?.piecesJointes?.length || 0;
   if (totalFiles === 0) return;
@@ -504,9 +447,7 @@ confirmDeleteAllFilesEdit(): void {
   this.showConfirmDeleteFileEditModal = true;
 }
 
-/**
- * Exécute la suppression des fichiers après confirmation pour l'édition
- */
+/** Exécute la suppression des fichiers après confirmation pour l'édition*/
 executeDeleteFilesEdit(): void {
   if (!this.fileToDeleteEdit) return;
   
@@ -536,9 +477,7 @@ executeDeleteFilesEdit(): void {
 }
 
 
-/**
- * Fait défiler la page vers le haut pour afficher le message de succès/erreur
- */
+/**Fait défiler la page vers le haut pour afficher le message de succès/erreur*/
 scrollToTop(): void {
   // Scroll vers le haut de la page
   window.scrollTo({
@@ -546,47 +485,30 @@ scrollToTop(): void {
     behavior: 'smooth'
   });
   
-  // Alternative : scroll vers l'élément de message
-  // setTimeout(() => {
-  //   const alertElement = document.querySelector('.rounded-xl.border');
-  //   if (alertElement) {
-  //     alertElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  //   }
-  // }, 100);
 }
 
 
-/**
- * Ferme la modale de confirmation de suppression pour l'édition
- */
+/*** Ferme la modale de confirmation de suppression pour l'édition*/
 closeConfirmDeleteFileEditModal(): void {
   this.showConfirmDeleteFileEditModal = false;
   this.fileToDeleteEdit = null;
 }
 
-/**
- * Ferme la modale de confirmation de suppression pour l'ajout
- */
+/** Ferme la modale de confirmation de suppression pour l'ajout*/
 closeConfirmDeleteAddFileModal(): void {
   this.showConfirmDeleteAddFileModal = false;
   this.addFileToDelete = null;
 }
 
-/**
- * Ferme la modale de confirmation de suppression
- */
+/** Ferme la modale de confirmation de suppression*/
 closeConfirmDeleteFileModal(): void {
   this.showConfirmDeleteFileModal = false;
   this.fileToDelete = null;
 }
-// Ajoutez cette méthode dans la classe CommentaireListComponent, après les autres méthodes
 
-/**
- * Gère le changement de la checkbox "Interne" dans le formulaire d'édition
- */
+/** Gère le changement de la checkbox "Interne" dans le formulaire d'édition*/
 onEstInterneChange(value: boolean): void {
   this.editEstInterne = value;
-  // Force la détection de changement (Angular recalcule automatiquement le getter isEditFormValid)
 }
 
   submitCommentaire(): void {
@@ -617,10 +539,9 @@ onEstInterneChange(value: boolean): void {
     });
   }
 
-  // ========== ÉDITION DE COMMENTAIRE (MODALE) ==========
+  // ========== ÉDITION DE COMMENTAIRE ==========
   
-  // ✅ Méthode pour ouvrir la modale d'édition
- // Modifiez openEditModal()
+  // ouvrir la modale d'édition
 openEditModal(comment: any): void {
   if (!this.canEditComment(comment)) {
     this.showError('Vous ne pouvez pas modifier ce commentaire');
@@ -638,17 +559,16 @@ openEditModal(comment: any): void {
   this.editEstInterne = this.isAdmin ? comment.estInterne : false;
   this.editFilesToAdd = [];
   this.editPiecesToDelete = [];
-  this.editCommentError = null;  // ✅ Réinitialiser l'erreur
+  this.editCommentError = null;  //  Réinitialiser l'erreur
   this.showEditModal = true;
   
-  // ✅ Vérifier si on a déjà atteint la limite
+  //  Vérifier si on a déjà atteint la limite
   const currentCount = (comment.piecesJointes || []).length;
   if (currentCount >= this.maxFiles) {
     this.editCommentError = `Ce commentaire a déjà ${currentCount} fichier(s). La limite maximale est de ${this.maxFiles} fichiers.`;
   }
 }
 
-// Modifiez saveEdit()
 saveEdit(): void {
   if (!this.editCommentData) return;
   
@@ -656,7 +576,7 @@ saveEdit(): void {
   formData.append('Id', this.editCommentData.id);
   formData.append('Message', this.editMessage);
   
-  // ✅ Si l'utilisateur n'est pas Admin, conserver la valeur originale (ne pas modifier)
+  //  Si l'utilisateur n'est pas Admin, conserver la valeur originale (ne pas modifier)
   const estInterne = this.isAdmin ? this.editEstInterne : this.editCommentData.estInterne;
   formData.append('EstInterne', String(estInterne));
   
@@ -682,7 +602,7 @@ saveEdit(): void {
   });
 }
 
-  // ✅ Fermer la modale d'édition
+  //  Fermer la modale d'édition
 closeEditModal(): void {
   this.showEditModal = false;
   this.editCommentData = null;
@@ -691,10 +611,10 @@ closeEditModal(): void {
   this.editFilesToAdd = [];
   this.editPiecesToDelete = [];
   this.filesToDelete = [];
-  this.originalPiecesJointesCount = 0;  // ← ajouter cette ligne
+  this.originalPiecesJointesCount = 0;  
 }
 
-  // ✅ Confirmer et sauvegarder l'édition
+  //  Confirmer et sauvegarder l'édition
 confirmEditSave(): void {
   const hasMessage = this.editMessage?.trim().length > 0;
   const hasExistingFiles = this.editCommentData?.piecesJointes?.length > 0;
@@ -707,20 +627,14 @@ confirmEditSave(): void {
 
   this.saveEdit();
   this.closeEditModal();
-}
+} 
 
-  // ✅ Sauvegarde de l'édition (appel API)
- 
-// Ajoutez cette méthode après les propriétés
-
-/**
- * Vérifie si le formulaire d'ajout de commentaire est valide
- * Le bouton est activé uniquement si un message OU des fichiers sont présents
- */
+/** Vérifie si le formulaire d'ajout de commentaire est valide*/
 get isAddCommentFormValid(): boolean {
   return (this.newCommentData.message && this.newCommentData.message.trim().length > 0) 
       || (this.newCommentFiles.length > 0);
 }
+
   // ========== GESTION DES FICHIERS EN ÉDITION ==========
   onEditFileSelected(event: any): void {
     const files = event.target.files;
@@ -762,7 +676,7 @@ private addFilesToEdit(files: File[]): void {
     return true;
   });
   
-  // ✅ Calculer le nombre de fichiers existants (avant ajout)
+  //  Calculer le nombre de fichiers existants (avant ajout)
   const currentFilesCount = (this.editCommentData?.piecesJointes?.length || 0) - this.editPiecesToDelete.length;
   const totalAfterAdd = currentFilesCount + this.editFilesToAdd.length + validFiles.length;
   
@@ -816,9 +730,8 @@ showSuccessMessage(message: string): void {
     return this.editPiecesToDelete.includes(pieceId);
   }
 
-  // ========== SUPPRESSION DE COMMENTAIRE (MODALE AMÉLIORÉE) ==========
-  
-  // ✅ Ouvrir la modale de suppression
+  // ========== SUPPRESSION DE COMMENTAIRE  ==========
+  //  Ouvrir la modale de suppression
   openDeleteModal(comment: any): void {
     if (!this.canDeleteComment(comment)) {
       this.showError('Vous ne pouvez pas supprimer ce commentaire');
@@ -828,14 +741,14 @@ showSuccessMessage(message: string): void {
     this.showDeleteCommentModal = true;
   }
 
-  // ✅ Fermer la modale de suppression
+  //  Fermer la modale de suppression
   closeDeleteModal(): void {
     this.showDeleteCommentModal = false;
     this.commentToDelete = null;
     this.isDeleting = false;
   }
 
-  // ✅ Exécuter la suppression
+  //  Exécuter la suppression
   confirmDeleteComment(): void {
     if (!this.commentToDelete) return;
     
@@ -879,7 +792,6 @@ showSuccessMessage(message: string): void {
     this.currentImageName = '';
   }
 
-  // ========== UTILITAIRES ==========
   goBack(): void {
     this.router.navigate(['/tickets']);
   }
@@ -916,7 +828,6 @@ showSuccessMessage(message: string): void {
     this.newFiles.splice(index, 1);
   }
 
-  // ✅ Méthodes existantes conservées pour compatibilité
   startEdit(commentaire: CommentaireDTO): void {
     this.openEditModal(commentaire);
   }
@@ -932,13 +843,12 @@ showSuccessMessage(message: string): void {
   executeDelete(): void {
     this.confirmDeleteComment();
   }
-  // Ajoutez ces propriétés avec les autres déclarations
 
 
-// Méthodes pour la modale d'ajout
+// la modale d'ajout
 openAddCommentModal(): void {
   this.showAddCommentModal = true;
-  this.addCommentError = null; // ✅ Réinitialiser l'erreur
+  this.addCommentError = null; //  Réinitialiser l'erreur
 }
 
 closeAddCommentModal(): void {
@@ -993,7 +903,7 @@ private addFilesToComment(files: File[]): void {
     return true;
   });
   
-  // ✅ Vérifier la limite de nombre de fichiers
+  //  Vérifier la limite de nombre de fichiers
   const totalAfterAdd = this.newCommentFiles.length + validFiles.length;
   if (totalAfterAdd > this.maxFiles) {
     const placesRestantes = this.maxFiles - this.newCommentFiles.length;
@@ -1014,7 +924,7 @@ private addFilesToComment(files: File[]): void {
   }
 }
 
-// Au lieu de supprimer directement, ouvrir la modale de confirmation
+//  ouvrir la modale de confirmation
 removeAddFile(index: number): void {
   const file = this.newCommentFiles[index];
   if (!file) return;
@@ -1038,7 +948,6 @@ clearAddAllFiles(): void {
   };
   this.showConfirmDeleteAddFileModal = true;
 }
-// Modifiez la méthode submitNewComment()
 submitNewComment(): void {
   if (!this.newCommentData.message.trim() && this.newCommentFiles.length === 0) {
     this.error = 'Veuillez saisir un message ou ajouter un fichier';
@@ -1051,7 +960,7 @@ submitNewComment(): void {
   const formData = new FormData();
   formData.append('Message', this.newCommentData.message);
   
-  // ✅ IMPORTANT: Si l'utilisateur n'est pas Admin, forcer estInterne à false
+  // Si l'utilisateur n'est pas Admin, forcer estInterne à false
   const estInterne = this.isAdmin ? this.newCommentData.estInterne : false;
   formData.append('EstInterne', String(estInterne));
   

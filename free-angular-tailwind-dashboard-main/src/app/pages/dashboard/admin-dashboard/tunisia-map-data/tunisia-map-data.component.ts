@@ -1,4 +1,3 @@
-// tunisia-map-data.component.ts
 import {
   Component, Input, OnInit, OnChanges,
   SimpleChanges, ElementRef, ViewChild, AfterViewInit

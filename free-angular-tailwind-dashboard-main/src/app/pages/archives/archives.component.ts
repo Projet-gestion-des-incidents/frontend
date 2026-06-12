@@ -32,7 +32,7 @@ export class ArchivesComponent implements OnInit {
   incidentsSearchTerm = '';
   showGlobalRestoreTicketModal = false;
 
-  // ✅ Pour la sélection multiple des tickets archivés
+  //  Pour la sélection multiple des tickets archivés
   selectedTickets: Set<string> = new Set<string>();
   showMultiRestoreTicketModal = false;
   showMultiRestoreIncidentModal = false;      // pour sélection partielle
@@ -41,7 +41,7 @@ showGlobalRestoreIncidentModal = false;     // pour "tous"
   bulkRestoring = false;
   pendingRestoreIds: string[] = [];
 
-  // ✅ Pour la sélection multiple des incidents archivés (optionnel)
+  //  Pour la sélection multiple des incidents archivés 
   selectedIncidents: Set<string> = new Set<string>();
   confirmRestoreIncidents: Incident[] = [];
   bulkRestoringIncidents = false;
@@ -59,7 +59,7 @@ showGlobalRestoreIncidentModal = false;     // pour "tous"
   restoringIncidentId: string | null = null;
   restoringTicketId: string | null = null;
   
-  // ✅ Modales de confirmation
+  //  Modales de confirmation
   showRestoreIncidentModal = false;
   incidentToRestore: Incident | null = null;
   
@@ -88,7 +88,6 @@ showGlobalRestoreIncidentModal = false;     // pour "tous"
     this.loadUserRole();
   }
   // ========== SUPPRESSION DÉFINITIVE TICKET ==========
-
 showDeleteTicketModal = false;
 ticketToDelete: TicketDTO | null = null;
 deletingTicket = false;
@@ -128,7 +127,6 @@ confirmDeleteTicket(): void {
 }
 
 // ========== SUPPRESSION DÉFINITIVE INCIDENT ==========
-
 showDeleteIncidentModal = false;
 incidentToDelete: Incident | null = null;
 deletingIncident = false;
@@ -151,7 +149,7 @@ confirmDeleteIncident(): void {
 
   this.incidentService.deleteIncident(this.incidentToDelete.id).subscribe({
     next: (response: any) => {
-      // ✅ Vérifier si la réponse est un booléen ou un objet
+      //  Vérifier si la réponse est un booléen ou un objet
       const isSuccess = typeof response === 'boolean' ? response : response?.isSuccess === true;
       
       if (isSuccess) {
@@ -194,7 +192,6 @@ confirmDeleteIncident(): void {
   });
 }
 // ========== SUPPRESSION MULTIPLE TICKETS ==========
-
 showMultiDeleteTicketModal = false;
 confirmDeleteTickets: TicketDTO[] = [];
 bulkDeletingTickets = false;
@@ -249,10 +246,8 @@ confirmMultiDeleteTicket(): void {
     this.showMultiDeleteTicketModal = false;
     return;
   }
-
   // CAS 2 : Sélection normale
   if (this.confirmDeleteTickets.length === 0) return;
-
   this.bulkDeletingTickets = true;
   this.deleteTicketsInBatches(this.confirmDeleteTickets, 0, 0, this.confirmDeleteTickets.length);
   this.showMultiDeleteTicketModal = false;
@@ -268,7 +263,7 @@ private deleteTicketsInBatches(tickets: TicketDTO[], startIndex: number, success
     this.selectedTickets.clear();
     this.confirmDeleteTickets = [];
     
-    // ✅ AFFICHER LE MESSAGE DE SUCCÈS
+    //  AFFICHER LE MESSAGE DE SUCCÈS
     if (successCount === totalToDelete) {
       this.showAlert('success', 'Succès', `${successCount} ticket(s) supprimé(s) définitivement.`);
     } else if (successCount > 0) {
@@ -310,7 +305,6 @@ private deleteTicketsInBatches(tickets: TicketDTO[], startIndex: number, success
 
 
 // ========== SUPPRESSION MULTIPLE INCIDENTS ==========
-
 showMultiDeleteIncidentModal = false;
 confirmDeleteIncidents: Incident[] = [];
 bulkDeletingIncidents = false;
@@ -384,7 +378,7 @@ private deleteIncidentsInBatches(incidents: Incident[], startIndex: number, succ
     this.selectedIncidents.clear();
     this.confirmDeleteIncidents = [];
     
-    // ✅ AFFICHER LE MESSAGE DE SUCCÈS
+    //  AFFICHER LE MESSAGE DE SUCCÈS
     if (successCount === totalToDelete) {
       this.showAlert('success', 'Succès', `${successCount} incident(s) supprimé(s) définitivement.`);
     } else if (successCount > 0) {
@@ -429,13 +423,13 @@ loadUserRole(): void {
     next: (user) => {
       this.userRole = user.role;
       
-      // ✅ Définir l'onglet par défaut selon le rôle
+      //  Définir l'onglet par défaut selon le rôle
       if (this.userRole === 'Technicien') {
         this.activeTab = 'tickets';
       } else if (this.userRole === 'Commercant') {
         this.activeTab = 'incidents';
       } else {
-        this.activeTab = 'incidents'; // Admin par défaut sur incidents
+        this.activeTab = 'incidents'; 
       }
       
       this.loadArchives();
@@ -449,16 +443,16 @@ loadUserRole(): void {
 }
   
   loadArchives(): void {
-  // ✅ Pour Admin : charger les deux
+  //  Pour Admin : charger les deux
   if (this.userRole === 'Admin') {
     this.loadArchivedIncidents();
     this.loadArchivedTickets();
   }
-  // ✅ Pour Commercant : charger uniquement les incidents
+  //  Pour Commercant : charger uniquement les incidents
   else if (this.userRole === 'Commercant') {
     this.loadArchivedIncidents();
   }
-  // ✅ Pour Technicien : charger uniquement les tickets
+  //  Pour Technicien : charger uniquement les tickets
   else if (this.userRole === 'Technicien') {
     this.loadArchivedTickets();
   }
@@ -497,7 +491,7 @@ loadUserRole(): void {
         this.loadingIncidents = false;
       },
       error: (err) => {
-        console.error('❌ Erreur chargement incidents archivés:', err);
+        console.error(' Erreur chargement incidents archivés:', err);
         this.showAlert('error', 'Erreur', 'Impossible de charger les incidents archivés');
         this.loadingIncidents = false;
       }
@@ -537,14 +531,13 @@ loadUserRole(): void {
         this.loadingTickets = false;
       },
       error: (err) => {
-        console.error('❌ Erreur chargement tickets archivés:', err);
+        console.error(' Erreur chargement tickets archivés:', err);
         this.showAlert('error', 'Erreur', 'Impossible de charger les tickets archivés');
         this.loadingTickets = false;
       }
     });
   }
  // ========== GESTION DE LA SÉLECTION MULTIPLE POUR TICKETS ==========
-
 toggleTicketSelection(ticketId: string, checked: boolean): void {
   // Si on modifie une sélection individuelle, on désactive le mode global
   if (this.globalTicketSelectionMode) {
@@ -568,7 +561,7 @@ toggleAllTicketSelection(checked: boolean): void {
     // Activer le mode global (tous les tickets de toutes les pages)
     this.globalTicketSelectionMode = true;
     this.selectedTickets.clear();
-    // Optionnel: afficher un message
+    //  afficher un message
   } else {
     this.globalTicketSelectionMode = false;
     this.selectedTickets.clear();
@@ -611,7 +604,7 @@ openMultiRestoreTicketModal(): void {
 restoreAllTickets(): void {
   this.bulkRestoring = true;
   
-  // Récupérer tous les tickets via l'API
+  // Récupérer tous les tickets
   const params = {
     Page: 1,
     PageSize: this.ticketsTotalCount,
@@ -683,8 +676,6 @@ clearTicketSelection(): void {
 }
 
 // ========== GESTION DE LA SÉLECTION MULTIPLE POUR INCIDENTS ==========
-
-
 toggleIncidentSelection(incidentId: string, checked: boolean): void {
   // Si on modifie une sélection individuelle, on désactive le mode global
   if (this.globalIncidentSelectionMode) {
@@ -807,10 +798,10 @@ restoreIncidentsInBatches(incidents: Incident[], startIndex: number): void {
     });
   });
 }
-  // ✅ Pour la sélection globale des tickets archivés
+  //  Pour la sélection globale des tickets archivés
   globalTicketSelectionMode: boolean = false;
   
-  // ✅ Pour la sélection globale des incidents archivés
+  // Pour la sélection globale des incidents archivés
   globalIncidentSelectionMode: boolean = false;
 clearIncidentSelection(): void {
   this.selectedIncidents.clear();
@@ -840,7 +831,7 @@ clearIncidentSelection(): void {
     }
   }
   
-  // ✅ Méthodes pour ouvrir les modales de restauration
+  //  ouvrir les modales de restauration
   openRestoreIncidentModal(incident: Incident): void {
     this.incidentToRestore = incident;
     this.showRestoreIncidentModal = true;
@@ -851,7 +842,7 @@ clearIncidentSelection(): void {
     this.showRestoreTicketModal = true;
   }
   
-  // ✅ Fermer les modales
+  //  Fermer les modales
   cancelRestoreIncident(): void {
     this.showRestoreIncidentModal = false;
     this.incidentToRestore = null;
@@ -862,7 +853,7 @@ clearIncidentSelection(): void {
     this.ticketToRestore = null;
   }
   
-  // ✅ Confirmer la restauration d'un incident
+  //  Confirmer la restauration d'un incident
   confirmRestoreIncident(): void {
     if (!this.incidentToRestore) return;
     
@@ -880,7 +871,7 @@ clearIncidentSelection(): void {
         this.cancelRestoreIncident();
       },
       error: (err) => {
-        console.error('❌ Erreur restauration:', err);
+        console.error(' Erreur restauration:', err);
         this.showAlert('error', 'Erreur', err.error?.message || 'Erreur lors de la restauration');
         this.restoringIncidentId = null;
         this.cancelRestoreIncident();
@@ -888,7 +879,7 @@ clearIncidentSelection(): void {
     });
   }
   
-  // ✅ Confirmer la restauration d'un ticket
+  //  Confirmer la restauration d'un ticket
   confirmRestoreTicket(): void {
     if (!this.ticketToRestore) return;
     
@@ -906,7 +897,7 @@ clearIncidentSelection(): void {
         this.cancelRestoreTicket();
       },
       error: (err) => {
-        console.error('❌ Erreur restauration:', err);
+        console.error(' Erreur restauration:', err);
         this.showAlert('error', 'Erreur', err.error?.message || 'Erreur lors de la restauration');
         this.restoringTicketId = null;
         this.cancelRestoreTicket();
@@ -1022,7 +1013,6 @@ formatDate(date: Date | string | null | undefined): string {
     this.alert.show = false;
   }
   // ========== MÉTHODES POUR LA RESTAURATION MULTIPLE TICKETS ==========
-
 cancelMultiRestoreTicket(): void {
   this.showMultiRestoreTicketModal = false;
   this.showGlobalRestoreTicketModal = false; // ← ferme les deux
@@ -1032,14 +1022,14 @@ cancelMultiRestoreTicket(): void {
 }
 
 confirmMultiRestoreTicket(): void {
-  // 👉 CAS 1: Mode global (tous les tickets)
+  //  CAS 1: Mode global (tous les tickets)
   if (this.globalTicketSelectionMode && this.confirmRestoreTickets.length === 0) {
     this.restoreAllTickets();
     this.showGlobalRestoreTicketModal = false; // ← bon flag
     return;
   }
   
-  // 👉 CAS 2: Sélection multiple normale
+  //  CAS 2: Sélection multiple normale
   if (this.confirmRestoreTickets.length === 0) return;
   
   this.bulkRestoring = true;
@@ -1090,7 +1080,7 @@ confirmMultiRestoreTicket(): void {
 // ========== MÉTHODES POUR LA RESTAURATION MULTIPLE INCIDENTS ==========
 cancelMultiRestoreIncident(): void {
   this.showMultiRestoreIncidentModal = false;
-  this.showGlobalRestoreIncidentModal = false; // ← ajouter cette ligne
+  this.showGlobalRestoreIncidentModal = false; 
   this.confirmRestoreIncidents = [];
   this.pendingRestoreIncidentIds = [];
   this.bulkRestoringIncidents = false;
@@ -1102,14 +1092,14 @@ cancelGlobalRestoreIncident(): void {
 }
 
 confirmMultiRestoreIncident(): void {
-  // 👉 CAS 1: Mode global (tous les incidents)
+  //  CAS 1: Mode global (tous les incidents)
   if (this.globalIncidentSelectionMode && this.confirmRestoreIncidents.length === 0) {
     this.restoreAllIncidents();
-    this.showGlobalRestoreIncidentModal = false; // ← était showMultiRestoreIncidentModal
+    this.showGlobalRestoreIncidentModal = false; 
     return;
   }
   
-  // 👉 CAS 2: Sélection multiple normale
+  //  CAS 2: Sélection multiple normale
   if (this.confirmRestoreIncidents.length === 0) return;
   
   this.bulkRestoringIncidents = true;

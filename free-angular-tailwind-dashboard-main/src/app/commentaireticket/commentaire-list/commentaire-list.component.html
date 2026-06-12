@@ -258,7 +258,7 @@
     
     <div class="p-6">
       
-      <!-- ✅ ERREUR À L'INTÉRIEUR DU MODAL D'ÉDITION -->
+      <!-- ERREUR À L'INTÉRIEUR DU MODAL D'ÉDITION -->
       <div *ngIf="editCommentError" 
            class="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-center justify-between animate-shake">
         <div class="flex items-center gap-2">
@@ -282,7 +282,6 @@
           placeholder="Modifiez votre commentaire..."></textarea>
       </div>
       
-      <!-- Checkbox Interne - visible uniquement pour les Admins -->
       <!-- Checkbox Interne - visible uniquement pour les Admins -->
 <label *ngIf="isAdmin" class="flex items-center gap-2 mb-4 cursor-pointer">
   <input type="checkbox" 
@@ -312,7 +311,6 @@
     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300">
       Pièces jointes actuelles ({{ editCommentData.piecesJointes.length }})
     </label>
-    <!-- ✅ Le bouton "Tout effacer" est maintenant visible pour les techniciens aussi -->
     <button *ngIf="editCommentData.piecesJointes.length > 0"
             (click)="confirmDeleteAllFilesEdit()"
             type="button"
@@ -357,7 +355,7 @@
     </div>
   </div>
 
-  <!-- MODALE DE CONFIRMATION SUPPRESSION PIÈCES JOINTES (ÉDITION) -->
+  <!-- MODALE DE CONFIRMATION SUPPRESSION PIÈCES JOINTES  -->
 <div *ngIf="showConfirmDeleteFileEditModal" 
      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[100001] p-4 transition-all duration-300"
      (click)="closeConfirmDeleteFileEditModal()">
@@ -487,8 +485,8 @@
               class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 bg-gray-100 rounded-xl hover:bg-gray-200 dark:bg-gray-700 dark:text-gray-300 dark:hover:bg-gray-600 transition-all duration-200">
         Annuler
       </button>
-      
-      <!-- ✅ Bouton modifié avec la condition disabled -->
+
+      <!--  Bouton modifié  -->
       <button (click)="confirmEditSave()" 
               type="button"
               [disabled]="!isEditFormValid"
@@ -607,7 +605,7 @@
     
     <div class="p-6">
       
-      <!-- ✅ ERREUR À L'INTÉRIEUR DU MODAL -->
+      <!--  ERREUR À L'INTÉRIEUR DU MODAL -->
       <div *ngIf="addCommentError" 
            class="mb-4 p-3 rounded-lg bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 flex items-center justify-between animate-shake">
         <div class="flex items-center gap-2">
@@ -708,7 +706,6 @@
           <div *ngFor="let file of newCommentFiles; let i = index" 
                class="flex items-center justify-between p-2 bg-gray-50 dark:bg-gray-700/30 rounded-lg group">
             <div class="flex items-center gap-2 flex-1 min-w-0">
-              <!-- ... icônes ... -->
               <div class="flex-1 min-w-0">
                 <p class="text-sm text-gray-700 dark:text-gray-300 truncate">{{ file.name }}</p>
                 <p class="text-xs text-gray-500">{{ formatFileSize(file.size) }}</p>

@@ -1,4 +1,3 @@
-<!-- ==================== SECTION INCIDENTS ==================== -->
 <div class="space-y-6 animate-fadeIn">
   <!-- Bouton export -->
   <div class="flex justify-end mb-4">
@@ -11,7 +10,7 @@
       Exporter Excel
     </button>
     
-    <!-- BOUTON PRÉDICTION AMÉLIORÉ -->
+    <!-- BOUTON PRÉDICTION  -->
     <button (click)="navigateToPredictions()"
             class="flex items-center gap-2 px-5 py-2.5 ml-3 rounded-xl bg-gradient-to-r from-[#8788FF] to-[#787AEA] text-white hover:from-[#787AEA] hover:to-[#0C144E] transition-all duration-200 shadow-sm hover:shadow-md hover:scale-105 transform">
       <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -34,7 +33,7 @@
   </div>
 
   <div *ngIf="!loadingIncidents && incidentData" class="space-y-6">
-    <!-- Cartes métriques Incidents - Dark mode adapté -->
+    <!-- Cartes métriques Incidents -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-4">
       <!-- Total incidents -->
       <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/10 rounded-xl p-4 border border-purple-200 dark:border-purple-800 hover:shadow-md transition-all duration-300">
@@ -150,7 +149,7 @@
       </div>
     </div>
 
-    <!-- Graphiques supplémentaires : Taux de panne par modèle et par gouvernorat -->
+    <!--  Taux de panne par modèle et par gouvernorat -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                
       <!-- Graphique: Taux de panne par modèle (Camembert) -->
@@ -249,14 +248,14 @@
       </div>
     </div>
   </div>
-    <!-- Modal d'export simplifié -->
+    <!-- Modal d'export  -->
   <div *ngIf="showExportModal" 
        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
        (click)="closeExportModal()">
     <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
          (click)="$event.stopPropagation()">
       
-      <!-- En-tête avec dégradé -->
+      <!-- En-tête  -->
       <div class="bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 px-6 py-4 border-b border-[#C5C6FF] dark:border-[#8788FF]/30">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/50 flex items-center justify-center shadow-inner">

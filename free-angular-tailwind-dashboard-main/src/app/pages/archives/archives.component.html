@@ -149,7 +149,6 @@
       (<ng-container *ngIf="globalIncidentSelectionMode">{{ incidentsTotalCount }}</ng-container>
        <ng-container *ngIf="!globalIncidentSelectionMode">{{ selectedIncidents.size }}</ng-container>)
     </button>
-    <!-- ✅ NOUVEAU -->
     <button (click)="openMultiDeleteIncidentModal()"
       class="px-3 py-1.5 text-xs font-medium text-white bg-red-600 rounded-lg hover:bg-red-700 transition-colors flex items-center gap-1">
       <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -162,7 +161,6 @@
   </div>
 </div>
 
-<!-- Bouton Sélectionner tout pour incidents (CORRIGÉ) -->
 <!-- Bouton Sélectionner tout pour incidents -->
 <div class="flex items-center gap-3 px-4 py-2 bg-gray-50 dark:bg-gray-800/50 rounded-xl">
   <button
@@ -311,7 +309,6 @@
       (<ng-container *ngIf="globalTicketSelectionMode">{{ ticketsTotalCount }}</ng-container>
        <ng-container *ngIf="!globalTicketSelectionMode">{{ selectedTickets.size }}</ng-container>)
     </button>
-    <!-- ✅ NOUVEAU -->
     <button (click)="openMultiDeleteTicketModal()"
           *ngIf="userRole === 'Admin'"
 

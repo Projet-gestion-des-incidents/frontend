@@ -2,7 +2,6 @@ import { Component, OnInit, Output, EventEmitter } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import * as L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
 
 @Component({
   selector: 'app-map',
@@ -54,7 +53,7 @@ export class MapComponent implements OnInit {
         this.marker.setLatLng([lat, lng]);
         this.reverseGeocode(lat, lng);
       } else {
-        // ✅ Émettre un événement au lieu d'afficher une alerte
+        //  Émettre un événement au lieu d'afficher une alerte
         this.invalidLocation.emit('Veuillez sélectionner un emplacement en Tunisie');
       }
     });

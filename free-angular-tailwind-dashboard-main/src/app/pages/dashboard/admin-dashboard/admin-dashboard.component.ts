@@ -53,7 +53,7 @@ export class AdminDashboardComponent implements AfterViewInit {
             this.endDate = null;
           }
           
-          // 🔄 Notifier les enfants via localStorage ou un service
+          //  Notifier les enfants via localStorage ou un service
           // Option 1: Stocker les dates dans localStorage
           localStorage.setItem('dashboardStartDate', this.startDate ? this.startDate.toISOString() : '');
           localStorage.setItem('dashboardEndDate', this.endDate ? this.endDate.toISOString() : '');

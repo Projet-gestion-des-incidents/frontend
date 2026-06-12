@@ -54,7 +54,6 @@ export class TechnicienPerformanceComponent implements OnInit {
  exportData() {
   if (!this.ticketData) return;
   
-  // ✅ Utiliser assignationParTechnicien (contient les nouvelles propriétés)
   const techniciansData = (this.ticketData.assignationParTechnicien || []).map(tech => ({
     'Technicien': `${tech.prenom} ${tech.nom}`,
     'Tickets assignés': tech.ticketsAssignes,
@@ -96,7 +95,6 @@ export class TechnicienPerformanceComponent implements OnInit {
   
   this.closeExportModal();
 }
-// technicien-performance.component.ts
 getTauxResolutionClass(taux: number): string {
   if (taux >= 70) {
     return 'bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300';

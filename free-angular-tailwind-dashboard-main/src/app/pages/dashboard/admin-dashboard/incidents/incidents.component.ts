@@ -67,7 +67,7 @@ export class IncidentsComponent implements OnInit {
   }
 
   ngOnInit() {
-    console.log('🟢 Composant incidents initialisé');
+    console.log(' Composant incidents initialisé');
     this.loadIncidentDashboard();
     this.loadTPEDashboard();
   }
@@ -88,26 +88,12 @@ export class IncidentsComponent implements OnInit {
     this.showExportModal = false;
   }
 
-
-// incidents.component.ts - Remplacer la méthode exportData()
-
-// incidents.component.ts - Remplacer la méthode exportData()
-
-// incidents.component.ts - Remplacer la méthode exportData()
-
 exportData() {
-  console.log('📊 === DÉBUT exportData Incidents ===');
-  console.log('📊 exportPeriod:', this.exportPeriod);
-  console.log('📊 selectedYear:', this.selectedYear);
-  console.log('📊 selectedMonth:', this.selectedMonth);
-  
   if (!this.incidentData) {
-    console.error('❌ incidentData est null!');
+    console.error(' incidentData est null!');
     return;
   }
-  
   let filename = '';
-  
   switch (this.exportPeriod) {
     case 'jour':
       filename = `incidents_quotidiens_${this.getCurrentDate()}`;
@@ -124,11 +110,6 @@ exportData() {
   }
   
   const evolutionData = this.getEvolutionSheet();
-  console.log('📊 Données à exporter:', evolutionData.length, 'lignes');
-  console.log('📊 Première ligne:', evolutionData[0]);
-  console.log('📊 Headers:', Object.keys(evolutionData[0] || {}));
-  
-  // ✅ Version complète avec toutes les options pour Incidents
   this.exportExcelService.exportToExcelWithColors({
     filename: filename,
     sheetName: 'Évolution des incidents',
@@ -140,15 +121,13 @@ exportData() {
       'En cours': { bgColor: 'FFEDD5', fontColor: 'F97316' },
       'Fermés': { bgColor: 'D1FAE5', fontColor: '10B981' }
     },
-    firstColumnBold: true,                       // ✅ Première colonne en gras
-    colorHeadersWithColumnColors: true,          // ✅ En-têtes colorés comme les colonnes
-    excludeFirstColumnDataFromColoring: true     // ✅ Données 1ère colonne sans couleur (blanc)
+    firstColumnBold: true,                     
+    colorHeadersWithColumnColors: true,          
+    excludeFirstColumnDataFromColoring: true     
   });
   
   this.closeExportModal();
-  console.log('📊 === FIN exportData Incidents ===');
 }
-// incidents.component.ts - Corriger la méthode getEvolutionSheet()
 
 private getEvolutionSheet(): any[] {
   if (!this.incidentData) return [];
@@ -185,7 +164,7 @@ private getEvolutionSheet(): any[] {
     }
       
     case 'semaine': {
-      // ✅ Afficher les SEMAINES du MOIS SÉLECTIONNÉ (via selectedMonth)
+      //  Afficher les SEMAINES du MOIS SÉLECTIONNÉ (via selectedMonth)
       const year = new Date().getFullYear(); // Année actuelle
       const month = this.selectedMonth; // Mois sélectionné dans le modal
       
@@ -259,14 +238,14 @@ case 'mois': {
   }
 }
 
-// Méthode utilitaire pour obtenir le numéro de semaine
+// obtenir le numéro de semaine
 private getWeekNumber(date: Date): number {
   const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
   const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
   return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
 }
 
-// Méthode utilitaire pour obtenir le nom du mois
+// obtenir le nom du mois
 private getMonthName(month: number): string {
   const months = ['Janvier', 'Février', 'Mars', 'Avril', 'Mai', 'Juin', 
                   'Juillet', 'Août', 'Septembre', 'Octobre', 'Novembre', 'Décembre'];
@@ -279,13 +258,12 @@ private getMonthName(month: number): string {
     return `${now.getFullYear()}-${now.getMonth() + 1}-${now.getDate()}`;
   }
 
-  // ==================== FIN MÉTHODES D'EXPORT ====================
   loadIncidentDashboard() {
-    console.log('🔄 Chargement dashboard incidents...');
+    console.log(' Chargement dashboard incidents...');
     this.loadingIncidents = true;
     this.dashboardService.getIncidentDashboard().subscribe({
       next: (response) => {
-        console.log('📊 Incidents réponse:', response);
+        console.log('Incidents réponse:', response);
         if (response.isSuccess && response.data) {
           this.incidentData = response.data;
           this.initIncidentCharts();
@@ -295,7 +273,7 @@ private getMonthName(month: number): string {
         this.loadingIncidents = false;
       },
       error: (err) => {
-        console.error('❌ Erreur incidents:', err);
+        console.error(' Erreur incidents:', err);
         this.errorIncidents = 'Impossible de charger le dashboard des incidents';
         this.loadingIncidents = false;
       }
@@ -303,11 +281,11 @@ private getMonthName(month: number): string {
   }
 
   loadTPEDashboard() {
-    console.log('🔄 Chargement dashboard TPE...');
+    console.log(' Chargement dashboard TPE...');
     this.loadingTPE = true;
     this.dashboardService.getTPEDashboard().subscribe({
       next: (response) => {
-        console.log('📊 TPE réponse:', response);
+        console.log(' TPE réponse:', response);
         if (response.isSuccess && response.data) {
           this.tpeData = response.data;
           this.initTPECharts();
@@ -317,7 +295,7 @@ private getMonthName(month: number): string {
         this.loadingTPE = false;
       },
       error: (err) => {
-        console.error('❌ Erreur TPE:', err);
+        console.error(' Erreur TPE:', err);
         this.errorTPE = 'Impossible de charger le dashboard des TPE';
         this.loadingTPE = false;
       }
@@ -595,15 +573,12 @@ private getMonthName(month: number): string {
 initPannesParModeleChart() {
   const data = this.tpeData!.pannesParModele;
   
-  // Map des couleurs pastel pour chaque modèle
   const modeleColors: { [key: string]: string } = {
-    'Ingenico': '#FCA5A5',  // cyan-300
-    'Verifone': '#A7F3D0',  // green-300  
-    'PAX': '#FDE047'        // yellow-300
+    'Ingenico': '#FCA5A5',  
+    'Verifone': '#A7F3D0',   
+    'PAX': '#FDE047'        
   };
-  
-  // Utiliser les couleurs pastel pour chaque modèle
-  const chartColors = data.map(m => modeleColors[m.modele] || m.color || '#CBD5E1');
+    const chartColors = data.map(m => modeleColors[m.modele] || m.color || '#CBD5E1');
   
   this.chartPannesParModele = {
     series: data.map(m => m.nombreIncidents),
@@ -709,15 +684,13 @@ initPannesParModeleChart() {
   };
 }
 processPannesParGovernorat() {
-  console.log('📊 === DÉBUT processPannesParGovernorat ===');
+  console.log(' === DÉBUT processPannesParGovernorat ===');
   
   if (!this.tpeData?.pannesParAdresse) {
-    console.warn('⚠️ Aucune donnée pannesParAdresse disponible');
+    console.warn(' Aucune donnée pannesParAdresse disponible');
     return;
   }
-  
-  console.log('📊 Nombre de commerçants:', this.tpeData.pannesParAdresse.length);
-  
+  console.log(' Nombre de commerçants:', this.tpeData.pannesParAdresse.length);
   // Grouper par gouvernorat
   const govMap = new Map<string, {
     gouvName: string;
@@ -754,7 +727,7 @@ processPannesParGovernorat() {
     color: this.govService.getGovernorateColor(gov.gouvName)
   })).sort((a, b) => b.tauxPanne - a.tauxPanne);
   
-  // ✅ Mettre à jour les statistiques
+  //  Mettre à jour les statistiques
   this.updateStatsFromGovData();
   
   // Initialiser le graphique
@@ -762,12 +735,12 @@ processPannesParGovernorat() {
 }
 
 initPannesParGovernoratChart() {
-  console.log('📊 === DÉBUT initPannesParGovernoratChart ===');
+  console.log(' === DÉBUT initPannesParGovernoratChart ===');
   
   const data = this.govData.slice(0, 10);
   
   if (data.length === 0) {
-    console.warn('⚠️ Aucune donnée de gouvernorat disponible');
+    console.warn(' Aucune donnée de gouvernorat disponible');
     return;
   }
   
@@ -819,7 +792,6 @@ initPannesParGovernoratChart() {
       max: 100
     },
     colors: barColors,
-    // ✅ LÉGENDE DÉSACTIVÉE - À METTRE ICI, PAS DANS responsive
     legend: {
       show: false
     },
@@ -876,9 +848,7 @@ initPannesParGovernoratChart() {
       }
     }]
   };
-  
-  console.log('✅ Graphique chartPannesParGovernorat configuré');
-  console.log('📊 Couleurs finales:', barColors);
+ 
 }
 
   getIncidentStatsByPeriode() {
@@ -901,7 +871,6 @@ initPannesParGovernoratChart() {
   }
 
 
-// Ajouter cette méthode dans la classe IncidentsComponent
 updateStatsFromGovData() {
   this.totalTPEs = this.govData.reduce((sum, g) => sum + g.totalTPEs, 0);
   this.totalIncidents = this.govData.reduce((sum, g) => sum + g.totalIncidents, 0);
@@ -909,7 +878,7 @@ updateStatsFromGovData() {
     ? this.govData.reduce((sum, g) => sum + g.tauxPanne, 0) / this.govData.length 
     : 0;
   
-  console.log('📊 Statistiques mises à jour:', {
+  console.log(' Statistiques mises à jour:', {
     totalTPEs: this.totalTPEs,
     totalIncidents: this.totalIncidents,
     tauxMoyen: this.tauxMoyen

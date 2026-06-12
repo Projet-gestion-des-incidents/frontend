@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import { DashboardAdminService, IncidentDashboardDTO, TicketDashboardDTO } from '../../../../shared/services/dashboard-admin.service';
+import { DashboardAdminService, TicketDashboardDTO } from '../../../../shared/services/dashboard-admin.service';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DropdownComponent } from '../../../../shared/components/ui/dropdown/dropdown.component';
@@ -59,7 +59,6 @@ export class TicketsDashboardComponent {
   }
 
   // ==================== MÉTHODES D'EXPORT ====================
-  
   initYears() {
     const currentYear = new Date().getFullYear();
     this.exportYears = [];
@@ -76,16 +75,9 @@ export class TicketsDashboardComponent {
     this.showExportModal = false;
   }
 
-// tickets-dashboard.component.ts - Remplacer les méthodes d'export
-
 exportData() {
-  console.log('📊 === DÉBUT exportData Tickets ===');
-  console.log('📊 exportPeriod:', this.exportPeriod);
-  console.log('📊 selectedYear:', this.selectedYear);
-  console.log('📊 selectedMonth:', this.selectedMonth);
-  
   if (!this.ticketData) {
-    console.error('❌ ticketData est null!');
+    console.error(' ticketData est null!');
     return;
   }
   
@@ -110,11 +102,6 @@ exportData() {
   }
   
   const evolutionData = this.getEvolutionSheet();
-  console.log('📊 Données à exporter:', evolutionData.length, 'lignes');
-  console.log('📊 Première ligne:', evolutionData[0]);
-  console.log('📊 Headers:', Object.keys(evolutionData[0] || {}));
-  
-  // ✅ Version avec le même style que les incidents
   this.exportExcelService.exportToExcelWithColors({
     filename: filename,
     sheetName: 'Évolution des tickets',
@@ -136,7 +123,6 @@ exportData() {
   });
   
   this.closeExportModal();
-  console.log('📊 === FIN exportData Tickets ===');
 }
 
 private getEvolutionSheet(): any[] {
@@ -177,7 +163,7 @@ private getEvolutionSheet(): any[] {
   const year = this.selectedYear;
   const month = this.selectedMonth;
   
-  // ✅ Version corrigée : filtrer par DATE DE DÉBUT de la semaine
+  // filtrer par DATE DE DÉBUT de la semaine
   const weeksInMonth = this.ticketData.statsParSemaine.filter(week => {
     const weekDate = new Date(week.date);
     // Prendre la date de DÉBUT de la semaine (le lundi)
@@ -296,7 +282,7 @@ private getEvolutionSheet(): any[] {
   }
 }
 
-// Méthode utilitaire pour obtenir le numéro de semaine
+//  obtenir le numéro de semaine
 private getWeekNumber(date: Date): number {
   const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
   const pastDaysOfYear = (date.getTime() - firstDayOfYear.getTime()) / 86400000;
@@ -370,20 +356,17 @@ private getCurrentDate(): string {
     }));
   }
 
-
-  // ==================== FIN MÉTHODES D'EXPORT ====================
-
   ngOnInit() {
-    console.log('🟢 Composant admin dashboard initialisé');
+    console.log(' Composant admin dashboard initialisé');
     this.loadTicketDashboard();
   }
 
   loadTicketDashboard() {
-    console.log('🔄 Chargement dashboard tickets...');
+    console.log(' Chargement dashboard tickets...');
     this.loadingTickets = true;
     this.dashboardService.getTicketDashboard().subscribe({
       next: (response) => {
-        console.log('📊 Tickets réponse:', response);
+        console.log(' Tickets réponse:', response);
         if (response.isSuccess && response.data) {
           this.ticketData = response.data;
           this.initTicketCharts();
@@ -394,7 +377,7 @@ private getCurrentDate(): string {
         this.loadingTickets = false;
       },
       error: (err) => {
-        console.error('❌ Erreur tickets:', err);
+        console.error(' Erreur tickets:', err);
         this.errorTickets = 'Impossible de charger le dashboard des tickets';
         this.loadingTickets = false;
       }
@@ -467,7 +450,7 @@ private getCurrentDate(): string {
 initTicketEvolutionChart() {
   let statsPeriode = this.getTicketStatsByPeriode();
   
-  // ✅ Filtrer les données pour la période sélectionnée
+  // Filtrer les données pour la période sélectionnée
   if (this.selectedPeriode === 'semaine') {
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
@@ -526,10 +509,10 @@ initTicketEvolutionChart() {
    toolbar: { 
   show: true,
   tools: {
-    download: true  // Garde l'icône de téléchargement
+    download: true  
   },
  export: {
-          csv: false,    // ✅ Désactive CSV seulement
+          csv: false,    //  Désactive CSV seulement
           svg: {
             filename: 'evolution-tickets'
           },
@@ -611,7 +594,6 @@ initTicketEvolutionChart() {
     };
   }
 
-  // ==================== UTILITAIRES ====================
   updateResolutionStats() {
     if (!this.ticketData) return;
     
@@ -629,10 +611,10 @@ getTicketStatsByPeriode() {
   
   switch (this.selectedPeriode) {
     case 'jour': 
-      return this.getCurrentWeekDays(); // ✅ Renvoie les 7 jours de la semaine actuelle
+      return this.getCurrentWeekDays(); //  Renvoie les 7 jours de la semaine actuelle
     
     case 'semaine': 
-      return this.getCurrentMonthWeeks(); // ✅ Renvoie les semaines du mois actuel
+      return this.getCurrentMonthWeeks(); //  Renvoie les semaines du mois actuel
     
     case 'mois': 
       return this.ticketData.statsParMois;
@@ -642,7 +624,7 @@ getTicketStatsByPeriode() {
   }
 }
 
-// ✅ Nouvelle méthode : obtenir les jours de la semaine actuelle
+//  obtenir les jours de la semaine actuelle
 private getCurrentWeekDays(): any[] {
   const today = new Date();
   const currentDay = today.getDay();
@@ -679,7 +661,7 @@ private getCurrentWeekDays(): any[] {
   return weekDays;
 }
 
-// ✅ Nouvelle méthode : obtenir les semaines du mois actuel
+//  obtenir les semaines du mois actuel
 private getCurrentMonthWeeks(): any[] {
   const currentDate = new Date();
   const currentYear = currentDate.getFullYear();

@@ -14,7 +14,7 @@
 
 
 
-  <!-- Cartes métriques Tickets - Dark mode adapté -->
+  <!-- Cartes métriques Tickets  -->
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
     <!-- Total tickets -->
     <div class="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/10 rounded-xl p-4 border border-purple-200 dark:border-purple-800 hover:shadow-md transition-all duration-300">
@@ -95,7 +95,7 @@
 </div>
   </div>
 
-  <!-- Graphiques Tickets - Dark mode adapté -->
+  <!-- Graphiques Tickets  -->
   <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
     
     <!-- Graphique Donut - Répartition par statut -->
@@ -175,7 +175,7 @@
         <div *ngIf="!chartResolution" class="text-center py-8 text-gray-500 dark:text-gray-400">Chargement du graphique...</div>
       </div>
 
-      <!-- Pied de page avec indicateurs - Dark mode adapté -->
+      <!-- Pied de page avec indicateurs  -->
       <div class="flex items-center justify-around gap-5 px-6 py-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/30 rounded-b-2xl">
         <div class="text-center">
           <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">Avant délai</p>
@@ -206,14 +206,14 @@
       </div>
     </div>
   </div>
-  <!-- Modal d'export Tickets - Version corrigée dark mode -->
+  <!-- Modal d'export Tickets  -->
   <div *ngIf="showExportModal" 
        class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
        (click)="closeExportModal()">
     <div class="bg-white dark:bg-gray-800 rounded-2xl max-w-md w-full p-0 shadow-2xl animate-modal-in overflow-hidden"
          (click)="$event.stopPropagation()">
       
-      <!-- En-tête avec dégradé -->
+      <!-- En-tête  -->
       <div class="bg-gradient-to-r from-[#ECECFF] to-[#C5C6FF] dark:from-[#0C144E]/30 dark:to-[#0C144E]/20 px-6 py-4 border-b border-[#C5C6FF] dark:border-[#8788FF]/30">
         <div class="flex items-center gap-3">
           <div class="w-12 h-12 rounded-full bg-[#ECECFF] dark:bg-[#0C144E]/50 flex items-center justify-center shadow-inner">
