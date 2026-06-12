@@ -90,11 +90,11 @@ export class UpdateCommercantComponent implements OnInit {
 
  loadCommercantData(): void {
     this.loading = true;
-    console.log('🔄 Chargement du commerçant ID:', this.commercantId);
+    console.log(' Chargement du commerçant ID:', this.commercantId);
     
     this.userService.getCommercantById(this.commercantId!).subscribe({
       next: (commercant) => {
-        console.log('🎯 Commerçant trouvé:', commercant);
+        console.log(' Commerçant trouvé:', commercant);
         
         if (commercant) {
           const formValues = {
@@ -107,22 +107,22 @@ export class UpdateCommercantComponent implements OnInit {
           
           this.commercantForm.patchValue(formValues);
           
-          // ✅ Stocker les valeurs originales
+          //  Stocker les valeurs originales
           this.originalFormValues = { ...formValues };
           
-          // ✅ Écouter les changements du formulaire
+          //  Écouter les changements du formulaire
           this.commercantForm.valueChanges.subscribe(() => {
             this.checkFormChanges();
           });
           
-          console.log('✅ Formulaire après patch:', this.commercantForm.value);
+          console.log(' Formulaire après patch:', this.commercantForm.value);
         } else {
           this.showAlert('error', 'Erreur', 'Commerçant non trouvé');
         }
         this.loading = false;
       },
       error: (error) => {
-        console.error('❌ Erreur chargement:', error);
+        console.error(' Erreur chargement:', error);
         const errorMessage = error.error?.message || error.message || 'Impossible de charger les données du commerçant';
         this.showAlert('error', 'Erreur', errorMessage);
         this.loading = false;
@@ -213,7 +213,6 @@ openMapModal(): void {
     }, 5000);
   }
 
-  // ✅ Modifier closeMapModal
   closeMapModal(): void {
     this.showMapModal = false;
     this.tempSelectedAddress = null;

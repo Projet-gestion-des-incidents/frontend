@@ -93,7 +93,7 @@ onInvalidLocation(message: string): void {
   this.showMapModal = true;
   this.tempSelectedAddress = this.commercantForm.get('adresse')?.value || '';
   this.selectedAddressValid = true;
-  this.mapAlert.show = false; // ✅ Réinitialiser l'alerte de la modale
+  this.mapAlert.show = false; //  Réinitialiser l'alerte de la modale
 }
 
 private isLocationInTunisia(location: any): boolean {
@@ -118,28 +118,20 @@ closeMapModal(): void {
   this.tempSelectedAddress = '';
   this.tempSelectedLat = null;
   this.tempSelectedLng = null;
-  this.mapAlert.show = false; // ✅ Réinitialiser l'alerte de la modale
+  this.mapAlert.show = false; //  Réinitialiser l'alerte de la modale
 }
 onLocationSelectedInModal(location: any): void {
-  console.log('📍 Location reçue:', location);
   
   if (location && location.address) {
-    console.log('📍 Adresse:', location.address);
-    console.log('📍 Latitude:', location.lat);
-    console.log('📍 Longitude:', location.lng);
-    
     const isTunisia = this.isLocationInTunisia(location);
-    console.log('📍 Est en Tunisie?', isTunisia);
     
     if (!isTunisia) {
-      // ✅ Utiliser mapAlert au lieu de alert
       this.mapAlert = {
         show: true,
         message: 'Veuillez sélectionner un emplacement en Tunisie'
       };
       this.tempSelectedAddress = '';
       this.selectedAddressValid = false;
-      
       // Auto-hide après 4 secondes
       setTimeout(() => {
         this.mapAlert.show = false;
@@ -160,13 +152,11 @@ onLocationSelectedInModal(location: any): void {
     this.commercantForm.patchValue({ adresse: this.tempSelectedAddress });
     this.commercantForm.get('adresse')?.markAsTouched();
     this.showMapModal = false;
-    this.clearAlert(); // ✅ Effacer l'alerte après confirmation
+    this.clearAlert(); //  Effacer l'alerte après confirmation
   }
 }
 
-  /**
-   * ✅ Méthode améliorée pour parser les erreurs de validation du backend
-   */
+  // parser les erreurs de validation du backend
   private parseValidationErrors(error: any): string[] {
     const errors: string[] = [];
     
@@ -200,9 +190,7 @@ onLocationSelectedInModal(location: any): void {
     return errors;
   }
 
-  /**
-   * ✅ Formate le nom du champ pour un affichage plus lisible
-   */
+  /** Formate le nom du champ pour un affichage plus lisible */
   private formatFieldError(field: string, message: string): string {
     const fieldNames: { [key: string]: string } = {
       'NomMagasin': 'Nom du magasin',
@@ -254,8 +242,7 @@ onLocationSelectedInModal(location: any): void {
           this.showError(res.message || 'Erreur lors de la création du commerçant');
           return;
         }
-
-        console.log('✅ Commerçant créé avec succès:', res.data);
+        console.log(' Commerçant créé avec succès:', res.data);
         this.showSuccess(res.message || 'Commerçant créé avec succès');
         
         setTimeout(() => {
@@ -265,7 +252,7 @@ onLocationSelectedInModal(location: any): void {
       error: (err: any) => {
         this.loading = false;
         
-        // ✅ Analyser les erreurs de validation
+        //  Analyser les erreurs de validation
         const validationErrors = this.parseValidationErrors(err);
         
         if (validationErrors.length > 0) {
@@ -277,14 +264,12 @@ onLocationSelectedInModal(location: any): void {
           this.showError(errorMessage);
         }
         
-        console.error('❌ Erreur création commerçant:', err);
+        console.error(' Erreur création commerçant:', err);
       }
     });
   }
 
-  /**
-   * ✅ Affiche un message de succès
-   */
+  /**  Affiche un message de succès  */
   private showSuccess(message: string) {
     this.alert = { 
       show: true, 
@@ -296,9 +281,7 @@ onLocationSelectedInModal(location: any): void {
     this.autoHideAlert();
   }
 
-  /**
-   * ✅ Affiche un message d'erreur avec détails optionnels
-   */
+  /** Affiche un message d'erreur  */
   private showError(message: string, details: string[] = []) {
     this.alert = { 
       show: true, 

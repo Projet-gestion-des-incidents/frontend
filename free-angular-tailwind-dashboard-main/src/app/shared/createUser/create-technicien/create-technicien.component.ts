@@ -105,10 +105,10 @@ export class CreateTechnicienComponent {
 
   private showSuccess(message: string) {
     this.alert = { show: true, variant: 'success', title: 'Succès', message };
-    // ✅ Augmenter le délai avant redirection à 5 secondes (ou plus)
+    //  le délai avant redirection 
   setTimeout(() => {
     this.router.navigate(['/techniciens']);
-  }, 5000); // 5 secondes au lieu de 2
+  }, 5000); // 5 secondes 
   }
 
   private showError(message: string) {

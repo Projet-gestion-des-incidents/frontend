@@ -11,7 +11,7 @@ interface Alert {
   variant: 'error' | 'success' | 'warning' | 'info';
 }
 
-// ✅ Validateur personnalisé pour le nom d'utilisateur (sans espaces, uniquement lettres/chiffres)
+//  Validateur personnalisé pour le nom d'utilisateur (sans espaces, uniquement lettres/chiffres)
 function usernameValidator(control: AbstractControl): ValidationErrors | null {
   const value = control.value;
   if (!value) return null;
@@ -24,11 +24,11 @@ function usernameValidator(control: AbstractControl): ValidationErrors | null {
   return null;
 }
 
-// ✅ Validateur personnalisé pour la date de naissance
+//  Validateur personnalisé pour la date de naissance
 function birthDateValidator(control: AbstractControl): ValidationErrors | null {
   const value = control.value;
   
-  // ✅ Si la valeur est vide, pas d'erreur (champ optionnel)
+  //  Si la valeur est vide, pas d'erreur (champ optionnel)
   if (!value) {
     return null;
   }
@@ -36,17 +36,17 @@ function birthDateValidator(control: AbstractControl): ValidationErrors | null {
   const birthDate = new Date(value);
   const today = new Date();
   
-  // ✅ Vérifier si la date est valide
+  //  Vérifier si la date est valide
   if (isNaN(birthDate.getTime())) {
     return { invalidDate: true };
   }
   
-  // ✅ Vérifier que la date n'est pas dans le futur
+  //  Vérifier que la date n'est pas dans le futur
   if (birthDate > today) {
     return { futureDate: true };
   }
   
-  // ✅ Vérifier l'âge minimum (18 ans)
+  //  Vérifier l'âge minimum (18 ans)
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
@@ -57,12 +57,12 @@ function birthDateValidator(control: AbstractControl): ValidationErrors | null {
     return { underAge: true };
   }
   
-  // ✅ Vérifier l'âge maximum (120 ans - date raisonnable)
+  //  Vérifier l'âge maximum (120 ans - date raisonnable)
   if (age > 120) {
     return { overAge: true };
   }
   
-  // ✅ Vérifier que l'année n'est pas inférieure à 1900
+  //  Vérifier que l'année n'est pas inférieure à 1900
   if (birthDate.getFullYear() < 1900) {
     return { tooOld: true };
   }
@@ -83,7 +83,7 @@ export class UpdateTechnicienComponent implements OnInit {
   isAdmin = false;
   technicienId: string | null = null;
     maxBirthDateISO: string = '';
- minBirthDateISO: string = ''; // ✅ Ajout de la date minimale
+ minBirthDateISO: string = ''; //  la date minimale
   originalFormValues: any = {}; // Stocker les valeurs originales
   formChanged = false; // Indique si le formulaire a été modifié
 
@@ -106,14 +106,14 @@ export class UpdateTechnicienComponent implements OnInit {
       email: ['', [Validators.required, Validators.email]],
       nom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
       prenom: ['', [Validators.required, Validators.minLength(3), Validators.maxLength(30)]],
-  phoneNumber: ['', [Validators.pattern('^[0-9]{8}$')]],   // ✅ plus required
+  phoneNumber: ['', [Validators.pattern('^[0-9]{8}$')]],  
   birthDate: ['', [birthDateValidator]]  });
  // Calculer la date maximale (18 ans minimum)
     const today = new Date();
     const minDate = new Date(today.getFullYear() - 18, today.getMonth(), today.getDate());
     this.maxBirthDateISO = minDate.toISOString().split('T')[0];
     
-    // ✅ Calculer la date minimale (120 ans maximum - année 1900)
+    //  Calculer la date minimale (120 ans maximum - année 1900)
     this.minBirthDateISO = '1900-01-01';
   }
 
@@ -136,7 +136,7 @@ export class UpdateTechnicienComponent implements OnInit {
 
  // Validation personnalisée pour l'âge (18 ans minimum) - Optionnel
 validateAge(control: any): { [key: string]: boolean } | null {
-  // ✅ Si la valeur est vide, pas d'erreur (champ optionnel)
+  //  Si la valeur est vide, pas d'erreur (champ optionnel)
   if (!control.value) {
     return null;  // Pas d'erreur, champ optionnel
   }
@@ -164,7 +164,7 @@ validateAge(control: any): { [key: string]: boolean } | null {
  openCalendar(): void {
     const dateInput = document.getElementById('birthDate') as HTMLInputElement;
     if (dateInput) {
-      dateInput.showPicker(); // Fonctionne dans les navigateurs modernes
+      dateInput.showPicker(); 
     }
   }
 
@@ -173,13 +173,8 @@ validateAge(control: any): { [key: string]: boolean } | null {
     this.formChanged = JSON.stringify(currentValues) !== JSON.stringify(this.originalFormValues);
   }
 
-// Corriger isSubmitDisabled()
 isSubmitDisabled(): boolean {
-  // ✅ Désactivé seulement si :
-  // - formulaire invalide (erreurs de format)
-  // - en cours de chargement
-  // - aucun changement
-  // - les deux champs optionnels sont TOUS LES DEUX remplis mais l'un est invalide
+ 
   const phone = this.technicienForm.get('phoneNumber');
   const birth = this.technicienForm.get('birthDate');
 
@@ -202,11 +197,11 @@ isSubmitDisabled(): boolean {
   
 loadTechnicienData(): void {
     this.loading = true;
-    console.log('🔄 Chargement du technicien ID:', this.technicienId);
+    console.log(' Chargement du technicien ID:', this.technicienId);
     
     this.userService.getTechnicienById(this.technicienId!).subscribe({
       next: (technicien) => {
-        console.log('🎯 Technicien trouvé:', technicien);
+        console.log(' Technicien trouvé:', technicien);
         
         if (technicien) {
           let birthDateValue = '';
@@ -230,23 +225,22 @@ loadTechnicienData(): void {
           };
           
           this.technicienForm.patchValue(formValues);
-          
-          // ✅ Stocker les valeurs originales
+          //  Stocker les valeurs originales
           this.originalFormValues = { ...formValues };
           
-          // ✅ Écouter les changements du formulaire
+          //  Écouter les changements du formulaire
           this.technicienForm.valueChanges.subscribe(() => {
             this.checkFormChanges();
           });
           
-          console.log('✅ Formulaire après patch:', this.technicienForm.value);
+          console.log(' Formulaire après patch:', this.technicienForm.value);
         } else {
           this.showAlert('error', 'Erreur', 'Technicien non trouvé');
         }
         this.loading = false;
       },
       error: (error) => {
-        console.error('❌ Erreur chargement:', error);
+        console.error(' Erreur chargement:', error);
         const errorMessage = error.error?.message || error.message || 'Impossible de charger les données du technicien';
         this.showAlert('error', 'Erreur', errorMessage);
         this.loading = false;
@@ -277,18 +271,18 @@ loadTechnicienData(): void {
       birthDate: formValue.birthDate ? new Date(formValue.birthDate).toISOString() : null
     };
     
-    console.log('📤 Données envoyées pour mise à jour:', updateData);
+    console.log(' Données envoyées pour mise à jour:', updateData);
 
     this.userService.adminUpdateTechnicien(this.technicienId!, updateData).subscribe({
       next: (response) => {
-        console.log('✅ Réponse mise à jour:', response);
+        console.log(' Réponse mise à jour:', response);
         this.showAlert('success', 'Succès', 'Technicien mis à jour avec succès');
         setTimeout(() => {
           this.router.navigate(['/techniciens']);
         }, 5000);
       },
       error: (error) => {
-        console.error('❌ Erreur mise à jour:', error);
+        console.error(' Erreur mise à jour:', error);
         const errorMessage = error.error?.message || error.message || 'Erreur lors de la mise à jour';
         this.showAlert('error', 'Erreur', errorMessage);
         this.loading = false;
