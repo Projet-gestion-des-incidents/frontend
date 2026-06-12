@@ -37,24 +37,24 @@ export class TicketFormComponent implements OnInit {
 
   ticketForm!: FormGroup;
   loading = false;
-  // Ajoutez ces propriétés avec les autres
 successMessage: string = '';
   // Pour les techniciens
   techniciens: { id: string; nom: string; prenom: string }[] = [];
   technicienOptions: { value: string; label: string }[] = [];
-// Ajoutez cette propriété avec les autres
-showCommercantError = false;
+
+  showCommercantError = false;
   // Pour les incidents
   incidents: any[] = [];
-  filteredIncidents: any[] = [];  // ✅ Incidents filtrés par commerçant
-  groupedIncidents: any[] = [];    // ✅ Incidents groupés par commerçant
+  filteredIncidents: any[] = [];  //  Incidents filtrés par commerçant
+  groupedIncidents: any[] = [];    //  Incidents groupés par commerçant
   selectedIncidentIds: string[] = [];
   showIncidentError = false;
   
-  // ✅ Pour le filtre par commerçant
+  //  Pour le filtre par commerçant
   commercants: any[] = [];
   selectedCommercantId: string | null = null;
-  
+  commercantsAvecIncidents: any[] = [];
+
   today: string = this.getTodayString();
 
   constructor(
@@ -68,36 +68,27 @@ showCommercantError = false;
   ngOnInit(): void {
     this.initForm();
     this.loadTechniciens();
-    this.loadCommercants();  // ✅ Charger les commerçants
+    this.loadCommercants();  //  Charger les commerçants
     this.loadIncidents();
   }
 
 initForm(): void {
   this.ticketForm = this.fb.group({
     titreTicket: ['', [Validators.required, Validators.minLength(3)]],
-    descriptionTicket: ['', [Validators.required, Validators.minLength(10)]], // ✅ Ajout de minLength(10)
+    descriptionTicket: ['', [Validators.required, Validators.minLength(10)]], 
     assigneeId: [null, Validators.required],
     dateLimite: [null, [Validators.required, this.futureDateValidator]],
     commentaireInitial: [''],
     commentaireInterne: [false]
   });
 }
-// Ajoutez cette propriété avec les autres
-commercantsAvecIncidents: any[] = [];
-/**
- * Filtre les commerçants pour ne garder que ceux qui ont des incidents disponibles
- */
-// ticket-form.component.ts
-
+/** Filtre les commerçants pour ne garder que ceux qui ont des incidents disponibles*/
 filtrerCommercantsAvecIncidents(): void {
   if (!this.incidents || this.incidents.length === 0) {
     this.commercantsAvecIncidents = [];
     return;
   }
-  
-  // 🔍 DEBUG - Afficher les IDs des commerçants chargés
-  console.log('🔍 IDs des commerçants chargés:');
-  this.commercants.forEach(commercant => {
+    this.commercants.forEach(commercant => {
     console.log(`  - Commerçant: ${commercant.nomMagasin || commercant.userName || commercant.nom} -> id: ${commercant.id}`);
   });
   
@@ -112,7 +103,7 @@ filtrerCommercantsAvecIncidents(): void {
     return commercantsIds.has(incidentCreatorId);
   });
   
-  console.log(`📊 Incidents avec commerçant correspondant: ${incidentsAvecCommercant.length}`);
+  console.log(` Incidents avec commerçant correspondant: ${incidentsAvecCommercant.length}`);
   
   // Récupérer les IDs des commerçants qui ont des incidents
   const commercantsIdsAvecIncidents = new Set(
@@ -124,7 +115,7 @@ filtrerCommercantsAvecIncidents(): void {
     commercantsIdsAvecIncidents.has(commercant.id?.toString())
   );
   
-  console.log(`📊 Commerçants avec incidents disponibles: ${this.commercantsAvecIncidents.length}`);
+  console.log(` Commerçants avec incidents disponibles: ${this.commercantsAvecIncidents.length}`);
   console.log('Commerçants filtrés:', this.commercantsAvecIncidents.map(c => ({
     id: c.id,
     nom: c.nomMagasin || c.userName,
@@ -134,7 +125,7 @@ filtrerCommercantsAvecIncidents(): void {
 // Validateur personnalisé pour vérifier que la date est dans le futur
 futureDateValidator(control: AbstractControl): ValidationErrors | null {
   if (!control.value) {
-    return null; // La valeur est gérée par Validators.required
+    return null; 
   }
   
   const selectedDate = new Date(control.value);
@@ -165,19 +156,19 @@ isFormValid(): boolean {
   }
 
 loadTechniciens(): void {
-  console.log('🔍 Récupération des techniciens...');
+  console.log(' Récupération des techniciens...');
   
-  // ✅ Passer des paramètres pour récupérer TOUS les techniciens
+  //  Passer des paramètres pour récupérer TOUS les techniciens
   const request = {
     page: 1,
-    pageSize: 100,  // Grand nombre pour tout prendre
+    pageSize: 100,  
     sortBy: 'Nom',
     sortDescending: false
   };
   
   this.userService.getTechniciens(request).subscribe({
     next: (response) => {
-      console.log('📦 Réponse API techniciens:', response);
+      console.log(' Réponse API techniciens:', response);
       
       let techniciensData = [];
       
@@ -185,19 +176,19 @@ loadTechniciens(): void {
         techniciensData = response.data;
       }
       
-      console.log(`📊 Nombre total de techniciens dans la réponse: ${techniciensData.length}`);
+      console.log(` Nombre total de techniciens dans la réponse: ${techniciensData.length}`);
       
-      // ✅ Filtrer par statut "Actif" et email confirmé
+      //  Filtrer par statut "Actif" et email confirmé
       const techniciensFiltres = techniciensData.filter((u: any) => {
         const isActif = u.statut === 'Actif' || u.statut === 0;
         const isEmailConfirmed = u.emailConfirmed === true || u.emailConfirmed === 1;
         return isActif && isEmailConfirmed;
       });
       
-      console.log(`📊 Techniciens après filtrage (Actif + email confirmé): ${techniciensFiltres.length}`);
+      console.log(` Techniciens après filtrage (Actif + email confirmé): ${techniciensFiltres.length}`);
       
       techniciensFiltres.forEach((t: any, index: number) => {
-        console.log(`✅ Technicien ${index + 1}: ${t.prenom} ${t.nom}`);
+        console.log(` Technicien ${index + 1}: ${t.prenom} ${t.nom}`);
       });
       
       this.techniciens = techniciensFiltres.map((u: any) => ({
@@ -218,15 +209,15 @@ loadTechniciens(): void {
         label: `${t.prenom} ${t.nom}`.trim()
       }));
       
-      console.log('✅ Techniciens chargés:', this.techniciens.length);
+      console.log(' Techniciens chargés:', this.techniciens.length);
     },
     error: (err) => {
-      console.error('❌ Erreur:', err);
+      console.error(' Erreur:', err);
     }
   });
 }
 
-  // ✅ NOUVELLE MÉTHODE : Charger la liste des commerçants
+  //  Charger la liste des commerçants
   loadCommercants(): void {
     this.userService.getCommercants().subscribe({
       next: (commercants) => {
@@ -245,7 +236,6 @@ loadTechniciens(): void {
   }
     showIncidentsList: boolean = false;
 
-// ticket-form.component.ts
 
 onCommercantChange(): void {
   // Ne rien faire si aucun commerçant n'est sélectionné
@@ -272,19 +262,15 @@ onCommercantChange(): void {
     this.showIncidentsList = true;
   }
   
-  console.log(`📊 ${this.filteredIncidents.length} incidents pour le commerçant sélectionné`);
+  console.log(` ${this.filteredIncidents.length} incidents pour le commerçant sélectionné`);
   console.log('IDs actuellement sélectionnés:', this.selectedIncidentIds);
 }
 
-
-
-
-
-// ✅ Option : Ajouter un bouton pour vider COMPLÈTEMENT la sélection
+// vider  la sélection
 clearAllSelections(): void {
   this.selectedIncidentIds = [];
   this.showIncidentError = false;
-  console.log('🧹 Sélection complètement vidée');
+  console.log(' Sélection complètement vidée');
 }
 loadIncidents(): void {
   this.incidentService.getIncidentsSansTicket().subscribe({
@@ -292,7 +278,7 @@ loadIncidents(): void {
       this.incidents = incidents;
       console.log('Incidents disponibles:', this.incidents.length);
       
-      // ✅ CRÉER LA LISTE DES COMMERÇANTS À PARTIR DES INCIDENTS
+      //  CRÉER LA LISTE DES COMMERÇANTS À PARTIR DES INCIDENTS
       const commercantsMap = new Map();
       
       this.incidents.forEach(incident => {
@@ -317,7 +303,7 @@ loadIncidents(): void {
       // Convertir la Map en tableau
       this.commercantsAvecIncidents = Array.from(commercantsMap.values());
       
-      console.log('✅ Commerçants extraits des incidents:', this.commercantsAvecIncidents);
+      console.log(' Commerçants extraits des incidents:', this.commercantsAvecIncidents);
       
       // Trier les incidents
       this.incidents.sort((a, b) => {
@@ -365,7 +351,7 @@ loadIncidents(): void {
   console.log('Incidents groupés par commerçant:', this.groupedIncidents);
 }
 
-  // Méthode pour obtenir le libellé du statut
+  //  obtenir le libellé du statut
   getStatutLibelle(statut: string): string {
     const statuts: { [key: string]: string } = {
       'NonTraite': 'Non traité',
@@ -402,7 +388,7 @@ selectAllIncidents(): void {
     }, 10000);
   }
   
-  console.log('✅ Après "Tout sélectionner":', this.selectedIncidentIds.length, '/', this.maxIncidents);
+  console.log(' Après "Tout sélectionner":', this.selectedIncidentIds.length, '/', this.maxIncidents);
 }
 
 
@@ -420,17 +406,16 @@ selectAllIncidents(): void {
   // Ajoute ou retire un incident de la sélection
  toggleIncidentSelection(incidentId: string): void {
   if (this.isIncidentSelected(incidentId)) {
-    // Désélectionner l'incident (toujours permis)
+    // Désélectionner l'incident 
     this.selectedIncidentIds = this.selectedIncidentIds.filter(id => id !== incidentId);
     this.showIncidentError = false;
-    this.showMaxIncidentError = false; // Ajoutez cette propriété
-  } else {
+    this.showMaxIncidentError = false; 
     // Vérifier la limite avant d'ajouter
     if (this.selectedIncidentIds.length >= this.maxIncidents) {
       this.showMaxIncidentError = true;
       this.showIncidentError = false;
       
-      // Optionnel: faire disparaître l'erreur après 3 secondes
+      // faire disparaître l'erreur après 3 secondes
       setTimeout(() => {
         this.showMaxIncidentError = false;
       }, 10000);
@@ -471,7 +456,7 @@ submit() {
     return;
   }
   
-  // ✅ Vérifier qu'un commerçant est sélectionné
+  //  Vérifier qu'un commerçant est sélectionné
   if (!this.selectedCommercantId) {
     this.showCommercantError = true;
     setTimeout(() => {
@@ -483,7 +468,7 @@ submit() {
     return;
   }
   
-  // ✅ Vérifier qu'au moins un incident est sélectionné
+  //  Vérifier qu'au moins un incident est sélectionné
   if (!this.selectedIncidentIds || this.selectedIncidentIds.length === 0) {
     this.showIncidentError = true;
     
@@ -498,7 +483,7 @@ submit() {
   }
 
   this.loading = true;
-  console.log('🚀 Création du ticket...');
+  console.log(' Création du ticket...');
 
   const ticketFormData = new FormData();
   ticketFormData.append('TitreTicket', this.ticketForm.value.titreTicket);
@@ -516,10 +501,10 @@ submit() {
   this.ticketService.createTicket(ticketFormData).pipe(
     switchMap(ticketResponse => {
       const ticketId = ticketResponse.data.id;
-      console.log('✅ Ticket créé avec ID:', ticketId);
+      console.log(' Ticket créé avec ID:', ticketId);
       
       if (this.selectedIncidentIds && this.selectedIncidentIds.length > 0) {
-        console.log('🔗 Liaison de', this.selectedIncidentIds.length, 'incident(s)...');
+        console.log(' Liaison de', this.selectedIncidentIds.length, 'incident(s)...');
         return this.ticketService.lierIncidents(ticketId, this.selectedIncidentIds).pipe(
           map(incidentResult => ({ ticketId, incidentResult }))
         );
@@ -527,7 +512,7 @@ submit() {
       return of({ ticketId });
     }),
     catchError(error => {
-      console.error('❌ Erreur détaillée:', error);
+      console.error(' Erreur détaillée:', error);
       
       if (error.error?.message) {
         this.error = error.error.message;
@@ -547,23 +532,23 @@ submit() {
     })
   ).subscribe({
     next: (result) => {
-      console.log('✅ Ticket créé avec succès:', result);
+      console.log(' Ticket créé avec succès:', result);
       
-      // ✅ Afficher le message de succès
+      //  Afficher le message de succès
       this.successMessage = `Ticket créé avec succès !`;
       
-      // ✅ SCROLL AUTOMATIQUE VERS LE HAUT
+      //  SCROLL AUTOMATIQUE VERS LE HAUT
       setTimeout(() => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
       }, 100);
       
-      // ✅ Rediriger vers la liste des tickets après 5 secondes
+      //  Rediriger vers la liste des tickets après 5 secondes
       setTimeout(() => {
         this.router.navigate(['/tickets']);
       }, 5000);
     },
     error: (error) => {
-      console.error('❌ Erreur fatale:', error);
+      console.error(' Erreur fatale:', error);
       window.scrollTo({ top: 0, behavior: 'smooth' });
       this.loading = false;
     }

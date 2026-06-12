@@ -11,7 +11,7 @@ import { AlertComponent } from '../../ui/alert/alert.component';
 import { SelectComponent } from '../../form/select/select.component';
 import { DatePickerComponent } from '../../form/date-picker/date-picker.component';
 
-// ✅ Validateur personnalisé pour le nom d'utilisateur (sans espaces, uniquement lettres/chiffres)
+//  Validateur personnalisé pour le nom d'utilisateur (sans espaces, uniquement lettres/chiffres)
 function usernameValidator(control: AbstractControl): ValidationErrors | null {
   const value = control.value;
   if (!value) return null;
@@ -24,11 +24,11 @@ function usernameValidator(control: AbstractControl): ValidationErrors | null {
   return null;
 }
 
-// ✅ Validateur personnalisé pour la date de naissance (18 ans minimum)
+//  Validateur personnalisé pour la date de naissance (18 ans minimum)
 function birthDateValidator(control: AbstractControl): ValidationErrors | null {
   const value = control.value;
   
-  // ✅ Si la valeur est vide, pas d'erreur (champ optionnel)
+  //  Si la valeur est vide, pas d'erreur 
   if (!value) {
     return null;
   }
@@ -36,17 +36,17 @@ function birthDateValidator(control: AbstractControl): ValidationErrors | null {
   const birthDate = new Date(value);
   const today = new Date();
   
-  // ✅ Vérifier si la date est valide
+  //  Vérifier si la date est valide
   if (isNaN(birthDate.getTime())) {
     return { invalidDate: true };
   }
   
-  // ✅ Vérifier que la date n'est pas dans le futur
+  //  Vérifier que la date n'est pas dans le futur
   if (birthDate > today) {
     return { futureDate: true };
   }
   
-  // ✅ Vérifier l'âge minimum (18 ans)
+  //  Vérifier l'âge minimum (18 ans)
   let age = today.getFullYear() - birthDate.getFullYear();
   const monthDiff = today.getMonth() - birthDate.getMonth();
   if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
@@ -57,12 +57,12 @@ function birthDateValidator(control: AbstractControl): ValidationErrors | null {
     return { underAge: true };
   }
   
-  // ✅ Vérifier l'âge maximum (120 ans - date raisonnable)
+  //  Vérifier l'âge maximum (120 ans - date raisonnable)
   if (age > 120) {
     return { overAge: true };
   }
   
-  // ✅ Vérifier que l'année n'est pas inférieure à 1900
+  //  Vérifier que l'année n'est pas inférieure à 1900
   if (birthDate.getFullYear() < 1900) {
     return { tooOld: true };
   }
@@ -70,7 +70,7 @@ function birthDateValidator(control: AbstractControl): ValidationErrors | null {
   return null;
 }
 
-// ✅ Validateur de correspondance des mots de passe
+//  Validateur de correspondance des mots de passe
 function passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
   const password = control.get('password');
   const confirmPassword = control.get('confirmPassword');
@@ -216,11 +216,11 @@ export class SignupFormComponent {
   isChecked = false;
   private alertTimeout: any;
 private serverErrorTimeout: any;
-  // ✅ Calculer la date maximale (18 ans minimum)
+  //  Calculer la date maximale (18 ans minimum)
   maxBirthDateISO: string = '';
   minBirthDateISO: string = '1900-01-01';
   
-  // ✅ Alertes pour les erreurs de formulaire
+  //  Alertes pour les erreurs de formulaire
   alert = {
     show: false,
     variant: 'error' as 'error' | 'warning' | 'success' | 'info',
@@ -379,16 +379,15 @@ onSubmit(event?: Event): void {
     event.preventDefault();
   }
 
-  // ✅ Empêcher la double soumission
   if (this.isSubmitting) {
     console.log('Soumission déjà en cours, ignorée');
     return;
   }
 
-  // ✅ Marquer tous les champs comme touchés pour afficher les erreurs sous les champs
+  //  Marquer tous les champs comme touchés pour afficher les erreurs sous les champs
   this.registerForm.markAllAsTouched();
   
-  // ✅ Si le formulaire est invalide, on s'arrête
+  //  Si le formulaire est invalide, on s'arrête
   if (this.registerForm.invalid) {
     const firstInvalid = document.querySelector('.ng-invalid');
     if (firstInvalid) {
@@ -399,7 +398,7 @@ onSubmit(event?: Event): void {
     return;
   }
 
-  // ✅ Récupérer les valeurs
+  //  Récupérer les valeurs
   const firstName = this.firstName?.value;
   const lastName = this.lastName?.value;
   const email = this.email?.value;
@@ -411,7 +410,7 @@ onSubmit(event?: Event): void {
   // Nettoyer le téléphone
   const cleanedPhoneNumber = rawPhoneNumber?.replace(/[\s\-\.]/g, '');
 
-  // ✅ Extraire la date de naissance
+  //  Extraire la date de naissance
   let birthDateValue: string | undefined;
   
   if (birthDate) {
@@ -432,7 +431,7 @@ onSubmit(event?: Event): void {
     }
   }
 
-  // ✅ Construction du DTO
+  //  Construction du DTO
   const registerDto: RegisterDTO = {
     userName: userName,
     email: email,
@@ -444,7 +443,7 @@ onSubmit(event?: Event): void {
     birthDate: birthDateValue
   };
 
-  // ✅ Envoi de la requête
+  //  Envoi de la requête
   this.isSubmitting = true;
   this.isLoading = true;
   this.serverError.show = false;
@@ -456,13 +455,13 @@ onSubmit(event?: Event): void {
       this.isSubmitting = false;
 
       if (res.resultCode === 0) {
-        // ✅ Stocker l'email pour la vérification OTP
+        //  Stocker l'email pour la vérification OTP
         localStorage.setItem('pending_verification_email', registerDto.email);
         
-        // ✅ Afficher un message de succès
+        //  Afficher un message de succès
         this.showSuccess(res.message || 'Un code de vérification a été envoyé à votre adresse email.', 'Inscription réussie !');
         
-        // ✅ Rediriger vers la page OTP après 3 secondes
+        // Rediriger vers la page OTP après 3 secondes
         setTimeout(() => {
           this.router.navigate(['/otp'], { 
             queryParams: { email: registerDto.email } 

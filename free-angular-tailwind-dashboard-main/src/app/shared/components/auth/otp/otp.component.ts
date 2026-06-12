@@ -80,7 +80,7 @@ export class OtpComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Méthode pour afficher un message d'erreur avec auto-fermeture après 3 secondes
+  //  afficher un message d'erreur avec auto-fermeture après 3 secondes
   private showErrorMessage(message: string): void {
     // Nettoyer le timeout précédent
     if (this.errorTimeout) {
@@ -96,7 +96,7 @@ export class OtpComponent implements OnInit, OnDestroy {
     }, 3000);
   }
 
-  // Méthode pour afficher un message de succès avec auto-fermeture après 3 secondes
+  // afficher un message de succès avec auto-fermeture après 3 secondes
   private showSuccessMessage(message: string): void {
     // Nettoyer le timeout précédent
     if (this.successTimeout) {
@@ -183,7 +183,7 @@ export class OtpComponent implements OnInit, OnDestroy {
           url: err.url
         });
         
-        // Messages d'erreur utilisateur-friendly
+        // Messages d'erreur 
         if (err.status === 0) {
           this.showErrorMessage('Impossible de se connecter au serveur. Vérifiez votre connexion internet.');
         } else if (err.status === 400) {

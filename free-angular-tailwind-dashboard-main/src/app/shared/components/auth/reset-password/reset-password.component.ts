@@ -72,7 +72,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     }
   }
 
-  // Méthode pour afficher un message d'erreur avec auto-fermeture après 3 secondes
+  //  afficher un message d'erreur avec auto-fermeture après 3 secondes
   private showErrorMessage(message: string): void {
     // Nettoyer le timeout précédent
     if (this.errorTimeout) {
@@ -88,7 +88,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     }, 3000);
   }
 
-  // Méthode pour afficher un message de succès avec auto-fermeture après 3 secondes
+  // afficher un message de succès avec auto-fermeture après 3 secondes
   private showSuccessMessage(message: string): void {
     // Nettoyer le timeout précédent
     if (this.successTimeout) {
@@ -114,13 +114,11 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
         console.log('Email from service:', this.email);
       }
       
-      // ✅ Pour le développement : pré-remplir le code OTP
+      //   pré-remplir le code OTP
       if (params['otp']) {
         this.resetForm.patchValue({ otpCode: params['otp'] });
         console.log('OTP pré-rempli depuis l\'URL:', params['otp']);
-        
-        // Optionnel : afficher une notification
-        this.showSuccessMessage(`Code OTP pré-rempli : ${params['otp']}`);
+                this.showSuccessMessage(`Code OTP pré-rempli : ${params['otp']}`);
       }
     });
   }
@@ -136,13 +134,13 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     return null;
   }
 
-  // ✅ Validateur pour vérifier que le nouveau mot de passe est différent de l'ancien
+  //  Validateur pour vérifier que le nouveau mot de passe est différent de l'ancien
   passwordNotSameAsOldValidator(form: FormGroup): ValidationErrors | null {
     const newPassword = form.get('newPassword')?.value;
     return null;
   }
 
-  // Ajoutez cette méthode pour mieux gérer les erreurs
+  //  gérer les erreurs
   private handleErrorMessage(message: string): string {
     if (message.includes('OTP') || message.includes('code')) {
       if (message.includes('invalide')) {
@@ -159,7 +157,6 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     return message;
   }
 
-  // Modifiez la méthode onSubmit pour extraire correctement l'erreur
   onSubmit(): void {
     if (this.resetForm.invalid || !this.email) {
       this.markFormGroupTouched(this.resetForm);
@@ -190,10 +187,9 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
               this.router.navigate(['/signin']);
             }, 3000);
           } else {
-            // ✅ Utiliser le handler pour un message plus clair
             this.showErrorMessage(this.handleErrorMessage(response?.message || 'Une erreur est survenue lors de la réinitialisation.'));
             
-            // ✅ Si l'OTP est invalide, focus sur le champ OTP
+            //  Si l'OTP est invalide
             if (response?.message?.includes('OTP')) {
               this.resetForm.get('otpCode')?.setErrors({ invalid: true });
               document.getElementById('otpCode')?.focus();
@@ -203,7 +199,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
         error: (error) => {
           console.error('Reset password error:', error);
           
-          // ✅ Extraire le message d'erreur correctement
+          //  Extraire le message d'erreur correctement
           let errorMessage = '';
           
           // Cas 1: error.error contient la réponse complète
@@ -231,7 +227,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
           
           this.showErrorMessage(this.handleErrorMessage(errorMessage));
           
-          // ✅ Si l'OTP est invalide, focus sur le champ OTP
+          //  Si l'OTP est invalide, focus sur le champ OTP
           if (errorMessage.includes('OTP') || errorMessage.includes('code') || errorMessage.includes('invalide')) {
             this.resetForm.get('otpCode')?.setErrors({ invalid: true });
             document.getElementById('otpCode')?.focus();
@@ -284,7 +280,7 @@ export class ResetPasswordComponent implements OnInit, OnDestroy {
     });
   }
 
-  // ✅ Getters pour l'indicateur de force du mot de passe
+  //  Getters pour l'indicateur de force du mot de passe
   get passwordStrength(): 'weak' | 'medium' | 'strong' {
     const password = this.resetForm.get('newPassword')?.value;
     if (!password) return 'weak';

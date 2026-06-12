@@ -20,7 +20,7 @@ export class NotificationDropdownComponent implements OnInit, OnDestroy {
   isLoading = false;
   private refreshSubscription?: Subscription;
   private isComponentAlive = true;
-  private lastClickedNotificationId: string | null = null; // ✅ Éviter les doublons
+  private lastClickedNotificationId: string | null = null; 
   displayLimit = 5;  // Nombre de notifications affichées initialement
   allNotifications: Notification[] = [];  // Stocker toutes les notifications
   showAll = false;  // Afficher toutes ou non
@@ -38,7 +38,7 @@ successMessage: string = '';
   ) {}
 
 ngOnInit(): void {
-  this.loadNotifications(); // ✅ loadUnreadCount() appelé dedans
+  this.loadNotifications(); 
 
   this.refreshSubscription = interval(30000).subscribe(() => {
     if (this.isComponentAlive && !this.isOpen) {
@@ -52,18 +52,13 @@ ngOnInit(): void {
  
     if (this.isOpen) {
       this.showAll = false;
-      
-      // ✅ NE PAS appeler loadNotifications() ici - cela cause une race condition
-      // Les notifications sont déjà chargées en init() et toutes les 30 secondes
-      
-      // ✅ Appel API pour persister la consultation (multi-appareils)
+
       this.notificationService.markAllAsConsulted().subscribe({
         next: () => {
-          // Mettre à jour localement IMMÉDIATEMENT
           this.allNotifications.forEach(n => n.estConsulte = true);
-          // ✅ Le compteur devient 0 car tout est marqué comme consulté
+          //  Le compteur devient 0 car tout est marqué comme consulté
           this.unreadCount = 0;
-          console.log('✅ Badges mis à jour immédiatement - unreadCount:', this.unreadCount);
+          console.log(' Badges mis à jour immédiatement - unreadCount:', this.unreadCount);
         },
         error: (err) => console.error('Erreur consultation:', err)
       });
@@ -81,7 +76,7 @@ loadNotifications() {
         this.allNotifications = data;
         this.updateDisplayedNotifications();
 
-        // ✅ Calculer le compteur ici, sans appel API séparé
+        //  Calculer le compteur 
         this.unreadCount = data.filter(n => !n.estConsulte).length;
 
         this.isLoading = false;
@@ -121,7 +116,7 @@ updateDisplayedNotifications() {
   }
 }
 
-// Ajoutez cette méthode pour charger plus
+//  charger plus
 loadMore() {
   this.showAll = true;
   this.updateDisplayedNotifications();
@@ -142,7 +137,7 @@ loadMore() {
     });
   }
 
-  // ✅ Version corrigée de la redirection
+  //  redirection
 onNotificationClick(notification: Notification) {
   if (this.lastClickedNotificationId === notification.id) return;
   this.lastClickedNotificationId = notification.id;
@@ -186,19 +181,19 @@ private redirectToDetail(notification: Notification): void {
   if (notification.commentaireId && notification.ticketId) {
     url = `/tickets/${notification.ticketId}/commentaires`;
     redirectReason = 'Commentaire détecté - Redirection vers la liste des commentaires';
-    console.log(`✅ Redirection vers COMMENTAIRES du ticket: ${url}`);
+    console.log(` Redirection vers COMMENTAIRES du ticket: ${url}`);
   }
   // Priorité au ticket si présent
   else if (notification.ticketId) {
     url = `/tickets/${notification.ticketId}`;
     redirectReason = 'Ticket détecté';
-    console.log(`✅ Redirection vers TICKET: ${url}`);
+    console.log(` Redirection vers TICKET: ${url}`);
   }
   // Sinon incident
   else if (notification.incidentId) {
     url = `/incidents/${notification.incidentId}`;
     redirectReason = 'Incident détecté';
-    console.log(`✅ Redirection vers INCIDENT: ${url}`);
+    console.log(` Redirection vers INCIDENT: ${url}`);
   }
   
   // Sinon TPE
@@ -208,37 +203,36 @@ private redirectToDetail(notification: Notification): void {
            notification.typeNotificationName === 'TPECree') {
     url = `/tpes`;
     redirectReason = `TPE détecté (type: ${notification.typeNotification}, typeName: ${notification.typeNotificationName})`;
-    console.log(`✅ Redirection vers LISTE DES TPES: ${url}`);
+    console.log(` Redirection vers LISTE DES TPES: ${url}`);
   }
   else {
-    console.warn('⚠️ Aucune cible de redirection détectée pour cette notification');
+    console.warn(' Aucune cible de redirection détectée pour cette notification');
     console.log('   Notification complète:', JSON.stringify(notification, null, 2));
   }
   
   if (url) {
-    console.log(`🚀 Exécution de la redirection vers: ${url}`);
+    console.log(` Exécution de la redirection vers: ${url}`);
     console.log(`   Raison: ${redirectReason}`);
     
     const currentUrl = this.router.url;
     console.log(`   URL actuelle: ${currentUrl}`);
     
-    // ✅ Solution 1 : Utiliser navigateByUrl avec skipLocationChange pour forcer le rechargement
     console.log('   → Utilisation de navigateByUrl avec skipLocationChange');
     this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
       console.log(`   → Navigation intermédiaire vers '/' terminée`);
       this.router.navigate([url]).then(() => {
-        console.log(`   ✅ Redirection finale vers ${url} réussie`);
+        console.log(`    Redirection finale vers ${url} réussie`);
       }).catch(err => {
-        console.error(`   ❌ Erreur lors de la redirection vers ${url}:`, err);
+        console.error(`    Erreur lors de la redirection vers ${url}:`, err);
       });
     }).catch(err => {
-      console.error(`   ❌ Erreur lors de la navigation intermédiaire:`, err);
+      console.error(`    Erreur lors de la navigation intermédiaire:`, err);
     });
     
     this.closeDropdown();
     console.log('   → Dropdown fermé');
   } else {
-    console.error('❌ Aucune URL générée, impossible de rediriger');
+    console.error(' Aucune URL générée, impossible de rediriger');
   }
   
   console.log('=== FIN REDIRECTION ===');
@@ -266,7 +260,7 @@ executeDeleteAll() {
   });
 }
 
-// ✅ Ouvre le modal de confirmation
+//  Ouvre le modal de confirmation
 deleteAllNotifications() {
   if (this.allNotifications.length === 0) {
     return;
@@ -274,9 +268,7 @@ deleteAllNotifications() {
   this.confirmDeleteAll = true;
 }
 
-
-
-// Nouvelle méthode pour annuler la suppression de toutes
+//  annuler la suppression de toutes
 closeDeleteAllModal() {
   this.confirmDeleteAll = false;
   this.deletingAllNotifications = false;
@@ -327,7 +319,7 @@ executeDeleteSingle() {
       this.allNotifications = this.allNotifications.filter(n => n.id !== notificationId);
       this.notifications = this.notifications.filter(n => n.id !== notificationId);
 
-      // ✅ Décrémenter seulement si elle n'était pas encore consultée
+      //  Décrémenter seulement si elle n'était pas encore consultée
       if (!deletedNotification.estConsulte) {
         this.unreadCount = Math.max(0, this.unreadCount - 1);
       }
@@ -365,15 +357,14 @@ private showSuccessMessage(message: string, isError: boolean = false) {
       this.successMessage = '';
     }, 5000);
   }
-// Nouvelle méthode pour annuler la suppression individuelle
+//  annuler la suppression individuelle
 closeDeleteSingleModal() {
   this.confirmDeleteNotification = null;
   this.deletingNotification = false;
 }
 
-  // ✅ Méthode pour obtenir l'icône SVG
- // notification-dropdown.component.ts
-// ✅ Remplacer getNotificationIconSvg par une méthode qui retourne juste le type
+
+//  retourne le type
 getNotificationIconType(typeNotification: number): string {
   const iconTypes: { [key: number]: string } = {
     1: 'ticket',
@@ -390,17 +381,9 @@ getNotificationIconType(typeNotification: number): string {
   return iconTypes[typeNotification] || 'default';
 }
 
-// notification-dropdown.component.ts
-// Remplacez la méthode formatDate par celle-ci
-
-// notification-dropdown.component.ts
-// Remplacez la méthode formatDate par celle-ci
-
 formatDate(date: Date | string): string {
   if (!date) return '';
-  
-  // ✅ SOLUTION 1 : Forcer l'interprétation comme UTC
-  let notifDate: Date;
+    let notifDate: Date;
   
   if (typeof date === 'string') {
     // Si la date n'a pas d'indicateur de fuseau, on ajoute 'Z' pour UTC
@@ -431,18 +414,16 @@ formatDate(date: Date | string): string {
   return `Il y a ${diffDays} jours`;
 }
 
-// notification-dropdown.component.ts
-// notification-dropdown.component.ts
-// notification-dropdown.component.ts
+
 getTypeLabel(typeNotificationName: string): string {
   const labels: { [key: string]: string } = {
     'TicketCree': 'Ticket créé',
     'TicketAssigne': 'Ticket assigné',
     'TicketModifie': 'Ticket modifié',
-    'TicketEnCours': 'Ticket en cours',     // ✅ NOUVEAU
+    'TicketEnCours': 'Ticket en cours',    
     'TicketCloture': 'Ticket résolu',
     'IncidentCree': 'Incident créé',
-    'IncidentEnCours': 'Incident en cours', // ✅ NOUVEAU
+    'IncidentEnCours': 'Incident en cours', 
     'IncidentResolu': 'Incident résolu',
     'IncidentModifie': 'Incident modifié',
     'CommentaireAjoute': 'Commentaire',

@@ -43,7 +43,7 @@ export class SigninFormComponent implements OnDestroy {
 };
   private destroy$ = new Subject<void>();
   showPassword = false;
-  isChecked = false; // Pour la checkbox "Keep me logged in"
+  isChecked = false; // Pour la checkbox 
 
   constructor(
     private fb: FormBuilder,

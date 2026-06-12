@@ -211,7 +211,7 @@
       <span class="text-xs text-gray-400">{{ selectedIncidentIds.length }} sélectionné(s)</span>
     </div>
 
-    <!-- SECTION : Incidents sélectionnés (badges) -->
+    <!-- SECTION : Incidents sélectionnés  -->
     <div *ngIf="selectedIncidentIds.length > 0" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
       <div class="flex items-center justify-between mb-2">
         <span class="text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -235,7 +235,7 @@
       </div>
     </div>
 
-    <!-- ✅ Message d'erreur pour la limite d'incidents (max 5) -->
+    <!--  Message d'erreur pour la limite d'incidents (max 5) -->
     <div *ngIf="showMaxIncidentError" 
          class="mt-2 text-xs text-red-600 flex items-center gap-1">
       <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -244,7 +244,7 @@
       Vous ne pouvez sélectionner que {{ maxIncidents }} incidents maximum.
     </div>
 
-    <!-- ✅ Message d'erreur pour l'absence d'incident (obligatoire) -->
+    <!--  Message d'erreur pour l'absence d'incident  -->
     <div *ngIf="showIncidentError && selectedIncidentIds.length === 0 && !showMaxIncidentError" 
          class="mt-2 text-xs text-red-600 flex items-center gap-1">
       <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -275,7 +275,7 @@
     </div>
   </div>
 </div>
-    <!-- SECTION 1: Informations générales -->
+    <!--  Informations générales -->
     <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
       <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
         <div class="flex items-center gap-3">
@@ -325,7 +325,7 @@
     placeholder="Décrivez le problème en détail..."
   ></textarea>
   
-  <!-- ✅ Message d'erreur pour la description -->
+  <!--  Message d'erreur pour la description -->
   <div *ngIf="ticketForm.get('descriptionTicket')?.invalid && ticketForm.get('descriptionTicket')?.touched" 
        class="mt-2 text-xs text-red-600 flex items-center gap-1">
     <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -342,8 +342,7 @@
       </div>
     </div>
 
-    <!-- SECTION 2: Assignation et délais -->
-<!-- SECTION 2: Assignation et délais -->
+<!-- SECTION : Assignation et délais -->
 <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
   <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
     <div class="flex items-center gap-3">
@@ -428,7 +427,7 @@
     [class.border-red-500]="ticketForm.get('dateLimite')?.invalid && ticketForm.get('dateLimite')?.touched"
   />
   
-  <!-- ✅ Message d'erreur pour date limite -->
+  <!--  Message d'erreur pour date limite -->
   <div *ngIf="ticketForm.get('dateLimite')?.invalid && ticketForm.get('dateLimite')?.touched" 
        class="mt-2 text-xs text-red-600 flex items-center gap-1">
     <svg class="w-3 h-3 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">

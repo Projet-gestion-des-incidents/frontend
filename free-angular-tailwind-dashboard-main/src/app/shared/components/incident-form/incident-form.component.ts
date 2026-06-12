@@ -69,20 +69,15 @@ ngOnInit(): void {
     },
     error: (err) => {
       console.error('Erreur récupération TPEs', err);
-      // Remplacer showError par error
       this.error = 'Impossible de charger la liste des TPE';
     }
   });
 }
 
-
-  // Ajoutez ces propriétés avec les autres déclarations
 showConfirmDeleteFileModal: boolean = false;
 fileToDelete: { index: number; fileName: string; isDeleteAll: boolean } | null = null;
 
-/**
- * Ouvre la modale de confirmation pour supprimer une pièce jointe spécifique
- */
+/** Ouvre la modale de confirmation pour supprimer une pièce jointe spécifique*/
 confirmDeleteSingleFile(index: number, fileName: string): void {
   this.fileToDelete = {
     index: index,
@@ -92,9 +87,7 @@ confirmDeleteSingleFile(index: number, fileName: string): void {
   this.showConfirmDeleteFileModal = true;
 }
 
-/**
- * Ouvre la modale de confirmation pour supprimer toutes les pièces jointes
- */
+/** Ouvre la modale de confirmation pour supprimer toutes les pièces jointes*/
 confirmDeleteAllFiles(): void {
   const totalFiles = this.selectedFiles.length;
   if (totalFiles === 0) return;
@@ -107,14 +100,8 @@ confirmDeleteAllFiles(): void {
   this.showConfirmDeleteFileModal = true;
 }
 
-// Ajoutez cette méthode après les propriétés
 
-/**
- * Vérifie si le formulaire est valide pour activer le bouton
- */
-/**
- * Vérifie si le formulaire est valide pour activer le bouton
- */
+/** Vérifie si le formulaire est valide pour activer le bouton*/
 isFormValid(): boolean {
   // Vérifier la description
   if (!this.incident.descriptionIncident || this.incident.descriptionIncident.length < 10) {
@@ -135,9 +122,7 @@ isFormValid(): boolean {
 }
 
 
-/**
- * Exécute la suppression des fichiers après confirmation
- */
+/** Exécute la suppression des fichiers après confirmation*/
 executeDeleteFiles(): void {
   if (!this.fileToDelete) return;
   
@@ -157,22 +142,14 @@ executeDeleteFiles(): void {
   this.closeConfirmDeleteFileModal();
 }
 
-/**
- * Ferme la modale de confirmation de suppression
- */
+/** Ferme la modale de confirmation de suppression*/
 closeConfirmDeleteFileModal(): void {
   this.showConfirmDeleteFileModal = false;
   this.fileToDelete = null;
 }
 
-/**
- * Affiche un message de succès temporaire
- */
 successMessage: string | null = null;
-
-/**
- * Affiche un message de succès temporaire avec scroll automatique
- */
+/** Affiche un message de succès temporaire avec scroll automatique*/
 showSuccessMessage(message: string): void {
   this.successMessage = message;
   
@@ -200,7 +177,6 @@ showSuccessMessage(message: string): void {
 
 
 
-  // ========== GESTION DES FICHIERS AMÉLIORÉE ==========
 
   onFileSelected(event: any): void {
     const files: FileList = event.target.files;
@@ -283,9 +259,7 @@ private addFiles(files: File[]): void {
 showErrors = false;
 submitted = false;
 
-// Modifiez la méthode onSubmit
-// Modifiez la méthode onSubmit pour ajouter le message de succès
-// Modifiez la méthode onSubmit pour ajouter le message de succès
+
 onSubmit(): void {
   this.submitted = true;
   this.showErrors = true;
@@ -336,7 +310,7 @@ onSubmit(): void {
       // Afficher le message de succès
       this.showSuccessMessage('Incident créé avec succès ! Redirection vers la liste des incidents...');
       
-      // Rediriger après 2 secondes (pour que l'utilisateur voie le message)
+      // Rediriger après 2 secondes 
       setTimeout(() => {
         this.router.navigate(['/incidents']);
       }, 5000);
@@ -364,12 +338,7 @@ private showError(message: string): void {
 }
 
 
-/**
- * Fait défiler la page vers le haut pour afficher l'erreur
- */
-/**
- * Fait défiler la page tout en haut pour afficher l'erreur
- */
+/** Fait défiler la page tout en haut pour afficher l'erreur */
 private scrollToTop(): void {
   setTimeout(() => {
     // Scroll tout en haut de la page (le plus haut possible)

@@ -106,7 +106,6 @@
     </div>
 
 <!-- SECTION: Description -->
-<!-- SECTION: Description -->
 <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
   <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
     <div class="flex items-center gap-3">
@@ -139,7 +138,7 @@
         placeholder="Décrivez le problème rencontré de manière détaillée..."
       ></textarea>
       
-      <!-- ✅ Message d'erreur en temps réel (sans attendre le submit) -->
+      <!--  Message d'erreur en temps réel  -->
       <div *ngIf="incident.descriptionIncident && incident.descriptionIncident.length < 10 && incident.descriptionIncident.length > 0" 
            class="mt-2 text-sm text-red-600 dark:text-red-400 flex items-center gap-2 animate-shake">
         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -169,7 +168,6 @@
   </div>
 </div>
 
-    <!-- SECTION: Sélection des TPE -->
 <!-- SECTION: Sélection des TPE -->
 <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-visible shadow-sm hover:shadow-md transition-all duration-300">
   <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
@@ -275,7 +273,7 @@
   </div>
 
   <div class="p-6">
-    <!-- Zone de drop (inchangée) -->
+    <!-- Zone de drop  -->
     <div class="relative"
          (dragover)="onDragOver($event)"
          (dragleave)="onDragLeave($event)"
@@ -327,7 +325,6 @@
         <p class="text-sm font-medium text-gray-700 dark:text-gray-300">
           Fichiers sélectionnés ({{ selectedFiles.length }})
         </p>
-        <!-- MODIFICATION: Ajout de type="button" et stopPropagation -->
         <button 
           type="button"
           (click)="$event.stopPropagation(); confirmDeleteAllFiles()" 
@@ -373,7 +370,6 @@
           </div>
           
           <div class="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-            <!-- MODIFICATION: Ajout de type="button" et stopPropagation -->
             <button 
               type="button"
               (click)="$event.stopPropagation(); confirmDeleteSingleFile(i, file.name)" 
