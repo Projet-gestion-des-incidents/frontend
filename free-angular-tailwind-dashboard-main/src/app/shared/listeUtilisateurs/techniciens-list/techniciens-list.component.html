@@ -200,7 +200,6 @@
       </div>
     </div>
     <br>
-<!-- Dans l'en-tête, ajoutez cette ligne après les stats -->
 <div class="flex items-center gap-4 ml-4">
   <app-checkbox
     [checked]="selectedAllFiltered"
@@ -281,14 +280,14 @@
                 <div class="flex justify-center mb-4">
                   <div class="relative">
             <div class="w-24 h-24 rounded-full overflow-hidden border-4 border-white dark:border-gray-700 shadow-lg">
-  <!-- ✅ Si une image existe, l'afficher -->
+  <!--  Si une image existe, l'afficher -->
   <img 
     *ngIf="user.image && user.image !== '/assets/default-avatar.png'" 
     [src]="user.image" 
     [alt]="user.prenom + ' ' + user.nom"
     class="w-full h-full object-cover"
   />
-  <!-- ✅ Sinon, afficher les initiales avec le dégradé -->
+  <!--  Sinon, afficher les initiales-->
   <div 
     *ngIf="!user.image || user.image === '/assets/default-avatar.png'" 
     class="w-full h-full bg-gradient-to-r from-[#8788FF] to-[#787AEA] flex items-center justify-center"
@@ -341,7 +340,6 @@
         </div>
 
         <!-- Pagination -->
-        <!-- Pagination améliorée -->
 <div class="px-6 py-4 border-t border-gray-200 dark:border-gray-800" *ngIf="!loading && !error && filteredTechniciens.length > 0">
   <div class="flex items-center justify-between flex-wrap gap-4">
     <!-- Bouton Précédent -->
@@ -356,15 +354,12 @@
       <span class="hidden sm:inline">Précédent</span>
     </button>
     
-    <!-- Pagination centralisée avec les mêmes classes qu'incidents -->
+    <!-- Pagination  -->
     <div class="flex items-center gap-2">
-      <!-- Version mobile : Texte simplifié -->
       <span class="text-sm font-medium text-gray-700 dark:text-gray-400 sm:hidden">
         Page {{ currentPage }} / {{ totalPages || 1 }}
       </span>
-      
-      <!-- Version desktop : Boutons de page -->
-      <ul class="hidden items-center gap-1 sm:flex">
+            <ul class="hidden items-center gap-1 sm:flex">
         <ng-container *ngIf="totalPages > 0; else noPages">
           <li *ngFor="let page of getPageNumbers()">
             <ng-container *ngIf="page !== -1; else ellipsis">

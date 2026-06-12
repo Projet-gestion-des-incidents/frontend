@@ -20,7 +20,7 @@ export class CommercantsListComponent implements OnInit {
   
   searchTerm = '';
   selectedCommercants = new Set<string>();
-  selectedAllFiltered = false;  // ✅ Mode "Sélectionner tout sur toutes les pages"
+  selectedAllFiltered = false;  //  Mode "Sélectionner tout sur toutes les pages"
   
   // Filtres
   showFilters = false;
@@ -88,11 +88,11 @@ export class CommercantsListComponent implements OnInit {
     
     this.userService.getCommercants().subscribe({
       next: (response: any[]) => {
-        console.log('📦 Réponse commerçants:', response);
+        console.log(' Réponse commerçants:', response);
         
         if (response && Array.isArray(response)) {
           this.commercants = response;
-          console.log('✅ Commerçants chargés:', this.commercants.length);
+          console.log(' Commerçants chargés:', this.commercants.length);
           
           this.updateTotalPages();
         } else {
@@ -149,7 +149,7 @@ export class CommercantsListComponent implements OnInit {
     }
   }
 
-  // ✅ Sélectionner tous les éléments filtrés (toutes pages)
+  //  Sélectionner tous les éléments filtrés (toutes pages)
   selectAllFiltered(): void {
     if (this.selectedAllFiltered) {
       this.selectedCommercants.clear();
@@ -160,7 +160,7 @@ export class CommercantsListComponent implements OnInit {
     }
   }
 
-  // ✅ Sélection individuelle
+  //  Sélection individuelle
   onSelect(commercant: any, checked: boolean): void {
     if (checked) {
       this.selectedCommercants.add(commercant.id);
@@ -170,7 +170,7 @@ export class CommercantsListComponent implements OnInit {
     }
   }
 
-  // ✅ Vérifier si un élément est sélectionné
+  //  Vérifier si un élément est sélectionné
   isSelected(id: string): boolean {
     if (this.selectedAllFiltered) {
       return this.filteredCommercants.some(c => c.id === id);
@@ -178,13 +178,13 @@ export class CommercantsListComponent implements OnInit {
     return this.selectedCommercants.has(id);
   }
 
-  // ✅ Vérifier si tous les éléments sont sélectionnés
+  //  Vérifier si tous les éléments sont sélectionnés
   get isAllSelected(): boolean {
     if (this.filteredCommercants.length === 0) return false;
     return this.filteredCommercants.every(c => this.selectedCommercants.has(c.id));
   }
 
-  // ✅ Effacer la sélection
+  //  Effacer la sélection
   clearSelection(): void {
     this.selectedCommercants.clear();
     this.selectedAllFiltered = false;
@@ -253,7 +253,7 @@ export class CommercantsListComponent implements OnInit {
             this.selectedAllFiltered = false;
             this.selectedCommercants.clear();
             
-            // ✅ Recharger la liste
+            //  Recharger la liste
             this.loadCommercants();
             
             if (successCount === total) {
@@ -287,7 +287,6 @@ export class CommercantsListComponent implements OnInit {
     });
   }
 
-  // ================= ACTIONS SIMPLES =================
   onEdit(commercant: any): void {
     this.router.navigate(['/update-commercant', commercant.id]);
   }

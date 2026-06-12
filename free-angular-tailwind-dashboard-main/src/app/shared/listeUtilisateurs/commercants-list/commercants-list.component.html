@@ -62,7 +62,7 @@ class="inline-flex items-center gap-2 rounded-xl bg-gradient-digital-horizontal 
     </div>
   </div>
 
-  <!-- Barre de recherche et filtres améliorée -->
+  <!-- Barre de recherche et filtres  -->
  <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-sm overflow-hidden">
     <div class="p-4">
       <div class="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4">
@@ -175,7 +175,6 @@ class="inline-flex items-center gap-2 rounded-xl bg-gradient-digital-horizontal 
       </div>
     </div>
     <br>
-<!-- Dans l'en-tête, après les stats, ajoutez : -->
 <div class="flex items-center gap-4 ml-4">
   <app-checkbox
     [checked]="selectedAllFiltered"
@@ -371,7 +370,6 @@ class="inline-flex items-center gap-2 rounded-xl bg-gradient-digital-horizontal 
     </div>
 
     <!-- Pagination -->
-<!-- Pagination améliorée -->
 <div *ngIf="totalPages > 1" class="flex flex-col gap-4 mt-8 pt-4 border-t border-gray-200 dark:border-gray-700">
   <div class="flex items-center justify-between flex-wrap gap-4">
     <!-- Bouton Précédent -->
@@ -432,9 +430,9 @@ class="inline-flex items-center gap-2 rounded-xl bg-gradient-digital-horizontal 
       </svg>
     </button>
   </div>
-</div> <!-- ferme Cards Grid -->
-</div> <!-- ferme la liste commerçants -->
-</div> <!-- ferme le *ngIf="!loading" -->
+</div> 
+</div>
+</div> 
 <div *ngIf="showMultiDeleteModal" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm">
   <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100">
     <div class="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700">
@@ -555,8 +553,7 @@ class="inline-flex items-center gap-2 rounded-xl bg-gradient-digital-horizontal 
       </div>
     </div>
   </div>
-</div> <!-- ferme le space-y-6 racine -->
-
+</div> 
 <style>
   @keyframes shrink { from { width: 100%; } to { width: 0%; } }
   .animate-progress { animation: shrink 4s linear forwards; }

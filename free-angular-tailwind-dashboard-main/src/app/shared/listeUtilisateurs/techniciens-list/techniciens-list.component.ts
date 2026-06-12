@@ -18,14 +18,15 @@ export class TechniciensListComponent implements OnInit {
   loading = true;
   error: string | null = null;
   
-  searchTerm = '';
-  selectedTechniciens = new Set<string>();
+
   
   // Filtres
   showFilters = false;
   selectedStatut = '';
-  statutOptions = ['Actif', 'Inactif'];
-  
+  searchTerm = '';
+  selectedTechniciens = new Set<string>();
+selectedAllFiltered = false;  // Mode "Sélectionner tout sur toutes les pages"
+
   // Pagination
   currentPage = 1;
   pageSize = 8;
@@ -36,15 +37,15 @@ export class TechniciensListComponent implements OnInit {
   toggling = false;
   confirmUser: User | null = null;
   confirmToggleUser: User | null = null;
-  // À ajouter dans les deux composants
-Math = Math;
+
+  Math = Math;
   
-  // ✅ Suppression multiple
+  //  Suppression multiple
   showMultiDeleteModal = false;
   confirmUsers: User[] = [];
   bulkDeleting = false;
   
-  // ✅ Alert (remplace notification)
+  //  Alert 
   alert = {
     show: false,
     variant: 'success' as 'success' | 'error',
@@ -57,9 +58,11 @@ Math = Math;
   ngOnInit(): void {
     this.loadTechniciens();
   }
+
 onEdit(technicien: any): void {
   this.router.navigate(['/update-technicien', technicien.id]);
 }
+// Retourne la liste complète filtrée par searchTerm et selectedStatut.
   get filteredTechniciens(): User[] {
     let result = [...this.techniciens];
     
@@ -79,17 +82,17 @@ onEdit(technicien: any): void {
     
     return result;
   }
-
+// Retourne uniquement les éléments de la page courante 
   get paginatedTechniciens(): User[] {
     const start = (this.currentPage - 1) * this.pageSize;
     const end = start + this.pageSize;
     return this.filteredTechniciens.slice(start, end);
   }
-
+// Charge tous les techniciens 
 loadTechniciens(keepCurrentPage: boolean = false): void {
   this.loading = true;
   const request = {
-    page: 1,  // ✅ Toujours charger depuis la page 1
+    page: 1,  //  Toujours charger depuis la page 1
     pageSize: 100,
     sortBy: 'nom',
     sortDescending: false,
@@ -98,16 +101,15 @@ loadTechniciens(keepCurrentPage: boolean = false): void {
 
   this.userService.getTechniciens(request).subscribe({
     next: (response) => {
-      console.log('📦 Réponse reçue:', response);
-      
+      console.log(' Réponse reçue:', response);
+     // Filtre uniquement les comptes dont l'email est confirmé.
       if (response && response.data) {
         this.techniciens = response.data.filter((t: any) => t.emailConfirmed === true);
-        console.log('✅ Techniciens après filtrage:', this.techniciens.length);
-        
-        // ✅ Mettre à jour la pagination
+        console.log(' Techniciens après filtrage:', this.techniciens.length);
+        //  Mettre à jour la pagination
         this.updateTotalPages();
         
-        // ✅ Si on a supprimé des éléments, ajuster la page courante
+        //  Si on a supprimé des éléments, ajuster la page courante
         if (!keepCurrentPage && this.currentPage > this.totalPages && this.totalPages > 0) {
           this.currentPage = this.totalPages;
         }
@@ -124,28 +126,28 @@ loadTechniciens(keepCurrentPage: boolean = false): void {
     }
   });
 }
-
+// Recalcule le nombre total de pages en fonction des éléments filtrés.
 updateTotalPages(): void {
   const totalFiltered = this.filteredTechniciens.length;
   this.totalPages = Math.ceil(totalFiltered / this.pageSize) || 1;
   
-  // ✅ Ajuster la page courante si elle dépasse le nombre total de pages
+  //  Ajuster la page courante si elle dépasse le nombre total de pages
   if (this.currentPage > this.totalPages && this.totalPages > 0) {
     this.currentPage = this.totalPages;
   }
 }
-
+//Saisie dans le champ texte
   onSearch(): void {
     this.currentPage = 1;
     this.updateTotalPages();
   }
-
+//Changement du select statut
   applyFilter(): void {
     this.currentPage = 1;
     this.updateTotalPages();
     this.selectedTechniciens.clear();
   }
-
+// Remet à zéro le terme de recherche
   resetFilters(): void {
     this.searchTerm = '';
     this.selectedStatut = '';
@@ -153,20 +155,19 @@ updateTotalPages(): void {
     this.updateTotalPages();
     this.selectedTechniciens.clear();
   }
-
+// Affiche/masque le panneau filtres
   toggleFilters(): void {
     this.showFilters = !this.showFilters;
   }
-
+// Change la page courant
   onPageChange(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
       this.currentPage = page;
     }
   }
-
+// Sélectionne ou désélectionne tous les éléments filtrés
 onSelectAll(checked: boolean): void {
   if (checked) {
-    // ✅ Sélectionner TOUS les éléments filtrés (toutes pages confondues)
     this.filteredTechniciens.forEach(c => this.selectedTechniciens.add(c.id));
     this.selectedAllFiltered = true;
   } else {
@@ -175,7 +176,6 @@ onSelectAll(checked: boolean): void {
   }
 }
 
-// Remplacer la méthode onSelect
 onSelect(commercant: any, checked: boolean): void {
   if (checked) {
     this.selectedTechniciens.add(commercant.id);
@@ -186,7 +186,7 @@ onSelect(commercant: any, checked: boolean): void {
   }
 }
 
-// Ajouter une méthode pour la sélection par lot (toutes les pages)
+//  sélection par lot (toutes les pages)
 selectAllFiltered(): void {
   if (this.selectedAllFiltered) {
     // Déjà sélectionné, on désélectionne tout
@@ -199,7 +199,6 @@ selectAllFiltered(): void {
   }
 }
 
-// Modifier isSelected pour prendre en compte le mode "tout sélectionner"
 isSelected(id: string): boolean {
   if (this.selectedAllFiltered) {
     // Vérifier si l'élément fait partie des éléments filtrés
@@ -207,13 +206,12 @@ isSelected(id: string): boolean {
   }
   return this.selectedTechniciens.has(id);
 }
-
-// Modifier get isAllSelected
+//déterminer l'état coché/non-coché de la case principale.
 get isAllSelected(): boolean {
   if (this.filteredTechniciens.length === 0) return false;
   return this.filteredTechniciens.every(c => this.selectedTechniciens.has(c.id));
 }
-
+// Annuler la sélection
 clearSelection(): void {
   this.selectedTechniciens.clear();
   this.selectedAllFiltered = false;
@@ -246,7 +244,7 @@ confirmDeleteMultiple(): void {
   if (this.confirmUsers.length === 0) return;
   this.showMultiDeleteModal = true;
 }
-
+// Ferme la modale de suppression multiple 
   cancelMultiDelete(): void {
     this.showMultiDeleteModal = false;
     this.confirmUsers = [];
@@ -282,11 +280,11 @@ executeMultiDelete(): void {
           this.showMultiDeleteModal = false;
           this.confirmUsers = [];
           
-          // ✅ Réinitialiser le mode "tout sélectionner"
+          //  Réinitialiser le mode "tout sélectionner"
           this.selectedAllFiltered = false;
           this.selectedTechniciens.clear();
           
-          // ✅ Recharger la liste complète depuis le backend
+          //  Recharger la liste complète depuis le backend
           this.loadTechniciens();
           
           if (successCount === total) {
@@ -314,19 +312,17 @@ executeMultiDelete(): void {
     });
   });
 }
-selectedAllFiltered = false;  // Mode "Sélectionner tout sur toutes les pages"
 
-  // ================= ACTIONS SIMPLES =================
-  
+  //Ouvre la modale activate/deactivate
   onToggle(user: User): void {
     this.confirmToggleUser = user;
   }
-
+//Ferme la modale sans action
   cancelToggle(): void {
     this.confirmToggleUser = null;
     this.toggling = false;
   }
-
+//Active ou désactive le compte
   confirmToggle(): void {
     if (!this.confirmToggleUser) return;
 
@@ -369,7 +365,6 @@ selectedAllFiltered = false;  // Mode "Sélectionner tout sur toutes les pages"
     this.deleting = false;
   }
 
-// ✅ APRÈS (technicien)
 confirmDelete(): void {
   if (!this.confirmUser) return;
 
@@ -407,7 +402,7 @@ confirmDelete(): void {
   getStatutCount(statut: string): number {
     return this.techniciens.filter(t => t.statut === statut).length;
   }
-  // À ajouter dans les deux composants
+  // Génère le tableau des boutons de page
 getPageNumbers(): (number | -1)[] {
   const total = this.totalPages;
   const current = this.currentPage;
