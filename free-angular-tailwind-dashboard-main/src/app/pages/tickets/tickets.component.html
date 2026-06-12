@@ -1,7 +1,6 @@
 <div class="space-y-4">
-  <!-- Alert interactif amélioré -->
+  <!-- Alert interactif  -->
   <div class="flex justify-start">
-   <!-- MODALES DE CONFIRMATION -->
 <!-- Modal de confirmation d'archivage pour les tickets -->
 <div *ngIf="showArchiveModal" 
      class="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-[99999] p-4 transition-all duration-300"
@@ -164,7 +163,6 @@
   </div>
 
  
-  <!-- Dans tickets.component.html, ajoutez ce bloc après le div qui contient les modales et avant la carte principale -->
 
 <!-- Message de succès -->
 <div *ngIf="successMessage" 
@@ -581,7 +579,7 @@
       </div>
     </div>
 
-   <!-- Filtres déroulants améliorés -->
+   <!-- Filtres déroulants  -->
 <div *ngIf="showFilters" class="mx-6 my-4 p-6 bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-gray-200 dark:border-gray-700">
   <div class="flex items-center gap-2 mb-4">
     <div class="p-1.5 rounded-lg bg-brand-50 dark:bg-brand-500/10">
@@ -593,7 +591,7 @@
   </div>
 
   <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-    <!-- ✅ Filtre par statut adapté au rôle -->
+    <!--  Filtre par statut adapté au rôle -->
     <div>
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">Statut</label>
       <select [(ngModel)]="tempFilters.statut" 
@@ -635,7 +633,7 @@
     </button>
   </div>
 </div>
-        <!-- ✅ NOUVEAU : Filtre par statut de date limite -->
+        <!--  Filtre par statut de date limite -->
     <div>
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
         Statut date limite
@@ -650,7 +648,6 @@
         </option>
       </select>
     </div>
-    <!-- Espace vide pour l'alignement (optionnel) -->
     <div></div>
   </div>
 
@@ -736,12 +733,8 @@
               </app-badge>
             </td>
 <td *ngIf="isAdmin" class="px-4 sm:px-6 py-3.5">
-  <!-- Cas assigné : afficher l'avatar + nom -->
   <div *ngIf="ticket.assigneeNom" class="flex items-center gap-3">
-  <!--  <app-avatar-text 
-      [name]="ticket.assigneeNom" 
-      class="w-8 h-8"
-    /> -->
+ 
     <div>
       <span class="block text-theme-sm font-medium text-gray-700 dark:text-gray-400">
         {{ ticket.assigneeNom }}
@@ -749,7 +742,6 @@
     </div>
   </div>
   
-  <!-- Cas non assigné : afficher une icône stylisée -->
   <div *ngIf="!ticket.assigneeNom" class="flex items-center gap-3">
  
     <div>
@@ -765,12 +757,10 @@
                 {{ ticket.dateCreation | date:'dd/MM/yyyy' }}
               </span>
             </td>
-<!-- Remplacer la colonne Date limite par celle-ci -->
 
-<!-- Dans le tbody, remplacer l'affichage de la date -->
 <td class="px-6 py-4">
   <div class="flex flex-col space-y-1">
-    <!-- Date limite formatée -->
+    <!-- Date limite  -->
     <span class="text-sm text-gray-600 dark:text-gray-400">
       {{ formatDateLimite(ticket.dateLimite) }}
     </span>
@@ -856,7 +846,6 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" />
       </svg>
     </button>
-                <!-- Dans la colonne Actions, ajoutez ce bouton -->
 <button 
   [routerLink]="['/tickets', ticket.id, 'commentaires']"
   class="p-2 text-gray-400 hover:text-purple-600 rounded-lg hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors"
@@ -901,12 +890,10 @@
           <span class="hidden sm:inline">Précédent</span>
         </button>
         
-        <!-- Page Info (Mobile) -->
         <span class="text-sm font-medium text-gray-700 dark:text-gray-400 sm:hidden">
           Page {{ currentPage }} / {{ totalPages || 1 }}
         </span>
         
-        <!-- Page Numbers (Desktop) -->
         <ul class="hidden items-center gap-1 sm:flex">
           <ng-container *ngIf="totalPages > 0; else noPages">
             <li *ngFor="let page of getPageNumbers()">

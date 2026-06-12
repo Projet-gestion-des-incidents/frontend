@@ -153,7 +153,7 @@ export class ModifierTpeComponent implements OnInit {
       return;
     }
 
-    // ✅ Vérifier si des modifications ont été faites
+    //  Vérifier si des modifications ont été faites
     if (!this.hasChanges) {
       this.showInfo('Aucune modification détectée');
       return;
@@ -199,7 +199,7 @@ export class ModifierTpeComponent implements OnInit {
   }
 
   cancel() {
-    // ✅ Redirection directe sans confirmation
+    // Redirection directe 
     this.router.navigate(['/tpes']);
   }
 

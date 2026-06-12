@@ -35,7 +35,7 @@
          }">
         {{ alert.title }}
       </p>
-      <!-- Afficher le message avec préservation des sauts de ligne -->
+      <!-- Afficher le message -->
       <p class="text-sm whitespace-pre-line"
          [ngClass]="{
            'text-red-700 dark:text-red-300': alert.variant === 'error',
@@ -46,7 +46,7 @@
       </p>
     </div>
   </div>
-  <!-- Bouton de fermeture X -->
+  <!-- Bouton de fermeture  -->
   <button (click)="alert.show = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 flex-shrink-0">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -194,7 +194,7 @@
     </div>
   </div>
 </div>
-  <!-- Modal de confirmation de suppression amélioré -->
+  <!-- Modal de confirmation de suppression  -->
   <div *ngIf="confirmIncident" class="fixed inset-0 z-[99999] flex items-center justify-center bg-black/50 backdrop-blur-sm transition-all duration-300">
     <div class="bg-white dark:bg-gray-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all duration-300 scale-100 animate-modal-in">
       
@@ -482,7 +482,7 @@
     </div>
   </div>
 
-  <!-- ✅ NOUVEAU : Sous-statistiques (liés à ticket vs sans ticket) -->
+  <!--  Sous-statistiques (liés à ticket vs sans ticket) -->
   <div class="mt-3 pt-3 border-t border-red-200 dark:border-red-800/50">
     <div class="grid grid-cols-2 gap-3">
       <!-- Liés à un ticket -->
@@ -744,7 +744,7 @@
           </select>
         </div>
 
-        <!-- ✅ NOUVEAU : Filtre par entité impactée (Admin seulement) -->
+        <!--  Filtre par entité impactée (Admin seulement) -->
     <div *ngIf="userRole === 'Admin'">
       <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
         
@@ -760,7 +760,7 @@
         </option>
       </select>
     </div>
- <!-- ✅ NOUVEAU : Filtre par type de problème (pour Commerçant) -->
+ <!--  Filtre par type de problème (pour Commerçant) -->
   <div *ngIf="userRole === 'Commercant'">
     <label class="block text-sm font-medium text-gray-700 dark:text-gray-400 mb-2">
       Type de problème

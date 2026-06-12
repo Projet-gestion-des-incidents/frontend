@@ -8,13 +8,12 @@ import {
   PredictionService 
 } from '../../shared/services/prediction.service';
 import { Router } from '@angular/router';
-// Dans prediction.component.ts, modifiez l'interface TypeConfig
 interface TypeConfig {
   key: string;
   label: string;
   color: string;
-  bgLight: string;     // ✅ AJOUTER
-  bgDark: string;      // ✅ AJOUTER
+  bgLight: string;     
+  bgDark: string;      
   icon: string;
 }
 @Component({
@@ -22,7 +21,7 @@ interface TypeConfig {
   standalone: true,
   imports: [CommonModule, NgApexchartsModule],
   templateUrl: './prediction.component.html',
-  styleUrls: ['./prediction.component.css'] // Ajoutez cette ligne si vous avez un CSS
+  styleUrls: ['./prediction.component.css'] 
 })
 export class PredictionComponent implements OnInit {
 
@@ -35,11 +34,8 @@ export class PredictionComponent implements OnInit {
   prediction: IncidentPredictionResponseDTO | null = null;
   historical: DailyIncidentCountDTO[] = [];
 
-  // Graphique historique + prévision (ligne)
   lineChartOptions: any = {};
-  // Graphique barres par type
   barChartOptions: any = {};
-  // Graphique donut distribution
   donutChartOptions: any = {};
 
   readonly types: TypeConfig[] = [
@@ -54,7 +50,6 @@ export class PredictionComponent implements OnInit {
     { key: 'Autre', label: 'Autre', color: '#D1D5DB', bgLight: '#F9FAFB', bgDark: '#374151/10', icon: 'bi-three-dots' },
   ];
 
-  // ✅ PROPRIÉTÉ CALCULÉE POUR LES COULEURS
   get barChartColors(): string[] {
     if (!this.barChartOptions.series) return [];
     return this.barChartOptions.series.map((s: any) => s.color);
@@ -91,11 +86,11 @@ export class PredictionComponent implements OnInit {
       next: res => {
         if (res.isSuccess) {
           this.prediction = res.data;
-                            this.buildLineChart(); // ✅ appelé ici = les deux sont prêts
+                            this.buildLineChart(); 
 
           this.buildBarChart();
           this.buildDonutChart();
-          this.buildConfidenceChart(); // ← ajouter
+          this.buildConfidenceChart(); 
 
         } else {
           this.error = res.message || 'Erreur lors de la prédiction';
@@ -110,7 +105,7 @@ export class PredictionComponent implements OnInit {
   }
 setTab(tab: 'semaine' | 'mois') {
   this.activeTab = tab;
-  this.buildLineChart();        // ✅ AJOUTER - Met à jour le graphique ligne
+  this.buildLineChart();        
   this.buildBarChart();
   this.buildDonutChart();
   this.buildConfidenceChart();
@@ -168,16 +163,16 @@ setTab(tab: 'semaine' | 'mois') {
 buildLineChart() {
   const cfg = this.getTypeConfig(this.selectedType);
 
-  // ✅ 15 derniers jours d'historique seulement
+  //  15 derniers jours d'historique seulement
   const hist = this.historical.slice(-15);
   
-  // ✅ Labels pour l'historique (dates lisibles)
+  //  Labels pour l'historique (dates lisibles)
   const histLabels = hist.map(d => 
     new Date(d.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' })
   );
   const histValues = hist.map(d => this.getHistValue(d, this.selectedType));
 
-  // ✅ Prévision selon l'onglet actif (semaine ou mois)
+  //  Prévision selon l'onglet actif (semaine ou mois)
   let prevDates: string[] = [];
   let prevValues: number[] = [];
   let prevLower: number[] = [];
@@ -205,7 +200,7 @@ buildLineChart() {
       .map(p => Math.round(p.confidenceUpper));
   }
 
-  // ✅ Espacer les labels de l'historique (1 label sur 3 pour lisibilité car 15 jours)
+  //  Espacer les labels de l'historique 
   const spacedHistLabels = histLabels.map((label, index) => {
     const total = histLabels.length;
     // Afficher: premier, dernier, et un label sur 3
@@ -215,10 +210,10 @@ buildLineChart() {
     return '';
   });
 
-  // ✅ Fusionner les catégories
+  //  Fusionner les catégories
   const allCategories = [...spacedHistLabels, ...prevDates];
 
-  // Données pour la prévision (avec null pour l'historique)
+  // Données pour la prévision 
   const forecastData = [...new Array(histValues.length).fill(null), ...prevValues];
 
   // Calculer la valeur max pour l'axe Y
@@ -407,8 +402,6 @@ confidenceChartOptions: any = {};
       theme: { mode: 'dark' }
     };
   }
-  // Ajouter après buildDonutChart()
-// Dans prediction.component.ts - Version améliorée
 
 buildConfidenceChart() {
   const data = this.currentPredictions;

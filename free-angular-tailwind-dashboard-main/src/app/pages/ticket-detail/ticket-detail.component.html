@@ -98,7 +98,7 @@
         </div>
       </div>
     </div>
-  <!-- SECTION 4: Incidents liés -->
+  <!-- SECTION 3: Incidents liés -->
    
          <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
       <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
@@ -244,7 +244,7 @@
   </div>
     
 </div>
-  <!-- SECTION 3: Informations détaillées -->
+  <!-- SECTION 4: Informations détaillées -->
     <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 overflow-hidden shadow-sm hover:shadow-md transition-all duration-300">
       <div class="border-b border-gray-200 dark:border-gray-700 px-6 py-4 bg-gradient-to-r from-[#ECECFF] to-white dark:from-[#0C144E]/20 dark:to-gray-800">
         <div class="flex items-center gap-3">
@@ -292,7 +292,7 @@
             </p>
           </div>
 
-          <!-- Date limite (si existante) -->
+          <!-- Date limite  -->
           <div *ngIf="ticket.dateLimite" class="p-4 bg-gray-50 dark:bg-gray-700/30 rounded-lg border border-gray-100 dark:border-gray-600 md:col-span-2">
             <div class="flex items-center gap-2 mb-2">
               <svg class="w-4 h-4 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -327,14 +327,9 @@
         </div>
       </div>
     </div>
-<!-- À la fin de votre template, après la fermeture de tous les divs, ajoutez : -->
   </div>
-  <!-- Fermeture du conteneur principal -->
-</div>  <!-- Fermeture du div avec class="max-w-4xl mx-auto..." -->
-
-<!-- ======================================================== -->
-<!-- MODALE D'APERÇU IMAGE - VERSION AMÉLIORÉE (comme commentaire-list) -->
-<!-- ======================================================== -->
+</div>  
+<!-- MODALE D'APERÇU IMAGE  -->
 <div *ngIf="showImageModal" 
      class="fixed inset-0 bg-black/80 flex items-center justify-center z-[99999] p-4 transition-all duration-300"
      (click)="closeImageModal()">
@@ -360,9 +355,7 @@
   </div>
 </div>
 
-<!-- ======================================================== -->
-<!-- MODALE D'APERÇU PDF - VERSION AMÉLIORÉE -->
-<!-- ======================================================== -->
+<!-- MODALE D'APERÇU PDF  -->
 <div *ngIf="showPdfModal" 
      class="fixed inset-0 bg-black/80 flex items-center justify-center z-[99999] p-4 transition-all duration-300"
      (click)="closePdfModal()">

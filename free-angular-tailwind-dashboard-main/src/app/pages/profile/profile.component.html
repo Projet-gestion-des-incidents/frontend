@@ -1,7 +1,7 @@
 <app-page-breadcrumb pageTitle="Mon Profil" />
 
 
-<!-- ✅ Message de succès global - CENTRÉ EN HAUT -->
+<!--  Message de succès global  -->
 <div *ngIf="globalSuccessMessage" 
      class="rounded-xl border p-4 flex items-center justify-between animate-slide-down mb-6 "
      [ngClass]="{
@@ -31,17 +31,13 @@
   </button>
 </div>
 <div class="space-y-6">
-  
-  <!-- Alerte améliorée -->
 
 
-  <!-- En-tête avec bannière - Couleur Digital Purple -->
+  <!-- En-tête avec bannière - -->
   <div class="relative rounded-2xl overflow-hidden bg-gradient-to-r from-[#8788FF] to-[#787AEA] shadow-lg">
     <div class="absolute inset-0 bg-black/10"></div>
     <div class="relative px-6 py-10 sm:px-8 sm:py-12">
       <div class="flex flex-col items-center sm:flex-row sm:items-start gap-6">
-        <!-- Avatar -->
-    <!-- Avatar - Version corrigée -->
 <div class="relative group">
   <!-- Cas 1: Avec image -->
   <div *ngIf="user.image && user.image !== '/assets/default-avatar.png'" 
@@ -61,7 +57,7 @@
     </span>
   </div>
   
-  <!-- Icône de modification (hover) -->
+  <!-- Icône de modification  -->
   <div class="absolute inset-0 rounded-full bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center cursor-pointer"
        (click)="openInfoModal()">
     <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -124,7 +120,6 @@
     <div class="p-6">
       <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
         
-        <!-- Colonne gauche -->
         <div class="space-y-4">
           <!-- Nom complet / Nom du magasin -->
           <div class="flex items-start gap-3">
@@ -158,7 +153,6 @@
           </div>
         </div>
         
-        <!-- Colonne droite -->
         <div class="space-y-4">
           <!-- Téléphone -->
           <div class="flex items-start gap-3">
@@ -267,7 +261,6 @@
     </div>
 
     <div class="p-6">
-      <!-- ✅ Alerte pour les erreurs backend (en haut) -->
       <div *ngIf="alert.show" class="mb-6">
         <div class="rounded-xl border p-4 flex items-center justify-between"
              [ngClass]="{
@@ -308,7 +301,7 @@
       
       <form [formGroup]="editForm" (ngSubmit)="saveInfo()" class="space-y-6">
         
-    <!-- Photo de profil - Version corrigée -->
+    <!-- Photo de profil -->
 <div class="flex flex-col sm:flex-row items-start sm:items-center gap-5 p-4 bg-[#ECECFF] dark:bg-[#0C144E]/20 rounded-xl border border-[#C5C6FF] dark:border-[#8788FF]/30">
   <div class="relative group flex-shrink-0">
     <div class="w-20 h-20 rounded-full overflow-hidden border-3 border-[#8788FF] dark:border-[#B2B3FF] shadow-md bg-white">
@@ -321,7 +314,7 @@
       </svg>
     </div>
   </div>
-  <div class="flex-1 min-w-0"> <!-- Ajout de min-w-0 pour éviter le débordement -->
+  <div class="flex-1 min-w-0"> 
     <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Photo de profil</label>
     <div class="relative mt-2">
       <input type="file" id="profileImage" #fileInput (change)="onImageSelected($event)" accept="image/jpeg,image/jpg,image/png,image/gif,image/webp" class="hidden"/>
@@ -352,7 +345,6 @@
   </div>
 </div>
 
-        <!-- Champs du formulaire en grille -->
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
           
           <!-- Prénom (Technicien/Admin uniquement) -->
@@ -456,8 +448,6 @@
           </div>
           
           <!-- Téléphone -->
-<!-- Téléphone -->
-<!-- Téléphone -->
 <div>
   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
     Téléphone <span class="text-red-500">*</span>
@@ -481,7 +471,6 @@
   </div>
 </div>
           <!-- Date de naissance (Technicien/Admin uniquement) -->
-<!-- Date de naissance (Technicien/Admin uniquement) -->
 <div *ngIf="user.role !== 'Commercant'">
   <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
     Date de naissance <span class="text-red-500">*</span>
@@ -810,7 +799,7 @@
       </div>
     </div>
 
-    <!-- ✅ Message d'information unique dans le modal OTP (identique pour email et mot de passe) -->
+    <!--  Message d'information unique dans le modal OTP (identique pour email et mot de passe) -->
     <div class="mb-4 p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
       <div class="flex items-start gap-2">
         <svg class="w-4 h-4 text-blue-600 dark:text-blue-400 mt-0.5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -829,7 +818,7 @@
       </div>
     </div>
     
-    <!-- ✅ Alerte pour les messages (succès/erreur) dans le modal OTP -->
+    <!--  Alerte pour les messages (succès/erreur) dans le modal OTP -->
     <div *ngIf="alert.show && showOtpModal" class="mb-4">
       <div class="rounded-xl border p-3 flex items-start justify-between"
            [ngClass]="{

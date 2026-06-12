@@ -38,7 +38,7 @@
       </p>
     </div>
   </div>
-  <!-- ✅ Bouton de fermeture X -->
+  <!--  Bouton de fermeture -->
   <button (click)="alert.show = false" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300">
     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
@@ -84,7 +84,7 @@ Associer des TPEs
   <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
   
 
- <!-- Carte PAX (modèle de référence) -->
+ <!-- Carte PAX  -->
   <div class="bg-gradient-to-br from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/10 rounded-2xl p-5 border border-amber-200 dark:border-amber-800 hover:shadow-lg transition-all duration-300 group">
       <div class="flex items-start justify-between mb-3">
         <div>
@@ -289,7 +289,7 @@ Associer des TPEs
                 {{ (selectedModele ? 1 : 0) + (selectedCommercantId ? 1 : 0) + (selectedCreatedAt ? 1 : 0) + (selectedUpdatedAt ? 1 : 0) }}
               </span>
             </button>
-              <!-- ✅ Bouton Supprimer multiple (Admin seulement) -->
+              <!--  Bouton Supprimer multiple (Admin seulement) -->
   <div *ngIf="userRole === 'Admin' && (selectedTPEs.size > 0 || globalSelectionMode)" class="flex items-center gap-2">
     <span class="text-sm text-gray-600 dark:text-gray-400 bg-gray-100 dark:bg-gray-800 px-3 py-1.5 rounded-lg">
     <ng-container *ngIf="globalSelectionMode">
@@ -374,9 +374,8 @@ Associer des TPEs
     [(ngModel)]="tempFilters.commercantId"
     class="w-full h-11 px-4 text-sm rounded-lg border border-gray-300 bg-white focus:border-[#8788FF] focus:ring-1 focus:ring-[#8788FF] dark:border-gray-600 dark:bg-gray-800 transition-colors"
   >
-    <!-- ✅ Utiliser [ngValue] au lieu de value -->
     <option [ngValue]="null">Tous les commerçants</option>
-    <option [ngValue]="'__NON_ASSIGNE__'">Non assigné</option>  <!-- ← VALEUR SPÉCIALE -->
+    <option [ngValue]="'__NON_ASSIGNE__'">Non assigné</option>  
     <option *ngFor="let c of commercants" [ngValue]="c.id">
       {{ c.nomMagasin }}
     </option>

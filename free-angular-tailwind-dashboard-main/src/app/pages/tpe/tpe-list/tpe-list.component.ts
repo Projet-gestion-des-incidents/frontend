@@ -29,7 +29,6 @@ tempCommercantFilters = {
   createdAt: ''
 };
 
-// Pour la date de création (calendrier)
 selectedCreatedAtForCommercant = '';
 selectedDetectionDateObj: Date | null = null;
   showDeleteAllModal = false;  // Pour la modale de suppression totale
@@ -40,16 +39,16 @@ deleteAllLoading = false;
   pageSize = 6;
   totalPages = 1;
   totalCount = 0;
-  // Ajoutez ces propriétés avec les autres déclarations
-selectedTPEs: Set<string> = new Set<string>();  // IDs des TPEs sélectionnés
+
+  selectedTPEs: Set<string> = new Set<string>();  // IDs des TPEs sélectionnés
 showMultiDeleteModal = false;  // Pour la modale de suppression multiple
-confirmTPEs: any[] = [];  // TPEs à supprimer en masse
+confirmTPEs: any[] = [];  // TPEs à supprimer 
 bulkDeleting = false;  // État de suppression en cours
   // Filtres
   searchTerm = '';
   selectedModele = '';
 selectedCommercantId: string | null = null;
-  selectedNonAssigne: boolean = false;  // ← NOUVEAU
+  selectedNonAssigne: boolean = false;  
 
   commercants: any[] = [];
   
@@ -76,7 +75,7 @@ selectedCommercantId: string | null = null;
     private userService: UserService,
     private dashboardAdminService: DashboardAdminService
   ) {}
-// Ajoutez cette méthode pour calculer les statistiques par modèle
+//  calculer les statistiques par modèle
 getModeleStats(modele: string): { nombreTPEs: number; nombreIncidents: number; tauxPanne: number; pourcentage: number } {
   if (!this.tpeDashboard || !this.tpeDashboard.pannesParModele) {
     return { nombreTPEs: 0, nombreIncidents: 0, tauxPanne: 0, pourcentage: 0 };
@@ -100,8 +99,8 @@ getModeleStats(modele: string): { nombreTPEs: number; nombreIncidents: number; t
   };
 }
 
-// Ajoutez Math dans le template si nécessaire (dans le constructeur ou au début de la classe)
 Math = Math;
+
   ngOnInit(): void {
     this.userService.getMyProfile().subscribe({
       next: (user) => {
@@ -118,29 +117,25 @@ Math = Math;
       }
     });
   }
-// Dans TpeListComponent, ajoutez :
 
 // Variables pour les filtres temporaires
 tempFilters: {
   modele: string;
-  commercantId: string | null;  // ← CHANGER de 'string' à 'string | null'
+  commercantId: string | null;  
   nonAssigne: boolean;
   createdAt: string;
   updatedAt: string;
 } = {
   modele: '',
-  commercantId: null,  // ← CHANGER de '' à null
+  commercantId: null,  
   nonAssigne: false,
   createdAt: '',
   updatedAt: ''
 };
 
 showFilters = false;
-
-// Ajoutez ces propriétés
 globalSelectionMode: boolean = false;  // Mode sélection globale activé
 
-// Modifier toggleAllSelection
 toggleAllSelection(checked: boolean): void {
   if (checked) {
     // Sélectionner TOUS les TPEs de TOUTES les pages
@@ -151,19 +146,18 @@ toggleAllSelection(checked: boolean): void {
   }
 }
 
-// ✅ Optimisation : Sélectionner TOUS les TPEs SANS charger tous les détails
+//  Sélectionner TOUS les TPEs SANS charger tous les détails
 selectAllTPEsAcrossPages(): void {
-  // 1. On active le mode global immédiatement (UI réactive)
+  // 1. On active le mode global immédiatement 
   this.globalSelectionMode = true;
   
   // 2. On vide la sélection locale car on est en mode global
   this.selectedTPEs.clear();
   
-  // 3. Optionnel : Afficher un indicateur de chargement
+  // 3. Afficher un indicateur de chargement
   this.loading = true;
   
   // 4. On récupère UNIQUEMENT les IDs des TPEs (pas tous les détails)
-  //    Via une requête légère qui ne retourne que les IDs
   const params: any = {
     page: 1,
     pageSize: this.totalCount,
@@ -172,8 +166,7 @@ selectAllTPEsAcrossPages(): void {
     commercantId: this.selectedCommercantId || undefined,
     createdAt: this.selectedCreatedAt || undefined,
     updatedAt: this.selectedUpdatedAt || undefined,
-    // ✅ AJOUTER un paramètre pour ne récupérer que les IDs
-    onlyIds: true  // Si votre API supporte ce paramètre
+    onlyIds: true 
   };
   
   this.tpeService.getPagedTPEs(params).subscribe({
@@ -189,8 +182,6 @@ selectAllTPEsAcrossPages(): void {
     error: (err) => {
       console.error('Erreur sélection tous les TPEs:', err);
       this.loading = false;
-      // Fallback: mode global sans IDs (toujours utilisable)
-      // this.selectedTPEs reste vide, mais globalSelectionMode = true
     }
   });
 }
@@ -217,8 +208,6 @@ toggleSelection(tpeId: string, checked: boolean): void {
   // Si on modifie une sélection individuelle, on désactive le mode global
   if (this.globalSelectionMode) {
     this.globalSelectionMode = false;
-    // ✅ IMPORTANT: Ne pas toucher à selectedTPEs
-    // Les IDs déjà sélectionnés restent pour refléter la réalité
   }
   
   if (checked) {
@@ -230,7 +219,6 @@ toggleSelection(tpeId: string, checked: boolean): void {
 
 confirmDeleteMultiple(): void {
   if (this.globalSelectionMode) {
-    // ✅ Au lieu de confirm() JavaScript, on ouvre la modale
     this.deleteAllCount = this.totalCount;
     this.showDeleteAllModal = true;
     return;
@@ -334,9 +322,10 @@ cancelDeleteAll(): void {
   this.showDeleteAllModal = false;
   this.deleteAllLoading = false;
 }
-// Ajoutez cette méthode après la méthode clearSelection() ou à côté
+
 tpeDashboard: TPEDashboardDTO | null = null;
 loadingDashboard = false;
+
 loadTPEDashboard(): void {
   this.loadingDashboard = true;
   
@@ -360,11 +349,10 @@ deselectAll(): void {
   this.selectedTPEs.clear();
   this.globalSelectionMode = false;
 }
-// Ajoutez ces propriétés
 pendingDeleteIds: string[] = [];
 pendingDeleteCount: number = 0;
 
-// Modifiez executeMultiDelete pour supprimer par IDs (pas par objets)
+//supprimer par IDs (pas par objets)
 executeMultiDelete(): void {
   if (this.pendingDeleteIds.length === 0) return;
 
@@ -373,7 +361,7 @@ executeMultiDelete(): void {
   const total = this.pendingDeleteIds.length;
   let successCount = 0;
 
-  // ✅ Sauvegarder l'état avant suppression
+  //  Sauvegarder l'état avant suppression
   const currentPageBefore = this.currentPage;
   const wasLastItemOnPage = this.tpes.length === this.pendingDeleteIds.length;
 
@@ -392,10 +380,10 @@ executeMultiDelete(): void {
           this.showMultiDeleteModal = false;
           this.pendingDeleteIds = [];
           
-          // ✅ Mettre à jour les compteurs
+          //  Mettre à jour les compteurs
           this.totalCount = this.totalCount - successCount;
           
-          // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+          //  AJUSTER LA PAGE SI NÉCESSAIRE
           const newTotalPages = Math.ceil(this.totalCount / this.pageSize);
           
           if (wasLastItemOnPage && currentPageBefore > 1 && newTotalPages < currentPageBefore) {
@@ -416,7 +404,7 @@ executeMultiDelete(): void {
             this.showAlert('error', 'Échec', `Aucun TPE n'a pu être supprimé.`);
           }
           
-          // ✅ Recharger la liste
+          //  Recharger la liste
           this.loadTPEs();
         }
       },
@@ -428,7 +416,7 @@ executeMultiDelete(): void {
           this.showMultiDeleteModal = false;
           this.pendingDeleteIds = [];
           
-          // ✅ Recalculer les pages
+          //  Recalculer les pages
           this.totalCount = this.totalCount - successCount;
           const newTotalPages = Math.ceil(this.totalCount / this.pageSize);
           
@@ -451,10 +439,10 @@ executeMultiDelete(): void {
 deleteAllTPEs(): void {
   this.bulkDeleting = true;
   
-  // Récupérer tous les IDs (une seule requête)
+  // Récupérer tous les IDs 
   const params: any = {
     page: 1,
-    pageSize: this.totalCount, // Récupérer TOUS
+    pageSize: this.totalCount, 
     searchTerm: this.searchTerm,
     modele: this.selectedModele || undefined,
     commercantId: this.selectedCommercantId || undefined,
@@ -532,7 +520,6 @@ cancelMultiDelete(): void {
     setTimeout(() => (this.alert.show = false), 5000);
   }
 
-// ✅ Ajouter ces propriétés pour les dates
 selectedCreatedAt = '';
 selectedUpdatedAt = '';
 toggleFilters(): void {
@@ -546,7 +533,6 @@ toggleFilters(): void {
       commercantIdValue = '__NON_ASSIGNE__';
     }
     // Si selectedCommercantId est null et nonAssigne est false, garder null
-    
     this.tempFilters = {
       modele: this.selectedModele,
       commercantId: commercantIdValue,
@@ -555,7 +541,7 @@ toggleFilters(): void {
       updatedAt: this.selectedUpdatedAt
     };
     
-    console.log('📂 toggleFilters - tempFilters:', {
+    console.log(' toggleFilters - tempFilters:', {
       commercantId: this.tempFilters.commercantId,
       type: typeof this.tempFilters.commercantId,
       nonAssigne: this.tempFilters.nonAssigne
@@ -563,7 +549,6 @@ toggleFilters(): void {
   }
 }
 
-// ✅ Remplacer cancelFilters()
 cancelFilters(): void {
   this.showFilters = false;
   
@@ -584,29 +569,29 @@ cancelFilters(): void {
 }
 
 applyFilters(): void {
-  console.log('🔍 applyFilters - tempFilters.commercantId:', 
+  console.log(' applyFilters - tempFilters.commercantId:', 
     this.tempFilters.commercantId, 
     'type:', typeof this.tempFilters.commercantId);
   
-  // ✅ Détecter la valeur spéciale '__NON_ASSIGNE__'
+  //  Détecter la valeur spéciale '__NON_ASSIGNE__'
   if (this.tempFilters.commercantId === '__NON_ASSIGNE__') {
     this.selectedCommercantId = null;
     this.selectedNonAssigne = true;
-    console.log('✅ Filtre "Non assigné" activé');
+    console.log(' Filtre "Non assigné" activé');
   } 
-  // ✅ Valeur null signifie "Tous les commerçants"
+  //  Valeur null signifie "Tous les commerçants"
   else if (this.tempFilters.commercantId === null) {
     this.selectedCommercantId = null;
     this.selectedNonAssigne = false;
-    console.log('✅ Filtre "Tous les commerçants"');
+    console.log(' Filtre "Tous les commerçants"');
   }
-  // ✅ Un GUID valide
+  //  Un GUID valide
   else if (typeof this.tempFilters.commercantId === 'string' && this.tempFilters.commercantId) {
     this.selectedCommercantId = this.tempFilters.commercantId;
     this.selectedNonAssigne = false;
-    console.log('✅ Filtre commerçant spécifique:', this.selectedCommercantId);
+    console.log(' Filtre commerçant spécifique:', this.selectedCommercantId);
   }
-  // ✅ Fallback
+  //  Fallback
   else {
     this.selectedCommercantId = null;
     this.selectedNonAssigne = false;
@@ -620,7 +605,6 @@ applyFilters(): void {
   this.showFilters = false;
 }
 
-// ✅ Correction
 clearFilters(): void {
   this.tempFilters = {
     modele: '',
@@ -639,7 +623,6 @@ clearFilters(): void {
   this.loadTPEs();
   this.showFilters = false;
 }
-// Modifier resetFilters pour utiliser clearFilters
 resetFilters(): void {
   this.clearFilters();
 }
@@ -658,7 +641,7 @@ resetFilters(): void {
   }
 
 
-  // Méthodes pour les filtres du commerçant
+  //  filtres du commerçant
 toggleCommercantFilters(): void {
   this.showCommercantFilters = !this.showCommercantFilters;
   if (this.showCommercantFilters) {
@@ -698,7 +681,6 @@ clearCommercantFilters(): void {
   this.showCommercantFilters = false;
 }
 
-// Ajouter ces méthodes pour les calendriers admin
 
 // Pour la date de création admin
 onAdminCreatedAtChange(event: Event): void {
@@ -748,7 +730,7 @@ openAdminUpdatedAtCalendar(): void {
   }
 }
 
-// Méthode pour la date (comme dans incidents)
+//pour la date 
 openCalendar(): void {
   const dateInput = document.getElementById('tpeDate') as HTMLInputElement;
   if (dateInput) {
@@ -788,7 +770,7 @@ loadTPEs(): void {
       searchTerm: this.searchTerm,
       modele: this.selectedModele || undefined,
       commercantId: this.selectedCommercantId || undefined,
-            nonAssigne: this.selectedNonAssigne,  // ← AJOUTER CE PARAMÈTRE
+            nonAssigne: this.selectedNonAssigne,  
 
       createdAt: this.selectedCreatedAt || undefined,
       updatedAt: this.selectedUpdatedAt || undefined
@@ -806,7 +788,7 @@ loadTPEs(): void {
       }
     });
   } else if (this.userRole === 'Commercant') {
-    // ✅ Commerçant avec filtre modèle ET date de création
+    //  Commerçant avec filtre modèle ET date de création
     this.tpeService.getMesTPEsPaged({
       page: this.currentPage,
       pageSize: this.pageSize,
@@ -889,11 +871,9 @@ getBadgeClasses(modele: string): string {
     return this.userRole === 'Admin';
   }
 
- // Ajoutez ces propriétés dans la classe TpeListComponent
 deleting = false;
 tpeToDelete: any = null;
 
-// Modifiez la méthode deleteTPE
 deleteTPE(tpe: any) {
   if (!this.canManage()) {
     this.alert = {
@@ -909,7 +889,6 @@ deleteTPE(tpe: any) {
   this.tpeToDeleteId = tpe.id;
 }
 
-// Modifiez confirmDelete
 confirmDelete() {
   if (!this.tpeToDeleteId) return;
 
@@ -930,7 +909,6 @@ confirmDelete() {
   });
 }
 
-// Modifiez cancelDelete
 cancelDelete() {
   this.tpeToDeleteId = null;
   this.tpeToDelete = null;

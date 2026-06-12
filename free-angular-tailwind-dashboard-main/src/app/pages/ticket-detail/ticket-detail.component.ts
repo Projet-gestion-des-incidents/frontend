@@ -21,19 +21,19 @@ export class TicketDetailComponent {
 
   ticket?: TicketDetailDTO;
     loading = true;
-      incidents: Incident[] = []; // Stocker les incidents séparément
-  loadingIncidents = false; // 👈 AJOUTER CETTE LIGNE
+      incidents: Incident[] = []; // Stocker les incidents 
+  loadingIncidents = false; 
 
   errorMessage = '';
 selectedImage: string | null = null;
-   userRole: string = ''; // AJOUTER CETTE PROPRIÉTÉ
+   userRole: string = ''; 
 
   constructor(
     private route: ActivatedRoute,
     private ticketService: TicketService,
     private router: Router,
       private incidentService: IncidentService, 
-    private userService: UserService, // AJOUTER UserService
+    private userService: UserService, 
       private sanitizer: DomSanitizer  
   ) {}
 
@@ -65,23 +65,23 @@ currentImageName: string = '';
 pdfUrl: SafeResourceUrl | null = null;
 showPdfModal: boolean = false;
 
-// Ajoutez cette méthode pour obtenir l'URL d'une pièce jointe
+// obtenir l'URL d'une pièce jointe
 getImageUrl(pieceId: string): string {
   return `https://localhost:7063/api/pieces-jointes/${pieceId}`;
 }
 
-// Ajoutez cette méthode pour ouvrir le modal d'image
+// ouvrir le modal d'image
 openImageModal(pieceId: string, imageName: string): void {
-  console.log('🖼️ openImageModal appelé avec:', { pieceId, imageName });
+  console.log(' openImageModal appelé avec:', { pieceId, imageName });
   const url = this.getImageUrl(pieceId);
-  console.log('📸 URL générée:', url);
+  console.log(' URL générée:', url);
   this.currentImageUrl = url;
   this.currentImageName = imageName;
   this.showImageModal = true;
-  console.log('✅ showImageModal =', this.showImageModal);
+  console.log(' showImageModal =', this.showImageModal);
 }
 
-// Ajoutez cette méthode pour fermer le modal d'image
+//  fermer le modal d'image
 closeImageModal(): void {
   this.showImageModal = false;
   this.currentImageUrl = '';
@@ -89,9 +89,9 @@ closeImageModal(): void {
 }
 // Ouvrir un PDF dans un modal
 openPdf(url: string): void {
-  console.log('📑 openPdf - URL:', url);
+  console.log(' openPdf - URL:', url);
   if (!url) {
-    console.error('❌ URL du PDF manquante');
+    console.error(' URL du PDF manquante');
     return;
   }
   
@@ -99,7 +99,7 @@ openPdf(url: string): void {
     this.pdfUrl = this.sanitizer.bypassSecurityTrustResourceUrl(url);
     this.showPdfModal = true;
   } catch (error) {
-    console.error('❌ Erreur lors de l\'ouverture du PDF:', error);
+    console.error(' Erreur lors de l\'ouverture du PDF:', error);
   }
 }
 
@@ -216,11 +216,11 @@ getIncidentSeveriteBadgeClasses(severite: any): string {
   
   switch(severiteValue) {
     case 0: // Non traité
-      return 'bg-[#C5C6FF] text-[#0C144E]';   // Digital Blue 48%
+      return 'bg-[#C5C6FF] text-[#0C144E]';   
     case 1: // En cours
-      return 'bg-[#8788FF] text-white';        // Digital Purple
+      return 'bg-[#8788FF] text-white';        
     case 2: // Fermé
-      return 'bg-[#D4B8FF] text-[#0C144E]';   // Digital Blue 64%
+      return 'bg-[#D4B8FF] text-[#0C144E]';  
     default:
       return 'bg-[#D4B8FF] text-[#0C144E]';
   }
@@ -246,10 +246,10 @@ getIncidentSeveriteBadgeClasses(severite: any): string {
 
         // Traitement des incidents
         this.incidents = results.incidents;
-        console.log('✅ Incidents chargés:', this.incidents);
+        console.log(' Incidents chargés:', this.incidents);
       },
       error: (err) => {
-        console.error('❌ Erreur:', err);
+        console.error(' Erreur:', err);
         this.errorMessage = 'Erreur lors du chargement des données';
       }
     });
@@ -267,7 +267,7 @@ isPdf(contentType: string | null | undefined, filename: string): boolean {
   return filename?.toLowerCase().endsWith('.pdf') || false;
 }
 downloadFile(piece: PieceJointeDTO): void {
-  console.log('💾 Téléchargement:', piece.nomFichier);
+  console.log(' Téléchargement:', piece.nomFichier);
   const downloadUrl = `https://localhost:7063/api/pieces-jointes/${piece.id}`;
   
   const link = document.createElement('a');
@@ -290,11 +290,10 @@ downloadFile(piece: PieceJointeDTO): void {
     case 'En cours': return 'warning';
     case 'Résolu': return 'success';
     case 'Clôturé': return 'dark';
-    default: return 'light'; // ✅ au lieu de secondary
+    default: return 'light'; 
   }
 }
 
-  // ========== GESTION DE LA SÉVÉRITÉ ==========
   getSeveriteLibelle(severite: any, severiteLibelle: string): string {
     if (!severite) {
       return 'Non définie';

@@ -31,7 +31,7 @@ export class AjoutTPEComponent implements OnInit {
   alert = { show: false, variant: 'error' as 'error' | 'success', title: '', message: '' };
   commercants: { id: string; nomMagasin: string }[] = [];
 
-  // ✅ Compteurs par modèle
+  //  Compteurs par modèle
   quantites = {
     ingenico: 0,
     verifone: 0,
@@ -53,7 +53,7 @@ export class AjoutTPEComponent implements OnInit {
     this.loadCommercants();
   }
 
-  // ✅ Méthodes pour incrémenter/décrémenter les quantités
+  //  incrémenter/décrémenter les quantités
   incrementIngenico(): void {
     this.quantites.ingenico++;
   }
@@ -84,7 +84,7 @@ export class AjoutTPEComponent implements OnInit {
     }
   }
 
-  // ✅ Méthode pour mettre à jour via l'input
+  //  mettre à jour via l'input
   updateIngenico(value: number): void {
     this.quantites.ingenico = Math.max(0, value || 0);
   }

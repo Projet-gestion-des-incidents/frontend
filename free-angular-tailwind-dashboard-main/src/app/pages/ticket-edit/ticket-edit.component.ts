@@ -31,7 +31,6 @@ import { TechnicianUpdateTicketDTO } from '../../shared/models/Ticket.models';
 })
 export class TicketEditComponent implements OnInit {
 
-  // Ajoutez ces propriétés avec les autres déclarations
 commercants: any[] = [];
 selectedCommercantId: string | null = null;
 showIncidentsList: boolean = false;
@@ -95,7 +94,7 @@ statutsTechnicien = [
         this.isTechnicien = user.role === 'Technicien';
         this.userId = user.id;
         
-        console.log('👤 Rôle utilisateur (edit):', this.userRole);
+        console.log(' Rôle utilisateur (edit):', this.userRole);
         console.log('  - isAdmin:', this.isAdmin);
         console.log('  - isTechnicien:', this.isTechnicien);
         console.log('  - userId:', this.userId);
@@ -133,51 +132,40 @@ statutsTechnicien = [
 
 
 
-// Dans ngOnInit, après loadTechniciens(), ajoutez :
 
-// Ajoutez cette méthode
 loadCommercants(): void {
-  console.log('🔍 Chargement des commerçants...');
+  console.log(' Chargement des commerçants...');
   this.userService.getCommercants().subscribe({
     next: (commercants) => {
       this.commercants = commercants;
-      console.log('✅ Commerçants chargés:', this.commercants.length);
+      console.log(' Commerçants chargés:', this.commercants.length);
       console.log('Détails:', this.commercants.map(c => ({ id: c.id, nom: c.nomMagasin || c.userName })));
       
-      // ✅ Re-filtrer après chargement des incidents
+      //  Re-filtrer après chargement des incidents
       this.filtrerCommercantsAvecIncidents();
     },
     error: (err) => {
-      console.error('❌ Erreur chargement commerçants:', err);
+      console.error(' Erreur chargement commerçants:', err);
     }
   });
 }
-// Ajoutez cette propriété avec les autres
 commercantsAvecIncidents: any[] = []; // Commerçants qui ont au moins un incident disponible
-/**
- * Filtre les commerçants pour ne garder que ceux qui ont des incidents disponibles
- */
-/**
- * Filtre les commerçants pour ne garder que ceux qui ont des incidents disponibles
- */
-/**
- * Filtre les commerçants pour ne garder que ceux qui ont des incidents disponibles
- * Version corrigée pour correspondre au comportement de la création
- */
+
+/** Filtre les commerçants pour ne garder que ceux qui ont des incidents disponibles */
 filtrerCommercantsAvecIncidents(): void {
-  // ✅ Utiliser la source complète des incidents disponibles (tous les incidents sans ticket)
+  //  Utiliser la source complète des incidents disponibles (tous les incidents sans ticket)
   const sourceIncidents = this.incidentsDisponibles || [];
   
   if (sourceIncidents.length === 0) {
     this.commercantsAvecIncidents = [];
-    console.log('⚠️ Aucun incident disponible, liste des commerçants vidée');
+    console.log(' Aucun incident disponible, liste des commerçants vidée');
     return;
   }
   
-  console.log('📊 Source incidents disponibles (tous):', sourceIncidents);
-  console.log('📊 Nombre total d\'incidents disponibles:', sourceIncidents.length);
+  console.log(' Source incidents disponibles (tous):', sourceIncidents);
+  console.log(' Nombre total d\'incidents disponibles:', sourceIncidents.length);
   
-  // ✅ Regrouper par commercial et créer la liste
+  //  Regrouper par commercial et créer la liste
   const commercantsMap = new Map();
   
   sourceIncidents.forEach(incident => {
@@ -200,14 +188,12 @@ filtrerCommercantsAvecIncidents(): void {
   // Convertir la Map en tableau
   this.commercantsAvecIncidents = Array.from(commercantsMap.values());
   
-  console.log(`📊 Commerçants avec incidents disponibles: ${this.commercantsAvecIncidents.length}`);
+  console.log(` Commerçants avec incidents disponibles: ${this.commercantsAvecIncidents.length}`);
   console.log('Détails:', this.commercantsAvecIncidents);
 }
-// Méthode appelée quand le commerçant change
-// Méthode appelée quand le commerçant change
 onCommercantChange(): void {
-  console.log('🔄 onCommercantChange appelé, selectedCommercantId:', this.selectedCommercantId);
-  console.log('📊 commercantsAvecIncidents:', this.commercantsAvecIncidents);
+  console.log(' onCommercantChange appelé, selectedCommercantId:', this.selectedCommercantId);
+  console.log(' commercantsAvecIncidents:', this.commercantsAvecIncidents);
   
   if (!this.selectedCommercantId) {
     this.showIncidentsList = false;
@@ -216,24 +202,22 @@ onCommercantChange(): void {
     return;
   }
   
-  // ✅ Utiliser incidentsDisponibles au lieu de incidents
   this.filteredIncidentsDisponibles = this.incidentsDisponibles.filter(
     incident => incident.createdById === this.selectedCommercantId
   );
   
-  console.log('📊 Incidents filtrés:', this.filteredIncidentsDisponibles.length);
+  console.log(' Incidents filtrés:', this.filteredIncidentsDisponibles.length);
   
   // Regrouper les incidents filtrés
   this.groupIncidentsDisponiblesByCommercant();
   
-  // ✅ Afficher la liste
+  //  Afficher la liste
   this.showIncidentsList = true;
   
-  console.log(`📊 ${this.filteredIncidentsDisponibles.length} incidents pour le commerçant sélectionné`);
+  console.log(` ${this.filteredIncidentsDisponibles.length} incidents pour le commerçant sélectionné`);
 }
 
-// Méthode pour grouper les incidents disponibles par commerçant
-// Méthode pour grouper les incidents disponibles par commerçant
+//  grouper les incidents disponibles par commerçant
 groupIncidentsDisponiblesByCommercant(): void {
   const groups = new Map();
   
@@ -264,21 +248,16 @@ groupIncidentsDisponiblesByCommercant(): void {
 
 canResolveIncident(incident: any): boolean {
   if (!this.isTechnicien) return false;
-  
-  // Convertir en string et en minuscules pour la comparaison
-  const statut = String(incident.statutIncident).toLowerCase();
+    const statut = String(incident.statutIncident).toLowerCase();
   
   // Ne pas résoudre si déjà résolu
   if (statut.includes('résolu') || statut.includes('resolu') || statut.includes('ferme')) {
     return false;
   }
-  
   // Résoluble seulement si en cours
   return statut.includes('encours') || statut.includes('en cours');
 }
-  /**
-   * Résoudre un incident
-   */
+  /** Résoudre un incident */
   resoudreIncident(incidentId: string): void {
     if (!this.isTechnicien) {
       this.showError('Seuls les techniciens peuvent résoudre des incidents');
@@ -299,22 +278,19 @@ canResolveIncident(incident: any): boolean {
           this.showSuccess('Incident résolu avec succès');
           
           // Mettre à jour le statut du ticket dans l'interface
-          // (Le backend le fera automatiquement si tous les incidents sont résolus)
         } else {
           this.showError(response.message || 'Erreur lors de la résolution');
         }
         this.resolvingIncidentId = null;
       },
       error: (err) => {
-        console.error('❌ Erreur:', err);
+        console.error(' Erreur:', err);
         this.showError(err.error?.message || 'Erreur lors de la résolution');
         this.resolvingIncidentId = null;
       }
     });
   }
-/**
- * Ouvrir la modale de confirmation pour résoudre un incident
- */
+/** Ouvrir la modale de confirmation pour résoudre un incident*/
 confirmerResoudreIncident(incidentId: string, incidentCode: string, incidentDescription: string): void {
   if (!this.isTechnicien) {
     this.showErrorDialog('Seuls les techniciens peuvent résoudre des incidents');
@@ -328,9 +304,7 @@ confirmerResoudreIncident(incidentId: string, incidentCode: string, incidentDesc
   };
   this.showResolveIncidentModal = true;
 }
-/**
- * Met à jour l'état initial du ticket (appelé après une action qui modifie le ticket)
- */
+/** Met à jour l'état initial du ticket */
 updateInitialTicketState(): void {
   if (this.initialTicketState && this.ticket) {
     this.initialTicketState = {
@@ -340,12 +314,10 @@ updateInitialTicketState(): void {
       assigneeId: this.ticket.assigneeId,
       dateLimite: this.ticket.dateLimite
     };
-    console.log('🔄 initialTicketState mis à jour:', this.initialTicketState);
+    console.log(' initialTicketState mis à jour:', this.initialTicketState);
   }
 }
-/**
- * Exécuter la résolution de l'incident
- */
+/** Exécuter la résolution de l'incident*/
 executerResoudreIncident(): void {
   if (!this.incidentToResolve) return;
   
@@ -373,7 +345,7 @@ executerResoudreIncident(): void {
           this.ticket.statutTicket = 'Resolu';
           this.showSuccess(`Tous les incidents sont résolus. Le ticket a été automatiquement fermé.`);
           
-          // ✅ METTRE À JOUR l'état initial APRÈS modification
+          //  METTRE À JOUR l'état initial APRÈS modification
           this.updateInitialTicketState();
           
           setTimeout(() => {
@@ -381,13 +353,8 @@ executerResoudreIncident(): void {
           }, 5000);
         } else {
           this.showSuccess(`Incident ${this.incidentToResolve!.code} résolu avec succès`);
-          
-          // ✅ METTRE À JOUR l'état initial APRÈS modification
-          // (le statut du ticket n'a pas changé, mais l'incident a changé)
-          // Pour l'incident, on ne peut pas le mettre dans initialTicketState car ce n'est pas le ticket
-          // Donc on force hasChanges à true
           this.hasChanges = true;
-          console.log('🔄 hasChanges forcé à true (incident résolu)');
+          console.log(' hasChanges forcé à true (incident résolu)');
         }
         
         // Fermer la modale
@@ -399,7 +366,7 @@ executerResoudreIncident(): void {
       this.resolvingIncidentId = null;
     },
     error: (err) => {
-      console.error('❌ Erreur:', err);
+      console.error(' Erreur:', err);
       const errorMessage = err.error?.message || err.message || 'Erreur lors de la résolution';
       this.showErrorDialog(errorMessage);
       this.resolvingIncidentId = null;
@@ -407,9 +374,7 @@ executerResoudreIncident(): void {
     }
   });
 }
-/**
- * Vérifie si tous les incidents sont résolus et met à jour le ticket si nécessaire
- */
+/** Vérifie si tous les incidents sont résolus et met à jour le ticket si nécessaire*/
 verifierEtFermerTicket(): void {
   const tousResolus = this.incidentsLies.every(incident => 
     incident.statutIncident === 2 || 
@@ -419,51 +384,40 @@ verifierEtFermerTicket(): void {
   
   if (tousResolus && this.ticket.statutTicket !== 'Resolu') {
     this.ticket.statutTicket = 'Resolu';
-    this.showSuccess(`✅ Tous les incidents sont résolus. Le ticket a été automatiquement fermé.`);
+    this.showSuccess(` Tous les incidents sont résolus. Le ticket a été automatiquement fermé.`);
     setTimeout(() => {
       this.router.navigate(['/tickets']);
     }, 5000);
   }
 }
-/**
- * Fermer la modale de résolution
- */
+/**Fermer la modale de résolution*/
 fermerModalResolveIncident(): void {
   this.showResolveIncidentModal = false;
   this.incidentToResolve = null;
 }
-  /**
-   * Recharger seulement les incidents
-   */
- /**
- * Recharger seulement les incidents
- */
-/**
- * Recharger seulement les incidents
- * AVEC REDIRECTION SI TOUS RÉSOLUS
- */
+  /** Recharger seulement les incidents*/
 reloadIncidents(): void {
   this.ticketService.getIncidentsByTicket(this.ticketId).subscribe({
     next: (incidents) => {
       this.incidentsLies = incidents;
       this.incidentsSelectionnes = incidents.map((i: any) => i.id);
       
-      // ✅ Vérifier si tous les incidents sont résolus après le rechargement
+      //  Vérifier si tous les incidents sont résolus après le rechargement
       const tousResolus = this.incidentsLies.every(incident => 
         incident.statutIncident === 2 || 
         incident.statutIncidentLibelle?.toLowerCase().includes('résolu') ||
         incident.statutIncidentLibelle?.toLowerCase().includes('resolu')
       );
       
-      // ✅ Si tous les incidents sont résolus et le ticket n'est pas déjà résolu
+      //  Si tous les incidents sont résolus et le ticket n'est pas déjà résolu
       if (tousResolus && this.ticket.statutTicket !== 'Resolu') {
         // Mettre à jour le ticket localement
         this.ticket.statutTicket = 'Resolu';
         
         // Afficher le message de succès
-        this.showSuccess(`✅ Tous les incidents sont résolus. Le ticket a été automatiquement fermé.`);
+        this.showSuccess(` Tous les incidents sont résolus. Le ticket a été automatiquement fermé.`);
         
-        // ✅ REDIRIGER VERS LA PAGE DE LISTE DES TICKETS
+        //  REDIRIGER VERS LA PAGE DE LISTE DES TICKETS
         setTimeout(() => {
           this.router.navigate(['/tickets']);
         }, 5000);
@@ -474,21 +428,17 @@ reloadIncidents(): void {
     }
   });
 }
-// Ajoutez ces propriétés avec les autres déclarations de modales
 showResolveIncidentModal: boolean = false;
 incidentToResolve: { id: string; code: string; description: string } | null = null;
-// Dans ticket-edit.component.ts
-
-// Dans ticket-edit.component.ts
 
  loadTechniciens(): void {
-  console.log('🔍 Récupération des techniciens...');
+  console.log(' Récupération des techniciens...');
   
   this.userService.getTechniciens().subscribe({
     next: (response) => {
-      console.log('📦 Réponse reçue:', response);
+      console.log(' Réponse reçue:', response);
       
-      // ✅ Extraire les données correctement
+      //  Extraire les données 
       let techniciensData = [];
       if (response?.data && Array.isArray(response.data)) {
         techniciensData = response.data;
@@ -498,7 +448,7 @@ incidentToResolve: { id: string; code: string; description: string } | null = nu
         techniciensData = response.items;
       }
       
-      // ✅ Mapper les techniciens
+      //  Mapper les techniciens
       this.techniciens = techniciensData.map((u: any) => ({
         id: u.id,
         nom: u.nom,
@@ -510,18 +460,16 @@ incidentToResolve: { id: string; code: string; description: string } | null = nu
         birthDate: u.birthDate,
         image: u.image
       }));
-      
-      // ✅ Créer les options pour le select
-      this.technicienOptions = this.techniciens.map(t => ({
+            this.technicienOptions = this.techniciens.map(t => ({
         value: t.id,
-        label: `${t.prenom} ${t.nom}`  // Prénom puis Nom pour meilleure lisibilité
+        label: `${t.prenom} ${t.nom}`  
       }));
       
-      console.log('✅ Techniciens chargés:', this.techniciens.length);
-      console.log('📋 Options:', this.technicienOptions);
+      console.log(' Techniciens chargés:', this.techniciens.length);
+      console.log(' Options:', this.technicienOptions);
     },
     error: (err) => {
-      console.error('❌ Erreur chargement techniciens:', err);
+      console.error(' Erreur chargement techniciens:', err);
       this.showError('Impossible de charger les techniciens');
     }
   });
@@ -530,17 +478,16 @@ incidentToResolve: { id: string; code: string; description: string } | null = nu
 getIncidentStatutClasses(statut: number): string {
   switch(statut) {
      case 0: // Non traité
-      return 'bg-[#C5C6FF] text-[#0C144E]';   // Digital Blue 48%
+      return 'bg-[#C5C6FF] text-[#0C144E]';   
     case 1: // En cours
-      return 'bg-[#8788FF] text-white';        // Digital Purple
+      return 'bg-[#8788FF] text-white';        
     case 2: // Fermé
-      return 'bg-[#D4B8FF] text-[#0C144E]';   // Digital Blue 64%
+      return 'bg-[#D4B8FF] text-[#0C144E]';   
     default:
       return 'bg-[#D4B8FF] text-[#0C144E]';
   }
 }
 
-  // Gestion des incidents
   desactiverIncident(incidentId: string): void {
     if (!this.isAdmin) return; // Seul l'admin peut retirer des incidents
     
@@ -584,7 +531,7 @@ loadData(): void {
         this.originalStatut = this.ticket.statutTicket;
         this.originalAssigneeId = this.ticket.assigneeId;
         
-        // ✅ Sauvegarder l'état initial du ticket
+        //  Sauvegarder l'état initial du ticket
         this.initialTicketState = {
           titreTicket: this.ticket.titreTicket,
           descriptionTicket: this.ticket.descriptionTicket,
@@ -596,29 +543,28 @@ loadData(): void {
         this.incidentsLies = results.incidentsLies;
         this.incidentsSelectionnes = this.incidentsLies.map((i: any) => i.id);
         
-        // ✅ Sauvegarder la liste originale des incidents liés
+        //  Sauvegarder la liste originale des incidents liés
         this.originalIncidentsList = [...this.incidentsLies.map((i: any) => i.id)];
         
-        // ✅ Réinitialiser hasChanges à false
+        //  Réinitialiser hasChanges à false
         this.hasChanges = false;
         this.titreTouched = false;
         this.descriptionTouched = false;
         
-      //  this.showAssignmentSection = !this.ticket.assigneeId;
         this.tempAssigneeId = this.ticket.assigneeId;
 
-        // ✅ Incidents disponibles (sans ticket lié)
+        //  Incidents disponibles (sans ticket lié)
         const allIncidentsDisponibles = results.incidentsDisponibles || [];
         this.incidentsDisponibles = allIncidentsDisponibles.filter((incident: any) => {
           const estDejaLie = this.incidentsLies.some((lie: any) => lie.id === incident.id);
           return !estDejaLie;
         });
         
-        console.log('📊 Incidents disponibles après filtrage:', this.incidentsDisponibles.length);
+        console.log(' Incidents disponibles après filtrage:', this.incidentsDisponibles.length);
         
         this.incidents = this.incidentsDisponibles;
         
-        // ✅ Filtrer les commerçants qui ont des incidents disponibles
+        //  Filtrer les commerçants qui ont des incidents disponibles
         this.filtrerCommercantsAvecIncidents();
         
         // Réinitialiser le filtrage
@@ -636,10 +582,9 @@ loadData(): void {
     }
   });
 }
-// Dans ticket-edit.component.ts, ajoutez ces propriétés avec les autres
-showAssignmentSection: boolean = false;  // ✅ Pour contrôler l'affichage de la section assignation
-tempAssigneeId: string | null = null;    // ✅ Pour stocker temporairement l'ID du technicien sélectionné
-// ✅ Méthode pour confirmer l'assignation du technicien
+showAssignmentSection: boolean = false;  //  Pour contrôler l'affichage de la section assignation
+tempAssigneeId: string | null = null;    //  Pour stocker temporairement l'ID du technicien sélectionné
+// confirmer l'assignation du technicien
 confirmerAssignation(): void {
   if (this.tempAssigneeId) {
     // Mettre à jour le ticket avec le technicien sélectionné
@@ -650,7 +595,7 @@ confirmerAssignation(): void {
   }
 }
 
-// ✅ Méthode pour annuler l'assignation
+//  annuler l'assignation
 annulerAssignation(): void {
   this.tempAssigneeId = null;
   this.showAssignmentSection = false;
@@ -663,12 +608,12 @@ reloadIncidentsDisponibles(): void {
         !this.incidentsLies.some(lie => lie.id === incident.id)
       );
       this.incidents = this.incidentsDisponibles;
-      console.log('✅ Incidents disponibles (sans aucun ticket lié):', this.incidentsDisponibles.length);
+      console.log(' Incidents disponibles (sans aucun ticket lié):', this.incidentsDisponibles.length);
       
-      // ✅ Mettre à jour la liste des commerçants avec incidents
+      //  Mettre à jour la liste des commerçants avec incidents
       this.filtrerCommercantsAvecIncidents();
       
-      // ✅ Si un commerçant est sélectionné, refiltrer automatiquement
+      //  Si un commerçant est sélectionné, refiltrer automatiquement
       if (this.selectedCommercantId) {
         // Vérifier si le commerçant sélectionné a encore des incidents
         const commercantADesIncidents = this.commercantsAvecIncidents.some(
@@ -691,7 +636,7 @@ reloadIncidentsDisponibles(): void {
       }
     },
     error: (err) => {
-      console.error('❌ Erreur chargement incidents disponibles:', err);
+      console.error(' Erreur chargement incidents disponibles:', err);
       this.showError('Impossible de charger les incidents');
     }
   });
@@ -700,7 +645,7 @@ reloadIncidentsDisponibles(): void {
 showIncidentSelector: boolean = false;
 
 toggleIncidentSelector(): void {
-  // ✅ Ne pas ouvrir si la limite est atteinte
+  //  Ne pas ouvrir si la limite est atteinte
   if (this.incidentsLies?.length >= this.maxIncidents && !this.showIncidentSelector) {
     this.showErrorDialog(`Vous ne pouvez pas lier plus de ${this.maxIncidents} incidents.`);
     return;
@@ -724,10 +669,7 @@ lierIncident(incidentId: string): void {
 
 
 
-/**
- * Vérifie si un incident est disponible pour liaison
- * Disponible = statut différent de "EnCours" et "Résolu"/"Ferme"
- */
+/** Vérifie si un incident est disponible pour liaison */
 estIncidentDisponible(incident: any): boolean {
   // Si le libellé est disponible, l'utiliser
   if (incident.statutIncidentLibelle) {
@@ -767,7 +709,7 @@ selectAllIncidents(): void {
   isIncidentSelected(incidentId: string): boolean {
     return this.incidentsSelectionnes.includes(incidentId);
   }
-// Ajoutez cette méthode dans la classe TicketEditComponent
+
 isImage(contentType: string | null | undefined): boolean {
   if (!contentType) {
     return false;
@@ -820,15 +762,11 @@ maxFiles: number = 10; // Limite de fichiers
     this.router.navigate(['/incidents', incidentId]);
   }
 
-// Ajoutez ces propriétés
 showSuccessModal: boolean = false;
 successMessage: string = '';
-
-// Ajoutez ces propriétés
 showDeleteIncidentModal: boolean = false;
 incidentToDelete: { id: string; code: string } | null = null;
 
-// Dans la méthode showSuccess, remplacez alert par le message stylisé
 showSuccess(message: string): void {
   this.successMessage = message;
   setTimeout(() => {
@@ -836,13 +774,12 @@ showSuccess(message: string): void {
   }, 5000);
 }
 
-// Ajoutez ces propriétés avec les autres déclarations
 hasChanges: boolean = false;
 initialTicketState: any = null;
 titreTouched: boolean = false;
 descriptionTouched: boolean = false;
 
-// Ajoutez ces getters pour la validation
+//  getters pour la validation
 get titreInvalid(): boolean {
   return !this.ticket?.titreTicket || this.ticket.titreTicket.length < 3;
 }
@@ -851,8 +788,7 @@ get descriptionInvalid(): boolean {
   return !this.ticket?.descriptionTicket || this.ticket.descriptionTicket.length < 10;
 }
 
-// Méthode pour vérifier si des changements ont été effectués
-// Méthode pour vérifier si des changements ont été effectués
+// vérifier si des changements ont été effectués
 checkForChanges(): void {
   if (!this.initialTicketState || !this.ticket) {
     this.hasChanges = false;
@@ -865,7 +801,7 @@ checkForChanges(): void {
   if (this.isAdmin) {
     if (this.ticket.titreTicket !== this.initialTicketState.titreTicket) {
       hasAnyChange = true;
-      console.log('🔄 Changement détecté: Titre');
+      console.log(' Changement détecté: Titre');
     }
   }
   
@@ -873,7 +809,7 @@ checkForChanges(): void {
   if (this.isAdmin) {
     if (this.ticket.descriptionTicket !== this.initialTicketState.descriptionTicket) {
       hasAnyChange = true;
-      console.log('🔄 Changement détecté: Description');
+      console.log(' Changement détecté: Description');
     }
   }
   
@@ -881,17 +817,17 @@ checkForChanges(): void {
   if (this.isTechnicien) {
     if (this.ticket.statutTicket !== this.initialTicketState.statutTicket) {
       hasAnyChange = true;
-      console.log('🔄 Changement détecté: Statut');
+      console.log(' Changement détecté: Statut');
     }
   }
   
-  // ✅ Vérifier l'assignation (pour admin) - TOUJOURS vérifier
+  //  Vérifier l'assignation (pour admin) - TOUJOURS vérifier
   if (this.isAdmin) {
     const currentAssigneeId = this.ticket.assigneeId || null;
     const originalAssigneeId = this.initialTicketState.assigneeId || null;
     if (currentAssigneeId !== originalAssigneeId) {
       hasAnyChange = true;
-      console.log('🔄 Changement détecté: Assignation (', originalAssigneeId, '->', currentAssigneeId, ')');
+      console.log(' Changement détecté: Assignation (', originalAssigneeId, '->', currentAssigneeId, ')');
     }
   }
   
@@ -899,7 +835,7 @@ checkForChanges(): void {
   if (this.isAdmin) {
     if (this.ticket.dateLimite !== this.initialTicketState.dateLimite) {
       hasAnyChange = true;
-      console.log('🔄 Changement détecté: Date limite');
+      console.log(' Changement détecté: Date limite');
     }
   }
   
@@ -909,13 +845,13 @@ checkForChanges(): void {
   
   if (JSON.stringify(currentIncidentsList) !== JSON.stringify(originalIncidentsList)) {
     hasAnyChange = true;
-    console.log('🔄 Changement détecté: Liste des incidents');
+    console.log(' Changement détecté: Liste des incidents');
   }
   
   this.hasChanges = hasAnyChange;
-  console.log('🔄 hasChanges =', this.hasChanges);
+  console.log(' hasChanges =', this.hasChanges);
 }
-// Ajoutez la méthode pour confirmer la suppression d'un commentaire
+// confirmer la suppression d'un commentaire
 confirmerSuppressionCommentaire(commentaireId: string, auteurNom: string): void {
   this.commentToDelete = { id: commentaireId, auteurNom: auteurNom };
   this.showDeleteCommentModal = true;
@@ -968,7 +904,6 @@ getStatutLibelle(statut: string): string {
     }
     return statutLibelle || `Statut ${statut}`;
   }
-// Dans ticket-edit.component.ts
 
 private saveAsAdmin(): void {
     if (!this.ticket.descriptionTicket || this.ticket.descriptionTicket.length < 10) {
@@ -979,7 +914,7 @@ private saveAsAdmin(): void {
     return;
   }
   
-  // ✅ Validation du titre (optionnel mais recommandé)
+  //  Validation du titre 
   if (!this.ticket.titreTicket || this.ticket.titreTicket.trim() === '') {
     this.error = 'Le titre est requis';
     this.loading = false;
@@ -1014,9 +949,7 @@ private saveAsAdmin(): void {
           this.ticket.statutTicket = response.data.statutTicket || this.ticket.statutTicket;
           this.ticket.assigneeId = response.data.assigneeId || this.ticket.assigneeId;
         }
-        
-        // ✅ AJOUTER CETTE LIGNE - Terminer le chargement
-        this.loading = false;
+                this.loading = false;
         
         // Afficher un message de succès
         this.showSuccess('Ticket mis à jour avec succès');
@@ -1028,13 +961,13 @@ private saveAsAdmin(): void {
         
       } else {
         this.error = response.message || 'Erreur mise à jour ticket';
-        this.loading = false;  // ✅ AJOUTER CETTE LIGNE
+        this.loading = false;  
       }
     },
     error: (err) => {
-      console.error('❌ Erreur:', err.error);
+      console.error(' Erreur:', err.error);
       this.error = err.error?.errors?.StatutTicket?.[0] || err.error?.message || 'Erreur mise à jour ticket';
-      this.loading = false;  // ✅ AJOUTER CETTE LIGNE (déjà présente)
+      this.loading = false; 
     }
   });
 }
@@ -1046,16 +979,16 @@ save() {
   this.error = null;
 
   if (this.isAdmin) {
-    console.log('👑 Admin: mise à jour complète du ticket');
+    console.log(' Admin: mise à jour complète du ticket');
     this.saveAsAdmin();
   } else if (this.isTechnicien) {
-    console.log('🔧 Technicien: mise à jour limitée du ticket');
+    console.log(' Technicien: mise à jour limitée du ticket');
     this.saveAsTechnicien();
   }
 }
 
 private saveAsTechnicien(): void {
-  // ✅ Utiliser le DTO spécifique pour technicien
+  //  Utiliser le DTO spécifique pour technicien
   const technicianUpdateDTO: TechnicianUpdateTicketDTO = {};
   
   const statutMap: { [key: string]: number } = {
@@ -1068,7 +1001,7 @@ private saveAsTechnicien(): void {
     technicianUpdateDTO.statutTicket = statutMap[this.ticket.statutTicket] || 2;
   }
   
-  // ✅ Le technicien peut modifier l'assignation
+  //  Le technicien peut modifier l'assignation
   if (this.ticket.assigneeId !== undefined) {
     technicianUpdateDTO.assigneeId = this.ticket.assigneeId || null;
   }
@@ -1079,16 +1012,14 @@ private saveAsTechnicien(): void {
   
   // S'il n'y a aucune modification du ticket
   if (!hasStatusChange && !hasAssigneeChange) {
-    this.loading = false;  // ✅ AJOUTER CETTE LIGNE
+    this.loading = false;  
     this.router.navigate(['/tickets']);
     return;
   }
-  
-  // ✅ Utiliser l'endpoint spécifique pour technicien
-  this.ticketService.technicianUpdateTicket(this.ticketId, technicianUpdateDTO).subscribe({
+    this.ticketService.technicianUpdateTicket(this.ticketId, technicianUpdateDTO).subscribe({
     next: (response) => {
       if (response.isSuccess) {
-        // Mettre à jour le ticket localement
+        // Mettre à jour le ticket 
         if (response.data) {
           this.ticket.statutTicket = response.data.statutTicket;
           this.ticket.assigneeId = response.data.assigneeId;
@@ -1096,9 +1027,7 @@ private saveAsTechnicien(): void {
           this.originalStatut = this.ticket.statutTicket;
           this.originalAssigneeId = this.ticket.assigneeId;
         }
-        
-        // ✅ AJOUTER CETTE LIGNE - Terminer le chargement
-        this.loading = false;
+                this.loading = false;
         
         // Afficher un message de succès
         this.showSuccess('Ticket mis à jour avec succès');
@@ -1110,18 +1039,17 @@ private saveAsTechnicien(): void {
         
       } else {
         this.error = response.message || 'Erreur mise à jour ticket';
-        this.loading = false;  // ✅ AJOUTER CETTE LIGNE
+        this.loading = false;  
       }
     },
     error: (err) => {
-      console.error('❌ Erreur:', err);
+      console.error(' Erreur:', err);
       this.error = err.error?.message || 'Erreur mise à jour ticket';
-      this.loading = false;  // ✅ AJOUTER CETTE LIGNE (déjà présente mais vérifiez)
+      this.loading = false; 
     }
   });
 }
-// Dans ticket-edit.component.ts
-// Dans les propriétés de la classe, ajoutez :
+
 originalStatut: string = '';
 originalAssigneeId: string | null = null;
 
@@ -1160,7 +1088,7 @@ delierIncident(incidentId: string): void {
       this.deletingIncidentId = null;
     },
     error: (err) => {
-      console.error('❌ Erreur:', err);
+      console.error(' Erreur:', err);
       this.showError(err.error?.message || 'Erreur lors du retrait');
       this.deletingIncidentId = null;
     }
@@ -1189,8 +1117,8 @@ private updateIncidents(): void {
   // Trouver les incidents à ajouter (présents dans nouvelles mais pas dans actuels)
   const aAjouter = nouvellesSelections.filter(id => !incidentsActuels.includes(id));
 
-  console.log('📊 Incidents à supprimer:', aSupprimer);
-  console.log('📊 Incidents à ajouter:', aAjouter);
+  console.log(' Incidents à supprimer:', aSupprimer);
+  console.log(' Incidents à ajouter:', aAjouter);
 
   // S'il n'y a rien à faire
   if (aSupprimer.length === 0 && aAjouter.length === 0) {
@@ -1199,7 +1127,7 @@ private updateIncidents(): void {
     return;
   }
 
-  // Créer un tableau d'observables pour les suppressions
+  // Créer un tableau  pour les suppressions
   const deleteRequests = aSupprimer.map(id => 
     this.ticketService.delierIncident(this.ticketId, id).pipe(
       catchError(err => {
@@ -1240,9 +1168,9 @@ showDeleteCommentModal: boolean = false;
 commentToDelete: { id: string, auteurNom: string } | null = null;
 
 confirmerDelierIncident(incidentId: string, incidentCode: string): void {
-  console.log('🔔 Confirmation délien incident:', incidentId, incidentCode);
+  console.log(' Confirmation délien incident:', incidentId, incidentCode);
   
-  // ✅ Vérifier si c'est le dernier incident (limite minimum = 1)
+  //  Vérifier si c'est le dernier incident (limite minimum = 1)
   if (this.incidentsLies.length === 1) {
     this.showErrorDialog('Impossible de retirer le dernier incident lié. Un ticket doit avoir au moins 1 incident associé.');
     return;
@@ -1252,7 +1180,6 @@ confirmerDelierIncident(incidentId: string, incidentCode: string): void {
   this.showDeleteIncidentModal = true;
 }
 
-// Dans ticket-edit.component.ts
 
 executerDelierIncident(): void {
   if (!this.incidentToDelete) return;
@@ -1269,20 +1196,18 @@ executerDelierIncident(): void {
         // Recharger les incidents disponibles
         this.reloadIncidentsDisponibles();
         
-        // ✅ AJOUTER CETTE LIGNE - Vérifier les changements après délien
+        //  Vérifier les changements après délien
         this.checkForChanges();
         
         this.showSuccess(`Incident ${this.incidentToDelete!.code} retiré avec succès`);
       } else {
-        // ✅ Utiliser l'affichage d'erreur stylisé au lieu de alert
         this.showErrorDialog(response.message || 'Erreur lors du retrait');
       }
       this.deletingIncidentId = null;
       this.fermerModalIncident();
     },
     error: (err) => {
-      console.error('❌ Erreur:', err);
-      // ✅ Récupérer le message d'erreur du backend
+      console.error(' Erreur:', err);
       const errorMessage = err.error?.message || err.message || 'Erreur lors du retrait';
       this.showErrorDialog(errorMessage);
       this.deletingIncidentId = null;
@@ -1290,15 +1215,12 @@ executerDelierIncident(): void {
     }
   });
 }
-// Ajoutez ces propriétés avec les autres déclarations
 originalIncidentsList: string[] = []; // Garde une copie de la liste originale des incidents liés
 
-// ✅ Nouvelle méthode pour afficher les erreurs avec le style existant
-// ✅ Nouvelle méthode pour afficher les erreurs SANS scroll automatique
 showErrorDialog(message: string, shouldScroll: boolean = false): void {
   this.error = message;
   
-  // ✅ NE PAS scroller automatiquement sauf si explicitement demandé
+  //  NE PAS scroller automatiquement sauf si explicitement demandé
   if (shouldScroll) {
     setTimeout(() => {
       const errorElement = document.querySelector('.rounded-xl.border-red-200');
@@ -1316,50 +1238,44 @@ showErrorDialog(message: string, shouldScroll: boolean = false): void {
   }, 5000);
 }
 
-// Ajoutez la méthode pour fermer le modal incident
+// fermer le modal incident
 fermerModalIncident(): void {
   this.showDeleteIncidentModal = false;
   this.incidentToDelete = null;
 }
 
 
-// Ajoutez ces propriétés
 showImageModal: boolean = false;
 currentImageUrl: string = '';
 currentImageName: string = '';
-/**
- * Ouvrir le modal pour afficher l'image
- */
+/** Ouvrir le modal pour afficher l'image*/
 openImageModal(url: string, name: string): void {
   this.currentImageUrl = url;
   this.currentImageName = name;
   this.showImageModal = true;
 }
 
-/**
- * Fermer le modal d'image
- */
+/** Fermer le modal d'image*/
 closeImageModal(): void {
   this.showImageModal = false;
   this.currentImageUrl = '';
   this.currentImageName = '';
 }
-// Ajoutez ces propriétés avec les autres déclarations
 showLinkIncidentModal: boolean = false;
 incidentToLink: { id: string; code: string; description: string } | null = null;
-// Méthode pour confirmer la liaison d'un incident
+//  confirmer la liaison d'un incident
 confirmerLierIncident(incidentId: string, incidentCode: string, incidentDescription: string): void {
   this.incidentToLink = { id: incidentId, code: incidentCode, description: incidentDescription };
   this.showLinkIncidentModal = true;
 }
 
-  maxIncidents: number = 5;  // ✅ Limite maximum d'incidents
-  showMaxIncidentError: boolean = false;  // ✅ Pour afficher l'erreur de limite
+  maxIncidents: number = 5;  //  Limite maximum d'incidents
+  showMaxIncidentError: boolean = false;  //  afficher l'erreur de limite
 
 executerLierIncident(): void {
   if (!this.incidentToLink) return;
   
-  // ✅ Vérifier la limite avant d'ajouter
+  //  Vérifier la limite avant d'ajouter
   if (this.incidentsLies.length >= this.maxIncidents) {
     this.showErrorDialog(`Vous ne pouvez pas lier plus de ${this.maxIncidents} incidents à ce ticket.`);
     this.fermerModalLienIncident();
@@ -1408,7 +1324,7 @@ executerLierIncident(): void {
           }
         }
         
-        // ✅ AJOUTER CETTE LIGNE - Vérifier les changements après liaison
+        //  Vérifier les changements après liaison
         this.checkForChanges();
         
         this.showSuccess(`Incident ${this.incidentToLink!.code} lié avec succès`);
@@ -1420,7 +1336,7 @@ executerLierIncident(): void {
       this.loading = false;
     },
     error: (err) => {
-      console.error('❌ Erreur liaison incident:', err);
+      console.error(' Erreur liaison incident:', err);
       const errorMessage = err.error?.message || err.message || 'Erreur lors de la liaison';
       this.showErrorDialog(errorMessage);
       this.fermerModalLienIncident();

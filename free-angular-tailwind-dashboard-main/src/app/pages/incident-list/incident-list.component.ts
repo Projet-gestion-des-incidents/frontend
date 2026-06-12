@@ -11,7 +11,6 @@ import { AlertComponent } from '../../shared/components/ui/alert/alert.component
 import { ButtonComponent } from '../../shared/components/ui/button/button.component';
 import { UserService } from '../../shared/services/user.service';
 import { DatePickerComponent } from '../../shared/components/form/date-picker/date-picker.component';
-// Dans incident-list.component.ts, ajoutez ces imports manquants en haut du fichier :
 import { TypeEntiteImpactee } from '../../shared/models/incident.model';
 import { EntiteImpacteeService } from '../../shared/services/entite-impactee.service';
 import { DashboardAdminService } from '../../shared/services/dashboard-admin.service';
@@ -47,21 +46,19 @@ export class IncidentListComponent implements OnInit {
   selectedStatut?: number;
   selectedYear: string = '';
 
-// Modifiez les options pour les filtres
 severiteOptions = [
-  { value: 0, label: 'Non définie' },      // Ajout de l'option Non définie (valeur 0)
+  { value: 0, label: 'Non définie' },    
   { value: SeveriteIncident.Faible, label: 'Faible' },
   { value: SeveriteIncident.Moyenne, label: 'Moyenne' },
   { value: SeveriteIncident.Forte, label: 'Forte' }
 ];
 
 statutOptions = [
-  { value: StatutIncident.NonTraite, label: 'Non traité' },  // Ajout de l'option Non traité
+  { value: StatutIncident.NonTraite, label: 'Non traité' },  
   { value: StatutIncident.EnCours, label: 'En cours' },
   { value: StatutIncident.Ferme, label: 'Fermé' }
 ];
 
-// Dans incident-list.component.ts - Ajoutez ces propriétés
 
 // Pour l'archivage
 incidentToArchive: Incident | null = null;
@@ -97,7 +94,7 @@ loadingArchives = false;
     private incidentService: IncidentService,
    private dashboardAdminService:DashboardAdminService,
         private userService: UserService,
-private entiteImpacteeService: EntiteImpacteeService,  // ← Ajoutez ceci
+private entiteImpacteeService: EntiteImpacteeService,  
     private router: Router
   ) {}
  loadDashboardStats(): void {
@@ -117,28 +114,21 @@ private entiteImpacteeService: EntiteImpacteeService,  // ← Ajoutez ceci
       }
     });
   }
-  // Dans incident-list.component.ts
 
-/**
- * Ouvre la modale de confirmation d'archivage
- */
+/**Ouvre la modale de confirmation d'archivage*/
 onArchive(incident: Incident): void {
-  console.log('📦 Archivage de l\'incident:', incident.codeIncident);
+  console.log(' Archivage de l\'incident:', incident.codeIncident);
   this.incidentToArchive = incident;
   this.showArchiveModal = true;
 }
 
-/**
- * Annule l'archivage
- */
+/** Annule l'archivage*/
 cancelArchive(): void {
   this.showArchiveModal = false;
   this.incidentToArchive = null;
   this.archiving = false;
 }
-// Dans incident-list.component.ts, ajoutez cette propriété avec les autres
 commercantDashboardStats: any = null;
-// Dans incident-list.component.ts
 loadCommercantDashboardStats(): void {
   this.loadingDashboard = true;
   
@@ -169,7 +159,7 @@ confirmArchive(): void {
       if (response.isSuccess) {
         this.showAlert('success', 'Succès', `L'incident "${this.incidentToArchive!.codeIncident}" a été archivé.`);
         
-        // ✅ RECHARGER LA LISTE
+        //  RECHARGER LA LISTE
         if (this.userRole === 'Admin') {
           this.loadIncidents();
           this.loadDashboardStats();
@@ -180,7 +170,7 @@ confirmArchive(): void {
           }
         }
         
-        // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+        //  AJUSTER LA PAGE SI NÉCESSAIRE
         if (wasLastItemOnPage && currentPageBeforeArchive > 1) {
           this.currentPage = currentPageBeforeArchive - 1;
           // Recharger avec la nouvelle page
@@ -213,7 +203,7 @@ confirmArchive(): void {
       this.cancelArchive();
     },
     error: (err) => {
-      console.error('❌ Erreur archivage:', err);
+      console.error(' Erreur archivage:', err);
       const errorMessage = err.error?.message || err.message || 'Erreur lors de l\'archivage';
       this.showAlert('error', 'Erreur', errorMessage);
       this.cancelArchive();
@@ -221,38 +211,9 @@ confirmArchive(): void {
   });
 }
 
-/**
- * Restaure un incident archivé
- */
-restaurerIncident(incident: Incident): void {
-  if (!confirm(`Voulez-vous restaurer l'incident "${incident.codeIncident}" ?`)) return;
-  
-  this.incidentService.restaurerIncident(incident.id).subscribe({
-    next: (response) => {
-      if (response.isSuccess) {
-        this.showAlert('success', 'Succès', `L'incident "${incident.codeIncident}" a été restauré.`);
-        
-        // Retirer de la liste des archives
-        const index = this.archivedIncidents.findIndex(i => i.id === incident.id);
-        if (index !== -1) {
-          this.archivedIncidents.splice(index, 1);
-          this.archivedTotalCount--;
-          this.archivedTotalPages = Math.ceil(this.archivedTotalCount / this.pageSize);
-        }
-      } else {
-        this.showAlert('error', 'Erreur', response.message || 'Impossible de restaurer l\'incident.');
-      }
-    },
-    error: (err) => {
-      console.error('❌ Erreur restauration:', err);
-      this.showAlert('error', 'Erreur', err.error?.message || 'Erreur lors de la restauration');
-    }
-  });
-}
 
-/**
- * Charge les incidents archivés
- */
+
+/** Charge les incidents archivés */
 loadArchivedIncidents(): void {
   this.loadingArchives = true;
   
@@ -285,7 +246,7 @@ loadArchivedIncidents(): void {
       this.loadingArchives = false;
     },
     error: (err) => {
-      console.error('❌ Erreur chargement archives:', err);
+      console.error(' Erreur chargement archives:', err);
       this.showAlert('error', 'Erreur', 'Impossible de charger les incidents archivés');
       this.loadingArchives = false;
       this.archivedIncidents = [];
@@ -293,19 +254,11 @@ loadArchivedIncidents(): void {
   });
 }
 
-/**
- * Bascule entre la vue des incidents actifs et des archives
- */
-toggleArchives(show: boolean): void {
-  this.showArchives = show;
-  if (show) {
-    this.loadArchivedIncidents();
-  }
-}
+
   openCalendar(): void {
   const dateInput = document.getElementById('incidentDate') as HTMLInputElement;
   if (dateInput) {
-    dateInput.showPicker(); // Fonctionne dans les navigateurs modernes
+    dateInput.showPicker(); 
   }
 }
   get incidentDate(): Date | null {
@@ -323,10 +276,9 @@ ngOnInit(): void {
         this.loadIncidents();
              this.loadDashboardStats(); 
       } else {
-        // ✅ Charger avec les filtres dès le départ
+        //  Charger avec les filtres dès le départ
         this.loadMyIncidentsWithFilters();
-          this.loadCommercantDashboardStats();  // ✅ Ajouter cette ligne
-
+          this.loadCommercantDashboardStats();  
       }
     },
     error: (err) => {
@@ -352,47 +304,45 @@ loadMyIncidents(): void {
   this.loading = true;
   this.error = null;
   
-  console.log('🔄 Chargement des incidents du commerçant...');
+  console.log(' Chargement des incidents du commerçant...');
   
   this.incidentService.getMyIncidents().subscribe({
     next: (response: any) => {
-      console.log('📦 Réponse brute my-incidents:', response);
+      console.log(' Réponse brute my-incidents:', response);
       
       let incidentsList: Incident[] = [];
       let total = 0;
-      
-      // ✅ CORRECTION: La réponse a directement les propriétés items, page, totalCount, etc.
-      // Pas de wrapper "data"
+     
       if (response?.items && Array.isArray(response.items)) {
         incidentsList = response.items;
         total = response.totalCount || incidentsList.length;
-        console.log('✅ Cas 1 - Structure avec items directement (pas de wrapper data)');
+        console.log(' Cas 1 - Structure avec items directement (pas de wrapper data)');
       }
       // Cas 2: Structure avec wrapper data
       else if (response?.data?.items && Array.isArray(response.data.items)) {
         incidentsList = response.data.items;
         total = response.data.totalCount || incidentsList.length;
-        console.log('✅ Cas 2 - Structure paginée (data.items)');
+        console.log(' Cas 2 - Structure paginée (data.items)');
       }
       // Cas 3: Structure simple { data: [...] }
       else if (response?.data && Array.isArray(response.data)) {
         incidentsList = response.data;
         total = incidentsList.length;
-        console.log('✅ Cas 3 - Structure simple (data tableau)');
+        console.log(' Cas 3 - Structure simple (data tableau)');
       }
       // Cas 4: Tableau direct
       else if (Array.isArray(response)) {
         incidentsList = response;
         total = incidentsList.length;
-        console.log('✅ Cas 4 - Tableau direct');
+        console.log(' Cas 4 - Tableau direct');
       }
       else {
-        console.warn('⚠️ Structure non reconnue:', response);
+        console.warn(' Structure non reconnue:', response);
       }
       
-      console.log(`📊 ${incidentsList.length} incidents chargés`);
+      console.log(` ${incidentsList.length} incidents chargés`);
       if (incidentsList.length > 0) {
-        console.log('📊 Premier incident:', incidentsList[0]);
+        console.log(' Premier incident:', incidentsList[0]);
       }
       
       this.incidents = incidentsList;
@@ -404,7 +354,7 @@ loadMyIncidents(): void {
       this.loading = false;
     },
     error: (err) => {
-      console.error('❌ Erreur détaillée:', err);
+      console.error(' Erreur détaillée:', err);
       this.error = 'Impossible de charger vos incidents: ' + (err.message || 'Erreur inconnue');
       this.loading = false;
       this.incidents = [];
@@ -443,12 +393,12 @@ loadIncidents(): void {
     if (statutLibelle) searchParams.StatutLibelle = statutLibelle;
   }
 
-  // ✅ Type problème (manquait dans loadIncidents Admin)
+  //  Type problème 
   if (this.selectedTypeProbleme != null) {
     searchParams.TypeProbleme = this.selectedTypeProbleme;
   }
 
-  // ✅ Entité impactée (manquait dans loadIncidents Admin)
+  //  Entité impactée
   if (this.selectedEntiteImpactee != null) {
     searchParams.EntiteImpactee = this.selectedEntiteImpactee;
   }
@@ -461,7 +411,7 @@ loadIncidents(): void {
     searchParams.DateResolution = this.selectedDateResolution;
   }
 
-  // ✅ Année (manquait dans loadIncidents Admin)
+  //  Année 
   if (this.selectedYear) {
     searchParams.YearDetection = Number(this.selectedYear);
   }
@@ -496,27 +446,22 @@ loadIncidents(): void {
     }
   });
 }
-// Ajoutez cette propriété dans la classe
 today: string = new Date().toISOString().split('T')[0];
 
 onSearch(): void {
   if (this.searchTimeout) clearTimeout(this.searchTimeout);
   
   this.searchTimeout = setTimeout(() => {
-    console.log('🔍 Recherche lancée pour:', this.searchTerm);
+    console.log(' Recherche lancée pour:', this.searchTerm);
     this.currentPage = 1;
     if (this.userRole === 'Admin') {
       this.loadIncidents();
     } else {
-      // ✅ Utiliser l'API avec le terme de recherche
       this.loadMyIncidentsWithFilters();
     }
   }, 400);
 }
 
-// Dans incident-list.component.ts, ajoutez cette méthode
-
-// Dans incident-list.component.ts, ajoutez cette méthode
 
 // Mapping pour les types d'entité impactée
 getEntiteImpacteeLabel(incident: any): string {
@@ -525,11 +470,10 @@ getEntiteImpacteeLabel(incident: any): string {
     return incident.entiteImpactee;
   }
   
-  // Si l'incident a la propriété typeEntiteImpactee (depuis le backend)
+  // Si l'incident a la propriété typeEntiteImpactee
   if (incident.typeEntiteImpactee) {
     return this.formatEntiteImpactee(incident.typeEntiteImpactee);
   }
-  
   // Si l'incident a la liste des entités impactées
   if (incident.entitesImpactees && incident.entitesImpactees.length > 0) {
     const types = incident.entitesImpactees.map((e: any) => 
@@ -537,7 +481,6 @@ getEntiteImpacteeLabel(incident: any): string {
     ).join(', ');
     return types;
   }
-  
   // Valeur par défaut
   return 'Non spécifiée';
 }
@@ -545,9 +488,9 @@ dashboardStats = {
     overview: {
       totalIncidents: 0,
       incidentsNonTraite: 0,
-          incidentsNonTraiteLiesTicket: 0,    // ✅ AJOUTÉ
-    incidentsNonTraiteSansTicket: 0,    // ✅ AJOUTÉ
-    tauxNonTraiteLiesTicket: 0,         // ✅ AJOUTÉ
+          incidentsNonTraiteLiesTicket: 0,   
+    incidentsNonTraiteSansTicket: 0,    
+    tauxNonTraiteLiesTicket: 0,        
     tauxNonTraiteSansTicket: 0,   
       incidentsEnCours: 0,
       incidentsFerme: 0,
@@ -574,34 +517,17 @@ private formatEntiteImpactee(type: string): string {
   return mapping[type] || type;
 }
 
-/**
- * Vérifie si un incident est lié à un ticket
- */
-/**
- * Vérifie si un incident est lié à un ticket
- */
-/**
- * Vérifie si un incident est lié à un ticket
- * Basé sur la structure JSON de l'API
- */
-/**
- * Vérifie si un incident est lié à un ticket
- * Avec débogages complets
- */
-/**
- * Vérifie si un incident est lié à un ticket
- * Basé sur la structure JSON de l'API
- */
+/** Vérifie si un incident est lié à un ticket*/
 isIncidentLieATicket(incident: any): boolean {
-  console.log('🔍 [DEBUG] isIncidentLieATicket appelé pour incident:', incident?.codeIncident || incident?.id);
+  console.log(' [DEBUG] isIncidentLieATicket appelé pour incident:', incident?.codeIncident || incident?.id);
   
   if (!incident) {
-    console.log('❌ [DEBUG] Incident est null/undefined');
+    console.log(' [DEBUG] Incident est null/undefined');
     return false;
   }
 
   // Afficher toutes les propriétés pertinentes de l'incident
-  console.log('📊 [DEBUG] Propriétés de l\'incident:', {
+  console.log(' [DEBUG] Propriétés de l\'incident:', {
     id: incident.id,
     codeIncident: incident.codeIncident,
     ticketsArray: incident.tickets,
@@ -610,28 +536,24 @@ isIncidentLieATicket(incident: any): boolean {
     hasTicket: incident.hasTicket
   });
 
-  // ✅ CAS 1: Vérifier le tableau 'tickets' (le plus fiable)
+  //  CAS 1: Vérifier le tableau 'tickets' 
   if (incident.tickets && Array.isArray(incident.tickets)) {
-    console.log(`📋 [DEBUG] Propriété tickets trouvée, longueur: ${incident.tickets.length}`);
+    console.log(` [DEBUG] Propriété tickets trouvée, longueur: ${incident.tickets.length}`);
     if (incident.tickets.length > 0) {
-      console.log('✅ [DEBUG] CAS 1 - Incident lié à un ticket (tickets array non vide)');
+      console.log(' [DEBUG] CAS 1 - Incident lié à un ticket (tickets array non vide)');
       return true;
     }
   }
 
-  // ⚠️ CAS 2: ticketCount (IGNORER si tickets array existe et n'est pas vide)
-  // Ne pas utiliser ticketCount car il est buggé dans l'API
-
-  // ✅ CAS 3: hasTicket (UNIQUEMENT si tickets array n'existe pas)
+  // CAS 3: hasTicket (UNIQUEMENT si tickets array n'existe pas)
   if (!incident.tickets && incident.hasTicket === true) {
-    console.log('✅ [DEBUG] CAS 3 - Incident lié à un ticket (hasTicket flag true)');
+    console.log(' [DEBUG] CAS 3 - Incident lié à un ticket (hasTicket flag true)');
     return true;
   }
 
-  console.log('❌ [DEBUG] Aucune condition - Incident non lié à un ticket');
+  console.log(' [DEBUG] Aucune condition - Incident non lié à un ticket');
   return false;
 }
-// Dans incident-list.component.ts
 viewIncidentEdit(id: string): void {
   const incident = this.filteredIncidents.find(i => i.id === id);
   
@@ -681,14 +603,8 @@ getTypeProblemeLibelle(typeProbleme: any): string {
     SortBy: 'DateDetection',
     SortDescending: true
   };
-  
-  // ✅ LOG pour déboguer - Afficher les valeurs avant l'envoi
-  console.log('🔍 DEBUG - selectedStatut:', this.selectedStatut);
-  console.log('🔍 DEBUG - selectedDateDetection:', this.selectedDateDetection);
-  console.log('🔍 DEBUG - selectedDateResolution:', this.selectedDateResolution);
-  console.log('🔍 DEBUG - selectedYear:', this.selectedYear);
-  
-  // Convertir le statut en string pour l'API
+
+  // Convertir le statut en string 
   if (this.selectedStatut != null) {
     let statutString = '';
     switch(this.selectedStatut) {
@@ -704,35 +620,35 @@ getTypeProblemeLibelle(typeProbleme: any): string {
     }
     if (statutString) {
       searchParams.StatutIncident = statutString;
-      console.log('🔍 DEBUG - Statut converti:', statutString);
+      console.log(' DEBUG - Statut converti:', statutString);
     }
   }
   
-  // ✅ Vérifier que les dates sont bien ajoutées
+  //  Vérifier que les dates sont bien ajoutées
   if (this.selectedDateDetection && this.selectedDateDetection.trim() !== '') {
     searchParams.DateDetection = this.selectedDateDetection;
-    console.log('🔍 DEBUG - DateDetection ajoutée:', this.selectedDateDetection);
+    console.log(' DEBUG - DateDetection ajoutée:', this.selectedDateDetection);
   } else {
-    console.log('🔍 DEBUG - Aucune DateDetection à envoyer');
+    console.log(' DEBUG - Aucune DateDetection à envoyer');
   }
   if (this.selectedTypeProbleme != null) {
     searchParams.TypeProbleme = this.selectedTypeProbleme;
-    console.log('🔍 TypeProbleme sélectionné:', this.selectedTypeProbleme);
+    console.log(' TypeProbleme sélectionné:', this.selectedTypeProbleme);
   }
 
   if (this.selectedDateResolution && this.selectedDateResolution.trim() !== '') {
     searchParams.DateResolution = this.selectedDateResolution;
-    console.log('🔍 DEBUG - DateResolution ajoutée:', this.selectedDateResolution);
+    console.log(' DEBUG - DateResolution ajoutée:', this.selectedDateResolution);
   } else {
-    console.log('🔍 DEBUG - Aucune DateResolution à envoyer');
+    console.log(' DEBUG - Aucune DateResolution à envoyer');
   }
   
   if (this.selectedYear) {
     searchParams.YearDetection = Number(this.selectedYear);
-    console.log('🔍 DEBUG - YearDetection ajoutée:', this.selectedYear);
+    console.log(' DEBUG - YearDetection ajoutée:', this.selectedYear);
   }
   
-  console.log('🔍 Envoi requête my-incidents avec params FINAUX:', searchParams);
+  console.log(' Envoi requête my-incidents avec params FINAUX:', searchParams);
     this.incidentService.searchMyIncidents(searchParams).subscribe({
       next: (response: any) => {
         let incidentsList: Incident[] = [];
@@ -756,7 +672,7 @@ getTypeProblemeLibelle(typeProbleme: any): string {
         this.loading = false;
       },
       error: (err) => {
-        console.error('❌ Erreur:', err);
+        console.error(' Erreur:', err);
         this.error = 'Impossible de charger vos incidents';
         this.loading = false;
         this.incidents = [];
@@ -774,7 +690,6 @@ applyFilters(): void {
   this.selectedDateDetection = this.tempFilters.dateDetection;
   this.selectedDateResolution = this.tempFilters.dateResolution;
 
-  // Sync objets Date pour DatePicker
   this.selectedDetectionDateObj = this.selectedDateDetection
     ? new Date(this.selectedDateDetection) : null;
   this.selectedResolutionDateObj = this.selectedDateResolution
@@ -800,12 +715,12 @@ resetFilters(): void {
   this.selectedSeverite = undefined;
   this.selectedStatut = undefined;
   this.selectedYear = '';
-  this.selectedTypeProbleme = undefined;      // ✅ manquait
-  this.selectedEntiteImpactee = undefined;    // ✅ manquait
-  this.selectedDateDetection = '';            // ✅ manquait
-  this.selectedDateResolution = '';           // ✅ manquait
-  this.selectedDetectionDateObj = null;       // ✅ manquait
-  this.selectedResolutionDateObj = null;      // ✅ manquait
+  this.selectedTypeProbleme = undefined;      
+  this.selectedEntiteImpactee = undefined;   
+  this.selectedDateDetection = '';            
+  this.selectedDateResolution = '';           
+  this.selectedDetectionDateObj = null;       
+  this.selectedResolutionDateObj = null;      
   this.tempFilters = {
     severite: undefined,
     statut: undefined,
@@ -867,10 +782,9 @@ resetFilters(): void {
     return pages;
   }
 
- // Pour la suppression simple - MODIFIER
+ // Pour la suppression simple 
 onDelete(incident: Incident) {
   this.confirmIncident = incident;
-  // Ne pas utiliser l'alerte, on utilise le modal directement
 }
 StatutIncident = StatutIncident; 
 confirmDelete() {
@@ -907,7 +821,7 @@ confirmDelete() {
     next: () => {
       this.showAlert('success', 'Incident supprimé', `L'incident "${this.confirmIncident!.codeIncident}" a été supprimé.`);
       
-      // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+      //  AJUSTER LA PAGE SI NÉCESSAIRE
       if (wasLastItemOnPage && currentPageBeforeDelete > 1) {
         this.currentPage = currentPageBeforeDelete - 1;
       }
@@ -970,7 +884,7 @@ cancelDelete() {
 getSeveriteBadgeClasses(severite: any): string {
   // Cas où la sévérité est 0, null ou undefined
   if (severite === 0 || severite === null || severite === undefined) {
-    return 'bg-[#C5C6FF] text-[#0C144E]';  // Digital Blue 48%
+    return 'bg-[#C5C6FF] text-[#0C144E]'; 
   }
   
   let severiteValue: number;
@@ -997,13 +911,13 @@ getSeveriteBadgeClasses(severite: any): string {
   
   switch(severiteValue) {
     case 1: // Faible
-      return 'bg-[#B2B3FF] text-[#0C144E]';  // Digital Blue 64%
+      return 'bg-[#B2B3FF] text-[#0C144E]';  
     case 2: // Moyenne
-      return 'bg-[#8788FF] text-white';       // Digital Purple
+      return 'bg-[#8788FF] text-white';       
     case 3: // Forte
-      return 'bg-[#D4B8FF] text-[#0C144E]';   // Rose Mauve
+      return 'bg-[#D4B8FF] text-[#0C144E]'; 
     default:
-      return 'bg-[#C5C6FF] text-[#0C144E]';   // Digital Blue 48%
+      return 'bg-[#C5C6FF] text-[#0C144E]';  
   }
 }
 getStatutBadgeClasses(statut: any): string {
@@ -1037,16 +951,16 @@ getStatutBadgeClasses(statut: any): string {
   
   switch(statutValue) {
     case 0: // Non traité
-      return 'bg-[#C5C6FF] text-[#0C144E]';   // Digital Blue 48%
+      return 'bg-[#C5C6FF] text-[#0C144E]';   
     case 1: // En cours
-      return 'bg-[#8788FF] text-white';        // Digital Purple
+      return 'bg-[#8788FF] text-white';      
     case 2: // Fermé
-      return 'bg-[#D4B8FF] text-[#0C144E]';   // Digital Blue 64%
+      return 'bg-[#D4B8FF] text-[#0C144E]';
     default:
       return 'bg-[#D4B8FF] text-[#0C144E]';
   }
 }
-// Ajoutez ces propriétés avec les autres
+
 selectedIncidents: Set<string> = new Set<string>();  // IDs des incidents sélectionnés
 showMultiDeleteModal = false;  // Pour la modale de suppression multiple
 confirmIncidents: Incident[] = [];  // Incidents à supprimer en masse
@@ -1085,8 +999,7 @@ toggleSelection(incidentId: string, checked: boolean): void {
       }
       
       this.selectedIncidents.add(incidentId);
-      this.selectedIncidentsMap.set(incidentId, incident); // ✅ AJOUTER
-      
+      this.selectedIncidentsMap.set(incidentId, incident);   
       if (isFerme) {
         this.cachedSelectionStats.archivable++;
       } else {
@@ -1105,7 +1018,7 @@ toggleSelection(incidentId: string, checked: boolean): void {
     }
 
     this.selectedIncidents.add(incidentId);
-    this.selectedIncidentsMap.set(incidentId, incident); // ✅ AJOUTER
+    this.selectedIncidentsMap.set(incidentId, incident); 
     
     if (isFerme) {
       this.cachedSelectionStats.archivable++;
@@ -1119,7 +1032,7 @@ toggleSelection(incidentId: string, checked: boolean): void {
     }
   } else {
     this.selectedIncidents.delete(incidentId);
-    this.selectedIncidentsMap.delete(incidentId); // ✅ AJOUTER
+    this.selectedIncidentsMap.delete(incidentId); 
     if (this.globalSelectionMode) this.globalSelectionMode = false;
     
     if (isFerme) {
@@ -1137,7 +1050,6 @@ toggleSelection(incidentId: string, checked: boolean): void {
   this.updateSelectionStats();
 }
 
-// Ajoutez cette propriété avec les autres
 cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
 private getCurrentSelectionType(): 'ferme' | 'nonFerme' | null {
   if (this.selectedIncidents.size === 0) return null;
@@ -1162,7 +1074,6 @@ private getCurrentSelectionType(): 'ferme' | 'nonFerme' | null {
   return null; // Mixte ou vide
 }
 
-// Modifiez toggleAllSelection pour respecter la logique
 toggleAllSelection(checked: boolean): void {
   if (checked) {
     // Vérifier si tous les incidents ont le même type avant de tout sélectionner
@@ -1185,7 +1096,6 @@ toggleAllSelection(checked: boolean): void {
   }
 }
 
-// Modifiez selectAllIncidentsAcrossPages pour filtrer par type si nécessaire
 selectAllIncidentsAcrossPages(): void {
   this.loading = true;
   
@@ -1205,9 +1115,7 @@ selectAllIncidentsAcrossPages(): void {
   if (typeToSelect === 'ferme') {
     params.StatutLibelle = 'Fermé';
   } else if (typeToSelect === 'nonFerme') {
-    // Ne pas filtrer par statut, on va filtrer manuellement après
   } else {
-    // Pas de type défini, vérifier les incidents de la page
     const hasFerme = this.filteredIncidents.some(i => this.getStatutNumber(i.statutIncident) === StatutIncident.Ferme);
     const hasNonFerme = this.filteredIncidents.some(i => {
       const statut = this.getStatutNumber(i.statutIncident);
@@ -1279,7 +1187,6 @@ selectAllIncidentsAcrossPages(): void {
 }
 currentSelectionType: 'ferme' | 'nonFerme' | null = null;
 // Vérifie si le bouton de suppression doit être affiché
-// Vérifie si le bouton de suppression doit être affiché
 canShowDeleteButton(incident: any): boolean {
   // Ne pas afficher pour les incidents Fermés (remplacé par Archiver)
   if (incident.statutIncidentLibelle === 'Fermé') {
@@ -1292,7 +1199,7 @@ canShowDeleteButton(incident: any): boolean {
   }
   
   if (this.userRole === 'Commercant') {
-    // ✅ Commerçant : afficher pour "Non traité" ET "En cours"
+    //  Commerçant : afficher pour "Non traité" ET "En cours"
     // "Non traité" avec ticket sera disabled, "En cours" sera disabled
     return incident.statutIncidentLibelle === 'Non traité' || 
            incident.statutIncidentLibelle === 'En cours';
@@ -1318,7 +1225,7 @@ canDeleteIncident(incident: any): boolean {
   return false;
 }
 
-// Récupère le message d'erreur pour le tooltip
+// Récupère le message d'erreur 
 getDeleteDisabledReason(incident: any): string {
   if (!this.canShowDeleteButton(incident)) {
     return '';
@@ -1344,17 +1251,17 @@ getDeleteDisabledReason(incident: any): string {
   return 'Suppression non autorisée';
 }
 canSelectIncident(incident: any): boolean {
-  // ✅ Règle ABSOLUE : Incident "En cours" JAMAIS sélectionnable
+  //  Incident "En cours" JAMAIS sélectionnable
   if (incident.statutIncidentLibelle === 'En cours') {
     return false;
   }
   
-  // ✅ Règle : Incident déjà archivé JAMAIS sélectionnable
+  //  Incident déjà archivé JAMAIS sélectionnable
   if (incident.dateArchivage) {
     return false;
   }
   
-  // ✅ ADMIN : Logique de sélection par type
+  //  ADMIN : Logique de sélection par type
   if (this.userRole === 'Admin') {
     const isFerme = incident.statutIncidentLibelle === 'Fermé';
     
@@ -1378,7 +1285,7 @@ canSelectIncident(incident: any): boolean {
     return true;
   }
   
-  // ✅ COMMERCANT : Logique de sélection par type
+  //  COMMERCANT : Logique de sélection par type
   if (this.userRole === 'Commercant') {
     const isNonTraite = incident.statutIncidentLibelle === 'Non traité';
     const isFerme = incident.statutIncidentLibelle === 'Fermé';
@@ -1431,7 +1338,7 @@ getSelectionStats(): { deletable: number, archivable: number, other: number } {
   let archivable = 0;
   let other = 0;
   
-  // ✅ Utiliser le Map qui contient TOUS les incidents sélectionnés
+  //  Utiliser le Map qui contient TOUS les incidents sélectionnés
   this.selectedIncidentsMap.forEach(incident => {
     const statutValue = this.getStatutNumber(incident.statutIncident);
     const isFerme = statutValue === StatutIncident.Ferme;
@@ -1471,7 +1378,6 @@ getSelectionStats(): { deletable: number, archivable: number, other: number } {
     }
     return StatutIncident.NonTraite;
   }
-// Ajoutez cette méthode dans la classe IncidentListComponent
 updateSelectionStats(): void {
   const stats = this.getSelectionStats();
   this.cachedSelectionStats = {
@@ -1484,11 +1390,7 @@ updateSelectionStats(): void {
   // Action principale du bouton (Supprimer ou Archiver selon la sélection)
 onBulkAction(): void {
   this.updateSelectionStats();
-    // ✅ AJOUTER CE LOG POUR DIAGNOSTIC
-  console.log('=== BULK ACTION DEBUG ===');
-  console.log('cachedSelectionStats:', this.cachedSelectionStats);
-  console.log('selectedIncidents size:', this.selectedIncidents.size);
-  console.log('selectedIncidentsMap size:', this.selectedIncidentsMap.size);
+
   
   if (this.cachedSelectionStats.archivable > 0 && this.cachedSelectionStats.deletable === 0) {
     // Uniquement des incidents Fermés → Archiver
@@ -1542,7 +1444,7 @@ confirmDeleteMultiple(): void {
       else if (response?.items) allIncidents = response.items;
       else if (Array.isArray(response)) allIncidents = response;
       
-      // ✅ Filtrer selon les règles de suppression
+      // Filtrer selon les règles de suppression
       this.confirmIncidents = allIncidents.filter(incident => {
         if (!selectedIds.includes(incident.id)) return false;
         
@@ -1624,7 +1526,7 @@ confirmArchiveMultiple(): void {
       else if (response?.items) allIncidents = response.items;
       else if (Array.isArray(response)) allIncidents = response;
       
-      // ✅ Filtrer pour ne garder que les incidents Fermés
+      // Filtrer pour ne garder que les incidents Fermés
       this.confirmArchives = allIncidents.filter(incident => {
         const statutValue = this.getStatutNumber(incident.statutIncident);
         return selectedIds.includes(incident.id) && statutValue === StatutIncident.Ferme;
@@ -1689,7 +1591,7 @@ executeMultiArchive(): void {
           this.showAlert(variant, variant === 'success' ? 'Succès' : (variant === 'warning' ? 'Archivage partiel' : 'Échec'), message);
           
           setTimeout(() => {
-            // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+            // AJUSTER LA PAGE SI NÉCESSAIRE
             if (wasLastItemOnPage && currentPageBeforeArchive > 1) {
               this.currentPage = currentPageBeforeArchive - 1;
             }
@@ -1736,7 +1638,7 @@ executeMultiArchive(): void {
           this.showAlert(variant, variant === 'success' ? 'Succès' : (variant === 'warning' ? 'Archivage partiel' : 'Échec'), message);
           
           setTimeout(() => {
-            // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+            //  AJUSTER LA PAGE SI NÉCESSAIRE
             if (wasLastItemOnPage && currentPageBeforeArchive > 1) {
               this.currentPage = currentPageBeforeArchive - 1;
             }
@@ -1764,7 +1666,7 @@ executeMultiArchive(): void {
 
 clearSelection(): void {
   this.selectedIncidents.clear();
-  this.selectedIncidentsMap.clear(); // ✅ VIDER LE MAP
+  this.selectedIncidentsMap.clear(); //  VIDER LE MAP
   this.globalSelectionMode = false;
   this.currentSelectionType = null;
   this.cachedSelectionStats = { deletable: 0, archivable: 0, other: 0, total: 0 };
@@ -1803,7 +1705,6 @@ executeMultiDelete(): void {
           this.showMultiDeleteModal = false;
           this.confirmIncidents = [];
           
-          // Message SIMPLIFIÉ
           let message = '';
           let variant: 'success' | 'error' | 'warning' | 'info' = 'success';
           
@@ -1886,7 +1787,7 @@ this.adjustPageAfterBulkAction(successCount);
 getSeveriteBadgeColor(severite: any): BadgeColor {
   // Cas 1: La sévérité est 0 ou null
   if (severite === 0 || severite === null || severite === undefined) {
-    return 'light'; // Gris pour "Non définie"
+    return 'light'; // Gris 
   }
   
   let severiteValue: number;
@@ -2070,10 +1971,10 @@ showFilters = false;
 tempFilters = {
   severite: undefined as number | undefined,
   statut: undefined as number | undefined,
-   typeProbleme: undefined as number | undefined,  // ✅ Ajouté pour Commercant
-  entiteImpactee: undefined as number | undefined, // ✅ Ajouté pour Admin
-  dateDetection: '' as string,  // ✅ Ajouté
-  dateResolution: '' as string  // ✅ Ajouté
+   typeProbleme: undefined as number | undefined,  // pour Commercant
+  entiteImpactee: undefined as number | undefined, //  pour Admin
+  dateDetection: '' as string,  
+  dateResolution: '' as string  
 };
 selectedTypeProbleme?: number;
 selectedEntiteImpactee?: number;
@@ -2082,7 +1983,7 @@ selectedIncidentsMap: Map<string, Incident> = new Map();
   toggleFilters(): void {
     this.showFilters = !this.showFilters;
     if (this.showFilters) {
-      // Convertir les strings en Date pour le DatePicker
+      // Convertir les strings en Date 
       if (this.selectedDateDetection) {
         const parts = this.selectedDateDetection.split('-');
         this.selectedDetectionDateObj = new Date(
@@ -2110,8 +2011,8 @@ selectedIncidentsMap: Map<string, Incident> = new Map();
         statut: this.selectedStatut,
         dateDetection: this.selectedDateDetection || '',
         dateResolution: this.selectedDateResolution || '',
-            typeProbleme: this.selectedTypeProbleme,      // ✅ Ajouté
-      entiteImpactee: this.selectedEntiteImpactee  // ✅ Ajouté
+            typeProbleme: this.selectedTypeProbleme,     
+      entiteImpactee: this.selectedEntiteImpactee  
       };
     }
   }
@@ -2123,7 +2024,7 @@ selectedIncidentsMap: Map<string, Incident> = new Map();
       statut: this.selectedStatut,
       dateDetection: this.selectedDateDetection || '',
       dateResolution: this.selectedDateResolution || '',
-        typeProbleme: this.selectedTypeProbleme,      // ✅ Ajouté
+        typeProbleme: this.selectedTypeProbleme,     
     entiteImpactee: this.selectedEntiteImpactee  
     };
   }
@@ -2157,13 +2058,12 @@ selectedIncidentsMap: Map<string, Incident> = new Map();
   }
 
 
-// Ajoutez ces propriétés pour stocker les dates sélectionnées
+// ces propriétés pour stocker les dates sélectionnées
 selectedDetectionDate: Date | null = null;
 selectedResolutionDate: Date | null = null;
 todayDate: Date = new Date();
 
 
-// Remplacer la méthode existante par celle-ci
 onDateDetectionChange(event: Event): void {
   const input = event.target as HTMLInputElement;
   const dateValue = input.value;
@@ -2186,7 +2086,6 @@ onDateDetectionChange(event: Event): void {
   }
 }
 
-// Corriger aussi la méthode onDateResolutionChange si elle existe
 onDateResolutionChange(event: Event): void {
   const input = event.target as HTMLInputElement;
   const dateValue = input.value;
@@ -2214,17 +2113,17 @@ selectedDetectionDateObj: Date | null = null;
 selectedResolutionDateObj: Date | null = null;
 
 deleting = false;
-// Ajoutez cette méthode dans la classe IncidentListComponent
+
 getModificationDisabledReason(incident: any): string {
-  // ✅ Vérifier d'abord le statut "Fermé" (plus spécifique)
+  //  Vérifier d'abord le statut "Fermé" 
   if (incident.statutIncidentLibelle === 'Fermé') {
     return 'Impossible de modifier un incident fermé.';
   }
-  // ✅ Ensuite "En cours"
+  //  Ensuite "En cours"
   if (incident.statutIncidentLibelle === 'En cours') {
     return 'Impossible de modifier un incident en cours de traitement.';
   }
-  // ✅ Enfin la liaison à un ticket
+  //  Enfin la liaison à un ticket
   if (this.isIncidentLieATicket(incident)) {
     return 'Cet incident est lié à un ticket et ne peut pas être modifié.';
   }

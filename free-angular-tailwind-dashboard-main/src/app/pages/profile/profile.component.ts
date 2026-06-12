@@ -19,7 +19,6 @@ import localeFr from '@angular/common/locales/fr';
 import { registerLocaleData } from '@angular/common';
 
 
-// Ajouter ces validateurs après les imports
 function usernameValidator(control: AbstractControl): ValidationErrors | null {
   const value = control.value;
   if (!value) return null;
@@ -104,7 +103,7 @@ registerLocaleData(localeFr);
   selector: 'app-profile',
   standalone: true,
     providers: [
-    { provide: LOCALE_ID, useValue: 'fr' }  // Définir la locale par défaut
+    { provide: LOCALE_ID, useValue: 'fr' }  
   ],
   imports: [
     CommonModule,
@@ -163,7 +162,7 @@ originalFormValues: any = {};
   
  mapReady: boolean = false;
   
-  // Alert améliorée
+  // Alert 
   alert = {
     show: false,
     variant: 'error' as 'success' | 'error' | 'warning' | 'info',
@@ -187,7 +186,6 @@ originalFormValues: any = {};
     this.loadProfile();
     this.initForms();
   }
-
 
 
   // Validateur d'âge minimum 18 ans
@@ -281,7 +279,7 @@ private updateValidationsForRole(): void {
     prenomControl?.clearValidators();
     nomMagasinControl?.setValidators([Validators.required, Validators.minLength(3), Validators.maxLength(30), nomMagasinValidator]);
     
-    // ✅ Pour commerçant : téléphone et adresse sont requis
+    //  Pour commerçant : téléphone et adresse sont requis
     phoneNumberControl?.setValidators([Validators.required, phoneNumberValidator]);
     adresseControl?.setValidators([Validators.required]);
     // Date de naissance non requise pour commerçant
@@ -320,9 +318,9 @@ openInfoModal(): void {
     this.updateValidationsForRole();
     this.imagePreview = this.user.image || null;
     this.imageBase64 = null;
-    this.selectedImage = null;  // ✅ S'assurer que c'est null
+    this.selectedImage = null;  
     this.isInfoModalOpen = true;
-    // ✅ Réinitialiser formChanged
+    // Réinitialiser formChanged
     this.formChanged = false;
     
 
@@ -355,12 +353,11 @@ openInfoModal(): void {
     }
     
     this.editForm.patchValue(patchValues);
-    
-    // ✅ Stocker les valeurs originales
+    //  Stocker les valeurs originales
     this.originalFormValues = { ...patchValues };
     this.formChanged = false;
     
-    // ✅ Écouter les changements du formulaire
+    //  Écouter les changements du formulaire
     this.editForm.valueChanges.subscribe(() => {
       this.checkFormChanges();
     });
@@ -383,7 +380,7 @@ checkFormChanges(): void {
     const currentCleaned = this.cleanFormValues(currentValues);
     let formChanged = JSON.stringify(currentCleaned) !== JSON.stringify(originalCleaned);
     
-    // ✅ Vérifier aussi si une nouvelle image a été sélectionnée
+    //  Vérifier aussi si une nouvelle image a été sélectionnée
     const imageChanged = this.selectedImage !== null || this.imageBase64 !== null;
     
     this.formChanged = formChanged || imageChanged;
@@ -418,7 +415,6 @@ checkFormChanges(): void {
 
  
 
-// Dans profile.component.ts
 onLocationSelectedInModal(location: any): void {
   if (location && location.address) {
     // Mettre à jour directement le formulaire
@@ -450,9 +446,9 @@ onImageSelected(event: any): void {
     reader.onload = () => {
         this.imagePreview = reader.result as string;
         this.imageBase64 = reader.result as string;
-        console.log('✅ Image convertie en base64, longueur:', this.imageBase64.length);
+        console.log(' Image convertie en base64, longueur:', this.imageBase64.length);
         
-        // ✅ Forcer la vérification du changement
+        //  Forcer la vérification du changement
         this.formChanged = true;
     };
     reader.readAsDataURL(file);
@@ -473,9 +469,7 @@ onImageSelected(event: any): void {
     }
   }
 
-// Dans profile.component.ts, modifiez les méthodes saveInfo et changePassword
 
-// profile.component.ts - Remplacez la méthode saveInfo entièrement
 
 saveInfo(): void {
   console.log('========== DÉBUT SAVE INFO ==========');
@@ -528,17 +522,17 @@ saveInfo(): void {
     serviceCall = this.userService.updateMyProfile(payload);
   }
   
-  console.log('📤 Payload envoyé:', payload);
+  console.log(' Payload envoyé:', payload);
   
   serviceCall.subscribe({
     next: (response: any) => {
       this.saving = false;
-      console.log('📥 Réponse API brute:', response);
+      console.log(' Réponse API brute:', response);
       
-      // ✅ CORRECTION: Vérifier d'abord si c'est un succès via resultCode ou isSuccess
+      //  Vérifier d'abord si c'est un succès via resultCode ou isSuccess
       const isSuccess = response?.resultCode === 0 || response?.isSuccess === true;
       
-      // ✅ Si c'est un OTP (code 42 ou 43)
+      //  Si c'est un OTP (code 42 ou 43)
       if (response?.resultCode === 42) {
         this.closeInfoModal();
         this.clearAlert();
@@ -557,9 +551,9 @@ saveInfo(): void {
         return;
       }
       
-      // ✅ Si succès
+      //  Si succès
       if (isSuccess) {
-        console.log('✅ Succès - Mise à jour réussie');
+        console.log(' Succès - Mise à jour réussie');
         
         // Afficher le message de succès
         this.showGlobalSuccess('Profil mis à jour avec succès');
@@ -604,9 +598,7 @@ saveInfo(): void {
         this.closeInfoModal();
         return;
       }
-      
-      // ✅ Cas erreur
-      console.error('❌ Réponse non reconnue comme succès:', response);
+            console.error(' Réponse non reconnue comme succès:', response);
       
       // Extraire le message d'erreur
       let errorMessage = response?.message || response?.title || 'Erreur lors de la mise à jour';
@@ -623,7 +615,7 @@ saveInfo(): void {
       this.showAlert('error', 'Erreur de mise à jour', errorMessage);
     },
     error: (err: any) => {
-      console.error('❌ Erreur HTTP:', err);
+      console.error(' Erreur HTTP:', err);
       this.saving = false;
       
       let errorMessage = 'Erreur lors de la mise à jour';
@@ -645,9 +637,7 @@ saveInfo(): void {
   });
 }
 
-/**
- * Gère le changement du code OTP et efface l'alerte d'erreur
- */
+/** Gère le changement du code OTP et efface l'alerte d'erreur*/
 onOtpCodeChange(value: any): void {
   this.otpCode = value.toString();
   if (this.alert.show && this.alert.variant === 'error' && this.showOtpModal) {
@@ -655,12 +645,7 @@ onOtpCodeChange(value: any): void {
   }
 }
 
-/**
- * Appelé quand le modal OTP est fermé
- */
-/**
- * Appelé quand le modal OTP est fermé
- */
+
 onOtpModalClose(): void {
   this.showOtpModal = false;
   this.otpCode = '';
@@ -673,7 +658,7 @@ onOtpModalClose(): void {
 
 private showGlobalSuccess(message: string): void {
   this.globalSuccessMessage = message;
-  console.log('✅ Message global affiché:', message);
+  console.log(' Message global affiché:', message);
   
   // Efface automatiquement après 5 secondes
   if (this.globalSuccessTimeout) {
@@ -683,7 +668,7 @@ private showGlobalSuccess(message: string): void {
     this.globalSuccessMessage = '';
   }, 5000);
   
-  // ✅ Faire défiler vers le haut pour voir le message
+  // Faire défiler vers le haut pour voir le message
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 changePassword(): void {
@@ -698,7 +683,7 @@ changePassword(): void {
     if (this.passwordForm.get('confirmPassword')?.errors) errors.push('Confirmation requise');
     if (this.passwordForm.hasError('mismatch')) errors.push('Les mots de passe ne correspondent pas');
     
-    console.error('❌ Formulaire invalide:', errors);
+    console.error(' Formulaire invalide:', errors);
     
     if (this.passwordForm.get('currentPassword')?.errors) {
       this.showAlert('error', 'Champ requis', 'Le mot de passe actuel est requis');
@@ -714,7 +699,7 @@ changePassword(): void {
 
   this.changingPassword = true;
   
-  // ✅ Fonction utilitaire pour formater la date
+  //  formater la date
   const formatBirthDate = (birthDate: string | Date | undefined): string | null => {
     if (!birthDate) return null;
     try {
@@ -732,7 +717,7 @@ changePassword(): void {
     }
   };
   
-  // ✅ Construire le payload COMPLET selon le rôle
+  //  Construire le payload COMPLET selon le rôle
   let payload: any = {};
   
   if (this.user.role === 'Technicien') {
@@ -748,7 +733,7 @@ changePassword(): void {
       newPassword: this.passwordForm.value.newPassword,
       confirmPassword: this.passwordForm.value.confirmPassword
     };
-    console.log('📦 Payload Technicien avec changement mot de passe');
+    console.log(' Payload Technicien avec changement mot de passe');
     
   } else if (this.user.role === 'Commercant') {
     payload = {
@@ -762,7 +747,7 @@ changePassword(): void {
       newPassword: this.passwordForm.value.newPassword,
       confirmPassword: this.passwordForm.value.confirmPassword
     };
-    console.log('📦 Payload Commercant avec changement mot de passe:', {
+    console.log(' Payload Commercant avec changement mot de passe:', {
       nomMagasin: payload.nomMagasin,
       email: payload.email,
       phoneNumber: payload.phoneNumber,
@@ -783,10 +768,10 @@ changePassword(): void {
       newPassword: this.passwordForm.value.newPassword,
       confirmPassword: this.passwordForm.value.confirmPassword
     };
-    console.log('📦 Payload Admin avec changement mot de passe');
+    console.log(' Payload Admin avec changement mot de passe');
   }
   
-  console.log('📤 Payload complet:', {
+  console.log(' Payload complet:', {
     ...payload,
     currentPassword: '***',
     newPassword: '***',
@@ -802,10 +787,10 @@ changePassword(): void {
     serviceCall = this.userService.updateMyProfile(payload);
   }
 
-  console.log('🔄 Appel API en cours...');
+  console.log(' Appel API en cours...');
   serviceCall.subscribe({
     next: (response: ApiResponse<User>) => {
-      console.log('✅ Réponse API reçue:', {
+      console.log(' Réponse API reçue:', {
         resultCode: response.resultCode,
         message: response.message,
         hasData: !!response.data
@@ -814,22 +799,22 @@ changePassword(): void {
       this.changingPassword = false;
       
       if (response.resultCode === 43) {
-        console.log('🔐 Cas: OTP envoyé pour confirmation vers:', this.user.email);
+        console.log(' Cas: OTP envoyé pour confirmation vers:', this.user.email);
         this.pendingPasswordChange = this.passwordForm.value.newPassword;
         this.otpPurpose = 'password';
         this.showOtpModal = true;
         this.closePasswordModal();
       } 
       else if (response.resultCode === 0) {
-        console.log('✅ Cas: Mot de passe changé avec succès');
+        console.log(' Cas: Mot de passe changé avec succès');
         this.closePasswordModal();
         this.showAlert('success', 'Mot de passe modifié', response.message || 'Votre mot de passe a été changé avec succès');
         this.loadProfile();
       }
       else {
-        console.error('❌ Cas: Erreur serveur - Code:', response.resultCode);
+        console.error(' Cas: Erreur serveur - Code:', response.resultCode);
         
-        // ✅ Messages d'erreur plus précis en fonction du code
+        //  Messages d'erreur plus précis en fonction du code
         let errorTitle = 'Erreur';
         let errorMessage = response.message || 'Erreur lors du changement de mot de passe';
         
@@ -854,7 +839,7 @@ changePassword(): void {
       console.log('========== FIN CHANGE PASSWORD ==========');
     },
     error: (err) => {
-      console.error('❌ ERREUR HTTP:', {
+      console.error(' ERREUR HTTP:', {
         status: err.status,
         statusText: err.statusText,
         message: err.message,
@@ -865,7 +850,7 @@ changePassword(): void {
       let errorTitle = 'Erreur';
       let errorMessage = 'Erreur lors du changement de mot de passe';
       
-      // ✅ Analyser la réponse d'erreur pour être plus précis
+      //  Analyser la réponse d'erreur pour être plus précis
       if (err.error?.message) {
         errorMessage = err.error.message;
         
@@ -902,20 +887,18 @@ changePassword(): void {
 confirmWithOtp(): void {
   if (this.otpPurpose === 'email') {
     this.otpLoading = true;
-    
-    // ✅ Nettoyer l'alerte précédente
-    this.clearAlert();
+        this.clearAlert();
     
     this.otpService.confirmEmailChange(this.pendingEmailChange, this.otpCode).subscribe({
       next: (response) => {
         this.otpLoading = false;
-        console.log('📥 Réponse confirmation email:', response);
+        console.log(' Réponse confirmation email:', response);
         
-        // ✅ Gestion des différents codes d'erreur
+        //  Gestion des différents codes d'erreur
         if (response.resultCode === 0) {
-          console.log('✅ Email changé avec succès');
+          console.log(' Email changé avec succès');
           
-          // ✅ Afficher le message de succès dans le modal OTP
+          //  Afficher le message de succès dans le modal OTP
           this.alert = {
             show: true,
             variant: 'success',
@@ -924,12 +907,12 @@ confirmWithOtp(): void {
             autoCloseTimeout: null
           };
           
-          // ✅ Fermer le modal OTP après 5 secondes et déconnecter
+          //  Fermer le modal OTP après 5 secondes et déconnecter
           setTimeout(() => {
             this.showOtpModal = false;
             this.clearAlert();
             
-            // ✅ Déconnexion après la fermeture du modal
+            //  Déconnexion après la fermeture du modal
             setTimeout(() => {
               this.userService.logout();
             }, 500);
@@ -951,9 +934,9 @@ confirmWithOtp(): void {
       },
       error: (err) => {
         this.otpLoading = false;
-        console.error('❌ Erreur confirmation email:', err);
+        console.error(' Erreur confirmation email:', err);
         
-        // ✅ Extraire le code d'erreur de la réponse
+        //  Extraire le code d'erreur de la réponse
         const errorResponse = err.error;
         
         if (errorResponse?.resultCode === 30) {
@@ -968,7 +951,7 @@ confirmWithOtp(): void {
       }
     });
   } else {
-    // ✅ Changement de mot de passe - AVEC DÉCONNEXION comme pour l'email
+    //  Changement de mot de passe 
     this.otpLoading = true;
     this.clearAlert();
     
@@ -977,7 +960,7 @@ confirmWithOtp(): void {
         this.otpLoading = false;
         
         if (response.resultCode === 0) {
-          // ✅ Afficher le message de succès dans le modal OTP
+          //  Afficher le message de succès dans le modal OTP
           this.alert = {
             show: true,
             variant: 'success',
@@ -986,12 +969,12 @@ confirmWithOtp(): void {
             autoCloseTimeout: null
           };
           
-          // ✅ Fermer le modal OTP après 10 secondes et déconnecter
+          //  Fermer le modal OTP après 10 secondes et déconnecter
           setTimeout(() => {
             this.showOtpModal = false;
             this.clearAlert();
             
-            // ✅ Déconnexion après la fermeture du modal (comme pour l'email)
+            //  Déconnexion après la fermeture du modal 
             setTimeout(() => {
               this.userService.logout();
             }, 500);
@@ -1021,19 +1004,15 @@ confirmWithOtp(): void {
   }
 }
 
-/**
- * Affiche une alerte spécifiquement dans le modal OTP
- */
-/**
- * Affiche une alerte spécifiquement dans le modal OTP
- */
+
+/** Affiche une alerte spécifiquement dans le modal OTP*/
 private showAlertInOtpModal(variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string): void {
-  // ✅ Nettoyer l'ancien timeout s'il existe
+  //  Nettoyer l'ancien timeout s'il existe
   if (this.alert.autoCloseTimeout) {
     clearTimeout(this.alert.autoCloseTimeout);
   }
   
-  // ✅ Afficher l'alerte
+  //  Afficher l'alerte
   this.alert = {
     show: true,
     variant,
@@ -1041,15 +1020,13 @@ private showAlertInOtpModal(variant: 'success' | 'error' | 'warning' | 'info', t
     message,
     autoCloseTimeout: null
   };
-  
-  // ✅ Durée : 10 secondes pour les erreurs ET les succès
-  let duration = 10000; // 10 secondes
+    let duration = 10000; // 10 secondes
   
   this.alert.autoCloseTimeout = setTimeout(() => {
     this.clearAlert();
   }, duration);
 }
-// ✅ Ajouter cette méthode pour réinitialiser l'état OTP
+//  réinitialiser l'état OTP
 private resetOtpState(): void {
   this.showOtpModal = false;
   this.otpCode = '';
@@ -1061,7 +1038,7 @@ private resetOtpState(): void {
 
 closeInfoModal(): void {
   this.isInfoModalOpen = false;
-  this.mapReady = false;  // ✅ Réinitialiser quand on ferme
+  this.mapReady = false;  //  Réinitialiser quand on ferme
   this.clearAlert();
 }
 
@@ -1078,11 +1055,9 @@ removeSelectedImage(): void {
     fileInput.value = '';
   }
 }
-// Ajouter dans le TypeScript
 
 formatBirthDateForDisplay(dateValue: string): string {
   if (!dateValue) return '';
-  
   // Si c'est déjà au format YYYY-MM-DD, convertir en DD/MM/YYYY
   if (dateValue.match(/^\d{4}-\d{2}-\d{2}$/)) {
     const [year, month, day] = dateValue.split('-');
@@ -1093,7 +1068,6 @@ formatBirthDateForDisplay(dateValue: string): string {
 
 onBirthDateTextChange(event: any): void {
   let value = event.target.value;
-  
   // Auto-formatage: ajouter automatiquement les slashs
   let cleaned = value.replace(/\D/g, '');
   if (cleaned.length >= 3 && cleaned.length <= 4) {
@@ -1101,7 +1075,7 @@ onBirthDateTextChange(event: any): void {
   } else if (cleaned.length >= 5) {
     cleaned = cleaned.slice(0, 2) + '/' + cleaned.slice(2, 4) + '/' + cleaned.slice(4, 8);
   }
-  
+
   // Mettre à jour la valeur affichée
   if (cleaned !== value) {
     event.target.value = cleaned;
@@ -1120,7 +1094,7 @@ onBirthDateTextChange(event: any): void {
   this.editForm.get('birthDate')?.updateValueAndValidity();
 }
 
-// Ajouter un validateur pour le format de date
+//  un validateur pour le format de date
 dateFormatValidator(control: AbstractControl): ValidationErrors | null {
   const value = control.value;
   if (!value) return null;
@@ -1138,11 +1112,11 @@ dateFormatValidator(control: AbstractControl): ValidationErrors | null {
   
   return null;
 }
-// Ajouter cette méthode pour ouvrir le calendrier programmatiquement
+// ouvrir le calendrier programmatiquement
 openCalendar(): void {
   const dateInput = document.getElementById('birthDate') as HTMLInputElement;
   if (dateInput) {
-    dateInput.showPicker(); // Fonctionne dans les navigateurs modernes
+    dateInput.showPicker(); 
   }
 }
 
@@ -1158,7 +1132,6 @@ onBirthDateInputChange(event: any): void {
   }
 }
 
-// Modifier le validateur dans initForms pour inclure le format
 formatFileSize(bytes: number): string {
   if (bytes === 0) return '0 Bytes';
   const k = 1024;
@@ -1166,7 +1139,6 @@ formatFileSize(bytes: number): string {
   const i = Math.floor(Math.log(bytes) / Math.log(k));
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
 }
-// profile.component.ts - Modifiez showAlert
 
 showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string): void {
   if (this.alert.autoCloseTimeout) {
@@ -1185,7 +1157,6 @@ showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, mess
    if (variant === 'error') {
     this.scrollToTopOfModal();
   }
-  // ✅ Pour les erreurs, ne pas fermer automatiquement trop vite
   if (variant === 'success' || variant === 'error') {
     this.alert.autoCloseTimeout = setTimeout(() => {
       this.clearAlert();
@@ -1194,9 +1165,7 @@ showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, mess
 }
 
 
-/**
- * Fait défiler le contenu du modal vers le haut
- */
+/** Fait défiler le contenu du modal vers le haut*/
 private scrollToTopOfModal(): void {
   setTimeout(() => {
     // Chercher le conteneur scrollable du modal
@@ -1208,7 +1177,7 @@ private scrollToTopOfModal(): void {
         behavior: 'smooth'
       });
     } else {
-      // Fallback: chercher tout élément scrollable dans le modal
+      //  chercher tout élément scrollable dans le modal
       const scrollableElement = document.querySelector('.rounded-3xl.overflow-y-auto, .max-h-\\[90vh\\]');
       if (scrollableElement) {
         scrollableElement.scrollTo({
@@ -1217,7 +1186,7 @@ private scrollToTopOfModal(): void {
         });
       }
     }
-  }, 100); // Petit délai pour que l'alerte soit d'abord ajoutée au DOM
+  }, 100); 
 }
 
 
@@ -1245,25 +1214,19 @@ private scrollToTopOfModal(): void {
     clearTimeout(this.globalSuccessTimeout);
   }
 }
-// profile.component.ts - Ajoutez cette méthode
 
-// profile.component.ts - Remplacez la méthode scrollToAlertInModal par celle-ci
-
-// profile.component.ts - Version qui scroll au début du contenu
 
 private scrollToAlertInModal(): void {
   setTimeout(() => {
     const modalContainer = document.querySelector('.overflow-y-auto.max-h-\\[90vh\\], .rounded-3xl.overflow-y-auto');
     
     if (modalContainer) {
-      // ✅ Scroller directement en haut du conteneur
       modalContainer.scrollTo({
         top: 0,
         behavior: 'smooth'
       });
     }
     
-    // Ensuite, s'assurer que l'alerte est visible
     const alertElement = document.getElementById('modal-alert');
     if (alertElement) {
       alertElement.scrollIntoView({ 
@@ -1274,7 +1237,6 @@ private scrollToAlertInModal(): void {
     }
   }, 250);
 }
-// Dans le fichier .ts du composant Mon Profil
 getInitials(user: any): string {
   if (user.role === 'Commercant') {
     return user.nom?.charAt(0)?.toUpperCase() || 'M';

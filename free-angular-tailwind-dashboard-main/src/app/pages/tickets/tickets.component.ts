@@ -43,7 +43,6 @@ export class TicketsComponent implements OnInit {
   tickets: any[] = [];
   filteredTickets: any[] = [];
   searchTerm: string = '';
-  // Ajoutez ces propriétés avec les autres déclarations
 showMultiArchiveModal: boolean = false;
 showMultiDeleteModal: boolean = false;
 confirmArchiveTickets: TicketDTO[] = [];
@@ -68,7 +67,7 @@ cachedSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
   showFilters = false;
   tempFilters = {
     priorite: undefined as number | undefined,
-  statut: undefined as number | null | undefined,  // ✅ Modifier ici
+  statut: undefined as number | null | undefined, 
     dateDebut: '',
       dateLimiteStatut: undefined as number | undefined  
 
@@ -111,7 +110,7 @@ ngOnInit(): void {
       this.userRole = user.role;
       this.isAdmin = user.role === 'Admin';
       this.isTechnicien = user.role === 'Technicien';
-      console.log('👤 Rôle utilisateur:', this.userRole);
+      console.log(' Rôle utilisateur:', this.userRole);
       
       this.loadTickets();
       
@@ -122,35 +121,28 @@ ngOnInit(): void {
       }
     },
     error: (err) => {
-      console.error('❌ Erreur récupération rôle:', err);
+      console.error(' Erreur récupération rôle:', err);
       this.error = 'Impossible de récupérer votre profil';
       this.loading = false;
     }
   });
 }
-// Ajoutez ces propriétés avec les autres déclarations
 ticketToArchive: TicketDTO | null = null;
 showArchiveModal: boolean = false;
 archiving: boolean = false;
-// Ajoutez ces méthodes dans votre classe TicketsComponent
 
-/**
- * Ouvre la modale de confirmation d'archivage pour un ticket
- */
+/** Ouvre la modale de confirmation d'archivage pour un ticket*/
 onArchive(ticket: TicketDTO): void {
   this.ticketToArchive = ticket;
   this.showArchiveModal = true;
 }
 
-/**
- * Annule l'archivage
- */
+/** Annule l'archivage*/
 cancelArchive(): void {
   this.showArchiveModal = false;
   this.ticketToArchive = null;
   this.archiving = false;
 }
-// ========== GESTION DE LA SÉLECTION PAR STATUT ==========
 
 /**
  * Vérifie si un ticket peut être sélectionné
@@ -158,12 +150,12 @@ cancelArchive(): void {
  * - Technicien: ne peut sélectionner que les tickets résolus (archivables)
  */
 canSelectTicket(ticket: any): boolean {
-  // ✅ 1. Règle ABSOLUE : les tickets "En cours" ne sont JAMAIS sélectionnables (pour tout le monde)
+  //  1. Règle ABSOLUE : les tickets "En cours" ne sont JAMAIS sélectionnables (pour tout le monde)
   if (ticket.statutTicketLibelle === 'En cours') {
     return false;
   }
   
-  // ✅ 2. Technicien: ne peut sélectionner que les tickets résolus
+  //  2. Technicien: ne peut sélectionner que les tickets résolus
   if (this.isTechnicien) {
     if (this.selectedTickets.size === 0 && this.currentSelectionType === null) {
       return ticket.statutTicketLibelle === 'Résolu';
@@ -174,7 +166,7 @@ canSelectTicket(ticket: any): boolean {
     return false;
   }
   
-  // ✅ 3. Admin: logique de type
+  // 3. Admin: logique de type
   if (this.isAdmin) {
     if (this.selectedTickets.size === 0 && this.currentSelectionType === null) {
       // Les tickets "En cours" sont déjà exclus, donc OK
@@ -203,20 +195,14 @@ canSelectTicket(ticket: any): boolean {
 }
 currentSelectionType: 'archivable' | 'deletable' | null = null;
 
-/**
- * Met à jour les statistiques de la sélection avec le rôle pris en compte
- */
-// Ajoutez cette propriété avec les autres
+/** Met à jour les statistiques de la sélection avec le rôle pris en compte */
 globalSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
-
-// Modifiez updateSelectionStats pour qu'elle ne soit utilisée que pour mettre à jour les stats
-// et non pour afficher le compteur sur le bouton
 updateSelectionStats(): void {
   let archivable = 0;
   let deletable = 0;
   let other = 0;
   
-  // ✅ Calculer les stats pour la page courante
+  //  Calculer les stats pour la page courante
   this.selectedTickets.forEach(id => {
     const ticket = this.tickets.find(t => t.id === id);
     if (ticket) {
@@ -233,14 +219,14 @@ updateSelectionStats(): void {
   this.cachedSelectionStats = { archivable, deletable, other, total: this.selectedTickets.size };
 }
 
-// Ajoutez cette méthode pour calculer les stats globales
+//  calculer les stats globales
 calculateGlobalSelectionStats(): void {
   if (this.selectedTickets.size === 0) {
     this.globalSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
     return;
   }
   
-  // ✅ Utiliser la bonne API selon le rôle
+  //  Utiliser la bonne API selon le rôle
   let request$: Observable<any>;
   
   if (this.isAdmin) {
@@ -270,7 +256,7 @@ calculateGlobalSelectionStats(): void {
   }
   
   request$.subscribe({
-    next: (res: any) => {  // ✅ Ajouter le type 'any'
+    next: (res: any) => {  
       let allTickets: any[] = [];
       if (res.data?.items) {
         allTickets = res.data.items;
@@ -286,7 +272,7 @@ calculateGlobalSelectionStats(): void {
       let deletable = 0;
       let other = 0;
       
-      this.selectedTickets.forEach((id: string) => {  // ✅ Ajouter le type
+      this.selectedTickets.forEach((id: string) => { 
         const ticket = allTickets.find((t: any) => t.id === id);
         if (ticket) {
           if (ticket.statutTicketLibelle === 'Résolu') {
@@ -301,24 +287,21 @@ calculateGlobalSelectionStats(): void {
       
       this.globalSelectionStats = { archivable, deletable, other, total: this.selectedTickets.size };
     },
-    error: (err: any) => {  // ✅ Ajouter le type 'any'
+    error: (err: any) => {  
       console.error('Erreur calcul stats globales:', err);
       this.globalSelectionStats = { ...this.cachedSelectionStats };
     }
   });
 }
-// Dans tickets.component.ts, modifiez la méthode confirmArchive :
-// ========== GESTION DE L'ARCHIVAGE MULTIPLE ==========
 
-/**
- * Ouvre la modale d'archivage multiple
- */
+
+/** Ouvre la modale d'archivage multiple*/
 confirmArchiveMultiple(): void {
   if (this.selectedTickets.size === 0) return;
   
   this.loading = true;
   
-  // ✅ Utiliser la bonne API selon le rôle
+  //  Utiliser la bonne API selon le rôle
   const params: any = {
     page: 1,
     pageSize: this.totalCount,
@@ -327,9 +310,7 @@ confirmArchiveMultiple(): void {
     priorite: this.selectedPriorite ?? null,
     dateDebut: this.tempFilters.dateDebut || null
   };
-  
-  // ✅ Déterminer quelle API utiliser
-  let request$;
+    let request$;
   if (this.isAdmin) {
     request$ = this.ticketService.getTicketsPaged(params);
   } else if (this.isTechnicien) {
@@ -357,7 +338,7 @@ confirmArchiveMultiple(): void {
         allTickets = res.data;
       }
       
-      // ✅ Filtrer pour ne garder que les tickets résolus sélectionnés
+      //  Filtrer pour ne garder que les tickets résolus sélectionnés
       this.confirmArchiveTickets = allTickets.filter((t: TicketDTO) => 
         this.selectedTickets.has(t.id) && 
         t.statutTicketLibelle === 'Résolu'
@@ -370,7 +351,7 @@ confirmArchiveMultiple(): void {
     error: (err: any) => {
       console.error('Erreur chargement tickets pour archivage:', err);
       this.loading = false;
-      // Fallback: utiliser les tickets de la page courante
+      //  utiliser les tickets de la page courante
       this.confirmArchiveTickets = this.tickets.filter((t: any) => 
         this.selectedTickets.has(t.id) && 
         t.statutTicketLibelle === 'Résolu'
@@ -387,9 +368,7 @@ private adjustPageAfterBulkAction(deletedCount: number): void {
     this.currentPage = maxPage;
   }
 }
-/**
- * Exécute l'archivage multiple
- */
+/**Exécute l'archivage multiple*/
 executeMultiArchive(): void {
   if (this.pendingArchiveIds.length === 0) return;
   
@@ -423,7 +402,7 @@ executeMultiArchive(): void {
           this.totalCount = this.tickets.length;
           this.totalPages = Math.ceil(this.totalCount / this.pageSize);
           
-          // ✅ CORRECTION: Réinitialiser la sélection et le type
+          //  Réinitialiser la sélection et le type
           this.selectedTickets.clear();
           this.currentSelectionType = null;
           this.cachedSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
@@ -437,7 +416,7 @@ executeMultiArchive(): void {
             setTimeout(() => this.error = null, 5000);
           }
           
-          // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+          //  AJUSTER LA PAGE SI NÉCESSAIRE
           if (wasLastItemOnPage && currentPageBefore > 1) {
             this.currentPage = currentPageBefore - 1;
           }
@@ -459,9 +438,7 @@ executeMultiArchive(): void {
           this.showMultiArchiveModal = false;
           this.pendingArchiveIds = [];
           this.confirmArchiveTickets = [];
-          
-          // ✅ CORRECTION: Aussi réinitialiser en cas d'erreur partielle
-          this.selectedTickets.clear();
+                    this.selectedTickets.clear();
           this.currentSelectionType = null;
           this.cachedSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
           this.globalSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
@@ -469,7 +446,7 @@ executeMultiArchive(): void {
           this.error = `${successCount}/${total} ticket(s) archivé(s).`;
           setTimeout(() => this.error = null, 5000);
           
-          // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+          //  AJUSTER LA PAGE SI NÉCESSAIRE
           if (wasLastItemOnPage && currentPageBefore > 1) {
             this.currentPage = currentPageBefore - 1;
           }
@@ -486,9 +463,7 @@ executeMultiArchive(): void {
     });
   });
 }
-/**
- * Annule l'archivage multiple
- */
+/** Annule l'archivage multiple*/
 cancelMultiArchive(): void {
   this.showMultiArchiveModal = false;
   this.confirmArchiveTickets = [];
@@ -496,11 +471,8 @@ cancelMultiArchive(): void {
   this.bulkArchiving = false;
 }
 
-// ========== GESTION DE LA SUPPRESSION MULTIPLE ==========
 
-/**
- * Ouvre la modale de suppression multiple (Admin uniquement)
- */
+/** Ouvre la modale de suppression multiple (Admin uniquement)*/
 confirmDeleteMultiple(): void {
   if (this.selectedTickets.size === 0) return;
   
@@ -518,7 +490,7 @@ confirmDeleteMultiple(): void {
   this.ticketService.getTicketsPaged(params).subscribe({
     next: (res) => {
       const allTickets = res.data.items;
-      // ✅ Ne garder que les tickets avec statut "Assigné"
+      //  Ne garder que les tickets avec statut "Assigné"
    this.confirmDeleteTickets = allTickets.filter((t: TicketDTO) => 
   this.selectedTickets.has(t.id) && 
   (t.statutTicketLibelle === 'Assigné' || t.statutTicketLibelle === 'Non assigné')
@@ -540,9 +512,7 @@ confirmDeleteMultiple(): void {
     }
   });
 }
-/**
- * Exécute la suppression multiple (Admin uniquement)
- */
+/** Exécute la suppression multiple (Admin uniquement)*/
 executeMultiDelete(): void {
   if (this.pendingDeleteIds.length === 0) return;
   
@@ -576,7 +546,7 @@ executeMultiDelete(): void {
           this.totalCount = this.tickets.length;
           this.totalPages = Math.ceil(this.totalCount / this.pageSize);
           
-          // ✅ CORRECTION: Réinitialiser la sélection et le type
+          //  Réinitialiser la sélection et le type
           this.selectedTickets.clear();
           this.currentSelectionType = null;
           this.cachedSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
@@ -597,7 +567,7 @@ executeMultiDelete(): void {
             setTimeout(() => this.error = null, 5000);
           }
           
-          // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+          //  AJUSTER LA PAGE SI NÉCESSAIRE
           if (wasLastItemOnPage && currentPageBefore > 1) {
             this.currentPage = currentPageBefore - 1;
           }
@@ -613,9 +583,7 @@ executeMultiDelete(): void {
           this.showMultiDeleteModal = false;
           this.pendingDeleteIds = [];
           this.confirmDeleteTickets = [];
-          
-          // ✅ CORRECTION: Réinitialiser aussi en cas d'erreur
-          this.selectedTickets.clear();
+                    this.selectedTickets.clear();
           this.currentSelectionType = null;
           this.cachedSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
           this.globalSelectionStats = { archivable: 0, deletable: 0, other: 0, total: 0 };
@@ -623,7 +591,7 @@ executeMultiDelete(): void {
           this.error = `${successCount}/${total} ticket(s) supprimé(s).`;
           setTimeout(() => this.error = null, 5000);
           
-          // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+          //  AJUSTER LA PAGE SI NÉCESSAIRE
           if (wasLastItemOnPage && currentPageBefore > 1) {
             this.currentPage = currentPageBefore - 1;
           }
@@ -634,9 +602,7 @@ executeMultiDelete(): void {
     });
   });
 }
-/**
- * Annule la suppression multiple
- */
+/**Annule la suppression multiple */
 cancelMultiDelete(): void {
   this.showMultiDeleteModal = false;
   this.confirmDeleteTickets = [];
@@ -644,9 +610,7 @@ cancelMultiDelete(): void {
   this.bulkDeletingSelected = false;
 }
 
-/**
- * Action principale selon le rôle et la sélection
- */
+/** Action principale selon le rôle et la sélection*/
 onBulkAction(): void {
   this.updateSelectionStats();
   
@@ -683,7 +647,7 @@ confirmArchive(): void {
           this.successMessage = '';
         }, 5000);
         
-        // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+        //  AJUSTER LA PAGE SI NÉCESSAIRE
         if (wasLastItemOnPage && currentPageBefore > 1) {
           this.currentPage = currentPageBefore - 1;
         }
@@ -705,7 +669,7 @@ confirmArchive(): void {
       this.cancelArchive();
     },
     error: (err) => {
-      console.error('❌ Erreur complète:', err);
+      console.error(' Erreur complète:', err);
       let errorMessage = 'Erreur lors de l\'archivage';
       
       if (err.error?.message) {
@@ -729,7 +693,6 @@ confirmArchive(): void {
       this.yearOptions.push((currentYear - i).toString());
     }
   }
-// Dans tickets.component.ts - Ajouter ces propriétés
 
 dashboardStats = {
   overview: {
@@ -751,7 +714,6 @@ dashboardStats = {
 };
 
 loadingDashboard = false;
-// Remplacer les méthodes existantes par celles-ci
 
 formatDateLimite(dateLimite: string | null): string {
   if (!dateLimite || dateLimite === '0001-01-01T00:00:00') {
@@ -764,7 +726,7 @@ formatDateLimite(dateLimite: string | null): string {
   });
 }
 
-// ✅ Nouvelle méthode : évaluer le statut par rapport à la date limite
+//  évaluer le statut par rapport à la date limite
 getDateLimiteStatus(ticket: any): {
   text: string;
   color: string;
@@ -788,14 +750,14 @@ getDateLimiteStatus(ticket: any): {
     const dateCloture = new Date(ticket.dateCloture);
     
     if (dateCloture <= dateLimite) {
-      // ✅ Résolu avant la date limite
+      //  Résolu avant la date limite
       return {
         text: ' Réalisé avant délai',
         color: 'text-green-600 dark:text-green-400',
         icon: 'M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z'
       };
     } else {
-      // ❌ Résolu après la date limite
+      //  Résolu après la date limite
       const daysLate = Math.ceil((dateCloture.getTime() - dateLimite.getTime()) / (1000 * 3600 * 24));
       return {
         text: ` Réalisé après délai (+${daysLate}j)`,
@@ -841,7 +803,7 @@ getDateLimiteStatus(ticket: any): {
   };
 }
 
-// Version simplifiée pour la couleur du texte uniquement (optionnelle)
+// la couleur du texte uniquement 
 getDateLimiteSimpleStatus(ticket: any): { text: string; colorClass: string } {
   const status = this.getDateLimiteStatus(ticket);
   return {
@@ -849,7 +811,6 @@ getDateLimiteSimpleStatus(ticket: any): { text: string; colorClass: string } {
     colorClass: status.color
   };
 }
-// Ajouter dans ngOnInit après le chargement du rôle
 loadDashboardStats(): void {
   if (!this.isAdmin) return;
   
@@ -872,17 +833,14 @@ loadDashboardStats(): void {
 openCalendar(): void {
   const dateInput = document.getElementById('ticketDate') as HTMLInputElement;
   if (dateInput) {
-    dateInput.showPicker(); // Fonctionne dans les navigateurs modernes
+    dateInput.showPicker(); 
   }
 }
-// Appeler dans ngOnInit après loadTickets()
-// Ajouter : this.loadDashboardStats();
-  // Valeur du picker
+
   get ticketDate(): Date | null {
     return this.tempFilters.dateDebut ? new Date(this.tempFilters.dateDebut) : null;
   }
 
- // Remplacer la méthode existante par celle-ci
 onTicketDateChange(event: Event): void {
   const input = event.target as HTMLInputElement;
   const dateValue = input.value;
@@ -954,7 +912,7 @@ applyFilters(): void {
   this.selectedStatut = this.tempFilters.statut;
   this.selectedDate = this.tempFilters.dateDebut
     ? new Date(this.tempFilters.dateDebut) : null;
-  this.selectedDateLimiteStatut = this.tempFilters.dateLimiteStatut; // ✅
+  this.selectedDateLimiteStatut = this.tempFilters.dateLimiteStatut; 
   this.currentPage = 1;
   this.loadTickets();
   this.showFilters = false;
@@ -965,12 +923,12 @@ clearFilters(): void {
     priorite: undefined,
     statut: undefined,
     dateDebut: '',
-    dateLimiteStatut: undefined  // ✅
+    dateLimiteStatut: undefined  
   };
   this.selectedPriorite = undefined;
   this.selectedStatut = undefined;
   this.selectedDate = null;
-  this.selectedDateLimiteStatut = undefined; // ✅
+  this.selectedDateLimiteStatut = undefined; 
   this.searchTerm = '';
   this.currentPage = 1;
   this.loadTickets();
@@ -983,7 +941,7 @@ cancelFilters(): void {
     priorite: this.selectedPriorite,
     statut: this.selectedStatut === undefined ? undefined : this.selectedStatut,
     dateDebut: this.selectedDate ? this.formatDateForInput(this.selectedDate) : '',
-    dateLimiteStatut: this.selectedDateLimiteStatut // ✅
+    dateLimiteStatut: this.selectedDateLimiteStatut 
   };
 }
 
@@ -991,7 +949,7 @@ cancelFilters(): void {
     if (this.searchTimeout) clearTimeout(this.searchTimeout);
     
     this.searchTimeout = setTimeout(() => {
-      console.log('🔍 Recherche lancée pour:', this.searchTerm);
+      console.log(' Recherche lancée pour:', this.searchTerm);
       this.currentPage = 1;
       this.loadTickets();
     }, 400);
@@ -1004,7 +962,7 @@ cancelFilters(): void {
    */
 loadTickets() {
   if (!this.userRole) {
-    console.log('⏳ En attente du chargement du rôle...');
+    console.log(' En attente du chargement du rôle...');
     return;
   }
 
@@ -1017,10 +975,6 @@ loadTickets() {
 
   // ADMIN: voir tous les tickets
 if (this.isAdmin) {
-  console.log('👑 === ADMIN LOAD TICKETS ===');
-  console.log('📌 selectedStatut valeur:', this.selectedStatut);
-  console.log('📌 selectedStatut === null:', this.selectedStatut === null);
-  console.log('📌 selectedStatut === undefined:', this.selectedStatut === undefined);
   
   const request = {
     page: this.currentPage,
@@ -1035,8 +989,8 @@ if (this.isAdmin) {
     sortDescending: true
   };
   
-  console.log('📦 REQUEST envoyée au backend:', JSON.stringify(request, null, 2));
-  console.log('📦 Paramètres URL:', {
+  console.log(' REQUEST envoyée au backend:', JSON.stringify(request, null, 2));
+  console.log(' Paramètres URL:', {
     nonAssigne: request.nonAssigne,
     statut: request.statut
   });
@@ -1050,23 +1004,21 @@ if (this.isAdmin) {
         this.totalPages = paged.totalPages;
         this.currentPage = paged.page;
         
-        // ✅ RESTAURER TOUTES les sélections (ne pas filtrer par la page courante)
-        // On garde toutes les sélections, même celles qui ne sont pas dans la page courante
-        // Car elles seront utilisées pour l'action globale
+        //  RESTAURER TOUTES les sélections (ne pas filtrer par la page courante)
         this.selectedTickets.clear();
         previousSelectedIds.forEach(id => this.selectedTickets.add(id));
         this.currentSelectionType = previousSelectionType;
         
         // Mettre à jour les stats
         this.updateSelectionStats();
-          this.calculateGlobalSelectionStats(); // ✅ Ajouter cette ligne
+          this.calculateGlobalSelectionStats(); 
 
-        console.log(`✅ ${this.tickets.length} tickets chargés pour l'admin`);
-        console.log(`📌 ${this.selectedTickets.size} tickets sélectionnés au total`);
+        console.log(` ${this.tickets.length} tickets chargés pour l'admin`);
+        console.log(` ${this.selectedTickets.size} tickets sélectionnés au total`);
         this.loading = false;
       },
       error: (err) => {
-        console.error("❌ Erreur:", err);
+        console.error(" Erreur:", err);
         this.error = "Impossible de charger les tickets";
         this.loading = false;
       }
@@ -1074,7 +1026,7 @@ if (this.isAdmin) {
   }
   
 else if (this.isTechnicien) {
-  console.log('🔧 Technicien: Chargement de mes tickets assignés avec pagination');
+  console.log(' Technicien: Chargement de mes tickets assignés avec pagination');
   
   const request = {
     page: this.currentPage,
@@ -1102,7 +1054,7 @@ else if (this.isTechnicien) {
         this.totalPages = 1;
       }
       
-      // ✅ RESTAURER TOUTES les sélections
+      //  RESTAURER TOUTES les sélections
       this.selectedTickets.clear();
       previousSelectedIds.forEach(id => {
         // Vérifier si le ticket existe encore (non archivé/supprimé)
@@ -1116,12 +1068,12 @@ else if (this.isTechnicien) {
       this.updateSelectionStats();
       this.calculateGlobalSelectionStats();
       
-      console.log(`✅ ${this.tickets.length} tickets assignés chargés pour le technicien`);
-      console.log(`📌 ${this.selectedTickets.size} tickets sélectionnés au total`);
+      console.log(` ${this.tickets.length} tickets assignés chargés pour le technicien`);
+      console.log(` ${this.selectedTickets.size} tickets sélectionnés au total`);
       this.loading = false;
     },
     error: (err) => {
-      console.error("❌ Erreur chargement tickets assignés:", err);
+      console.error(" Erreur chargement tickets assignés:", err);
       this.error = "Impossible de charger vos tickets assignés";
       this.loading = false;
     }
@@ -1131,15 +1083,14 @@ else if (this.isTechnicien) {
 formatDateForInput(date: Date): string {
   return date.toISOString().split('T')[0];
 }
- // ========== GESTION DE LA SÉLECTION MULTIPLE ==========
 
 toggleSelection(ticketId: string, checked: boolean, ticket?: any): void {
-  console.log('🖱️ toggleSelection appelé:', { ticketId, checked, selectedBefore: this.selectedTickets.size });
+  console.log(' toggleSelection appelé:', { ticketId, checked, selectedBefore: this.selectedTickets.size });
   
   const ticketObj = ticket || this.tickets.find(t => t.id === ticketId);
   if (!ticketObj) return;
   
-  // ✅ Pour le technicien, ne permettre que la sélection de tickets résolus
+  //  Pour le technicien, ne permettre que la sélection de tickets résolus
   if (this.isTechnicien && ticketObj.statutTicketLibelle !== 'Résolu') {
     this.showAlert('warning', 'Sélection impossible', 'En tant que technicien, vous ne pouvez sélectionner que des tickets résolus pour les archiver.');
     return;
@@ -1157,17 +1108,17 @@ toggleSelection(ticketId: string, checked: boolean, ticket?: any): void {
     if (this.selectedTickets.size === 0 && this.currentSelectionType === null) {
       const isArchivable = ticketObj.statutTicketLibelle === 'Résolu';
       this.currentSelectionType = isArchivable ? 'archivable' : 'deletable';
-      console.log('🎯 Type de sélection défini:', this.currentSelectionType);
+      console.log(' Type de sélection défini:', this.currentSelectionType);
     }
     this.selectedTickets.add(ticketId);
-    console.log('✅ Ticket ajouté:', ticketId, 'Total:', this.selectedTickets.size);
+    console.log(' Ticket ajouté:', ticketId, 'Total:', this.selectedTickets.size);
   } else {
     this.selectedTickets.delete(ticketId);
-    console.log('❌ Ticket retiré:', ticketId, 'Total:', this.selectedTickets.size);
+    console.log(' Ticket retiré:', ticketId, 'Total:', this.selectedTickets.size);
     
     if (this.selectedTickets.size === 0) {
       this.currentSelectionType = null;
-      console.log('🔄 Type de sélection réinitialisé');
+      console.log(' Type de sélection réinitialisé');
     }
   }
   
@@ -1212,7 +1163,7 @@ toggleAllSelection(checked: boolean): void {
   }
   
   this.updateSelectionStats();
-  // ✅ Recalculer les stats globales
+  //  Recalculer les stats globales
   this.calculateGlobalSelectionStats();
 }
 isSelected(ticketId: string): boolean {
@@ -1226,7 +1177,6 @@ isAllSelected(): boolean {
 isIndeterminate(): boolean {
   return this.selectedTickets.size > 0 && this.selectedTickets.size < this.tickets.length;
 }
-  // ========== GESTION DE LA SUPPRESSION ==========
 
   deleteTicket(ticket: TicketDTO) {
     this.confirmTicket = ticket;
@@ -1252,7 +1202,6 @@ deleteSelectedTickets(): void {
     this.showAlert('info', 'Aucune action', 'Aucun ticket sélectionné ne peut être supprimé ou archivé.');
   }
 }
-// Ajouter avec les autres propriétés
 selectedDateLimiteStatut?: number;
 dateLimiteStatutOptions = [
   { value: 1, label: 'Expiré (date limite dépassée)' },
@@ -1277,7 +1226,7 @@ confirmDelete() {
           this.selectedTickets.delete(this.confirmTicket!.id);
           this.confirmTicket = null;
           
-          // ✅ AJUSTER LA PAGE SI NÉCESSAIRE
+          //  AJUSTER LA PAGE SI NÉCESSAIRE
           if (wasLastItemOnPage && currentPageBefore > 1) {
             this.currentPage = currentPageBefore - 1;
           }
@@ -1289,7 +1238,7 @@ confirmDelete() {
         }
       },
       error: (err) => {
-        console.error('❌ Erreur:', err);
+        console.error(' Erreur:', err);
         const errorMessage = err.error?.message || err.message || 'Erreur inconnue';
         this.showAlert('error', 'Erreur', `Impossible de supprimer le ticket: ${errorMessage}`);
         this.confirmTicket = null;
@@ -1303,7 +1252,6 @@ confirmDelete() {
     this.ticketsToDelete = null;
   }
 
-// Dans tickets.component.ts, modifiez la méthode showAlert
 
 showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, message: string) {
   if (variant === 'success') {
@@ -1319,7 +1267,6 @@ showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, mess
   } else if (variant === 'warning') {
     // Pour les avertissements, on peut utiliser l'alerte ou un toast
     console.warn(message);
-    // Optionnel : afficher une alerte temporaire aussi
     this.error = message;
     setTimeout(() => {
       if (this.error === message) {
@@ -1329,7 +1276,6 @@ showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, mess
   }
 }
 
-  // ========== PAGINATION ==========
 
   onPageChange(page: number): void {
     if (page >= 1 && page <= this.totalPages) {
@@ -1372,7 +1318,6 @@ showAlert(variant: 'success' | 'error' | 'warning' | 'info', title: string, mess
   }
 
   // ========== COULEURS DES BADGES ==========
-
 getStatusBadgeColor(status: string): BadgeColor {
   switch (status) {
     case 'Non assigné':
